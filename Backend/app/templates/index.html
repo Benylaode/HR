@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Resume Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+
+    <h1>Resume Matcher System</h1>
+
+    <div class="card">
+        <h2>Upload Resume (PDF)</h2>
+        <input type="file" id="resumeFile"><br><br>
+        <button onclick="uploadResume()">Upload</button>
+        <pre id="uploadStatus"></pre>
+    </div>
+
+    <div class="card">
+        <h2>Available Resumes</h2>
+        <button onclick="loadResumes()">Load Resumes</button>
+        <ul id="resumeList"></ul>
+    </div>
+
+    <div class="card">
+        <h2>Match Resume With Job Description</h2>
+
+        <label>Resume ID:</label>
+        <input type="text" id="resumeId">
+
+        <label>Job Description:</label>
+        <textarea id="jobDesc" rows="5"></textarea>
+
+        <button onclick="matchResume()">Run Matching</button>
+    </div>
+
+    <div class="card">
+        <h2>Result</h2>
+        <pre id="result-box">Result will appear here...</pre>
+    </div>
+
+    <div class="card">
+        <h2>Extract Name From Resume</h2>
+
+        <label>Resume ID:</label>
+        <input type="text" id="extractResumeId">
+
+        <button onclick="extractName()">Extract</button>
+
+        <pre id="extractResult">Name will appear here...</pre>
+    </div>
+
+    <div class="card">
+        <h2>Resume Leaderboard</h2>
+        <button onclick="loadLeaderboard()">Load Leaderboard</button>
+        <pre id="leaderboardBox">Leaderboard will appear here...</pre>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+</body>
+</html>
