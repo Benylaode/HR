@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Posisi - HR Recruitment System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
+    <style>
+        /* Professional Corporate Design */
+        .card-sharp {
+            border-radius: 0px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-sharp {
+            border-radius: 0px;
+        }
+        
+        .input-sharp {
+            border-radius: 0px;
+        }
+        
+        /* Remove all rounded corners */
+        * {
+            border-radius: 0 !important;
+        }
+        
+        /* Professional Color Scheme */
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #64748b;
+            --accent: #0ea5e9;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+        
+        .bg-primary { background-color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        
+        .transition-all { transition: all 0.2s ease-in-out; }
+        
+        /* Table styles */
+        .data-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .data-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .data-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active { background-color: #d1fae5; color: #065f46; }
+        .status-draft { background-color: #fef3c7; color: #92400e; }
+        .status-closed { background-color: #fee2e2; color: #dc2626; }
+        .status-paused { background-color: #e0e7ff; color: #3730a3; }
+        
+        /* Priority badges */
+        .priority-high { background-color: #fee2e2; color: #dc2626; }
+        .priority-medium { background-color: #fef3c7; color: #92400e; }
+        .priority-low { background-color: #d1fae5; color: #065f46; }
+        
+        /* Filter panel */
+        .filter-panel {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+        }
+        
+        /* Action buttons */
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        /* Standard Navbar Styles */
+        .nav-item {
+            color: #64748b;
+            border-radius: 0px;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            background-color: #f8fafc;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+
+        .mobile-nav-item {
+            color: #64748b;
+            border-radius: 0px;
+        }
+
+        .mobile-nav-item:hover {
+            color: var(--primary);
+            background-color: #f8fafc;
+        }
+
+        .mobile-nav-item.active {
+            color: var(--primary);
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+
+        /* Job card styles */
+        .job-card {
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .job-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .requirement-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .requirement-tag {
+            background: #eff6ff;
+            color: #1e40af;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <!-- Standard HR Navbar Component -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo & Navigation -->
+                <div class="flex items-center space-x-8">
+                    <!-- Logo -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-primary flex items-center justify-center">
+                            <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-bold text-slate-900">HR Recruitment System</h1>
+                            <p class="text-xs text-slate-500">Manajemen Posisi</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Menu -->
+                    <nav class="hidden md:flex items-center space-x-1">
+                        <a href="/" class="nav-item flex items-center space-x-2 px-3 py-2 text-sm font-medium transition-colors">
+                            <i data-lucide="home" class="w-4 h-4"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="/candidates" class="nav-item flex items-center space-x-2 px-3 py-2 text-sm font-medium transition-colors">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                            <span>Kandidat</span>
+                        </a>
+                        <a href="/jobs" class="nav-item active flex items-center space-x-2 px-3 py-2 text-sm font-medium transition-colors">
+                            <i data-lucide="briefcase" class="w-4 h-4"></i>
+                            <span>Posisi</span>
+                        </a>
+                        <a href="/reports" class="nav-item flex items-center space-x-2 px-3 py-2 text-sm font-medium transition-colors">
+                            <i data-lucide="chart-bar" class="w-4 h-4"></i>
+                            <span>Laporan</span>
+                        </a>
+                        <a href="/apply" class="nav-item flex items-center space-x-2 px-3 py-2 text-sm font-medium transition-colors">
+                            <i data-lucide="file-plus" class="w-4 h-4"></i>
+                            <span>Form Apply</span>
+                        </a>
+                    </nav>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 text-slate-600 hover:text-primary" onclick="toggleMobileMenu()">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <!-- User Profile & Actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications -->
+                    <button class="p-2 text-slate-600 hover:text-primary transition-colors relative">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center font-bold" style="border-radius: 0;">3</span>
+                    </button>
+                    
+                    <!-- User Profile -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-slate-600 flex items-center justify-center">
+                            <span class="text-white text-sm font-semibold">H</span>
+                        </div>
+                        <div class="hidden sm:block text-sm">
+                            <div class="font-medium text-slate-900">HR Manager</div>
+                            <div class="text-slate-500 text-xs">hr@company.com</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Logout Button -->
+                    <button onclick="logout()" class="btn-sharp px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 transition-all text-sm">
+                        <i data-lucide="log-out" class="w-4 h-4 mr-1 inline"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="md:hidden border-t border-slate-200 bg-white hidden">
+            <div class="px-6 py-4 space-y-2">
+                <a href="/" class="mobile-nav-item flex items-center space-x-3 px-3 py-2 text-sm font-medium">
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/candidates" class="mobile-nav-item flex items-center space-x-3 px-3 py-2 text-sm font-medium">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Kandidat</span>
+                </a>
+                <a href="/jobs" class="mobile-nav-item active flex items-center space-x-3 px-3 py-2 text-sm font-medium">
+                    <i data-lucide="briefcase" class="w-4 h-4"></i>
+                    <span>Posisi</span>
+                </a>
+                <a href="/reports" class="mobile-nav-item flex items-center space-x-3 px-3 py-2 text-sm font-medium">
+                    <i data-lucide="chart-bar" class="w-4 h-4"></i>
+                    <span>Laporan</span>
+                </a>
+                <a href="/apply" class="mobile-nav-item flex items-center space-x-3 px-3 py-2 text-sm font-medium">
+                    <i data-lucide="file-plus" class="w-4 h-4"></i>
+                    <span>Form Apply</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-8 px-6">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900">Manajemen Posisi</h2>
+                    <p class="text-slate-600 mt-2">Kelola lowongan pekerjaan dan requirement kandidat</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showJobForm()" class="btn-sharp bg-primary hover:bg-blue-800 text-white px-6 py-2 font-medium transition-all">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2 inline"></i>Tambah Posisi
+                    </button>
+                    <button onclick="exportJobs()" class="btn-sharp bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-medium transition-all">
+                        <i data-lucide="download" class="w-4 h-4 mr-2 inline"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white card-sharp border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-slate-600">Total Posisi</h3>
+                    <div class="w-10 h-10 bg-blue-100 flex items-center justify-center">
+                        <i data-lucide="briefcase" class="w-5 h-5 text-primary"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-slate-900 mb-2" id="totalJobs">-</div>
+                <div class="text-sm text-green-600">+3 posisi baru</div>
+            </div>
+
+            <div class="bg-white card-sharp border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-slate-600">Aktif</h3>
+                    <div class="w-10 h-10 bg-green-100 flex items-center justify-center">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-slate-900 mb-2" id="activeJobs">-</div>
+                <div class="text-sm text-slate-600">Sedang berjalan</div>
+            </div>
+
+            <div class="bg-white card-sharp border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-slate-600">Draft</h3>
+                    <div class="w-10 h-10 bg-yellow-100 flex items-center justify-center">
+                        <i data-lucide="edit" class="w-5 h-5 text-yellow-600"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-slate-900 mb-2" id="draftJobs">-</div>
+                <div class="text-sm text-slate-600">Perlu review</div>
+            </div>
+
+            <div class="bg-white card-sharp border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-slate-600">Aplikasi</h3>
+                    <div class="w-10 h-10 bg-purple-100 flex items-center justify-center">
+                        <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold text-slate-900 mb-2" id="totalApplications">-</div>
+                <div class="text-sm text-green-600">+45% minggu ini</div>
+            </div>
+        </div>
+
+        <!-- Filter and Search Panel -->
+        <div class="filter-panel card-sharp mb-6">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Cari Posisi</label>
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Nama posisi, department..."
+                               class="input-sharp w-full pl-10 pr-4 py-2 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                               onkeyup="filterJobs()">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                    <select id="statusFilter" class="input-sharp w-full px-4 py-2 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            onchange="filterJobs()">
+                        <option value="">Semua Status</option>
+                        <option value="active">Aktif</option>
+                        <option value="draft">Draft</option>
+                        <option value="closed">Closed</option>
+                        <option value="paused">Paused</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Department</label>
+                    <select id="departmentFilter" class="input-sharp w-full px-4 py-2 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            onchange="filterJobs()">
+                        <option value="">Semua Department</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Sales">Sales</option>
+                        <option value="HR">HR</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Level</label>
+                    <select id="levelFilter" class="input-sharp w-full px-4 py-2 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            onchange="filterJobs()">
+                        <option value="">Semua Level</option>
+                        <option value="Entry Level">Entry Level</option>
+                        <option value="Mid Level">Mid Level</option>
+                        <option value="Senior Level">Senior Level</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Director">Director</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Priority</label>
+                    <select id="priorityFilter" class="input-sharp w-full px-4 py-2 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            onchange="filterJobs()">
+                        <option value="">Semua Priority</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-slate-600">
+                    Total: <span id="totalJobsCount" class="font-semibold">0</span> posisi
+                </div>
+                <button onclick="resetFilters()" class="text-primary hover:text-blue-800 text-sm font-medium">
+                    <i data-lucide="x" class="w-4 h-4 inline mr-1"></i>Reset Filter
+                </button>
+            </div>
+        </div>
+
+        <!-- Jobs Table -->
+        <div class="bg-white card-sharp border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" class="mr-2">
+                                Posisi
+                            </th>
+                            <th>Department</th>
+                            <th>Level</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Aplikasi</th>
+                            <th>Tanggal</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobsTableBody">
+                        <!-- Jobs will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-12">
+                <i data-lucide="loader-2" class="w-8 h-8 text-slate-400 animate-spin mx-auto mb-4"></i>
+                <p class="text-slate-600">Memuat data posisi...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-12 hidden">
+                <i data-lucide="briefcase" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i>
+                <h3 class="text-lg font-medium text-slate-900 mb-2">Belum ada posisi</h3>
+                <p class="text-slate-600">Posisi yang dibuat akan muncul di sini</p>
+                <button onclick="showJobForm()" class="btn-sharp bg-primary hover:bg-blue-800 text-white px-6 py-3 font-medium transition-all mt-4">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2 inline"></i>Tambah Posisi Pertama
+                </button>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6 flex items-center justify-between">
+            <div class="text-sm text-slate-600">
+                Menampilkan <span id="showingFrom">1</span> - <span id="showingTo">10</span> dari <span id="totalResults">0</span> results
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="previousPage()" id="prevBtn" class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 font-medium transition-all disabled:opacity-50" disabled>
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <span class="px-4 py-2 text-sm text-slate-600">
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+                </span>
+                <button onclick="nextPage()" id="nextBtn" class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 font-medium transition-all disabled:opacity-50" disabled>
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Job Form Modal -->
+    <div id="jobFormModal" class="modal-overlay hidden">
+        <div class="modal-content card-sharp">
+            <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-slate-900" id="jobFormTitle">Tambah Posisi Baru</h3>
+                <button onclick="closeJobForm()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form id="jobForm" class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Basic Info -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Nama Posisi *</label>
+                        <input type="text" id="jobTitle" name="title" required
+                               class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                               placeholder="Contoh: Senior Software Engineer">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Department *</label>
+                        <select id="jobDepartment" name="department" required
+                                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="">Pilih department</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Sales">Sales</option>
+                            <option value="HR">HR</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Operations">Operations</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Level *</label>
+                        <select id="jobLevel" name="level" required
+                                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="">Pilih level</option>
+                            <option value="Entry Level">Entry Level</option>
+                            <option value="Mid Level">Mid Level</option>
+                            <option value="Senior Level">Senior Level</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Director">Director</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Employment Type *</label>
+                        <select id="jobType" name="type" required
+                                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="">Pilih tipe</option>
+                            <option value="Full Time">Full Time</option>
+                            <option value="Part Time">Part Time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Internship">Internship</option>
+                            <option value="Remote">Remote</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Location *</label>
+                        <input type="text" id="jobLocation" name="location" required
+                               class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                               placeholder="Contoh: Jakarta, Indonesia">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Priority</label>
+                        <select id="jobPriority" name="priority"
+                                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Salary Range -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Salary Range</label>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <input type="number" id="salaryMin" name="salaryMin"
+                               class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                               placeholder="Minimum">
+                        <input type="number" id="salaryMax" name="salaryMax"
+                               class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                               placeholder="Maximum">
+                        <select id="salaryCurrency" name="salaryCurrency"
+                                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                            <option value="IDR">IDR</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Deskripsi Pekerjaan *</label>
+                    <textarea id="jobDescription" name="description" required rows="4"
+                              class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                              placeholder="Jelaskan tanggung jawab dan tugas utama posisi ini..."></textarea>
+                </div>
+                
+                <!-- Requirements -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Requirements *</label>
+                    <textarea id="jobRequirements" name="requirements" required rows="4"
+                              class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                              placeholder="Sebutkan kualifikasi yang dibutuhkan (pisahkan dengan enter)..."></textarea>
+                </div>
+                
+                <!-- Skills -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Required Skills</label>
+                    <input type="text" id="jobSkills" name="skills"
+                           class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                           placeholder="Contoh: JavaScript, React, Node.js (pisahkan dengan koma)">
+                </div>
+                
+                <!-- Status -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                    <select id="jobStatus" name="status"
+                            class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="draft">Draft</option>
+                        <option value="active">Active</option>
+                        <option value="paused">Paused</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" onclick="closeJobForm()" class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-3 font-medium transition-all">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-sharp bg-primary hover:bg-blue-800 text-white px-6 py-3 font-medium transition-all">
+                        <i data-lucide="save" class="w-4 h-4 mr-2 inline"></i>Simpan Posisi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3011/api';
+        
+        let allJobs = [];
+        let filteredJobs = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let selectedJobs = [];
+        let editingJobId = null;
+
+        // Navbar functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        function logout() {
+            if (confirm('Yakin ingin logout?')) {
+                localStorage.removeItem('hr_token');
+                localStorage.removeItem('hr_user');
+                window.location.href = '/';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            loadJobs();
+            setupJobForm();
+        });
+
+        // Load jobs data
+        async function loadJobs() {
+            try {
+                const response = await fetch(`${API_BASE}/jobs`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allJobs = data.jobs || [];
+                } else {
+                    // Use sample data if API fails
+                    allJobs = generateSampleJobs();
+                }
+                
+                filteredJobs = [...allJobs];
+                renderJobsTable();
+                updatePagination();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                allJobs = generateSampleJobs();
+                filteredJobs = [...allJobs];
+                renderJobsTable();
+                updatePagination();
+                updateStats();
+            }
+        }
+
+        // Generate sample jobs data
+        function generateSampleJobs() {
+            return [
+                {
+                    id: 'job-001',
+                    title: 'Senior Software Engineer',
+                    department: 'Engineering',
+                    level: 'Senior Level',
+                    type: 'Full Time',
+                    location: 'Jakarta, Indonesia',
+                    status: 'active',
+                    priority: 'high',
+                    applications: 25,
+                    createdAt: new Date('2024-12-01'),
+                    salaryRange: { min: 15000000, max: 25000000, currency: 'IDR' },
+                    description: 'Mengembangkan aplikasi web dan mobile dengan teknologi modern.',
+                    requirements: ['S1 Teknik Informatika', 'Pengalaman 5+ tahun', 'Menguasai JavaScript/React'],
+                    skills: ['JavaScript', 'React', 'Node.js', 'PostgreSQL']
+                },
+                {
+                    id: 'job-002',
+                    title: 'Marketing Manager',
+                    department: 'Marketing',
+                    level: 'Manager',
+                    type: 'Full Time',
+                    location: 'Jakarta, Indonesia',
+                    status: 'active',
+                    priority: 'medium',
+                    applications: 18,
+                    createdAt: new Date('2024-11-28'),
+                    salaryRange: { min: 12000000, max: 18000000, currency: 'IDR' },
+                    description: 'Memimpin tim marketing dan mengembangkan strategi pemasaran.',
+                    requirements: ['S1 Marketing/Komunikasi', 'Pengalaman 4+ tahun', 'Leadership skills'],
+                    skills: ['Digital Marketing', 'Social Media', 'Analytics', 'Campaign Management']
+                },
+                {
+                    id: 'job-003',
+                    title: 'UI/UX Designer',
+                    department: 'Engineering',
+                    level: 'Mid Level',
+                    type: 'Full Time',
+                    location: 'Jakarta, Indonesia',
+                    status: 'draft',
+                    priority: 'medium',
+                    applications: 0,
+                    createdAt: new Date('2024-12-15'),
+                    salaryRange: { min: 8000000, max: 14000000, currency: 'IDR' },
+                    description: 'Mendesain interface dan user experience untuk produk digital.',
+                    requirements: ['S1 Desain/DKV', 'Pengalaman 2+ tahun', 'Portfolio yang kuat'],
+                    skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research']
+                },
+                {
+                    id: 'job-004',
+                    title: 'HR Specialist',
+                    department: 'HR',
+                    level: 'Mid Level',
+                    type: 'Full Time',
+                    location: 'Jakarta, Indonesia',
+                    status: 'paused',
+                    priority: 'low',
+                    applications: 12,
+                    createdAt: new Date('2024-11-20'),
+                    salaryRange: { min: 7000000, max: 12000000, currency: 'IDR' },
+                    description: 'Mengelola proses rekrutmen dan pengembangan karyawan.',
+                    requirements: ['S1 Psikologi/Manajemen', 'Pengalaman 3+ tahun', 'Sertifikat HR'],
+                    skills: ['Recruitment', 'Training', 'Performance Management', 'HRIS']
+                },
+                {
+                    id: 'job-005',
+                    title: 'Data Analyst',
+                    department: 'Engineering',
+                    level: 'Entry Level',
+                    type: 'Full Time',
+                    location: 'Jakarta, Indonesia',
+                    status: 'active',
+                    priority: 'high',
+                    applications: 35,
+                    createdAt: new Date('2024-12-10'),
+                    salaryRange: { min: 6000000, max: 10000000, currency: 'IDR' },
+                    description: 'Menganalisis data bisnis dan membuat insight untuk decision making.',
+                    requirements: ['S1 Statistik/Matematika', 'Fresh graduate welcome', 'Analytical thinking'],
+                    skills: ['SQL', 'Python', 'Excel', 'Tableau', 'Statistics']
+                }
+            ];
+        }
+
+        // Render jobs table
+        function renderJobsTable() {
+            const tableBody = document.getElementById('jobsTableBody');
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            
+            loadingState.classList.add('hidden');
+            
+            if (filteredJobs.length === 0) {
+                emptyState.classList.remove('hidden');
+                tableBody.innerHTML = '';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredJobs.slice(startIndex, endIndex);
+            
+            tableBody.innerHTML = pageData.map(job => `
+                <tr class="hover:bg-slate-50">
+                    <td>
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" value="${job.id}" onchange="toggleJobSelection('${job.id}')" class="job-checkbox">
+                            <div>
+                                <div class="font-semibold text-slate-900">${job.title}</div>
+                                <div class="text-sm text-slate-600">${job.type} • ${job.location}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="font-medium text-slate-900">${job.department}</div>
+                    </td>
+                    <td>
+                        <span class="text-sm font-medium text-slate-700">${job.level}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${getStatusClass(job.status)}">
+                            ${getStatusText(job.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${getPriorityClass(job.priority)}">
+                            ${job.priority.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="font-semibold text-lg text-primary">${job.applications}</div>
+                        <div class="text-xs text-slate-500">aplikasi</div>
+                    </td>
+                    <td>
+                        <div class="text-sm text-slate-900">${formatDate(job.createdAt)}</div>
+                        <div class="text-xs text-slate-600">${getTimeAgo(job.createdAt)}</div>
+                    </td>
+                    <td>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="viewJob('${job.id}')" class="action-btn bg-blue-50 text-blue-700 hover:bg-blue-100" title="View">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="editJob('${job.id}')" class="action-btn bg-green-50 text-green-700 hover:bg-green-100" title="Edit">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="duplicateJob('${job.id}')" class="action-btn bg-purple-50 text-purple-700 hover:bg-purple-100" title="Duplicate">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="toggleJobStatus('${job.id}')" class="action-btn ${job.status === 'active' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}" title="${job.status === 'active' ? 'Pause' : 'Activate'}">
+                                <i data-lucide="${job.status === 'active' ? 'pause' : 'play'}" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteJob('${job.id}')" class="action-btn bg-red-50 text-red-700 hover:bg-red-100" title="Delete">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Update totals
+            document.getElementById('totalJobsCount').textContent = filteredJobs.length;
+            document.getElementById('showingFrom').textContent = startIndex + 1;
+            document.getElementById('showingTo').textContent = Math.min(endIndex, filteredJobs.length);
+            document.getElementById('totalResults').textContent = filteredJobs.length;
+            
+            lucide.createIcons();
+        }
+
+        // Update stats
+        function updateStats() {
+            const stats = {
+                total: allJobs.length,
+                active: allJobs.filter(j => j.status === 'active').length,
+                draft: allJobs.filter(j => j.status === 'draft').length,
+                applications: allJobs.reduce((sum, j) => sum + j.applications, 0)
+            };
+            
+            document.getElementById('totalJobs').textContent = stats.total;
+            document.getElementById('activeJobs').textContent = stats.active;
+            document.getElementById('draftJobs').textContent = stats.draft;
+            document.getElementById('totalApplications').textContent = stats.applications;
+        }
+
+        // Filter jobs
+        function filterJobs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const levelFilter = document.getElementById('levelFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            
+            filteredJobs = allJobs.filter(job => {
+                const matchesSearch = !searchTerm || 
+                    job.title.toLowerCase().includes(searchTerm) ||
+                    job.department.toLowerCase().includes(searchTerm) ||
+                    job.location.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || job.status === statusFilter;
+                const matchesDepartment = !departmentFilter || job.department === departmentFilter;
+                const matchesLevel = !levelFilter || job.level === levelFilter;
+                const matchesPriority = !priorityFilter || job.priority === priorityFilter;
+                
+                return matchesSearch && matchesStatus && matchesDepartment && matchesLevel && matchesPriority;
+            });
+            
+            currentPage = 1;
+            renderJobsTable();
+            updatePagination();
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('departmentFilter').value = '';
+            document.getElementById('levelFilter').value = '';
+            document.getElementById('priorityFilter').value = '';
+            
+            filteredJobs = [...allJobs];
+            currentPage = 1;
+            renderJobsTable();
+            updatePagination();
+        }
+
+        // Job form functions
+        function showJobForm(jobId = null) {
+            editingJobId = jobId;
+            const modal = document.getElementById('jobFormModal');
+            const title = document.getElementById('jobFormTitle');
+            const form = document.getElementById('jobForm');
+            
+            if (jobId) {
+                title.textContent = 'Edit Posisi';
+                const job = allJobs.find(j => j.id === jobId);
+                if (job) {
+                    populateJobForm(job);
+                }
+            } else {
+                title.textContent = 'Tambah Posisi Baru';
+                form.reset();
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function populateJobForm(job) {
+            document.getElementById('jobTitle').value = job.title;
+            document.getElementById('jobDepartment').value = job.department;
+            document.getElementById('jobLevel').value = job.level;
+            document.getElementById('jobType').value = job.type;
+            document.getElementById('jobLocation').value = job.location;
+            document.getElementById('jobPriority').value = job.priority;
+            document.getElementById('jobStatus').value = job.status;
+            document.getElementById('jobDescription').value = job.description;
+            document.getElementById('jobRequirements').value = job.requirements.join('\n');
+            document.getElementById('jobSkills').value = job.skills.join(', ');
+            
+            if (job.salaryRange) {
+                document.getElementById('salaryMin').value = job.salaryRange.min;
+                document.getElementById('salaryMax').value = job.salaryRange.max;
+                document.getElementById('salaryCurrency').value = job.salaryRange.currency;
+            }
+        }
+
+        function closeJobForm() {
+            document.getElementById('jobFormModal').classList.add('hidden');
+            document.getElementById('jobForm').reset();
+            editingJobId = null;
+        }
+
+        function setupJobForm() {
+            document.getElementById('jobForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const jobData = {
+                    title: formData.get('title'),
+                    department: formData.get('department'),
+                    level: formData.get('level'),
+                    type: formData.get('type'),
+                    location: formData.get('location'),
+                    priority: formData.get('priority'),
+                    status: formData.get('status'),
+                    description: formData.get('description'),
+                    requirements: formData.get('requirements').split('\n').filter(r => r.trim()),
+                    skills: formData.get('skills').split(',').map(s => s.trim()).filter(s => s),
+                    salaryRange: {
+                        min: parseInt(formData.get('salaryMin')) || 0,
+                        max: parseInt(formData.get('salaryMax')) || 0,
+                        currency: formData.get('salaryCurrency') || 'IDR'
+                    }
+                };
+                
+                if (editingJobId) {
+                    await updateJob(editingJobId, jobData);
+                } else {
+                    await createJob(jobData);
+                }
+            });
+        }
+
+        async function createJob(jobData) {
+            try {
+                // Simulate API call
+                const newJob = {
+                    ...jobData,
+                    id: 'job-' + Date.now(),
+                    applications: 0,
+                    createdAt: new Date()
+                };
+                
+                allJobs.unshift(newJob);
+                filteredJobs = [...allJobs];
+                
+                closeJobForm();
+                renderJobsTable();
+                updatePagination();
+                updateStats();
+                showNotification('Posisi berhasil dibuat', 'success');
+            } catch (error) {
+                console.error('Error creating job:', error);
+                showNotification('Gagal membuat posisi', 'error');
+            }
+        }
+
+        async function updateJob(jobId, jobData) {
+            try {
+                const jobIndex = allJobs.findIndex(j => j.id === jobId);
+                if (jobIndex !== -1) {
+                    allJobs[jobIndex] = { ...allJobs[jobIndex], ...jobData };
+                    filteredJobs = [...allJobs];
+                    
+                    closeJobForm();
+                    renderJobsTable();
+                    showNotification('Posisi berhasil diupdate', 'success');
+                }
+            } catch (error) {
+                console.error('Error updating job:', error);
+                showNotification('Gagal mengupdate posisi', 'error');
+            }
+        }
+
+        // Job actions
+        function viewJob(jobId) {
+            const job = allJobs.find(j => j.id === jobId);
+            if (job) {
+                showNotification(`Viewing: ${job.title}`, 'info');
+                // In real app, this would show a detailed view modal
+            }
+        }
+
+        function editJob(jobId) {
+            showJobForm(jobId);
+        }
+
+        function duplicateJob(jobId) {
+            const job = allJobs.find(j => j.id === jobId);
+            if (job) {
+                const duplicatedJob = {
+                    ...job,
+                    id: 'job-' + Date.now(),
+                    title: job.title + ' (Copy)',
+                    status: 'draft',
+                    applications: 0,
+                    createdAt: new Date()
+                };
+                
+                allJobs.unshift(duplicatedJob);
+                filteredJobs = [...allJobs];
+                renderJobsTable();
+                updatePagination();
+                updateStats();
+                showNotification('Posisi berhasil diduplikasi', 'success');
+            }
+        }
+
+        function toggleJobStatus(jobId) {
+            const job = allJobs.find(j => j.id === jobId);
+            if (job) {
+                job.status = job.status === 'active' ? 'paused' : 'active';
+                renderJobsTable();
+                updateStats();
+                showNotification(`Posisi ${job.status === 'active' ? 'diaktifkan' : 'dinonaktifkan'}`, 'success');
+            }
+        }
+
+        function deleteJob(jobId) {
+            if (confirm('Yakin ingin menghapus posisi ini?')) {
+                allJobs = allJobs.filter(j => j.id !== jobId);
+                filteredJobs = [...allJobs];
+                renderJobsTable();
+                updatePagination();
+                updateStats();
+                showNotification('Posisi berhasil dihapus', 'success');
+            }
+        }
+
+        // Pagination functions
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+            
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderJobsTable();
+                updatePagination();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderJobsTable();
+                updatePagination();
+            }
+        }
+
+        // Selection functions
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.job-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            updateSelectedJobs();
+        }
+
+        function toggleJobSelection(jobId) {
+            updateSelectedJobs();
+        }
+
+        function updateSelectedJobs() {
+            const checkboxes = document.querySelectorAll('.job-checkbox:checked');
+            selectedJobs = Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // Export function
+        function exportJobs() {
+            const csvData = convertJobsToCSV(filteredJobs);
+            downloadCSV(csvData, 'job-positions.csv');
+            showNotification('Data posisi berhasil diexport', 'success');
+        }
+
+        // Utility functions
+        function getStatusClass(status) {
+            switch(status) {
+                case 'active': return 'status-active';
+                case 'draft': return 'status-draft';
+                case 'closed': return 'status-closed';
+                case 'paused': return 'status-paused';
+                default: return 'status-draft';
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return 'Aktif';
+                case 'draft': return 'Draft';
+                case 'closed': return 'Closed';
+                case 'paused': return 'Paused';
+                default: return 'Draft';
+            }
+        }
+
+        function getPriorityClass(priority) {
+            switch(priority) {
+                case 'high': return 'priority-high';
+                case 'medium': return 'priority-medium';
+                case 'low': return 'priority-low';
+                default: return 'priority-medium';
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            return new Date(dateString).toLocaleDateString('id-ID');
+        }
+
+        function getTimeAgo(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Hari ini';
+            if (diffDays === 1) return '1 hari yang lalu';
+            if (diffDays < 30) return `${diffDays} hari yang lalu`;
+            return formatDate(dateString);
+        }
+
+        function showNotification(message, type = 'info') {
+            const bgColor = type === 'error' ? 'bg-red-100 border-red-500 text-red-700' : 
+                           type === 'success' ? 'bg-green-100 border-green-500 text-green-700' : 
+                           'bg-blue-100 border-blue-500 text-blue-700';
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `fixed top-4 right-4 p-4 border-l-4 ${bgColor} z-50 max-w-sm card-sharp`;
+            alertDiv.innerHTML = `
+                <div class="flex">
+                    <div>
+                        <p class="font-medium">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function convertJobsToCSV(data) {
+            const headers = ['Title', 'Department', 'Level', 'Type', 'Location', 'Status', 'Priority', 'Applications', 'Created Date'];
+            const csvRows = [headers.join(',')];
+            
+            data.forEach(job => {
+                const row = [
+                    job.title || '',
+                    job.department || '',
+                    job.level || '',
+                    job.type || '',
+                    job.location || '',
+                    getStatusText(job.status),
+                    job.priority || '',
+                    job.applications || 0,
+                    formatDate(job.createdAt)
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            return csvRows.join('\n');
+        }
+
+        function downloadCSV(csvData, filename) {
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

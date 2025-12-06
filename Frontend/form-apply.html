@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Apply for exciting career opportunities at our company. Professional recruitment form with multi-step application process.">
+    <meta name="keywords" content="job application, recruitment, careers, employment, HR">
+    <meta name="author" content="HR Recruitment System">
+    <title>Application Form - HR Recruitment System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>">
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/style-pro.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" as="style">
+
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- CSS Variables for Professional Design -->
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #64748b;
+            --accent: #06b6d4;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --neutral: #737373;
+            --background: #f9fafb;
+            --surface: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Enhanced visual hierarchy */
+        .professional-container {
+            background: var(--surface);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .professional-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .professional-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.03)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.03)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="50" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="90" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+
+        .form-input {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #d1d5db;
+            background: var(--surface);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .step-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Enhanced form field styling */
+        .form-input, input[type="text"], input[type="email"], input[type="tel"],
+        input[type="date"], input[type="number"], textarea, select {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #d1d5db;
+            background: var(--surface);
+            border-radius: 8px;
+        }
+
+        .form-input:focus, input[type="text"]:focus, input[type="email"]:focus,
+        input[type="tel"]:focus, input[type="date"]:focus, input[type="number"]:focus,
+        textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced button styling */
+        .btn-primary, button[type="submit"], .btn-secondary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover, button[type="submit"]:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active, button[type="submit"]:active, .btn-secondary:active {
+            transform: translateY(0);
+        }
+
+        /* Progress bar enhancement */
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease-in-out;
+        }
+
+        /* Form section cards */
+        .form-section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* File upload enhancement */
+        .file-upload {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            transform: scale(1.02);
+        }
+
+        .file-upload.drag-over {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Public Application Form (No login required) -->
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/50 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center rounded-lg shadow-sm">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A9.002 9.002 0 0112 21a9.002 9.002 0 01-9-9.745M12 3v9m0 0l3-3m-3 3L9 9"/>
+                                </svg>
+                            </div>
+                            <span class="ml-3 text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">HR Recruitment</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a href="/" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-gray-50">
+                            ← Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="professional-container">
+                <!-- Professional Form Header -->
+                <div class="professional-header">
+                    <h1 class="text-3xl font-bold mb-2 relative z-10">Join Our Team</h1>
+                    <p class="text-lg opacity-90 relative z-10">Apply for exciting career opportunities</p>
+                    <div class="mt-4 flex justify-center space-x-8 text-sm relative z-10">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>10 min application</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Secure & Confidential</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span>Quick Response</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Steps -->
+                <div class="mb-8 px-8 pt-8">
+                    <div class="step-indicator">
+                        <div class="step step-active" id="step1">
+                            <div class="step-number">1</div>
+                            <div class="step-text">
+                                <div class="font-medium">Personal Info</div>
+                                <div class="text-sm text-gray-500">Basic details</div>
+                            </div>
+                        </div>
+                        <div class="step step-inactive" id="step2">
+                            <div class="step-number">2</div>
+                            <div class="step-text">
+                                <div class="font-medium">Education</div>
+                                <div class="text-sm text-gray-500">Academic background</div>
+                            </div>
+                        </div>
+                        <div class="step step-inactive" id="step3">
+                            <div class="step-number">3</div>
+                            <div class="step-text">
+                                <div class="font-medium">Experience</div>
+                                <div class="text-sm text-gray-500">Work & skills</div>
+                            </div>
+                        </div>
+                        <div class="step step-inactive" id="step4">
+                            <div class="step-number">4</div>
+                            <div class="step-text">
+                                <div class="font-medium">Review</div>
+                                <div class="text-sm text-gray-500">Submit application</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progressFill" class="progress-bar h-2 transition-all duration-300" style="width: 25%"></div>
+                    </div>
+                </div>
+
+                <!-- Application Form -->
+                <form id="applicationForm" class="space-y-8">
+                    <!-- Step 1: Personal Information -->
+                    <div id="section1" class="form-section active">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                <input type="text" id="fullName" name="fullName" required
+                                       class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                       placeholder="Enter your full name">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                <input type="email" id="email" name="email" required
+                                       class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                       placeholder="your.email@example.com">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                                <input type="tel" id="phone" name="phone" required
+                                       class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                       placeholder="+62 812-3456-7890">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
+                                <input type="date" id="dateOfBirth" name="dateOfBirth" required
+                                       class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
+                                <select id="gender" name="gender" required
+                                        class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp">
+                                    <option value="">Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Marital Status</label>
+                                <select id="maritalStatus" name="maritalStatus"
+                                        class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp">
+                                    <option value="">Select status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                            <textarea id="address" name="address" required rows="3"
+                                      class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                      placeholder="Enter your complete address"></textarea>
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Applied Position *</label>
+                            <select id="position" name="position" required
+                                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp">
+                                <option value="">Select position</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Education -->
+                    <div id="section2" class="form-section">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Education Background</h2>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Education Level *</label>
+                                <select id="education" name="education" required
+                                        class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp">
+                                    <option value="">Select education level</option>
+                                    <option value="High School">High School</option>
+                                    <option value="Diploma">Diploma</option>
+                                    <option value="Bachelor's">Bachelor's Degree</option>
+                                    <option value="Master's">Master's Degree</option>
+                                    <option value="PhD">PhD</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">University/School *</label>
+                                    <input type="text" id="university" name="university" required
+                                           class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                           placeholder="University or school name">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Major/Field of Study *</label>
+                                    <input type="text" id="major" name="major" required
+                                           class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                           placeholder="Your major or field of study">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Graduation Year *</label>
+                                    <input type="number" id="graduationYear" name="graduationYear" required
+                                           min="1970" max="2030"
+                                           class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                           placeholder="e.g., 2020">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">GPA/Grade</label>
+                                    <input type="text" id="gpa" name="gpa"
+                                           class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                           placeholder="e.g., 3.5 or 4.0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Experience & Skills -->
+                    <div id="section3" class="form-section">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Work Experience & Skills</h2>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Experience Level *</label>
+                                <select id="experience" name="experience" required
+                                        class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp">
+                                    <option value="">Select experience level</option>
+                                    <option value="Entry Level">Entry Level (0-2 years)</option>
+                                    <option value="Mid Level">Mid Level (2-5 years)</option>
+                                    <option value="Senior Level">Senior Level (5-10 years)</option>
+                                    <option value="Executive">Executive (10+ years)</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Previous Job Title</label>
+                                    <input type="text" id="previousJob" name="previousJob"
+                                           class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                           placeholder="Your most recent job title">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Previous Company</label>
+                                    <input type="text" id="previousCompany" name="previousCompany"
+                                           class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                           placeholder="Previous company name">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Skills *</label>
+                                <textarea id="skills" name="skills" required rows="4"
+                                          class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                          placeholder="List your relevant skills (e.g., JavaScript, React, Project Management, Communication)"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Expected Salary</label>
+                                <input type="text" id="expectedSalary" name="expectedSalary"
+                                       class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                       placeholder="e.g., IDR 10,000,000">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cover Letter</label>
+                                <textarea id="coverLetter" name="coverLetter" rows="4"
+                                          class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 input-sharp"
+                                          placeholder="Tell us why you're interested in this position..."></textarea>
+                            </div>
+
+                            <!-- File Upload -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-4">Curriculum Vitae (CV) *</label>
+                                <div class="file-upload" id="cvUpload">
+                                    <input type="file" id="cvFile" name="cvFile" accept=".pdf,.doc,.docx" class="hidden" required>
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                        <p class="text-gray-600 mb-2">Click to upload or drag and drop</p>
+                                        <p class="text-sm text-gray-500">PDF, DOC, DOCX (MAX. 5MB)</p>
+                                    </div>
+                                    <div id="cvPreview" class="mt-4 hidden">
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200">
+                                            <span id="cvFileName" class="text-sm text-gray-700"></span>
+                                            <button type="button" onclick="removeFile('cv')" class="text-red-600 hover:text-red-800">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Review & Submit -->
+                    <div id="section4" class="form-section">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Review & Submit</h2>
+
+                        <div class="bg-gray-50 p-6 rounded-lg">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Application Summary</h3>
+                            <div id="reviewContent" class="space-y-4">
+                                <!-- Will be populated from form data -->
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <div class="flex items-center mb-4">
+                                <input type="checkbox" id="termsAccepted" name="termsAccepted" required class="mr-3 w-4 h-4">
+                                <label for="termsAccepted" class="text-sm text-gray-700">
+                                    I agree to the <a href="#" class="text-blue-600 hover:text-blue-800 underline">Terms and Conditions</a>
+                                    and <a href="#" class="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center">
+                                <input type="checkbox" id="dataConsent" name="dataConsent" required class="mr-3 w-4 h-4">
+                                <label for="dataConsent" class="text-sm text-gray-700">
+                                    I consent to the processing of my personal data for recruitment purposes
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between items-center mt-8">
+                        <button type="button" id="prevBtn"
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-3 font-medium transition-colors"
+                                style="display: none;">
+                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Previous
+                        </button>
+
+                        <div class="ml-auto flex space-x-4">
+                            <button type="button" id="nextBtn"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors btn-sharp">
+                                Next
+                                <svg class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+
+                            <button type="submit" id="submitBtn"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-medium transition-colors btn-sharp"
+                                    style="display: none;">
+                                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                                Submit Application
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Application Submitted!</h3>
+                <p class="text-gray-600 mb-6">Thank you for your application. We will review it and get back to you soon.</p>
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors btn-sharp">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/form-apply-enhanced.js"></script>
+</body>
+</html>

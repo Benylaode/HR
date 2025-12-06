@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PAGE_TITLE}} - HR Recruitment System</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        /* Professional Corporate Design */
+        .card-sharp {
+            border-radius: 0px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-hover:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .btn-sharp {
+            border-radius: 0px;
+        }
+        
+        .input-sharp {
+            border-radius: 0px;
+        }
+        
+        /* Professional Color Scheme */
+        :root {
+            --primary: #1e3a8a;    /* Deep Blue */
+            --secondary: #64748b;  /* Slate Gray */
+            --accent: #0ea5e9;     /* Sky Blue */
+            --success: #059669;    /* Emerald */
+            --warning: #d97706;    /* Amber */
+            --danger: #dc2626;     /* Red */
+            --dark: #0f172a;       /* Slate 900 */
+            --light: #f8fafc;      /* Slate 50 */
+        }
+        
+        .bg-primary { background-color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
+        .bg-accent { background-color: var(--accent); }
+        .text-primary { color: var(--primary); }
+        .text-secondary { color: var(--secondary); }
+        .border-primary { border-color: var(--primary); }
+        
+        /* Remove all rounded corners */
+        * {
+            border-radius: 0 !important;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        
+        .transition-all { transition: all 0.2s ease-in-out; }
+        
+        /* Login Form Styles */
+        .login-container {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .dashboard-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- Login Modal (Initially Hidden) -->
+    <div id="loginModal" class="fixed inset-0 z-50 login-container flex items-center justify-center">
+        <div class="bg-white p-10 w-full max-w-lg mx-4 shadow-2xl border">
+            <div class="text-center mb-10">
+                <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center mb-6">
+                    <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">HR Recruitment System</h2>
+                <p class="text-gray-600 text-lg">Login untuk Akses Dashboard</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Email HR</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder="hr@company.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="mr-3 w-4 h-4">
+                        <label for="remember" class="text-sm text-gray-600">Ingat saya</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Lupa password?</a>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white py-4 px-6 font-semibold transition-all transform hover:scale-[1.02]"
+                >
+                    Login ke Dashboard
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-500">
+                        Demo: hr@company.com / password123
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (Initially Hidden) -->
+    <div id="mainApp" class="hidden">
+        <!-- Modern Sidebar Layout -->
+        <div class="flex h-screen bg-gray-50">
+            <!-- Sidebar -->
+            <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50">
+                <div class="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
+                    <!-- Logo -->
+                    <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                        <div class="flex items-center flex-shrink-0 px-6">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h1 class="text-lg font-bold text-gray-900">HR System</h1>
+                                <p class="text-xs text-gray-500">Dashboard</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Navigation -->
+                        <nav class="mt-8 flex-1 px-4 space-y-1">
+                            <a href="/dashboard" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="home" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
+                            <a href="/kandidat" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="users" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Kandidat
+                            </a>
+                            <a href="/posisi" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="briefcase" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Posisi
+                            </a>
+                            <a href="/test-management" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="file-text" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Test Management
+                            </a>
+                            <a href="/analytics" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="bar-chart-3" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Analytics
+                            </a>
+                            <a href="/laporan" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="file-bar-chart" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Laporan
+                            </a>
+                            <a href="/form-apply" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="file-plus" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Form Apply
+                            </a>
+                            <a href="/admin-test" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="settings" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Admin Tes
+                            </a>
+                        </nav>
+                    </div>
+                    
+                    <!-- User Profile -->
+                    <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                <span class="text-white text-sm font-semibold" id="sidebarUserInitial">H</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-700" id="sidebarUserName">HR Manager</p>
+                                <p class="text-xs text-gray-500" id="sidebarUserEmail">hr@company.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile sidebar -->
+            <div id="mobileSidebar" class="lg:hidden fixed inset-0 flex z-40 hidden">
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()"></div>
+                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+                    <div class="absolute top-0 right-0 -mr-12 pt-2">
+                        <button onclick="toggleMobileSidebar()" class="ml-1 flex items-center justify-center h-10 w-10 text-white">
+                            <i data-lucide="x" class="h-6 w-6"></i>
+                        </button>
+                    </div>
+                    <!-- Mobile sidebar content same as desktop -->
+                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                        <div class="flex-shrink-0 flex items-center px-4">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h1 class="ml-3 text-lg font-bold text-gray-900">HR System</h1>
+                        </div>
+                        <nav class="mt-5 px-2 space-y-1">
+                            <a href="/dashboard" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="home" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Dashboard
+                            </a>
+                            <a href="/kandidat" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="users" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Kandidat
+                            </a>
+                            <a href="/posisi" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="briefcase" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Posisi
+                            </a>
+                            <a href="/test-management" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="file-text" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Test Management
+                            </a>
+                            <a href="/analytics" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="bar-chart-3" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Analytics
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:pl-64 flex flex-col flex-1">
+                <!-- Top Header -->
+                <div class="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
+                    <button onclick="toggleMobileSidebar()" class="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none">
+                        <i data-lucide="menu" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <!-- Header with notifications -->
+                <header class="bg-white shadow-sm border-b border-gray-200 lg:border-l-0">
+                    <div class="px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between items-center h-16">
+                            <div class="flex-1">
+                                <h1 class="text-2xl font-bold text-gray-900" id="pageTitle">{{PAGE_TITLE}}</h1>
+                                <p class="text-sm text-gray-600" id="pageSubtitle">{{PAGE_SUBTITLE}}</p>
+                            </div>
+                            
+                            <!-- Right side actions -->
+                            <div class="flex items-center space-x-4">
+                                <!-- Refresh Button -->
+                                <button onclick="refreshData()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                                </button>
+                                
+                                <!-- Notifications -->
+                                <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative">
+                                    <i data-lucide="bell" class="w-5 h-5"></i>
+                                    <span id="notificationCount" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center font-bold rounded-full">0</span>
+                                </button>
+                                
+                                <!-- User Menu -->
+                                <div class="relative">
+                                    <button onclick="toggleUserMenu()" class="flex items-center space-x-3 p-2 text-sm rounded-lg hover:bg-gray-100 transition-colors">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                            <span class="text-white text-sm font-semibold" id="headerUserInitial">H</span>
+                                        </div>
+                                        <div class="hidden sm:block text-left">
+                                            <div class="font-medium text-gray-700" id="headerUserName">HR Manager</div>
+                                            <div class="text-xs text-gray-500" id="headerUserEmail">hr@company.com</div>
+                                        </div>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+                                    </button>
+                                    
+                                    <!-- Dropdown menu -->
+                                    <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                        <div class="border-t border-gray-200"></div>
+                                        <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- Main Content -->
+                <main class="flex-1 overflow-y-auto">
+                    <div class="px-4 sm:px-6 lg:px-8 py-8">
+                        <!-- CONTENT PLACEHOLDER -->
+                        {{MAIN_CONTENT}}
+                        <!-- END CONTENT -->
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3011/api';
+        let currentUser = null;
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Sidebar Navigation Functions
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobileSidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('hidden');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            const userButton = event.target.closest('[onclick="toggleUserMenu()"]');
+            
+            if (!userButton && !userMenu.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        // Login functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 DOM loaded, setting up login form...');
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('🔐 Login form submitted');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            console.log('📧 Email:', email, '🔑 Password:', password ? '***' : 'empty');
+            
+            // Demo login validation
+            if (email === 'hr@company.com' && password === 'password123') {
+                console.log('✅ Login successful!');
+                currentUser = {
+                    email: email,
+                    name: 'HR Manager',
+                    role: 'hr_manager'
+                };
+                
+                // Update user info in header and sidebar
+                if (document.getElementById('headerUserEmail')) {
+                    document.getElementById('headerUserEmail').textContent = currentUser.email;
+                }
+                if (document.getElementById('headerUserName')) {
+                    document.getElementById('headerUserName').textContent = currentUser.name;
+                }
+                if (document.getElementById('headerUserInitial')) {
+                    document.getElementById('headerUserInitial').textContent = currentUser.name.charAt(0);
+                }
+                if (document.getElementById('sidebarUserEmail')) {
+                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
+                }
+                if (document.getElementById('sidebarUserName')) {
+                    document.getElementById('sidebarUserName').textContent = currentUser.name;
+                }
+                if (document.getElementById('sidebarUserInitial')) {
+                    document.getElementById('sidebarUserInitial').textContent = currentUser.name.charAt(0);
+                }
+                
+                // Hide login, show main app
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // Load page specific data
+                if (typeof loadPageData === 'function') {
+                    loadPageData();
+                }
+            } else {
+                alert('Email atau password salah. Gunakan: hr@company.com / password123');
+            }
+            });
+        });
+
+        // Logout functionality
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        // Default refresh function
+        function refreshData() {
+            console.log('Refreshing data...');
+            if (typeof loadPageData === 'function') {
+                loadPageData();
+            }
+        }
+
+        // Highlight current page in sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar-item, .mobile-sidebar-item');
+            
+            sidebarLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active', 'bg-blue-50', 'border-r-2', 'border-blue-600', 'text-blue-700');
+                    link.classList.remove('text-gray-700', 'hover:text-blue-700', 'hover:bg-blue-50');
+                    const icon = link.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('text-blue-500');
+                        icon.classList.remove('text-gray-400', 'group-hover:text-blue-500');
+                    }
+                }
+            });
+        });
+    </script>
+    
+    {{ADDITIONAL_SCRIPTS}}
+</body>
+</html>

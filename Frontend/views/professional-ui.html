@@ -1,0 +1,3540 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Recruitment System - Professional Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        /* Professional Corporate Design */
+        .card-sharp {
+            border-radius: 0px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-hover:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .btn-sharp {
+            border-radius: 0px;
+        }
+        
+        .input-sharp {
+            border-radius: 0px;
+        }
+        
+        /* Professional Color Scheme */
+        :root {
+            --primary: #1e3a8a;    /* Deep Blue */
+            --secondary: #64748b;  /* Slate Gray */
+            --accent: #0ea5e9;     /* Sky Blue */
+            --success: #059669;    /* Emerald */
+            --warning: #d97706;    /* Amber */
+            --danger: #dc2626;     /* Red */
+            --dark: #0f172a;       /* Slate 900 */
+            --light: #f8fafc;      /* Slate 50 */
+        }
+        
+        .bg-primary { background-color: var(--primary); }
+        .bg-secondary { background-color: var(--secondary); }
+        .bg-accent { background-color: var(--accent); }
+        .text-primary { color: var(--primary); }
+        .text-secondary { color: var(--secondary); }
+        .border-primary { border-color: var(--primary); }
+        
+        /* Remove all rounded corners */
+        * {
+            border-radius: 0 !important;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        
+        .transition-all { transition: all 0.2s ease-in-out; }
+        
+        /* Login Form Styles */
+        .login-container {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .dashboard-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .chart-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        /* Standard Navbar Styles */
+        .nav-item {
+            color: #64748b;
+            border-radius: 0px;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+            background-color: #f8fafc;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+
+        .mobile-nav-item {
+            color: #64748b;
+            border-radius: 0px;
+        }
+
+        .mobile-nav-item:hover {
+            color: var(--primary);
+            background-color: #f8fafc;
+        }
+
+        .mobile-nav-item.active {
+            color: var(--primary);
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- Login Modal (Initially Hidden) -->
+    <div id="loginModal" class="fixed inset-0 z-50 login-container flex items-center justify-center">
+        <div class="bg-white p-10 w-full max-w-lg mx-4 shadow-2xl border">
+            <div class="text-center mb-10">
+                <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center mb-6">
+                    <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">HR Recruitment System</h2>
+                <p class="text-gray-600 text-lg">Login untuk Akses Dashboard</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Email HR</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder="hr@company.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" class="mr-3 w-4 h-4">
+                        <label for="remember" class="text-sm text-gray-600">Ingat saya</label>
+                    </div>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Lupa password?</a>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white py-4 px-6 font-semibold transition-all transform hover:scale-[1.02]"
+                >
+                    Login ke Dashboard
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-500">
+                        Demo: hr@company.com / password123
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (Initially Hidden) -->
+    <div id="mainApp" class="hidden">
+        <!-- Modern Sidebar Layout -->
+        <div class="flex h-screen bg-gray-50">
+            <!-- Sidebar -->
+            <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50">
+                <div class="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
+                    <!-- Logo -->
+                    <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                        <div class="flex items-center flex-shrink-0 px-6">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h1 class="text-lg font-bold text-gray-900">HR System</h1>
+                                <p class="text-xs text-gray-500">Dashboard</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Navigation -->
+                        <nav class="mt-8 flex-1 px-4 space-y-1">
+                            <a href="#dashboard" onclick="showSection('dashboard')" class="sidebar-item active bg-blue-50 border-r-2 border-blue-600 text-blue-700 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="home" class="text-blue-500 mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
+                            <a href="#candidates" onclick="showSection('candidates')" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="users" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Kandidat
+                            </a>
+                            <a href="#jobs" onclick="showSection('jobs')" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="briefcase" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Posisi
+                            </a>
+                            <a href="#tests" onclick="showSection('tests')" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="file-text" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Test Management
+                            </a>
+                            <a href="#analytics" onclick="showSection('analytics')" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="bar-chart-3" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Analytics
+                            </a>
+                            <a href="#reports" onclick="showSection('reports')" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="file-bar-chart" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Laporan
+                            </a>
+                            <a href="#apply" onclick="showSection('apply')" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="file-plus" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Form Apply
+                            </a>
+                            <a href="/admin/tests" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
+                                <i data-lucide="settings" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
+                                Admin Tes
+                            </a>
+                        </nav>
+                    </div>
+                    
+                    <!-- User Profile -->
+                    <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                <span class="text-white text-sm font-semibold" id="sidebarUserInitial">H</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-700" id="sidebarUserName">HR Manager</p>
+                                <p class="text-xs text-gray-500" id="sidebarUserEmail">hr@company.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile sidebar -->
+            <div id="mobileSidebar" class="lg:hidden fixed inset-0 flex z-40 hidden">
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()"></div>
+                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+                    <div class="absolute top-0 right-0 -mr-12 pt-2">
+                        <button onclick="toggleMobileSidebar()" class="ml-1 flex items-center justify-center h-10 w-10 text-white">
+                            <i data-lucide="x" class="h-6 w-6"></i>
+                        </button>
+                    </div>
+                    <!-- Mobile sidebar content same as desktop -->
+                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                        <div class="flex-shrink-0 flex items-center px-4">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h1 class="ml-3 text-lg font-bold text-gray-900">HR System</h1>
+                        </div>
+                        <nav class="mt-5 px-2 space-y-1">
+                            <a href="#dashboard" onclick="showSection('dashboard'); toggleMobileSidebar()" class="mobile-sidebar-item active bg-blue-100 text-blue-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="home" class="text-blue-500 mr-4 h-6 w-6"></i>
+                                Dashboard
+                            </a>
+                            <a href="#candidates" onclick="showSection('candidates'); toggleMobileSidebar()" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="users" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Kandidat
+                            </a>
+                            <a href="#jobs" onclick="showSection('jobs'); toggleMobileSidebar()" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="briefcase" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Posisi
+                            </a>
+                            <a href="#tests" onclick="showSection('tests'); toggleMobileSidebar()" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="file-text" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Test Management
+                            </a>
+                            <a href="#analytics" onclick="showSection('analytics'); toggleMobileSidebar()" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
+                                <i data-lucide="bar-chart-3" class="text-gray-400 mr-4 h-6 w-6"></i>
+                                Analytics
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:pl-64 flex flex-col flex-1">
+                <!-- Top Header -->
+                <div class="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
+                    <button onclick="toggleMobileSidebar()" class="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none">
+                        <i data-lucide="menu" class="h-6 w-6"></i>
+                    </button>
+                </div>
+                
+                <!-- Header with notifications -->
+                <header class="bg-white shadow-sm border-b border-gray-200 lg:border-l-0">
+                    <div class="px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between items-center h-16">
+                            <div class="flex-1">
+                                <h1 class="text-2xl font-bold text-gray-900" id="pageTitle">Dashboard HR</h1>
+                                <p class="text-sm text-gray-600" id="pageSubtitle">Kelola kandidat, analisis DISC, dan temukan talenta terbaik</p>
+                            </div>
+                            
+                            <!-- Right side actions -->
+                            <div class="flex items-center space-x-4">
+                                <!-- Refresh Button -->
+                                <button onclick="refreshDashboard()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                                </button>
+                                
+                                <!-- Notifications -->
+                                <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative">
+                                    <i data-lucide="bell" class="w-5 h-5"></i>
+                                    <span id="notificationCount" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center font-bold rounded-full">0</span>
+                                </button>
+                                
+                                <!-- User Menu -->
+                                <div class="relative">
+                                    <button onclick="toggleUserMenu()" class="flex items-center space-x-3 p-2 text-sm rounded-lg hover:bg-gray-100 transition-colors">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+                                            <span class="text-white text-sm font-semibold" id="headerUserInitial">H</span>
+                                        </div>
+                                        <div class="hidden sm:block text-left">
+                                            <div class="font-medium text-gray-700" id="headerUserName">HR Manager</div>
+                                            <div class="text-xs text-gray-500" id="headerUserEmail">hr@company.com</div>
+                                        </div>
+                                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+                                    </button>
+                                    
+                                    <!-- Dropdown menu -->
+                                    <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                        <div class="border-t border-gray-200"></div>
+                                        <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- Main Content -->
+                <main class="flex-1 overflow-y-auto">
+                    <div class="px-4 sm:px-6 lg:px-8 py-8">
+
+                        <!-- Dashboard Section -->
+                        <div id="dashboardSection" class="section">
+                            <!-- Stats Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                <!-- Total Kandidat -->
+                                <div class="bg-white overflow-hidden shadow border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div class="p-6">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                                                    <i data-lucide="users" class="w-5 h-5 text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 w-0 flex-1">
+                                                <dl>
+                                                    <dt class="text-sm font-medium text-gray-500 truncate">Total Kandidat</dt>
+                                                    <dd class="text-2xl font-bold text-gray-900" id="totalCandidates">Loading...</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="flex items-center text-sm">
+                                                <span class="text-green-600 font-medium" id="newCandidatesWeek">0</span>
+                                                <span class="text-gray-500 ml-1">baru minggu ini</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Posisi Aktif -->
+                                <div class="bg-white overflow-hidden shadow border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div class="p-6">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                                    <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 w-0 flex-1">
+                                                <dl>
+                                                    <dt class="text-sm font-medium text-gray-500 truncate">Posisi Aktif</dt>
+                                                    <dd class="text-2xl font-bold text-gray-900" id="activeJobs">Loading...</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="flex items-center text-sm">
+                                                <span class="text-blue-600 font-medium" id="activeTestLinks">0</span>
+                                                <span class="text-gray-500 ml-1">test links aktif</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total DISC Test -->
+                                <div class="bg-white overflow-hidden shadow border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div class="p-6">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                                                    <i data-lucide="brain" class="w-5 h-5 text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 w-0 flex-1">
+                                                <dl>
+                                                    <dt class="text-sm font-medium text-gray-500 truncate">Test Diambil</dt>
+                                                    <dd class="text-2xl font-bold text-gray-900" id="totalDiscTests">Loading...</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="flex items-center text-sm">
+                                                <span class="text-purple-600 font-medium" id="completedTests">0</span>
+                                                <span class="text-gray-500 ml-1">selesai</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Completion Rate -->
+                                <div class="bg-white overflow-hidden shadow border border-gray-200 hover:shadow-lg transition-shadow">
+                                    <div class="p-6">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0">
+                                                <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                                                    <i data-lucide="target" class="w-5 h-5 text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4 w-0 flex-1">
+                                                <dl>
+                                                    <dt class="text-sm font-medium text-gray-500 truncate">Completion Rate</dt>
+                                                    <dd class="text-2xl font-bold text-gray-900" id="completionRate">Loading...</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <div class="flex items-center text-sm">
+                                                <span class="text-orange-600 font-medium" id="pendingTests">0</span>
+                                                <span class="text-gray-500 ml-1">pending</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts Section -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                <!-- Real-time Chart Placeholder -->
+                                <div class="bg-white shadow border border-gray-200 p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Kandidat Growth</h3>
+                                    <div class="h-64 flex items-center justify-center text-gray-400">
+                                        <div class="text-center">
+                                            <i data-lucide="trending-up" class="w-8 h-8 mx-auto mb-2"></i>
+                                            <p>Real-time data akan ditampilkan di sini</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Test Performance Chart -->
+                                <div class="bg-white shadow border border-gray-200 p-6">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Test Performance</h3>
+                                    <div class="h-64 flex items-center justify-center text-gray-400">
+                                        <div class="text-center">
+                                            <i data-lucide="bar-chart-3" class="w-8 h-8 mx-auto mb-2"></i>
+                                            <p>Analytics data integration dalam progress</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </main>
+            </div>
+        </div>
+
+    <!-- Results Modal -->
+                        <h4 class="text-lg font-semibold text-slate-900 mb-4">Ringkasan Cepat</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-600">Kandidat Baru (7 hari)</span>
+                                <span class="font-bold text-blue-600">24</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-600">Interview Terjadwal</span>
+                                <span class="font-bold text-green-600">8</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-600">DISC Tes Selesai</span>
+                                <span class="font-bold text-purple-600">156</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-slate-600">Hire Rate</span>
+                                <span class="font-bold text-emerald-600">72%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Feature Cards -->
+            <div class="dashboard-section">
+                <h3 class="section-title">🎯 Menu Utama</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white card-sharp border border-slate-200 p-8 cursor-pointer card-hover transition-all group hover:border-blue-300 hover:shadow-lg" onclick="openCandidateManagement()">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                                <i data-lucide="users" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="bg-blue-50 p-2 group-hover:bg-blue-100 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Manajemen Kandidat</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">Kelola profil kandidat, riwayat aplikasi, dan dokumentasi lengkap dengan sistem yang terintegrasi</p>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-xs text-blue-600 font-medium">AKSES LANGSUNG →</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white card-sharp border border-slate-200 p-8 cursor-pointer card-hover transition-all group hover:border-purple-300 hover:shadow-lg" onclick="openDiscAssessment()">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                <i data-lucide="brain" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="bg-purple-50 p-2 group-hover:bg-purple-100 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-purple-600"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Assessment DISC</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">Analisis kepribadian mendalam dengan tes DISC profesional untuk evaluasi yang akurat</p>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-xs text-purple-600 font-medium">MULAI TES →</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white card-sharp border border-slate-200 p-8 cursor-pointer card-hover transition-all group hover:border-emerald-300 hover:shadow-lg" onclick="openJobManagement()">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                                <i data-lucide="briefcase" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="bg-emerald-50 p-2 group-hover:bg-emerald-100 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-emerald-600"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Manajemen Posisi</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">Kelola lowongan kerja, requirement, dan matching kandidat dengan sistem yang efisien</p>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-xs text-emerald-600 font-medium">KELOLA POSISI →</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white card-sharp border border-slate-200 p-8 cursor-pointer card-hover transition-all group hover:border-orange-300 hover:shadow-lg" onclick="openDocumentManagement()">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+                                <i data-lucide="file-text" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="bg-orange-50 p-2 group-hover:bg-orange-100 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-orange-600"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Manajemen Dokumen</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">Kelola CV, portfolio, sertifikat, dan dokumen pendukung secara terpusat</p>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-xs text-orange-600 font-medium">KELOLA DOKUMEN →</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white card-sharp border border-slate-200 p-8 cursor-pointer card-hover transition-all group hover:border-amber-300 hover:shadow-lg" onclick="openAnalytics()">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
+                                <i data-lucide="bar-chart-3" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="bg-amber-50 p-2 group-hover:bg-amber-100 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-amber-600"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Analytics & Laporan</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">Dashboard analitik lengkap dengan insights rekrutmen dan performa tim</p>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-xs text-amber-600 font-medium">LIHAT LAPORAN →</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white card-sharp border border-slate-200 p-8 cursor-pointer card-hover transition-all group hover:border-indigo-300 hover:shadow-lg" onclick="openWorkflow()">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                                <i data-lucide="workflow" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <div class="bg-indigo-50 p-2 group-hover:bg-indigo-100 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5 text-indigo-600"></i>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-900 mb-3">Workflow Rekrutmen</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">Otomasi proses rekrutmen dengan workflow yang dapat disesuaikan sepenuhnya</p>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-xs text-indigo-600 font-medium">ATUR WORKFLOW →</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Enhanced Quick Actions -->
+            <div class="dashboard-section">
+                <h3 class="section-title">⚡ Aksi Cepat</h3>
+                <div class="bg-white card-sharp border border-slate-200 p-8">
+                    <div class="mb-6">
+                        <p class="text-slate-600 text-sm">Operasi yang sering digunakan untuk meningkatkan efisiensi kerja</p>
+                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button class="btn-sharp bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 transition-all shadow-md hover:shadow-lg" onclick="openCandidateManagement()">
+                        <i data-lucide="users" class="w-5 h-5 mr-2 inline"></i>
+                        <span class="font-medium">Kelola Kandidat</span>
+                    </button>
+                    <button class="btn-sharp bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-4 transition-all shadow-md hover:shadow-lg" onclick="runSampleDiscTest()">
+                        <i data-lucide="play" class="w-5 h-5 mr-2 inline"></i>
+                        <span class="font-medium">Tes DISC Sample</span>
+                    </button>
+                    <button class="btn-sharp bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-4 transition-all shadow-md hover:shadow-lg" onclick="findJobMatches()">
+                        <i data-lucide="search" class="w-5 h-5 mr-2 inline"></i>
+                        <span class="font-medium">Cari Job Match</span>
+                    </button>
+                    <button class="btn-sharp border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-6 py-4 transition-all shadow-sm hover:shadow-md" onclick="viewSystemHealth()">
+                        <i data-lucide="activity" class="w-5 h-5 mr-2 inline"></i>
+                        <span class="font-medium">Status Sistem</span>
+                    </button>
+                </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white card-sharp w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b border-slate-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-900" id="modalTitle">Hasil</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6" id="modalContent">
+                <!-- Content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3011/api';
+        let currentUser = null;
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Sidebar Navigation Functions
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobileSidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('hidden');
+        }
+
+        function showSection(sectionName) {
+            // Update page title and subtitle
+            const titles = {
+                dashboard: { title: 'Dashboard HR', subtitle: 'Kelola kandidat, analisis DISC, dan temukan talenta terbaik' },
+                candidates: { title: 'Manajemen Kandidat', subtitle: 'Kelola data kandidat dan CV mereka' },
+                jobs: { title: 'Manajemen Posisi', subtitle: 'Kelola lowongan kerja dan requirement posisi' },
+                tests: { title: 'Test Management', subtitle: 'Kelola test, pertanyaan, dan link test' },
+                analytics: { title: 'Analytics & Reports', subtitle: 'Analisis performa recruitment dan data insights' },
+                reports: { title: 'Laporan Detail', subtitle: 'Laporan lengkap recruitment dan statistik' },
+                apply: { title: 'Form Apply', subtitle: 'Form aplikasi untuk kandidat baru' }
+            };
+
+            const titleInfo = titles[sectionName] || titles.dashboard;
+            document.getElementById('pageTitle').textContent = titleInfo.title;
+            document.getElementById('pageSubtitle').textContent = titleInfo.subtitle;
+
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-item, .mobile-sidebar-item').forEach(item => {
+                item.classList.remove('active', 'bg-blue-50', 'border-r-2', 'border-blue-600', 'text-blue-700', 'bg-blue-100', 'text-blue-900');
+                item.classList.add('text-gray-700', 'hover:text-blue-700', 'hover:bg-blue-50');
+                const icon = item.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('text-blue-500');
+                    icon.classList.add('text-gray-400', 'group-hover:text-blue-500');
+                }
+            });
+
+            // Activate current section
+            const currentItem = document.querySelector(`[href="#${sectionName}"]`);
+            if (currentItem) {
+                currentItem.classList.add('active', 'bg-blue-50', 'border-r-2', 'border-blue-600', 'text-blue-700');
+                currentItem.classList.remove('text-gray-700', 'hover:text-blue-700', 'hover:bg-blue-50');
+                const icon = currentItem.querySelector('i');
+                if (icon) {
+                    icon.classList.add('text-blue-500');
+                    icon.classList.remove('text-gray-400', 'group-hover:text-blue-500');
+                }
+            }
+
+            // Handle different sections
+            switch(sectionName) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'candidates':
+                    loadCandidatesData();
+                    break;
+                case 'jobs':
+                    loadJobsData();
+                    break;
+                case 'tests':
+                    window.location.href = '/admin/tests';
+                    return;
+                case 'analytics':
+                    loadAnalyticsData();
+                    break;
+                case 'reports':
+                    loadReportsData();
+                    break;
+                case 'apply':
+                    window.location.href = '/apply';
+                    return;
+            }
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            const userButton = event.target.closest('[onclick="toggleUserMenu()"]');
+            
+            if (!userButton && !userMenu.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+        
+        // Helper functions for job management
+        function getSampleJobs() {
+            return [
+                {
+                    id: 'job-001',
+                    title: 'Senior Software Engineer',
+                    department: 'Engineering',
+                    location: 'Jakarta',
+                    employmentType: 'full-time',
+                    experienceLevel: 'senior',
+                    description: 'Lead software development projects with focus on quality and innovation',
+                    responsibilities: [
+                        'Lead development teams and projects',
+                        'Design and implement software solutions',
+                        'Ensure code quality and best practices',
+                        'Mentor junior developers'
+                    ],
+                    requirements: [
+                        '5+ years of software development experience',
+                        'Strong leadership and communication skills',
+                        'Experience with modern web technologies',
+                        'Bachelor\'s degree in Computer Science or related field'
+                    ],
+                    requiredSkills: [
+                        { name: 'JavaScript', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'React', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Node.js', level: 'Intermediate', priority: 'Must-have' },
+                        { name: 'PostgreSQL', level: 'Intermediate', priority: 'Nice-to-have' }
+                    ],
+                    salaryRange: { min: 150000000, max: 250000000, currency: 'IDR' },
+                    idealPersonalityTypes: ['DOMINANT', 'CONSCIENTIOUS'],
+                    status: 'active',
+                    applicantsCount: 12,
+                    createdAt: new Date('2024-11-01'),
+                    createdBy: 'hr-manager-001'
+                },
+                {
+                    id: 'job-002',
+                    title: 'HR Specialist',
+                    department: 'Human Resources',
+                    location: 'Jakarta',
+                    employmentType: 'full-time',
+                    experienceLevel: 'mid',
+                    description: 'Manage HR operations and employee relations with focus on people development',
+                    responsibilities: [
+                        'Conduct recruitment and selection processes',
+                        'Manage employee relations and performance',
+                        'Implement HR policies and procedures',
+                        'Support learning and development initiatives'
+                    ],
+                    requirements: [
+                        '3+ years of HR experience',
+                        'Strong interpersonal and communication skills',
+                        'Knowledge of employment law and HR best practices',
+                        'Bachelor\'s degree in Psychology, HR, or related field'
+                    ],
+                    requiredSkills: [
+                        { name: 'Recruitment', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Employee Relations', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Labor Law', level: 'Intermediate', priority: 'Must-have' },
+                        { name: 'HRIS Systems', level: 'Intermediate', priority: 'Nice-to-have' }
+                    ],
+                    salaryRange: { min: 100000000, max: 150000000, currency: 'IDR' },
+                    idealPersonalityTypes: ['STEADY', 'INFLUENTIAL'],
+                    status: 'active',
+                    applicantsCount: 8,
+                    createdAt: new Date('2024-11-15'),
+                    createdBy: 'hr-manager-001'
+                },
+                {
+                    id: 'job-003',
+                    title: 'Quality Assurance Engineer',
+                    department: 'Quality Assurance',
+                    location: 'Bandung',
+                    employmentType: 'full-time',
+                    experienceLevel: 'mid',
+                    description: 'Ensure product quality through comprehensive testing and quality processes',
+                    responsibilities: [
+                        'Design and execute test plans and test cases',
+                        'Perform manual and automated testing',
+                        'Identify and report software defects',
+                        'Collaborate with development teams'
+                    ],
+                    requirements: [
+                        '3+ years of QA testing experience',
+                        'Strong attention to detail and analytical skills',
+                        'Experience with testing tools and methodologies',
+                        'Bachelor\'s degree in Computer Science or related field'
+                    ],
+                    requiredSkills: [
+                        { name: 'Manual Testing', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Automation Testing', level: 'Intermediate', priority: 'Must-have' },
+                        { name: 'Test Case Design', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Selenium', level: 'Intermediate', priority: 'Nice-to-have' }
+                    ],
+                    salaryRange: { min: 120000000, max: 180000000, currency: 'IDR' },
+                    idealPersonalityTypes: ['CONSCIENTIOUS', 'STEADY'],
+                    status: 'active',
+                    applicantsCount: 5,
+                    createdAt: new Date('2024-11-20'),
+                    createdBy: 'hr-manager-001'
+                },
+                {
+                    id: 'job-004',
+                    title: 'Marketing Manager',
+                    department: 'Marketing',
+                    location: 'Jakarta',
+                    employmentType: 'full-time',
+                    experienceLevel: 'senior',
+                    description: 'Lead marketing strategies and campaigns to drive business growth',
+                    responsibilities: [
+                        'Develop and implement marketing strategies',
+                        'Manage marketing campaigns and budgets',
+                        'Analyze market trends and competitor activities',
+                        'Lead marketing team and coordinate with sales'
+                    ],
+                    requirements: [
+                        '5+ years of marketing experience',
+                        'Proven track record in campaign management',
+                        'Strong analytical and creative thinking skills',
+                        'Bachelor\'s degree in Marketing or related field'
+                    ],
+                    requiredSkills: [
+                        { name: 'Digital Marketing', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Campaign Management', level: 'Advanced', priority: 'Must-have' },
+                        { name: 'Analytics Tools', level: 'Intermediate', priority: 'Must-have' },
+                        { name: 'SEO/SEM', level: 'Intermediate', priority: 'Nice-to-have' }
+                    ],
+                    salaryRange: { min: 180000000, max: 280000000, currency: 'IDR' },
+                    idealPersonalityTypes: ['INFLUENTIAL', 'DOMINANT'],
+                    status: 'closed',
+                    applicantsCount: 15,
+                    createdAt: new Date('2024-10-15'),
+                    createdBy: 'hr-manager-001'
+                }
+            ];
+        }
+        
+        function renderJobsList(jobs) {
+            if (jobs.length === 0) {
+                return '<div class="text-center py-8 text-slate-500">Tidak ada posisi ditemukan</div>';
+            }
+            
+            return jobs.map(job => `
+                <div class="bg-white border border-slate-200 p-6 mb-4 card-sharp hover:shadow-lg transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-3">
+                                <h4 class="text-xl font-bold text-slate-900">${job.title}</h4>
+                                <span class="px-3 py-1 text-xs font-semibold ${getJobStatusBadgeClass(job.status)}">
+                                    ${getJobStatusLabel(job.status)}
+                                </span>
+                                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800">
+                                    ${job.applicantsCount || 0} Pelamar
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-slate-600 mb-4">
+                                <div>
+                                    <i data-lucide="building-2" class="w-4 h-4 inline mr-1"></i>
+                                    ${job.department}
+                                </div>
+                                <div>
+                                    <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                    ${job.location}
+                                </div>
+                                <div>
+                                    <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                                    ${job.employmentType} - ${job.experienceLevel}
+                                </div>
+                                <div>
+                                    <i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>
+                                    ${new Date(job.createdAt).toLocaleDateString('id-ID')}
+                                </div>
+                            </div>
+                            
+                            <p class="text-sm text-slate-700 mb-3 leading-relaxed">${job.description}</p>
+                            
+                            <div class="text-sm text-slate-600 mb-4">
+                                <div class="mb-2">
+                                    <strong>Gaji:</strong> 
+                                    ${formatSalary(job.salaryRange.min)} - ${formatSalary(job.salaryRange.max)} ${job.salaryRange.currency}
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Ideal Personality:</strong> 
+                                    ${job.idealPersonalityTypes ? job.idealPersonalityTypes.join(', ') : 'Any'}
+                                </div>
+                                <div>
+                                    <strong>Skills:</strong> 
+                                    ${job.requiredSkills ? job.requiredSkills.slice(0, 3).map(skill => skill.name).join(', ') + (job.requiredSkills.length > 3 ? '...' : '') : 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2 ml-6">
+                            <select class="border border-slate-300 px-3 py-2 text-sm min-w-32" onchange="updateJobStatus('${job.id}', this.value)">
+                                <option value="active" ${job.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="closed" ${job.status === 'closed' ? 'selected' : ''}>Closed</option>
+                                <option value="draft" ${job.status === 'draft' ? 'selected' : ''}>Draft</option>
+                            </select>
+                            
+                            <button onclick="viewJobDetail('${job.id}')" 
+                                    class="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                View Detail
+                            </button>
+                            
+                            <button onclick="viewJobApplicants('${job.id}')" 
+                                    class="px-4 py-2 text-sm bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                ${job.applicantsCount || 0} Pelamar
+                            </button>
+                            
+                            <button onclick="editJob('${job.id}')" 
+                                    class="px-4 py-2 text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors">
+                                Edit
+                            </button>
+                            
+                            <button onclick="duplicateJob('${job.id}')" 
+                                    class="px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                Duplicate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getJobStatusBadgeClass(status) {
+            const classes = {
+                'active': 'bg-green-100 text-green-800',
+                'closed': 'bg-red-100 text-red-800',
+                'draft': 'bg-gray-100 text-gray-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getJobStatusLabel(status) {
+            const labels = {
+                'active': 'Active',
+                'closed': 'Closed',
+                'draft': 'Draft'
+            };
+            return labels[status] || 'Unknown';
+        }
+        
+        function formatSalary(amount) {
+            return new Intl.NumberFormat('id-ID').format(amount);
+        }
+        
+        // Job management functions
+        function filterJobs() {
+            const filterValue = document.getElementById('jobStatusFilter').value;
+            const searchValue = document.getElementById('jobSearchInput').value.toLowerCase();
+            
+            let filtered = window.allJobs || [];
+            
+            if (filterValue) {
+                filtered = filtered.filter(job => job.status === filterValue);
+            }
+            
+            if (searchValue) {
+                filtered = filtered.filter(job => 
+                    job.title.toLowerCase().includes(searchValue) ||
+                    job.department.toLowerCase().includes(searchValue) ||
+                    job.location.toLowerCase().includes(searchValue) ||
+                    job.description.toLowerCase().includes(searchValue)
+                );
+            }
+            
+            document.getElementById('jobsList').innerHTML = renderJobsList(filtered);
+            lucide.createIcons();
+        }
+        
+        function searchJobs() {
+            filterJobs();
+        }
+        
+        async function updateJobStatus(jobId, newStatus) {
+            try {
+                // Update local data
+                if (window.allJobs) {
+                    const job = window.allJobs.find(j => j.id === jobId);
+                    if (job) {
+                        job.status = newStatus;
+                        // Refresh the display
+                        document.getElementById('jobsList').innerHTML = renderJobsList(window.allJobs);
+                        lucide.createIcons();
+                        showAlert('success', `Status posisi berhasil diupdate ke ${getJobStatusLabel(newStatus)}`);
+                    }
+                }
+            } catch (error) {
+                showAlert('error', 'Gagal mengupdate status posisi: ' + error.message);
+            }
+        }
+        
+        function viewJobDetail(jobId) {
+            const job = window.allJobs?.find(j => j.id === jobId);
+            if (!job) {
+                showAlert('error', 'Data posisi tidak ditemukan');
+                return;
+            }
+            
+            const content = `
+                <div class="space-y-6">
+                    <div class="border-b border-slate-200 pb-4">
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">${job.title}</h3>
+                        <div class="flex items-center gap-4 text-sm text-slate-600">
+                            <span><i data-lucide="building-2" class="w-4 h-4 inline mr-1"></i>${job.department}</span>
+                            <span><i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>${job.location}</span>
+                            <span><i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>${job.employmentType}</span>
+                            <span class="px-2 py-1 ${getJobStatusBadgeClass(job.status)}">${getJobStatusLabel(job.status)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Deskripsi Pekerjaan</h4>
+                            <p class="text-sm text-slate-700 leading-relaxed">${job.description}</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Informasi Gaji</h4>
+                            <div class="bg-slate-50 p-4">
+                                <div class="text-lg font-bold text-green-600">
+                                    ${formatSalary(job.salaryRange.min)} - ${formatSalary(job.salaryRange.max)} ${job.salaryRange.currency}
+                                </div>
+                                <div class="text-sm text-slate-600">Per bulan</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${job.responsibilities ? `
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Tanggung Jawab</h4>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-700">
+                                ${job.responsibilities.map(resp => `<li>${resp}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${job.requirements ? `
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Persyaratan</h4>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-slate-700">
+                                ${job.requirements.map(req => `<li>${req}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${job.requiredSkills ? `
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Skills yang Dibutuhkan</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                ${job.requiredSkills.map(skill => `
+                                    <div class="border border-slate-200 p-3">
+                                        <div class="font-semibold text-slate-900">${skill.name}</div>
+                                        <div class="text-sm text-slate-600">Level: ${skill.level}</div>
+                                        <div class="text-xs ${skill.priority === 'Must-have' ? 'text-red-600' : 'text-blue-600'}">${skill.priority}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div>
+                        <h4 class="font-bold text-slate-900 mb-3">Ideal Personality Types</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${job.idealPersonalityTypes ? job.idealPersonalityTypes.map(type => 
+                                `<span class="px-3 py-1 bg-purple-100 text-purple-800 text-sm">${type}</span>`
+                            ).join('') : '<span class="text-slate-500">Any personality type</span>'}
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 pt-4 border-t border-slate-200">
+                        <button onclick="updateJobStatus('${job.id}', 'active')" 
+                                class="px-4 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors">
+                            Activate Job
+                        </button>
+                        <button onclick="updateJobStatus('${job.id}', 'closed')" 
+                                class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors">
+                            Close Job
+                        </button>
+                        <button onclick="editJob('${job.id}')" 
+                                class="px-4 py-2 bg-orange-600 text-white hover:bg-orange-700 transition-colors">
+                            Edit Job
+                        </button>
+                        <button onclick="viewJobApplicants('${job.id}')" 
+                                class="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                            View Applicants (${job.applicantsCount || 0})
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showResults(`Detail Posisi - ${job.title}`, content);
+        }
+        
+        function viewJobApplicants(jobId) {
+            const job = window.allJobs?.find(j => j.id === jobId);
+            if (!job) {
+                showAlert('error', 'Data posisi tidak ditemukan');
+                return;
+            }
+            
+            // Filter candidates who applied for this job
+            const applicants = window.allCandidates?.filter(candidate => 
+                candidate.appliedPosition === job.title ||
+                candidate.appliedJobId === jobId
+            ) || [];
+            
+            const content = `
+                <div class="space-y-6">
+                    <div class="border-b border-slate-200 pb-4">
+                        <h3 class="text-xl font-bold text-slate-900">Pelamar untuk: ${job.title}</h3>
+                        <p class="text-slate-600">Total ${applicants.length} pelamar</p>
+                    </div>
+                    
+                    ${applicants.length === 0 ? 
+                        '<div class="text-center py-8 text-slate-500">Belum ada pelamar untuk posisi ini</div>' :
+                        applicants.map(candidate => `
+                            <div class="bg-slate-50 border border-slate-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-slate-900 mb-2">${candidate.fullName}</h4>
+                                        <div class="text-sm text-slate-600 space-y-1">
+                                            <div><i data-lucide="mail" class="w-4 h-4 inline mr-1"></i>${candidate.email}</div>
+                                            <div><i data-lucide="phone" class="w-4 h-4 inline mr-1"></i>${candidate.phone || 'N/A'}</div>
+                                            <div><i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>${candidate.address?.city || 'N/A'}</div>
+                                            <div><i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i>Apply: ${new Date(candidate.createdAt).toLocaleDateString('id-ID')}</div>
+                                        </div>
+                                        ${candidate.discPersonalityType ? 
+                                            `<div class="mt-2">
+                                                <span class="px-2 py-1 text-xs bg-purple-100 text-purple-800">DISC: ${candidate.discPersonalityType}</span>
+                                                ${job.idealPersonalityTypes?.includes(candidate.discPersonalityType) ? 
+                                                    '<span class="px-2 py-1 text-xs bg-green-100 text-green-800 ml-2">✓ Personality Match</span>' : 
+                                                    ''
+                                                }
+                                            </div>` : ''
+                                        }
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <span class="px-2 py-1 text-xs ${getStatusBadgeClass(candidate.status)}">${getStatusLabel(candidate.status)}</span>
+                                        <button onclick="viewCandidateDetail('${candidate.id}')" 
+                                                class="px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                            View Detail
+                                        </button>
+                                        ${candidate.discTestCompleted ? 
+                                            `<button onclick="viewDiscResult('${candidate.id}')" 
+                                                     class="px-3 py-1 text-xs bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                                DISC Result
+                                            </button>` : ''
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+            `;
+            
+            showResults(`Pelamar - ${job.title}`, content);
+        }
+        
+        function addNewJob() {
+            const content = `
+                <div class="space-y-6">
+                    <form id="newJobForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Judul Posisi *</label>
+                                <input type="text" id="jobTitle" class="w-full border border-slate-300 px-3 py-2" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Departemen *</label>
+                                <select id="jobDepartment" class="w-full border border-slate-300 px-3 py-2" required>
+                                    <option value="">Pilih Departemen</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Quality Assurance">Quality Assurance</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Lokasi *</label>
+                                <input type="text" id="jobLocation" class="w-full border border-slate-300 px-3 py-2" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Tipe Pekerjaan *</label>
+                                <select id="jobEmploymentType" class="w-full border border-slate-300 px-3 py-2" required>
+                                    <option value="full-time">Full Time</option>
+                                    <option value="part-time">Part Time</option>
+                                    <option value="contract">Contract</option>
+                                    <option value="freelance">Freelance</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Level Experience *</label>
+                                <select id="jobExperienceLevel" class="w-full border border-slate-300 px-3 py-2" required>
+                                    <option value="entry">Entry Level</option>
+                                    <option value="junior">Junior</option>
+                                    <option value="mid">Mid Level</option>
+                                    <option value="senior">Senior</option>
+                                    <option value="lead">Lead</option>
+                                    <option value="manager">Manager</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                                <select id="jobStatus" class="w-full border border-slate-300 px-3 py-2">
+                                    <option value="draft">Draft</option>
+                                    <option value="active">Active</option>
+                                    <option value="closed">Closed</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Deskripsi Pekerjaan *</label>
+                            <textarea id="jobDescription" rows="4" class="w-full border border-slate-300 px-3 py-2" required></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Gaji Minimum (IDR)</label>
+                                <input type="number" id="jobSalaryMin" class="w-full border border-slate-300 px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Gaji Maksimum (IDR)</label>
+                                <input type="number" id="jobSalaryMax" class="w-full border border-slate-300 px-3 py-2">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Ideal Personality Types</label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" value="DOMINANT" class="mr-2"> DOMINANT
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" value="INFLUENTIAL" class="mr-2"> INFLUENTIAL
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" value="STEADY" class="mr-2"> STEADY
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" value="CONSCIENTIOUS" class="mr-2"> CONSCIENTIOUS
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-4">
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                Simpan Posisi
+                            </button>
+                            <button type="button" onclick="closeModal()" class="px-6 py-2 bg-gray-600 text-white hover:bg-gray-700 transition-colors">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            showResults('Tambah Posisi Baru', content);
+            
+            // Add form submit handler
+            document.getElementById('newJobForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveNewJob();
+            });
+        }
+        
+        function saveNewJob() {
+            const formData = {
+                id: `job-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                title: document.getElementById('jobTitle').value,
+                department: document.getElementById('jobDepartment').value,
+                location: document.getElementById('jobLocation').value,
+                employmentType: document.getElementById('jobEmploymentType').value,
+                experienceLevel: document.getElementById('jobExperienceLevel').value,
+                status: document.getElementById('jobStatus').value,
+                description: document.getElementById('jobDescription').value,
+                salaryRange: {
+                    min: parseInt(document.getElementById('jobSalaryMin').value) || 0,
+                    max: parseInt(document.getElementById('jobSalaryMax').value) || 0,
+                    currency: 'IDR'
+                },
+                idealPersonalityTypes: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                applicantsCount: 0,
+                createdAt: new Date(),
+                createdBy: 'hr-manager-001'
+            };
+            
+            // Add to local jobs array
+            if (!window.allJobs) {
+                window.allJobs = getSampleJobs();
+            }
+            window.allJobs.unshift(formData);
+            
+            showAlert('success', 'Posisi baru berhasil ditambahkan');
+            openJobManagement(); // Refresh the jobs list
+        }
+        
+        function editJob(jobId) {
+            showAlert('info', `Edit job feature akan tersedia dalam update selanjutnya. Job ID: ${jobId}`);
+        }
+        
+        function duplicateJob(jobId) {
+            const job = window.allJobs?.find(j => j.id === jobId);
+            if (!job) {
+                showAlert('error', 'Data posisi tidak ditemukan');
+                return;
+            }
+            
+            const duplicatedJob = {
+                ...job,
+                id: `job-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                title: job.title + ' (Copy)',
+                status: 'draft',
+                applicantsCount: 0,
+                createdAt: new Date()
+            };
+            
+            window.allJobs.unshift(duplicatedJob);
+            showAlert('success', 'Posisi berhasil diduplikasi');
+            openJobManagement(); // Refresh the jobs list
+        }
+
+        // Document Management Functions
+        async function openDocumentManagement() {
+            try {
+                showResults('Manajemen Dokumen', '<div class="text-center"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i><br>Memuat data dokumen...</div>');
+                lucide.createIcons();
+                
+                // Load documents data
+                const documents = await loadDocuments();
+                
+                const content = `
+                    <div class="space-y-6">
+                        <!-- Header Section -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-900">Manajemen Dokumen</h2>
+                                <p class="text-slate-600">Kelola semua dokumen kandidat, template, dan file pendukung</p>
+                            </div>
+                            <button onclick="showUploadModal()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                Upload Dokumen
+                            </button>
+                        </div>
+
+                        <!-- Statistics Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-blue-50 border border-blue-200 p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-blue-600 font-medium">Total Dokumen</p>
+                                        <p class="text-2xl font-bold text-blue-900">${documents.length}</p>
+                                    </div>
+                                    <i data-lucide="file" class="w-8 h-8 text-blue-600"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 border border-green-200 p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-green-600 font-medium">CV Kandidat</p>
+                                        <p class="text-2xl font-bold text-green-900">${documents.filter(d => d.type === 'cv').length}</p>
+                                    </div>
+                                    <i data-lucide="user-check" class="w-8 h-8 text-green-600"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-purple-50 border border-purple-200 p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-purple-600 font-medium">Sertifikat</p>
+                                        <p class="text-2xl font-bold text-purple-900">${documents.filter(d => d.type === 'certificate').length}</p>
+                                    </div>
+                                    <i data-lucide="award" class="w-8 h-8 text-purple-600"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-orange-50 border border-orange-200 p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-orange-600 font-medium">Portfolio</p>
+                                        <p class="text-2xl font-bold text-orange-900">${documents.filter(d => d.type === 'portfolio').length}</p>
+                                    </div>
+                                    <i data-lucide="briefcase" class="w-8 h-8 text-orange-600"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filters and Search -->
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <input 
+                                    type="text" 
+                                    id="documentSearch" 
+                                    placeholder="Cari dokumen..." 
+                                    class="w-full border border-slate-300 px-3 py-2"
+                                    onkeyup="filterDocuments()"
+                                >
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="typeFilter" class="border border-slate-300 px-3 py-2" onchange="filterDocuments()">
+                                    <option value="">Semua Tipe</option>
+                                    <option value="cv">CV</option>
+                                    <option value="certificate">Sertifikat</option>
+                                    <option value="portfolio">Portfolio</option>
+                                    <option value="cover_letter">Cover Letter</option>
+                                    <option value="other">Lainnya</option>
+                                </select>
+                                <select id="statusFilter" class="border border-slate-300 px-3 py-2" onchange="filterDocuments()">
+                                    <option value="">Semua Status</option>
+                                    <option value="verified">Terverifikasi</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="rejected">Ditolak</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Documents List -->
+                        <div id="documentsList">
+                            ${renderDocumentsList(documents)}
+                        </div>
+                    </div>
+                `;
+                
+                showResults('Manajemen Dokumen', content);
+                
+                // Store documents data globally for filtering
+                window.allDocuments = documents;
+                
+            } catch (error) {
+                showResults('Error', 'Gagal memuat data dokumen: ' + error.message);
+            }
+        }
+
+        async function loadDocuments() {
+            // Try to fetch from API first, fallback to sample data
+            try {
+                const response = await fetch(`${API_BASE}/documents`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Store stats for display
+                    window.documentStats = data.stats;
+                    return data.documents || [];
+                }
+            } catch (error) {
+                console.log('API not available, using sample data');
+            }
+            
+            // Fallback to sample data
+            const sampleDocs = getSampleDocuments();
+            window.documentStats = {
+                total: sampleDocs.length,
+                verified: sampleDocs.filter(d => d.status === 'verified').length,
+                pending: sampleDocs.filter(d => d.status === 'pending').length,
+                rejected: sampleDocs.filter(d => d.status === 'rejected').length,
+                byType: {
+                    cv: sampleDocs.filter(d => d.type === 'cv').length,
+                    certificate: sampleDocs.filter(d => d.type === 'certificate').length,
+                    portfolio: sampleDocs.filter(d => d.type === 'portfolio').length,
+                    cover_letter: sampleDocs.filter(d => d.type === 'cover_letter').length
+                }
+            };
+            return sampleDocs;
+        }
+
+        function getSampleDocuments() {
+            return [
+                {
+                    id: 'doc-001',
+                    name: 'CV_Diah_Morestika.pdf',
+                    type: 'cv',
+                    candidateId: 'candidate-sample-001',
+                    candidateName: 'Diah Morestika Nur Afifah',
+                    size: '1.2 MB',
+                    uploadedAt: '2025-08-15T10:30:00Z',
+                    status: 'verified',
+                    verifiedBy: 'HR Manager',
+                    verifiedAt: '2025-08-15T14:22:00Z',
+                    downloadCount: 5,
+                    tags: ['senior', 'designer', 'ui-ux']
+                },
+                {
+                    id: 'doc-002',
+                    name: 'Portfolio_Ahmad_Frontend.pdf',
+                    type: 'portfolio',
+                    candidateId: 'candidate-sample-002',
+                    candidateName: 'Ahmad Rizki Pratama',
+                    size: '3.5 MB',
+                    uploadedAt: '2025-08-18T09:15:00Z',
+                    status: 'verified',
+                    verifiedBy: 'Technical Lead',
+                    verifiedAt: '2025-08-18T16:45:00Z',
+                    downloadCount: 12,
+                    tags: ['frontend', 'react', 'javascript']
+                },
+                {
+                    id: 'doc-003',
+                    name: 'Certificate_AWS_Solution_Architect.pdf',
+                    type: 'certificate',
+                    candidateId: 'candidate-sample-003',
+                    candidateName: 'Sari Indrawati',
+                    size: '890 KB',
+                    uploadedAt: '2025-08-20T11:22:00Z',
+                    status: 'pending',
+                    downloadCount: 2,
+                    tags: ['aws', 'cloud', 'architect']
+                },
+                {
+                    id: 'doc-004',
+                    name: 'Cover_Letter_Marketing_Manager.pdf',
+                    type: 'cover_letter',
+                    candidateId: 'candidate-sample-004',
+                    candidateName: 'Budi Santoso',
+                    size: '450 KB',
+                    uploadedAt: '2025-08-22T08:30:00Z',
+                    status: 'verified',
+                    verifiedBy: 'HR Manager',
+                    verifiedAt: '2025-08-22T12:15:00Z',
+                    downloadCount: 3,
+                    tags: ['marketing', 'management', 'leadership']
+                },
+                {
+                    id: 'doc-005',
+                    name: 'CV_Security_Test_User.pdf',
+                    type: 'cv',
+                    candidateId: 'candidate-1756734259433-uhfxc',
+                    candidateName: 'Security Test User',
+                    size: '1.1 MB',
+                    uploadedAt: '2025-09-01T13:44:19Z',
+                    status: 'pending',
+                    downloadCount: 0,
+                    tags: ['security', 'testing']
+                }
+            ];
+        }
+
+        function renderDocumentsList(documents) {
+            if (documents.length === 0) {
+                return '<div class="text-center py-8 text-slate-500">Tidak ada dokumen ditemukan</div>';
+            }
+            
+            return documents.map(doc => `
+                <div class="bg-white border border-slate-200 p-4 mb-4 card-sharp hover:shadow-lg transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="flex items-center gap-2">
+                                    ${getDocumentIcon(doc.type)}
+                                    <h4 class="text-lg font-bold text-slate-900">${doc.name}</h4>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-semibold ${getStatusBadgeClass(doc.status)}">
+                                    ${getStatusLabel(doc.status)}
+                                </span>
+                                <span class="px-2 py-1 text-xs bg-gray-100 text-gray-800">${getDocumentTypeLabel(doc.type)}</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600 mb-3">
+                                <div><strong>Kandidat:</strong> ${doc.candidateName}</div>
+                                <div><strong>Ukuran:</strong> ${doc.size}</div>
+                                <div><strong>Upload:</strong> ${new Date(doc.uploadedAt).toLocaleDateString('id-ID')}</div>
+                            </div>
+                            
+                            ${doc.verifiedAt ? 
+                                `<div class="text-sm text-green-600 mb-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i>
+                                    Diverifikasi oleh ${doc.verifiedBy} pada ${new Date(doc.verifiedAt).toLocaleDateString('id-ID')}
+                                </div>` : ''
+                            }
+                            
+                            ${doc.tags && doc.tags.length > 0 ? 
+                                `<div class="flex flex-wrap gap-1 mb-2">
+                                    ${doc.tags.map(tag => `<span class="px-2 py-1 text-xs bg-blue-100 text-blue-800">${tag}</span>`).join('')}
+                                </div>` : ''
+                            }
+                            
+                            <div class="text-sm text-slate-500">
+                                <i data-lucide="download" class="w-4 h-4 inline mr-1"></i>
+                                Downloaded ${doc.downloadCount} kali
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2 ml-4">
+                            <button onclick="downloadDocument('${doc.id}')" 
+                                    class="px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                Download
+                            </button>
+                            
+                            <button onclick="viewDocument('${doc.id}')" 
+                                    class="px-3 py-1 text-xs bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                Preview
+                            </button>
+                            
+                            ${doc.status === 'pending' ? 
+                                `<button onclick="verifyDocument('${doc.id}')" 
+                                         class="px-3 py-1 text-xs bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                    Verifikasi
+                                </button>` : ''
+                            }
+                            
+                            <button onclick="editDocument('${doc.id}')" 
+                                    class="px-3 py-1 text-xs bg-orange-600 text-white hover:bg-orange-700 transition-colors">
+                                Edit
+                            </button>
+                            
+                            <button onclick="deleteDocument('${doc.id}')" 
+                                    class="px-3 py-1 text-xs bg-red-600 text-white hover:bg-red-700 transition-colors">
+                                Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getDocumentIcon(type) {
+            const icons = {
+                'cv': '<i data-lucide="user" class="w-5 h-5 text-blue-600"></i>',
+                'certificate': '<i data-lucide="award" class="w-5 h-5 text-purple-600"></i>',
+                'portfolio': '<i data-lucide="briefcase" class="w-5 h-5 text-orange-600"></i>',
+                'cover_letter': '<i data-lucide="file-text" class="w-5 h-5 text-green-600"></i>',
+                'other': '<i data-lucide="file" class="w-5 h-5 text-gray-600"></i>'
+            };
+            return icons[type] || icons['other'];
+        }
+
+        function getDocumentTypeLabel(type) {
+            const labels = {
+                'cv': 'CV',
+                'certificate': 'Sertifikat',
+                'portfolio': 'Portfolio',
+                'cover_letter': 'Cover Letter',
+                'other': 'Lainnya'
+            };
+            return labels[type] || 'Unknown';
+        }
+
+        function filterDocuments() {
+            const searchTerm = document.getElementById('documentSearch')?.value.toLowerCase() || '';
+            const typeFilter = document.getElementById('typeFilter')?.value || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            
+            if (!window.allDocuments) return;
+            
+            const filtered = window.allDocuments.filter(doc => {
+                const matchesSearch = doc.name.toLowerCase().includes(searchTerm) || 
+                                    doc.candidateName.toLowerCase().includes(searchTerm) ||
+                                    (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+                const matchesType = !typeFilter || doc.type === typeFilter;
+                const matchesStatus = !statusFilter || doc.status === statusFilter;
+                
+                return matchesSearch && matchesType && matchesStatus;
+            });
+            
+            document.getElementById('documentsList').innerHTML = renderDocumentsList(filtered);
+            lucide.createIcons();
+        }
+
+        function showUploadModal() {
+            const content = `
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold">Upload Dokumen Baru</h3>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Dokumen</label>
+                            <input type="text" id="documentName" class="w-full border border-gray-300 px-3 py-2" placeholder="Masukkan nama dokumen">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Dokumen</label>
+                            <select id="documentType" class="w-full border border-gray-300 px-3 py-2">
+                                <option value="cv">CV</option>
+                                <option value="certificate">Sertifikat</option>
+                                <option value="portfolio">Portfolio</option>
+                                <option value="cover_letter">Cover Letter</option>
+                                <option value="other">Lainnya</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kandidat</label>
+                            <select id="documentCandidate" class="w-full border border-gray-300 px-3 py-2">
+                                <option value="">Pilih Kandidat</option>
+                                ${(window.allCandidates || []).map(c => `<option value="${c.id}">${c.fullName}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">File</label>
+                            <div class="border border-dashed border-gray-300 p-4 text-center">
+                                <i data-lucide="upload" class="w-8 h-8 mx-auto text-gray-400 mb-2"></i>
+                                <p class="text-sm text-gray-600">Drag & drop file atau klik untuk browse</p>
+                                <input type="file" id="documentFile" class="hidden" accept=".pdf,.doc,.docx,.jpg,.png">
+                                <button onclick="document.getElementById('documentFile').click()" class="mt-2 px-3 py-1 bg-blue-600 text-white text-sm">
+                                    Browse File
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tags (opsional)</label>
+                            <input type="text" id="documentTags" class="w-full border border-gray-300 px-3 py-2" placeholder="Pisahkan dengan koma: frontend, react, senior">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="uploadDocument()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                            Upload
+                        </button>
+                        <button onclick="openDocumentManagement()" class="px-4 py-2 bg-gray-600 text-white hover:bg-gray-700">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showResults('Upload Dokumen', content);
+        }
+
+        function uploadDocument() {
+            const name = document.getElementById('documentName')?.value;
+            const type = document.getElementById('documentType')?.value;
+            const candidateId = document.getElementById('documentCandidate')?.value;
+            const file = document.getElementById('documentFile')?.files[0];
+            const tags = document.getElementById('documentTags')?.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            if (!name || !type || !candidateId || !file) {
+                showAlert('error', 'Silakan lengkapi semua field yang diperlukan');
+                return;
+            }
+            
+            // Simulate upload
+            const candidateName = (window.allCandidates || []).find(c => c.id === candidateId)?.fullName || 'Unknown';
+            const newDoc = {
+                id: 'doc-' + Date.now(),
+                name: name,
+                type: type,
+                candidateId: candidateId,
+                candidateName: candidateName,
+                size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+                uploadedAt: new Date().toISOString(),
+                status: 'pending',
+                downloadCount: 0,
+                tags: tags
+            };
+            
+            if (!window.allDocuments) {
+                window.allDocuments = getSampleDocuments();
+            }
+            window.allDocuments.unshift(newDoc);
+            
+            showAlert('success', 'Dokumen berhasil diupload');
+            openDocumentManagement();
+        }
+
+        function downloadDocument(docId) {
+            const doc = window.allDocuments?.find(d => d.id === docId);
+            if (doc) {
+                // Simulate download
+                doc.downloadCount++;
+                showAlert('info', `Downloading: ${doc.name}`);
+            }
+        }
+
+        function viewDocument(docId) {
+            const doc = window.allDocuments?.find(d => d.id === docId);
+            if (doc) {
+                showAlert('info', `Preview untuk ${doc.name} akan tersedia dalam update selanjutnya`);
+            }
+        }
+
+        function verifyDocument(docId) {
+            const doc = window.allDocuments?.find(d => d.id === docId);
+            if (doc) {
+                doc.status = 'verified';
+                doc.verifiedBy = 'HR Manager';
+                doc.verifiedAt = new Date().toISOString();
+                showAlert('success', `Dokumen ${doc.name} berhasil diverifikasi`);
+                openDocumentManagement();
+            }
+        }
+
+        function editDocument(docId) {
+            showAlert('info', 'Edit dokumen feature akan tersedia dalam update selanjutnya');
+        }
+
+        function deleteDocument(docId) {
+            if (confirm('Yakin ingin menghapus dokumen ini?')) {
+                window.allDocuments = window.allDocuments?.filter(d => d.id !== docId) || [];
+                showAlert('success', 'Dokumen berhasil dihapus');
+                openDocumentManagement();
+            }
+        }
+
+        // Helper functions for candidate management
+        function getSampleCandidates() {
+            return [
+                {
+                    id: 'candidate-sample-001',
+                    fullName: 'Diah Morestika Nur Afifah',
+                    email: 'diah.morestika@example.com',
+                    phone: '+62 812-3456-7890',
+                    age: 27,
+                    gender: 'Female',
+                    address: { city: 'Jakarta', country: 'Indonesia' },
+                    education: [{ degree: 'Bachelor of Engineering', institution: 'Institut Teknologi Bandung' }],
+                    appliedPosition: 'Software Engineer',
+                    status: 'pending',
+                    discPersonalityType: 'CONSCIENTIOUS',
+                    discTestCompleted: true,
+                    createdAt: new Date('2024-12-01'),
+                    cvFile: 'cv_diah.pdf'
+                },
+                {
+                    id: 'candidate-sample-002',
+                    fullName: 'Ahmad Rizki Pratama',
+                    email: 'ahmad.rizki@example.com',
+                    phone: '+62 813-7890-1234',
+                    age: 29,
+                    gender: 'Male',
+                    address: { city: 'Bandung', country: 'Indonesia' },
+                    education: [{ degree: 'Master of Computer Science', institution: 'Universitas Indonesia' }],
+                    appliedPosition: 'Senior Software Engineer',
+                    status: 'active',
+                    discPersonalityType: 'DOMINANT',
+                    discTestCompleted: true,
+                    createdAt: new Date('2024-11-28'),
+                    cvFile: 'cv_ahmad.pdf'
+                },
+                {
+                    id: 'candidate-sample-003',
+                    fullName: 'Sari Dewi Permata',
+                    email: 'sari.dewi@example.com',
+                    phone: '+62 814-5678-9012',
+                    age: 25,
+                    gender: 'Female',
+                    address: { city: 'Surabaya', country: 'Indonesia' },
+                    education: [{ degree: 'Bachelor of Psychology', institution: 'Universitas Gadjah Mada' }],
+                    appliedPosition: 'HR Specialist',
+                    status: 'interviewed',
+                    discPersonalityType: 'STEADY',
+                    discTestCompleted: true,
+                    createdAt: new Date('2024-11-25'),
+                    cvFile: 'cv_sari.pdf'
+                }
+            ];
+        }
+        
+        function renderCandidatesList(candidates) {
+            if (candidates.length === 0) {
+                return '<div class="text-center py-8 text-slate-500">Tidak ada kandidat ditemukan</div>';
+            }
+            
+            return candidates.map(candidate => `
+                <div class="bg-white border border-slate-200 p-4 mb-4 card-sharp hover:shadow-lg transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h4 class="text-lg font-bold text-slate-900">${candidate.fullName}</h4>
+                                <span class="px-2 py-1 text-xs font-semibold ${getStatusBadgeClass(candidate.status)}">
+                                    ${getStatusLabel(candidate.status)}
+                                </span>
+                                ${candidate.discTestCompleted ? 
+                                    `<span class="px-2 py-1 text-xs bg-purple-100 text-purple-800">DISC: ${candidate.discPersonalityType || 'N/A'}</span>` 
+                                    : '<span class="px-2 py-1 text-xs bg-gray-100 text-gray-600">No DISC</span>'
+                                }
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600 mb-3">
+                                <div>
+                                    <i data-lucide="mail" class="w-4 h-4 inline mr-1"></i>
+                                    ${candidate.email}
+                                </div>
+                                <div>
+                                    <i data-lucide="phone" class="w-4 h-4 inline mr-1"></i>
+                                    ${candidate.phone || 'N/A'}
+                                </div>
+                                <div>
+                                    <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                    ${candidate.address?.city || 'N/A'}, ${candidate.address?.country || 'N/A'}
+                                </div>
+                            </div>
+                            
+                            <div class="text-sm text-slate-600 mb-3">
+                                <div class="mb-1">
+                                    <strong>Posisi:</strong> ${candidate.appliedPosition || 'N/A'}
+                                </div>
+                                <div class="mb-1">
+                                    <strong>Pendidikan:</strong> ${candidate.education?.[0]?.degree || 'N/A'} 
+                                    ${candidate.education?.[0]?.institution ? '- ' + candidate.education[0].institution : ''}
+                                </div>
+                                <div>
+                                    <strong>Tanggal Apply:</strong> ${new Date(candidate.createdAt).toLocaleDateString('id-ID')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2 ml-4">
+                            <select class="border border-slate-300 px-2 py-1 text-sm" onchange="updateCandidateStatus('${candidate.id}', this.value)">
+                                <option value="active" ${candidate.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="pending" ${candidate.status === 'pending' ? 'selected' : ''}>Pending Review</option>
+                                <option value="reviewed" ${candidate.status === 'reviewed' ? 'selected' : ''}>Reviewed</option>
+                                <option value="shortlisted" ${candidate.status === 'shortlisted' ? 'selected' : ''}>Shortlisted</option>
+                                <option value="interviewed" ${candidate.status === 'interviewed' ? 'selected' : ''}>Interviewed</option>
+                                <option value="hired" ${candidate.status === 'hired' ? 'selected' : ''}>Hired</option>
+                                <option value="rejected" ${candidate.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            </select>
+                            
+                            <button onclick="viewCandidateDetail('${candidate.id}')" 
+                                    class="px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                View Detail
+                            </button>
+                            
+                            ${candidate.discTestCompleted ? 
+                                `<button onclick="viewDiscResult('${candidate.id}')" 
+                                         class="px-3 py-1 text-xs bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                                    DISC Result
+                                </button>`
+                                : ''
+                            }
+                            
+                            ${candidate.cvFile ? 
+                                `<button onclick="downloadCV('${candidate.id}', '${candidate.cvFile}')" 
+                                         class="px-3 py-1 text-xs bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                    Download CV
+                                </button>
+                                <button onclick="reviewCV('${candidate.id}')" 
+                                         class="px-3 py-1 text-xs bg-orange-600 text-white hover:bg-orange-700 transition-colors">
+                                    Review CV
+                                </button>`
+                                : ''
+                            }
+                            
+                            ${candidate.status === 'reviewed' && !candidate.testLink ? 
+                                `<button onclick="generateTestLink('${candidate.id}')" 
+                                         class="px-3 py-1 text-xs bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                                    Generate Test Link
+                                </button>`
+                                : ''
+                            }
+                            
+                            ${candidate.testLink ? 
+                                `<button onclick="copyTestLink('${candidate.testLink}')" 
+                                         class="px-3 py-1 text-xs bg-teal-600 text-white hover:bg-teal-700 transition-colors">
+                                    Copy Test Link
+                                </button>`
+                                : ''
+                            }
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'active': 'bg-blue-100 text-blue-800',
+                'pending': 'bg-yellow-100 text-yellow-800',
+                'reviewed': 'bg-purple-100 text-purple-800',
+                'shortlisted': 'bg-indigo-100 text-indigo-800',
+                'interviewed': 'bg-orange-100 text-orange-800',
+                'hired': 'bg-green-100 text-green-800',
+                'rejected': 'bg-red-100 text-red-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function getStatusLabel(status) {
+            const labels = {
+                'active': 'Active',
+                'pending': 'Pending Review',
+                'reviewed': 'Reviewed',
+                'shortlisted': 'Shortlisted',
+                'interviewed': 'Interviewed',
+                'hired': 'Hired',
+                'rejected': 'Rejected'
+            };
+            return labels[status] || 'Unknown';
+        }
+        
+        // Candidate management functions
+        function filterCandidates() {
+            const filterValue = document.getElementById('statusFilter').value;
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = window.allCandidates || [];
+            
+            if (filterValue) {
+                filtered = filtered.filter(candidate => candidate.status === filterValue);
+            }
+            
+            if (searchValue) {
+                filtered = filtered.filter(candidate => 
+                    candidate.fullName.toLowerCase().includes(searchValue) ||
+                    candidate.email.toLowerCase().includes(searchValue) ||
+                    (candidate.appliedPosition && candidate.appliedPosition.toLowerCase().includes(searchValue))
+                );
+            }
+            
+            document.getElementById('candidatesList').innerHTML = renderCandidatesList(filtered);
+            lucide.createIcons();
+        }
+        
+        function searchCandidates() {
+            filterCandidates();
+        }
+        
+        async function updateCandidateStatus(candidateId, newStatus) {
+            try {
+                // Try to update via API first
+                try {
+                    const response = await fetch(`${API_BASE}/candidates/${candidateId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + (localStorage.getItem('hr_token') || 'demo_token')
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                    
+                    if (response.ok) {
+                        showAlert('success', `Status kandidat berhasil diupdate ke ${getStatusLabel(newStatus)}`);
+                    }
+                } catch (error) {
+                    console.log('API update failed, updating locally');
+                }
+                
+                // Update local data
+                if (window.allCandidates) {
+                    const candidate = window.allCandidates.find(c => c.id === candidateId);
+                    if (candidate) {
+                        candidate.status = newStatus;
+                        // Refresh the display
+                        document.getElementById('candidatesList').innerHTML = renderCandidatesList(window.allCandidates);
+                        lucide.createIcons();
+                        showAlert('success', `Status kandidat berhasil diupdate ke ${getStatusLabel(newStatus)}`);
+                    }
+                }
+                
+            } catch (error) {
+                showAlert('error', 'Gagal mengupdate status kandidat: ' + error.message);
+            }
+        }
+        
+        function viewCandidateDetail(candidateId) {
+            const candidate = window.allCandidates?.find(c => c.id === candidateId);
+            if (!candidate) {
+                showAlert('error', 'Data kandidat tidak ditemukan');
+                return;
+            }
+            
+            const content = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Informasi Pribadi</h4>
+                            <div class="space-y-2 text-sm">
+                                <div><strong>Nama Lengkap:</strong> ${candidate.fullName}</div>
+                                <div><strong>Email:</strong> ${candidate.email}</div>
+                                <div><strong>Telepon:</strong> ${candidate.phone || 'N/A'}</div>
+                                <div><strong>Umur:</strong> ${candidate.age || 'N/A'} tahun</div>
+                                <div><strong>Jenis Kelamin:</strong> ${candidate.gender || 'N/A'}</div>
+                                <div><strong>Alamat:</strong> ${candidate.address?.city || 'N/A'}, ${candidate.address?.country || 'N/A'}</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Informasi Aplikasi</h4>
+                            <div class="space-y-2 text-sm">
+                                <div><strong>Posisi:</strong> ${candidate.appliedPosition || 'N/A'}</div>
+                                <div><strong>Status:</strong> <span class="px-2 py-1 ${getStatusBadgeClass(candidate.status)}">${getStatusLabel(candidate.status)}</span></div>
+                                <div><strong>Tanggal Apply:</strong> ${new Date(candidate.createdAt).toLocaleDateString('id-ID')}</div>
+                                <div><strong>DISC Test:</strong> ${candidate.discTestCompleted ? 'Completed' : 'Not Completed'}</div>
+                                ${candidate.discPersonalityType ? `<div><strong>Tipe Kepribadian:</strong> ${candidate.discPersonalityType}</div>` : ''}
+                                ${candidate.cvFile ? `<div><strong>CV File:</strong> ${candidate.cvFile}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${candidate.education && candidate.education.length > 0 ? `
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Pendidikan</h4>
+                            ${candidate.education.map(edu => `
+                                <div class="bg-slate-50 p-3 mb-2">
+                                    <div class="font-semibold">${edu.degree || 'N/A'}</div>
+                                    <div class="text-sm text-slate-600">${edu.institution || 'N/A'}</div>
+                                    ${edu.graduationYear ? `<div class="text-sm text-slate-600">Tahun Lulus: ${edu.graduationYear}</div>` : ''}
+                                    ${edu.gpa ? `<div class="text-sm text-slate-600">GPA: ${edu.gpa}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex gap-4 pt-4">
+                        <button onclick="updateCandidateStatus('${candidate.id}', 'shortlisted')" 
+                                class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                            Shortlist
+                        </button>
+                        <button onclick="updateCandidateStatus('${candidate.id}', 'interviewed')" 
+                                class="px-4 py-2 bg-orange-600 text-white hover:bg-orange-700 transition-colors">
+                            Mark Interviewed
+                        </button>
+                        <button onclick="updateCandidateStatus('${candidate.id}', 'hired')" 
+                                class="px-4 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors">
+                            Hire
+                        </button>
+                        <button onclick="updateCandidateStatus('${candidate.id}', 'rejected')" 
+                                class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 transition-colors">
+                            Reject
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showResults(`Detail Kandidat - ${candidate.fullName}`, content);
+        }
+        
+        function viewDiscResult(candidateId) {
+            const candidate = window.allCandidates?.find(c => c.id === candidateId);
+            if (!candidate || !candidate.discTestCompleted) {
+                showAlert('error', 'Data DISC test tidak ditemukan');
+                return;
+            }
+            
+            // Generate sample DISC scores based on personality type
+            const discScores = generateDiscScores(candidate.discPersonalityType);
+            
+            const content = `
+                <div class="space-y-6">
+                    <div class="text-center mb-6">
+                        <h4 class="text-xl font-bold text-slate-900">${candidate.fullName}</h4>
+                        <p class="text-slate-600">Hasil Assessment DISC</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-4 text-center">
+                        <div class="p-4 bg-blue-50 border border-blue-200">
+                            <div class="text-2xl font-bold text-blue-600">${discScores.D}</div>
+                            <div class="text-sm text-blue-800">Dominance</div>
+                            <div class="text-xs text-blue-600">Kepemimpinan, Tegas</div>
+                        </div>
+                        <div class="p-4 bg-green-50 border border-green-200">
+                            <div class="text-2xl font-bold text-green-600">${discScores.I}</div>
+                            <div class="text-sm text-green-800">Influence</div>
+                            <div class="text-xs text-green-600">Komunikasi, Sosial</div>
+                        </div>
+                        <div class="p-4 bg-yellow-50 border border-yellow-200">
+                            <div class="text-2xl font-bold text-yellow-600">${discScores.S}</div>
+                            <div class="text-sm text-yellow-800">Steadiness</div>
+                            <div class="text-xs text-yellow-600">Stabil, Konsisten</div>
+                        </div>
+                        <div class="p-4 bg-purple-50 border border-purple-200">
+                            <div class="text-2xl font-bold text-purple-600">${discScores.C}</div>
+                            <div class="text-sm text-purple-800">Compliance</div>
+                            <div class="text-xs text-purple-600">Detail, Akurat</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-4 border border-slate-200">
+                        <h4 class="font-bold text-slate-900 mb-2">Tipe Kepribadian</h4>
+                        <p class="text-lg font-semibold text-primary">${candidate.discPersonalityType}</p>
+                        <p class="text-sm text-slate-600 mt-2">${getPersonalityDescription(candidate.discPersonalityType)}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Kekuatan</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${getPersonalityStrengths(candidate.discPersonalityType).map(s => 
+                                    `<span class="px-3 py-1 bg-green-100 text-green-800 text-sm">${s}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-3">Area Pengembangan</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${getPersonalityChallenges(candidate.discPersonalityType).map(c => 
+                                    `<span class="px-3 py-1 bg-orange-100 text-orange-800 text-sm">${c}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 border border-blue-200">
+                        <h4 class="font-bold text-blue-900 mb-2">Rekomendasi Posisi</h4>
+                        <p class="text-sm text-blue-800">${getJobRecommendations(candidate.discPersonalityType)}</p>
+                    </div>
+                </div>
+            `;
+            
+            showResults(`DISC Assessment - ${candidate.fullName}`, content);
+        }
+        
+        function downloadCV(candidateId, filename) {
+            // Simulate CV download - in real implementation, this would download from server
+            showAlert('info', `Downloading CV: ${filename} untuk kandidat ${candidateId}`);
+        }
+        
+        function reviewCV(candidateId) {
+            const candidate = window.allCandidates?.find(c => c.id === candidateId);
+            if (!candidate) {
+                showAlert('error', 'Data kandidat tidak ditemukan');
+                return;
+            }
+            
+            const content = `
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-4 border">
+                        <h3 class="text-lg font-bold text-slate-900 mb-3">CV Review - ${candidate.fullName}</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <strong>Posisi yang Dilamar:</strong> ${candidate.appliedPosition || 'N/A'}
+                            </div>
+                            <div>
+                                <strong>Email:</strong> ${candidate.email || 'N/A'}
+                            </div>
+                            <div>
+                                <strong>Phone:</strong> ${candidate.phone || 'N/A'}
+                            </div>
+                            <div>
+                                <strong>Pendidikan:</strong> ${candidate.education?.[0]?.degree || 'N/A'} - ${candidate.education?.[0]?.institution || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        ${candidate.cvFile ? 
+                            `<div class="mb-4">
+                                <strong>CV File:</strong> ${candidate.cvFile}
+                                <button onclick="downloadCV('${candidate.id}', '${candidate.cvFile}')" 
+                                        class="ml-2 px-2 py-1 text-xs bg-green-600 text-white hover:bg-green-700">
+                                    Download
+                                </button>
+                            </div>` : ''
+                        }
+                        
+                        <div class="space-y-3">
+                            <h4 class="font-semibold">CV Review Notes:</h4>
+                            <textarea id="reviewNotes-${candidateId}" 
+                                      class="w-full border border-gray-300 p-2 h-32" 
+                                      placeholder="Masukkan catatan review CV..."></textarea>
+                            
+                            <div class="flex gap-2">
+                                <button onclick="approveCandidate('${candidateId}')" 
+                                        class="px-4 py-2 bg-green-600 text-white hover:bg-green-700">
+                                    ✓ Approve for Test
+                                </button>
+                                <button onclick="rejectCandidate('${candidateId}')" 
+                                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                                    ✗ Reject
+                                </button>
+                                <button onclick="showCandidateManagement()" 
+                                        class="px-4 py-2 bg-gray-600 text-white hover:bg-gray-700">
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showResults('CV Review', content);
+        }
+        
+        async function approveCandidate(candidateId) {
+            const notes = document.getElementById(`reviewNotes-${candidateId}`)?.value || '';
+            
+            try {
+                // Update candidate status to reviewed
+                const response = await fetch(`${API_BASE}/candidates/${candidateId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        status: 'reviewed',
+                        reviewNotes: notes
+                    })
+                });
+                
+                if (response.ok) {
+                    // Update local data
+                    const candidate = window.allCandidates?.find(c => c.id === candidateId);
+                    if (candidate) {
+                        candidate.status = 'reviewed';
+                        candidate.reviewNotes = notes;
+                    }
+                    
+                    showAlert('success', 'Kandidat berhasil di-approve untuk test');
+                    showCandidateManagement();
+                } else {
+                    throw new Error('Failed to approve candidate');
+                }
+            } catch (error) {
+                showAlert('error', 'Gagal meng-approve kandidat: ' + error.message);
+            }
+        }
+        
+        async function rejectCandidate(candidateId) {
+            const notes = document.getElementById(`reviewNotes-${candidateId}`)?.value || '';
+            
+            if (!confirm('Yakin ingin menolak kandidat ini?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/candidates/${candidateId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        status: 'rejected',
+                        reviewNotes: notes
+                    })
+                });
+                
+                if (response.ok) {
+                    const candidate = window.allCandidates?.find(c => c.id === candidateId);
+                    if (candidate) {
+                        candidate.status = 'rejected';
+                        candidate.reviewNotes = notes;
+                    }
+                    
+                    showAlert('success', 'Kandidat berhasil ditolak');
+                    showCandidateManagement();
+                } else {
+                    throw new Error('Failed to reject candidate');
+                }
+            } catch (error) {
+                showAlert('error', 'Gagal menolak kandidat: ' + error.message);
+            }
+        }
+        
+        async function generateTestLink(candidateId) {
+            const candidate = window.allCandidates?.find(c => c.id === candidateId);
+            if (!candidate) {
+                showAlert('error', 'Data kandidat tidak ditemukan');
+                return;
+            }
+            
+            try {
+                // Generate unique test token
+                const testToken = 'test_' + candidateId + '_' + Date.now();
+                const testLink = `${window.location.origin}/test?token=${testToken}&candidate=${candidateId}`;
+                
+                const response = await fetch(`${API_BASE}/candidates/${candidateId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        testLink: testLink,
+                        testToken: testToken,
+                        testStatus: 'pending'
+                    })
+                });
+                
+                if (response.ok) {
+                    candidate.testLink = testLink;
+                    candidate.testToken = testToken;
+                    candidate.testStatus = 'pending';
+                    
+                    // Refresh the display
+                    document.getElementById('candidatesList').innerHTML = renderCandidatesList(window.allCandidates);
+                    lucide.createIcons();
+                    
+                    showAlert('success', `Test link berhasil digenerate untuk ${candidate.fullName}`);
+                    
+                    // Show the link in a modal for easy copying
+                    const content = `
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold">Test Link Generated</h3>
+                            <p>Link test telah digenerate untuk <strong>${candidate.fullName}</strong></p>
+                            <div class="bg-gray-100 p-3 border">
+                                <code class="text-sm break-all">${testLink}</code>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="copyTestLink('${testLink}')" 
+                                        class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">
+                                    Copy Link
+                                </button>
+                                <button onclick="showCandidateManagement()" 
+                                        class="px-4 py-2 bg-gray-600 text-white hover:bg-gray-700">
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    showResults('Test Link Generated', content);
+                } else {
+                    throw new Error('Failed to generate test link');
+                }
+            } catch (error) {
+                showAlert('error', 'Gagal membuat test link: ' + error.message);
+            }
+        }
+        
+        function copyTestLink(testLink) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(testLink).then(() => {
+                    showAlert('success', 'Test link berhasil dicopy ke clipboard');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    fallbackCopyText(testLink);
+                });
+            } else {
+                fallbackCopyText(testLink);
+            }
+        }
+        
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showAlert('success', 'Test link berhasil dicopy ke clipboard');
+            } catch (err) {
+                showAlert('error', 'Gagal copy link. Silakan copy manual.');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function generateDiscScores(personalityType) {
+            const scoreTemplates = {
+                'DOMINANT': { D: 8, I: 3, S: 1, C: 3 },
+                'INFLUENTIAL': { D: 2, I: 9, S: 3, C: 1 },
+                'STEADY': { D: 1, I: 3, S: 8, C: 3 },
+                'CONSCIENTIOUS': { D: 2, I: 1, S: 3, C: 9 }
+            };
+            
+            return scoreTemplates[personalityType] || { D: 4, I: 4, S: 4, C: 3 };
+        }
+        
+        function getPersonalityDescription(type) {
+            const descriptions = {
+                'DOMINANT': 'Individu yang berorientasi pada hasil, suka mengambil keputusan cepat, dan memimpin. Cocok untuk posisi manajemen dan kepemimpinan.',
+                'INFLUENTIAL': 'Individu yang komunikatif, optimis, dan suka bekerja dengan orang lain. Cocok untuk posisi sales, marketing, dan hubungan masyarakat.',
+                'STEADY': 'Individu yang tenang, dapat diandalkan, dan suka bekerja dalam tim. Cocok untuk posisi support, administrasi, dan layanan pelanggan.',
+                'CONSCIENTIOUS': 'Individu yang detail, akurat, dan suka menganalisis. Cocok untuk posisi teknis, quality control, dan research.'
+            };
+            return descriptions[type] || 'Kepribadian yang seimbang dan fleksibel.';
+        }
+        
+        function getPersonalityStrengths(type) {
+            const strengths = {
+                'DOMINANT': ['Kepemimpinan kuat', 'Pengambilan keputusan cepat', 'Berorientasi hasil', 'Percaya diri', 'Inisiatif tinggi'],
+                'INFLUENTIAL': ['Komunikasi excellent', 'Optimis dan antusias', 'Persuasif', 'Networking baik', 'Team player'],
+                'STEADY': ['Dapat diandalkan', 'Sabar dan konsisten', 'Loyal', 'Pendengar yang baik', 'Stabil dalam tekanan'],
+                'CONSCIENTIOUS': ['Detail dan akurat', 'Analitis kuat', 'Kualitas tinggi', 'Sistematis', 'Compliance baik']
+            };
+            return strengths[type] || ['Fleksibel', 'Adaptif'];
+        }
+        
+        function getPersonalityChallenges(type) {
+            const challenges = {
+                'DOMINANT': ['Kurang sabar', 'Terlalu langsung', 'Kurang detail', 'Sulit delegasi'],
+                'INFLUENTIAL': ['Kurang fokus detail', 'Terlalu optimis', 'Sulit berkonsentrasi', 'Kurang follow-up'],
+                'STEADY': ['Lambat adaptasi', 'Hindari konfrontasi', 'Sulit ambil keputusan cepat', 'Resistance to change'],
+                'CONSCIENTIOUS': ['Terlalu perfeksionis', 'Lambat dalam keputusan', 'Kurang fleksibel', 'Hindari risiko']
+            };
+            return challenges[type] || ['Perlu pengembangan'];
+        }
+        
+        function getJobRecommendations(type) {
+            const recommendations = {
+                'DOMINANT': 'Sangat cocok untuk posisi Manager, Director, Team Lead, Project Manager, atau posisi kepemimpinan lainnya.',
+                'INFLUENTIAL': 'Sangat cocok untuk posisi Sales, Marketing, Public Relations, Customer Success, atau posisi yang membutuhkan interaksi sosial tinggi.',
+                'STEADY': 'Sangat cocok untuk posisi Administrative, Customer Service, Support, HR Specialist, atau posisi yang membutuhkan konsistensi.',
+                'CONSCIENTIOUS': 'Sangat cocok untuk posisi Quality Assurance, Data Analyst, Research, Technical Specialist, atau posisi yang membutuhkan akurasi tinggi.'
+            };
+            return recommendations[type] || 'Cocok untuk berbagai jenis posisi dengan pengembangan yang tepat.';
+        }
+        
+        // Alert function for user feedback
+        function showAlert(type, message) {
+            const bgColor = type === 'error' ? 'bg-red-100 border-red-500 text-red-700' : 
+                          type === 'success' ? 'bg-green-100 border-green-500 text-green-700' :
+                          'bg-blue-100 border-blue-500 text-blue-700';
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `fixed top-4 right-4 p-4 border-l-4 ${bgColor} z-50 max-w-sm card-sharp shadow-lg`;
+            alertDiv.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i data-lucide="${type === 'error' ? 'alert-circle' : type === 'success' ? 'check-circle' : 'info'}" class="w-4 h-4 mr-2"></i>
+                        <p class="font-medium">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            lucide.createIcons();
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        // Login functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 DOM loaded, setting up login form...');
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('🔐 Login form submitted');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            console.log('📧 Email:', email, '🔑 Password:', password ? '***' : 'empty');
+            
+            // Demo login validation
+            if (email === 'hr@company.com' && password === 'password123') {
+                console.log('✅ Login successful!');
+                currentUser = {
+                    email: email,
+                    name: 'HR Manager',
+                    role: 'hr_manager'
+                };
+                
+                // Update user info in header and sidebar
+                if (document.getElementById('headerUserEmail')) {
+                    document.getElementById('headerUserEmail').textContent = currentUser.email;
+                }
+                if (document.getElementById('headerUserName')) {
+                    document.getElementById('headerUserName').textContent = currentUser.name;
+                }
+                if (document.getElementById('headerUserInitial')) {
+                    document.getElementById('headerUserInitial').textContent = currentUser.name.charAt(0);
+                }
+                if (document.getElementById('sidebarUserEmail')) {
+                    document.getElementById('sidebarUserEmail').textContent = currentUser.email;
+                }
+                if (document.getElementById('sidebarUserName')) {
+                    document.getElementById('sidebarUserName').textContent = currentUser.name;
+                }
+                if (document.getElementById('sidebarUserInitial')) {
+                    document.getElementById('sidebarUserInitial').textContent = currentUser.name.charAt(0);
+                }
+                
+                // Hide login, show main app
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // Load dashboard data
+                loadDashboardData();
+            } else {
+                alert('Email atau password salah. Gunakan: hr@company.com / password123');
+            }
+            });
+        });
+
+        // Logout functionality
+        // Navbar functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        // Global variables to store dashboard data
+        let dashboardData = {
+            candidates: { total: 0, data: [] },
+            jobs: { total: 0, data: [] },
+            discTests: 156,
+            statistics: {
+                newCandidatesWeek: 24,
+                interviewsScheduled: 8,
+                hireRate: 72
+            }
+        };
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                showLoadingState();
+                
+                // Load dashboard metrics from synchronized API
+                const metricsResponse = await fetch(`${API_BASE}/dashboard/metrics`);
+                const metricsData = await metricsResponse.json();
+                
+                // Load analytics data
+                const analyticsResponse = await fetch(`${API_BASE}/analytics/test-performance`);
+                const analyticsData = await analyticsResponse.json();
+                
+                // Update dashboard data with real synchronized data
+                dashboardData = {
+                    candidates: { 
+                        total: metricsData.metrics?.candidates?.total || 0,
+                        data: [] 
+                    },
+                    jobs: { 
+                        total: 0, // Jobs data not yet in metrics API
+                        data: [] 
+                    },
+                    discTests: metricsData.metrics?.tests?.totalTaken || 0,
+                    completedTests: metricsData.metrics?.tests?.completed || 0,
+                    pendingTests: metricsData.metrics?.tests?.pending || 0,
+                    activeLinks: metricsData.metrics?.testLinks?.active || 0,
+                    statistics: {
+                        newCandidatesWeek: metricsData.metrics?.candidates?.newThisWeek || 0,
+                        completionRate: metricsData.metrics?.tests?.completionRate || 0,
+                        securityIncidents: 0, // Not yet in metrics API
+                        averageScore: 0, // Average score calculation needs to be implemented in backend
+                        categoriesCount: metricsData.metrics?.testContent?.categories || 0,
+                        questionsCount: metricsData.metrics?.testContent?.questions || 0
+                    },
+                    analytics: analyticsData
+                };
+                
+                console.log('✅ Dashboard loaded with real synchronized data:', dashboardData);
+                
+                // Update UI with real data
+                updateDashboardUI();
+                
+                // Initialize charts with real data
+                initializeDashboardCharts(dashboardData);
+                
+                hideLoadingState();
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                
+                // Use minimal fallback data if API fails
+                dashboardData = {
+                    candidates: { total: 0, data: [] },
+                    jobs: { total: 0, data: [] },
+                    discTests: 0,
+                    activeLinks: 0,
+                    statistics: {
+                        newCandidatesWeek: 0,
+                        completionRate: 0,
+                        securityIncidents: 0,
+                        averageScore: 0
+                    }
+                };
+                
+                updateDashboardUI();
+                initializeDashboardCharts(dashboardData);
+                hideLoadingState();
+            }
+        }
+
+        // Update dashboard UI elements with real data
+        function updateDashboardUI() {
+            // Update main metrics
+            if (document.getElementById('totalCandidates')) {
+                document.getElementById('totalCandidates').textContent = dashboardData.candidates.total || 0;
+            }
+            if (document.getElementById('activeJobs')) {
+                document.getElementById('activeJobs').textContent = dashboardData.jobs.total || 0;
+            }
+            if (document.getElementById('totalDiscTests')) {
+                document.getElementById('totalDiscTests').textContent = dashboardData.discTests || 0;
+            }
+            
+            // Update additional test metrics
+            if (document.getElementById('completedTests')) {
+                document.getElementById('completedTests').textContent = dashboardData.completedTests || 0;
+            }
+            if (document.getElementById('pendingTests')) {
+                document.getElementById('pendingTests').textContent = dashboardData.pendingTests || 0;
+            }
+            
+            // Update test links
+            if (document.getElementById('activeTestLinks')) {
+                document.getElementById('activeTestLinks').textContent = dashboardData.activeLinks || 0;
+            }
+            
+            // Update statistics
+            if (document.getElementById('newCandidatesWeek')) {
+                document.getElementById('newCandidatesWeek').textContent = dashboardData.statistics.newCandidatesWeek || 0;
+            }
+            
+            if (document.getElementById('completionRate')) {
+                document.getElementById('completionRate').textContent = `${Math.round(dashboardData.statistics.completionRate * 100 || 0)}%`;
+            }
+            
+            if (document.getElementById('securityIncidents')) {
+                document.getElementById('securityIncidents').textContent = dashboardData.statistics.securityIncidents || 0;
+            }
+            
+            if (document.getElementById('averageScore')) {
+                document.getElementById('averageScore').textContent = `${Math.round(dashboardData.statistics.averageScore || 0)}%`;
+            }
+            
+            // Update content metrics
+            if (document.getElementById('categoriesCount')) {
+                document.getElementById('categoriesCount').textContent = dashboardData.statistics.categoriesCount || 0;
+            }
+            
+            if (document.getElementById('questionsCount')) {
+                document.getElementById('questionsCount').textContent = dashboardData.statistics.questionsCount || 0;
+            }
+            
+            // Update notification count with real data (pending tests)
+            if (document.getElementById('notificationCount')) {
+                const pendingCount = dashboardData.pendingTests || 0;
+                document.getElementById('notificationCount').textContent = pendingCount;
+                document.getElementById('notificationCount').style.display = pendingCount > 0 ? 'flex' : 'none';
+            }
+            
+            console.log('✅ Dashboard UI updated with synchronized data:', {
+                candidates: dashboardData.candidates.total,
+                tests: dashboardData.discTests,
+                completed: dashboardData.completedTests,
+                pending: dashboardData.pendingTests,
+                links: dashboardData.activeLinks,
+                completionRate: Math.round(dashboardData.statistics.completionRate * 100),
+                notifications: dashboardData.pendingTests
+            });
+        }
+
+        // Show loading state
+        function showLoadingState() {
+            const loadingHTML = `
+                <div class="flex items-center justify-center text-slate-500">
+                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2"></i>
+                    <span>Loading...</span>
+                </div>
+            `;
+            
+            document.getElementById('totalCandidates').innerHTML = loadingHTML;
+            document.getElementById('activeJobs').innerHTML = loadingHTML;
+            document.getElementById('totalDiscTests').innerHTML = loadingHTML;
+        }
+
+        // Hide loading state
+        function hideLoadingState() {
+            // Icons will be re-created by lucide after data is loaded
+            lucide.createIcons();
+        }
+
+        // Placeholder functions for other sections
+        function loadCandidatesData() {
+            console.log('Loading candidates data...');
+            // TODO: Load candidates from Supabase API
+        }
+
+        function loadJobsData() {
+            console.log('Loading jobs data...');
+            // TODO: Load jobs from Supabase API  
+        }
+
+        function loadAnalyticsData() {
+            console.log('Loading analytics data...');
+            // TODO: Load analytics from API
+        }
+
+        function loadReportsData() {
+            console.log('Loading reports data...');
+            // TODO: Load reports from API
+        }
+
+        // Add refresh functionality
+        function refreshDashboard() {
+            console.log('Refreshing dashboard data...');
+            loadDashboardData();
+        }
+
+        // Auto refresh every 5 minutes
+        setInterval(refreshDashboard, 5 * 60 * 1000);
+
+        // Global error handler
+        function handleDashboardError(error, context) {
+            console.error(`Dashboard error in ${context}:`, error);
+            
+            // Show user-friendly error message
+            const errorMessage = `
+                <div class="flex items-center justify-center text-red-500 p-4">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i>
+                    <span class="text-sm">Error loading ${context}</span>
+                </div>
+            `;
+            
+            // You could add specific error handling per context here
+            return errorMessage;
+        }
+
+        // Initialize all dashboard charts
+        function initializeDashboardCharts(data = dashboardData) {
+            // Initialize Candidate Growth Chart
+            initCandidateGrowthChart(data);
+            
+            // Initialize DISC Distribution Chart
+            initDiscDistributionChart(data);
+            
+            // Initialize Recruitment Funnel Chart
+            initRecruitmentFunnelChart(data);
+            
+            // Initialize Monthly Applications Chart
+            initMonthlyApplicationsChart(data);
+            
+            // Initialize Top Positions Chart
+            initTopPositionsChart(data);
+            
+            // Initialize Interview Success Chart
+            initInterviewSuccessChart(data);
+        }
+
+        // Candidate Growth Chart
+        function initCandidateGrowthChart(data) {
+            const ctx = document.getElementById('candidateGrowthChart').getContext('2d');
+            
+            // Generate realistic growth data based on current total
+            const currentTotal = data.candidates.total || data.candidates.pagination?.total || 134;
+            const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const growthData = generateGrowthData(currentTotal, months.length);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Kandidat Baru',
+                        data: growthData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            },
+                            ticks: {
+                                color: '#64748b'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#64748b'
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Helper function to generate realistic growth data
+        function generateGrowthData(currentTotal, months) {
+            const data = [];
+            const baseGrowth = Math.floor(currentTotal / months);
+            let runningTotal = Math.floor(currentTotal * 0.3); // Start from 30% of current
+            
+            for (let i = 0; i < months; i++) {
+                const variation = Math.floor(Math.random() * (baseGrowth * 0.4)) - (baseGrowth * 0.2);
+                runningTotal += baseGrowth + variation;
+                data.push(runningTotal);
+            }
+            
+            // Ensure last value matches current total
+            data[data.length - 1] = currentTotal;
+            
+            return data;
+        }
+
+        // DISC Distribution Chart
+        function initDiscDistributionChart(data) {
+            const ctx = document.getElementById('discDistributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Dominant (D)', 'Influential (I)', 'Steady (S)', 'Compliant (C)'],
+                    datasets: [{
+                        data: [35, 28, 42, 51],
+                        backgroundColor: [
+                            '#ef4444', // Red for D
+                            '#f59e0b', // Amber for I  
+                            '#10b981', // Emerald for S
+                            '#3b82f6'  // Blue for C
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Recruitment Funnel Chart
+        function initRecruitmentFunnelChart(data) {
+            const ctx = document.getElementById('recruitmentFunnelChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Aplikasi', 'Screening', 'Interview', 'Tes DISC', 'Final', 'Hired'],
+                    datasets: [{
+                        data: [450, 280, 165, 120, 85, 42],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#6366f1',
+                            '#8b5cf6',
+                            '#a855f7',
+                            '#c084fc',
+                            '#10b981'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Monthly Applications Chart
+        function initMonthlyApplicationsChart(data) {
+            const ctx = document.getElementById('monthlyApplicationsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Aplikasi',
+                        data: [65, 82, 78, 94, 87, 105, 142, 158, 134, 178, 165, 192],
+                        backgroundColor: '#10b981',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Top Positions Chart
+        function initTopPositionsChart(data) {
+            const ctx = document.getElementById('topPositionsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Frontend Dev', 'Backend Dev', 'UI/UX Designer', 'Data Analyst', 'DevOps'],
+                    datasets: [{
+                        data: [85, 72, 58, 45, 32],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#6366f1',
+                            '#8b5cf6',
+                            '#a855f7',
+                            '#c084fc'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Interview Success Chart
+        function initInterviewSuccessChart(data) {
+            const ctx = document.getElementById('interviewSuccessChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Berhasil', 'Gagal'],
+                    datasets: [{
+                        data: [72, 28],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Feature functions
+        function openCandidateManagement() {
+            window.location.href = '/candidates';
+        }
+
+        async function openCandidateManagementOld() {
+            try {
+                showResults('Manajemen Kandidat', '<div class="text-center"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i><br>Memuat data kandidat...</div>');
+                lucide.createIcons();
+                
+                // Try to fetch from API first, fallback to sample data if needed
+                let candidates = [];
+                
+                try {
+                    const response = await fetch(`${API_BASE}/candidates`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + (localStorage.getItem('hr_token') || 'demo_token')
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        candidates = data.candidates || [];
+                    }
+                } catch (error) {
+                    console.log('API not available, using sample data');
+                }
+                
+                // Use sample data if no API data available
+                if (candidates.length === 0) {
+                    candidates = getSampleCandidates();
+                }
+                
+                const content = `
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Daftar Kandidat</h3>
+                                <p class="text-sm text-slate-600">Total: ${candidates.length} kandidat</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="statusFilter" class="border border-slate-300 px-3 py-1 text-sm" onchange="filterCandidates()">
+                                    <option value="">Semua Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending Review</option>
+                                    <option value="interviewed">Interviewed</option>
+                                    <option value="hired">Hired</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <input type="text" id="searchInput" placeholder="Cari kandidat..." class="border border-slate-300 px-3 py-1 text-sm" onkeyup="searchCandidates()">
+                            </div>
+                        </div>
+                        
+                        <div id="candidatesList">
+                            ${renderCandidatesList(candidates)}
+                        </div>
+                    </div>
+                `;
+                
+                showResults('Manajemen Kandidat', content);
+                
+                // Store candidates data globally for filtering
+                window.allCandidates = candidates;
+                
+            } catch (error) {
+                showResults('Error', 'Gagal memuat data kandidat: ' + error.message);
+            }
+        }
+
+        function openDiscAssessment() {
+            showResults('Assessment DISC', 'Gunakan tombol "Jalankan Tes DISC Sample" di bawah untuk melihat contoh hasil assessment DISC.');
+        }
+
+        function openJobManagement() {
+            window.location.href = '/jobs';
+        }
+
+        async function openJobManagementOld() {
+            try {
+                showResults('Manajemen Posisi', '<div class="text-center"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i><br>Memuat data posisi...</div>');
+                lucide.createIcons();
+                
+                // Try to fetch from API first, fallback to sample data
+                let jobs = [];
+                
+                try {
+                    const response = await fetch(`${API_BASE}/public/jobs`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        jobs = data.jobs || [];
+                    }
+                } catch (error) {
+                    console.log('API not available, using sample data');
+                }
+                
+                // Use sample data if no API data available
+                if (jobs.length === 0) {
+                    jobs = getSampleJobs();
+                }
+                
+                const content = `
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">Daftar Posisi</h3>
+                                <p class="text-sm text-slate-600">Total: ${jobs.length} posisi tersedia</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="addNewJob()" class="px-4 py-2 bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                    <i data-lucide="plus" class="w-4 h-4 mr-1 inline"></i>
+                                    Tambah Posisi
+                                </button>
+                                <select id="jobStatusFilter" class="border border-slate-300 px-3 py-1 text-sm" onchange="filterJobs()">
+                                    <option value="">Semua Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="closed">Closed</option>
+                                    <option value="draft">Draft</option>
+                                </select>
+                                <input type="text" id="jobSearchInput" placeholder="Cari posisi..." class="border border-slate-300 px-3 py-1 text-sm" onkeyup="searchJobs()">
+                            </div>
+                        </div>
+                        
+                        <div id="jobsList">
+                            ${renderJobsList(jobs)}
+                        </div>
+                    </div>
+                `;
+                
+                showResults('Manajemen Posisi', content);
+                
+                // Store jobs data globally for filtering
+                window.allJobs = jobs;
+                
+            } catch (error) {
+                showResults('Error', 'Gagal memuat data posisi: ' + error.message);
+            }
+        }
+        
+        function openJobMatching() {
+            findJobMatches();
+        }
+
+        function openAnalytics() {
+            viewSystemHealth();
+        }
+
+        function openWorkflow() {
+            showResults('Workflow Rekrutmen', 'Fitur workflow rekrutmen akan tersedia dalam versi selanjutnya dengan integrasi Temporal.');
+        }
+
+        function openDocuments() {
+            showResults('Manajemen Dokumen', 'Sistem manajemen dokumen akan diintegrasikan dengan MinIO untuk penyimpanan file yang aman.');
+        }
+
+        // Action functions
+        async function runSampleDiscTest() {
+            try {
+                showResults('Tes DISC', '<div class="text-center"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i><br>Memproses tes DISC...</div>');
+                lucide.createIcons();
+                
+                const response = await fetch(`${API_BASE}/disc-test/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        candidateId: 'diah-morestika-001',
+                        scores: { D: 6, I: 2, S: 0, C: 9 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const content = `
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-4 gap-4 text-center">
+                                <div class="p-4 bg-blue-50 border border-blue-200">
+                                    <div class="text-2xl font-bold text-blue-600">${result.scores.D}</div>
+                                    <div class="text-sm text-blue-800">Dominance</div>
+                                </div>
+                                <div class="p-4 bg-green-50 border border-green-200">
+                                    <div class="text-2xl font-bold text-green-600">${result.scores.I}</div>
+                                    <div class="text-sm text-green-800">Influence</div>
+                                </div>
+                                <div class="p-4 bg-yellow-50 border border-yellow-200">
+                                    <div class="text-2xl font-bold text-yellow-600">${result.scores.S}</div>
+                                    <div class="text-sm text-yellow-800">Steadiness</div>
+                                </div>
+                                <div class="p-4 bg-purple-50 border border-purple-200">
+                                    <div class="text-2xl font-bold text-purple-600">${result.scores.C}</div>
+                                    <div class="text-sm text-purple-800">Compliance</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-slate-50 p-4 border border-slate-200">
+                                <h4 class="font-bold text-slate-900 mb-2">Tipe Kepribadian</h4>
+                                <p class="text-lg font-semibold text-primary">${result.personalityType} - ${result.mostPattern}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">Kekuatan</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    ${result.strengths.map(s => `<span class="px-3 py-1 bg-green-100 text-green-800 text-sm">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-slate-900 mb-3">Area Pengembangan</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    ${result.challenges.map(c => `<span class="px-3 py-1 bg-orange-100 text-orange-800 text-sm">${c}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    showResults('Hasil Tes DISC - ' + result.candidateId, content);
+                    
+                    // Update DISC tests count
+                    document.getElementById('totalDiscTests').textContent = '1';
+                } else {
+                    showResults('Error', 'Gagal memproses tes DISC: ' + result.message);
+                }
+            } catch (error) {
+                showResults('Error', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        async function findJobMatches() {
+            try {
+                showResults('Job Matching', '<div class="text-center"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i><br>Mencari job matches...</div>');
+                lucide.createIcons();
+                
+                const response = await fetch(`${API_BASE}/jobs/match/diah-morestika-001`);
+                const jobs = await response.json();
+                
+                if (response.ok) {
+                    const content = `
+                        <div class="space-y-4">
+                            ${jobs.map(job => `
+                                <div class="border border-slate-200 p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-bold text-slate-900">${job.title}</h4>
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 font-semibold">${job.matchScore}% Match</span>
+                                    </div>
+                                    <div class="text-sm text-slate-600 mb-2">
+                                        <span class="inline-block mr-4"><strong>Departemen:</strong> ${job.department}</span>
+                                        <span class="inline-block mr-4"><strong>Lokasi:</strong> ${job.location}</span>
+                                        <span class="inline-block"><strong>Level:</strong> ${job.experienceLevel}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-700 mb-2">${job.description}</p>
+                                    <div class="text-sm">
+                                        <strong>Alasan Match:</strong> ${job.matchReasons.join(', ')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    showResults('Job Matching Results', content);
+                } else {
+                    showResults('Error', 'Gagal mencari job matches: ' + jobs.message);
+                }
+            } catch (error) {
+                showResults('Error', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        async function viewSystemHealth() {
+            try {
+                showResults('Status Sistem', '<div class="text-center"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i><br>Mengecek status sistem...</div>');
+                lucide.createIcons();
+                
+                const response = await fetch(`${API_BASE}/health`);
+                const health = await response.json();
+                
+                if (response.ok) {
+                    const content = `
+                        <div class="space-y-4">
+                            <div class="p-4 bg-green-50 border border-green-200">
+                                <div class="flex items-center">
+                                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600 mr-2"></i>
+                                    <span class="font-semibold text-green-800">Sistem Berjalan Normal</span>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 bg-slate-50 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900">Database</h4>
+                                    <p class="text-sm text-slate-600">${health.database.name}</p>
+                                    <p class="text-xs text-green-600">Connected</p>
+                                </div>
+                                <div class="p-4 bg-slate-50 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900">Version</h4>
+                                    <p class="text-sm text-slate-600">${health.version}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <h4 class="font-semibold text-slate-900">Collections</h4>
+                                <div class="text-sm text-slate-600">
+                                    <div>Kandidat: ${health.database.collections.candidates}</div>
+                                    <div>Jobs: ${health.database.collections.jobs}</div>
+                                    <div>DISC Tests: ${health.database.collections.discTests}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-xs text-slate-500">
+                                Last updated: ${new Date(health.timestamp).toLocaleString('id-ID')}
+                            </div>
+                        </div>
+                    `;
+                    showResults('Status Sistem', content);
+                    lucide.createIcons();
+                } else {
+                    showResults('Error', 'Gagal mengecek status sistem');
+                }
+            } catch (error) {
+                showResults('Error', 'Terjadi kesalahan: ' + error.message);
+            }
+        }
+
+        // Modal functions
+        function showResults(title, content) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('resultsModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('resultsModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('resultsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize icons on load
+        window.onload = function() {
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Assessment Tests</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .test-card { transition: all 0.3s ease; }
+        .test-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .progress-bar { transition: width 0.5s ease; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2 rounded-lg">
+                        <i data-lucide="clipboard-check" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">HR Assessment Tests</h1>
+                        <p class="text-sm text-gray-600" id="candidateName">Loading...</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-600">
+                        <span>Token: </span>
+                        <code id="testToken" class="text-xs bg-gray-100 px-2 py-1 rounded">...</code>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <span>Expires: </span>
+                        <span id="expiryTime">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-gray-600">Validating test link...</p>
+        </div>
+    </div>
+
+    <!-- Error Screen -->
+    <div id="errorScreen" class="hidden max-w-2xl mx-auto mt-16 p-8">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <i data-lucide="alert-circle" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
+            <h2 class="text-2xl font-bold text-red-900 mb-2">Access Error</h2>
+            <p id="errorMessage" class="text-red-700 mb-4">Invalid or expired test link</p>
+            <p class="text-sm text-red-600">Please contact HR for a new test link.</p>
+        </div>
+    </div>
+
+    <!-- Test Selection Screen -->
+    <div id="testSelectionScreen" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Your Assessment Tests</h2>
+            <p class="text-gray-600 mb-4">Please complete all assigned tests. Click on each test to begin.</p>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                    <p class="text-blue-800 text-sm">
+                        <strong>Important:</strong> Complete all tests in one session. Do not refresh or close the browser during tests.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Cards Container -->
+        <div id="testCardsContainer" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+            <!-- Test cards will be dynamically inserted here -->
+        </div>
+
+        <!-- Overall Progress -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold text-gray-900">Overall Progress</h3>
+                <span id="overallProgress" class="text-sm font-medium text-gray-600">0/0 completed</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div id="overallProgressBar" class="progress-bar bg-blue-600 h-3 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Interface Screen -->
+    <div id="testInterfaceScreen" class="hidden max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Test header -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 id="testTitle" class="text-2xl font-bold text-gray-900">Test Name</h2>
+                    <p id="testDescription" class="text-gray-600">Test description</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-600 mb-1">Progress</div>
+                    <div class="flex items-center space-x-2">
+                        <span id="questionProgress" class="text-sm font-medium">1/24</span>
+                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                            <div id="testProgressBar" class="progress-bar bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="clock" class="w-4 h-4"></i>
+                    <span id="timeElapsed">00:00</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="help-circle" class="w-4 h-4"></i>
+                    <span id="questionCount">24 questions</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question container -->
+        <div class="bg-white rounded-lg shadow p-8 mb-6">
+            <div id="questionContainer">
+                <!-- Questions will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between items-center">
+            <button id="prevButton" class="hidden px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span>Previous</span>
+                </div>
+            </button>
+            <div class="flex-1"></div>
+            <button id="nextButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <div class="flex items-center space-x-2">
+                    <span>Next</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </button>
+            <button id="submitButton" class="hidden px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                <div class="flex items-center space-x-2">
+                    <span>Submit Test</span>
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Completion Screen -->
+    <div id="completionScreen" class="hidden max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">All Tests Completed!</h2>
+            <p class="text-gray-600 mb-6">Thank you for completing the assessment tests. Your results have been submitted to our HR team.</p>
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-gray-900 mb-2">Next Steps:</h3>
+                <ul class="text-sm text-gray-600 text-left space-y-1">
+                    <li>• Our HR team will review your results</li>
+                    <li>• You will be contacted within 3-5 business days</li>
+                    <li>• Check your email for updates on your application status</li>
+                </ul>
+            </div>
+            <p class="text-sm text-gray-500">You can now close this page.</p>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let testData = null;
+        let currentTest = null;
+        let currentQuestionIndex = 0;
+        let testAnswers = {};
+        let completedTests = [];
+        let startTime = null;
+        let testStartTime = null;
+
+        // Anti-cheat security variables
+        let suspiciousActivity = [];
+        let pageLoadTime = new Date();
+        let tabSwitchCount = 0;
+        let refreshCount = 0;
+        let isTestActive = false;
+        let lastSaveTime = null;
+        let securityInterval = null;
+        let focusLostCount = 0;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            initializeSecurity();
+            initializeTest();
+        });
+
+        // ========== SECURITY & ANTI-CHEAT FUNCTIONS ==========
+        
+        function initializeSecurity() {
+            console.log('🔒 Initializing security measures...');
+            
+            // Detect page refresh/reload
+            detectPageRefresh();
+            
+            // Monitor tab switching/focus loss
+            setupFocusMonitoring();
+            
+            // Prevent common cheating methods
+            preventCheating();
+            
+            // Setup periodic progress saving
+            setupProgressSaving();
+            
+            // Load existing progress on refresh
+            loadExistingProgress();
+        }
+        
+        function detectPageRefresh() {
+            // Check if this is a page refresh
+            if (performance.navigation.type === 1) {
+                refreshCount++;
+                logSuspiciousActivity('refresh', 'Page was refreshed', { refreshCount });
+                console.warn('🚨 Page refresh detected!');
+            }
+            
+            // Listen for beforeunload (page refresh/close)
+            window.addEventListener('beforeunload', function(e) {
+                if (isTestActive) {
+                    // Save progress before leaving
+                    saveTestProgress();
+                    
+                    // Show warning to user
+                    const message = 'Test is in progress! Are you sure you want to leave? Your progress will be saved.';
+                    e.preventDefault();
+                    e.returnValue = message;
+                    return message;
+                }
+            });
+        }
+        
+        function setupFocusMonitoring() {
+            document.addEventListener('visibilitychange', function() {
+                if (isTestActive) {
+                    if (document.hidden) {
+                        focusLostCount++;
+                        logSuspiciousActivity('tab_switch', 'User switched away from test tab', { 
+                            focusLostCount,
+                            timeAway: new Date().toISOString()
+                        });
+                        console.warn('🚨 Focus lost - user switched tabs!');
+                    } else {
+                        logSuspiciousActivity('tab_return', 'User returned to test tab', {
+                            timeReturned: new Date().toISOString()
+                        });
+                        console.log('✅ User returned to test tab');
+                    }
+                }
+            });
+            
+            // Detect window focus/blur
+            window.addEventListener('blur', function() {
+                if (isTestActive) {
+                    logSuspiciousActivity('window_blur', 'Test window lost focus');
+                }
+            });
+            
+            window.addEventListener('focus', function() {
+                if (isTestActive) {
+                    logSuspiciousActivity('window_focus', 'Test window gained focus');
+                }
+            });
+        }
+        
+        function preventCheating() {
+            // Disable right-click context menu
+            document.addEventListener('contextmenu', function(e) {
+                if (isTestActive) {
+                    e.preventDefault();
+                    logSuspiciousActivity('right_click', 'Attempted to open context menu');
+                    return false;
+                }
+            });
+            
+            // Disable common keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (isTestActive) {
+                    // Disable F12 (Developer Tools)
+                    if (e.key === 'F12') {
+                        e.preventDefault();
+                        logSuspiciousActivity('dev_tools', 'Attempted to open developer tools');
+                        return false;
+                    }
+                    
+                    // Disable Ctrl+Shift+I (Developer Tools)
+                    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                        e.preventDefault();
+                        logSuspiciousActivity('dev_tools', 'Attempted to open developer tools');
+                        return false;
+                    }
+                    
+                    // Disable Ctrl+U (View Source)
+                    if (e.ctrlKey && e.key === 'u') {
+                        e.preventDefault();
+                        logSuspiciousActivity('view_source', 'Attempted to view page source');
+                        return false;
+                    }
+                }
+            });
+        }
+        
+        function logSuspiciousActivity(type, description, metadata = {}) {
+            const activity = {
+                type,
+                description,
+                timestamp: new Date().toISOString(),
+                testType: currentTest,
+                questionIndex: currentQuestionIndex,
+                metadata
+            };
+            
+            suspiciousActivity.push(activity);
+            console.log('🚨 Security Alert:', activity);
+            
+            // Save immediately for critical activities
+            if (['refresh', 'dev_tools'].includes(type)) {
+                saveTestProgress();
+            }
+        }
+        
+        function setupProgressSaving() {
+            // Save progress every 30 seconds during active test
+            securityInterval = setInterval(() => {
+                if (isTestActive && currentTest) {
+                    saveTestProgress();
+                }
+            }, 30000); // 30 seconds
+        }
+        
+        async function saveTestProgress() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const candidateId = urlParams.get('candidate');
+                
+                if (!token || !candidateId || !currentTest) return;
+                
+                const progressData = {
+                    candidateId: parseInt(candidateId),
+                    testType: currentTest,
+                    currentQuestionIndex,
+                    answers: testAnswers[currentTest] || [],
+                    startTime: testStartTime,
+                    suspiciousActivity
+                };
+                
+                const response = await fetch(`/api/test-link/${token}/progress`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(progressData)
+                });
+                
+                if (response.ok) {
+                    lastSaveTime = new Date();
+                    console.log('✅ Progress saved successfully');
+                } else {
+                    console.error('❌ Failed to save progress');
+                }
+                
+            } catch (error) {
+                console.error('Error saving progress:', error);
+            }
+        }
+        
+        async function loadExistingProgress() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const candidateId = urlParams.get('candidate');
+                
+                if (!token || !candidateId) return;
+                
+                const response = await fetch(`/api/test-link/${token}/progress?candidate=${candidateId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.progress) {
+                        // Restore security data
+                        if (data.progress.security) {
+                            suspiciousActivity = data.progress.security.suspiciousActivity || [];
+                            refreshCount = data.progress.security.refreshCount || 0;
+                        }
+                        
+                        // Restore test progress
+                        if (data.progress.results) {
+                            // Check if user was in middle of a test
+                            for (const [testType, progress] of Object.entries(data.progress.results)) {
+                                if (progress.currentQuestionIndex !== undefined) {
+                                    console.log(`🔄 Resuming ${testType} test from question ${progress.currentQuestionIndex + 1}`);
+                                    // We'll restore this progress when the test starts
+                                }
+                            }
+                        }
+                        
+                        console.log('📊 Loaded existing progress:', data.progress);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading progress:', error);
+            }
+        }
+
+        async function initializeTest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const candidateId = urlParams.get('candidate');
+
+            if (!token || !candidateId) {
+                showError('Invalid test link parameters');
+                return;
+            }
+
+            document.getElementById('testToken').textContent = token.substring(0, 20) + '...';
+
+            try {
+                const response = await fetch(`/api/test-link/${token}/validate?candidate=${candidateId}`);
+                const data = await response.json();
+
+                if (!response.ok || !data.valid) {
+                    showError(data.error || 'Invalid test link');
+                    return;
+                }
+
+                testData = data.testLink;
+                await setupTestInterface();
+                showTestSelection();
+                
+            } catch (error) {
+                console.error('Error validating test link:', error);
+                showError('Failed to validate test link');
+            }
+        }
+
+        async function setupTestInterface() {
+            document.getElementById('candidateName').textContent = testData.candidateName;
+            document.getElementById('expiryTime').textContent = new Date(testData.expiresAt).toLocaleString();
+            
+            // Map category IDs to test types
+            const categoryToTestType = {
+                '1': 'disc',    // DISC Personality Test
+                '2': 'msdt',    // Management Style Diagnostic Test
+                '3': 'intelligence', // Army Alpha Intelligence Test
+                '6': 'disc'     // DISC Personality (also maps to disc)
+            };
+            
+            // Convert testTypes (category IDs) to actual test types
+            const mappedTestTypes = [];
+            if (testData.testTypes) {
+                testData.testTypes.forEach(categoryId => {
+                    const testType = categoryToTestType[categoryId];
+                    if (testType && !mappedTestTypes.includes(testType)) {
+                        mappedTestTypes.push(testType);
+                    }
+                });
+            }
+            
+            // Override testTypes with mapped values
+            testData.testTypes = mappedTestTypes;
+            console.log('Mapped test types:', testData.testTypes);
+            
+            // Create test cards
+            await createTestCards();
+        }
+
+        async function createTestCards() {
+            const container = document.getElementById('testCardsContainer');
+            container.innerHTML = '';
+
+            // Get actual question counts from the API
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const candidateId = urlParams.get('candidate');
+            
+            let questionCounts = {};
+            try {
+                const response = await fetch(`/api/test-link/${token}/questions?candidate=${candidateId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.questions) {
+                        // Count questions by test type
+                        const categoryMapping = {
+                            1: 'disc', 2: 'msdt', 3: 'intelligence', 6: 'disc'
+                        };
+                        
+                        questionCounts = { 'disc': 0, 'msdt': 0, 'intelligence': 0 };
+                        data.questions.forEach(q => {
+                            const testType = categoryMapping[q.category_id];
+                            if (testType) {
+                                questionCounts[testType]++;
+                            }
+                        });
+                        
+                        console.log('Actual question counts:', questionCounts);
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not fetch question counts:', error);
+            }
+
+            const testConfigs = {
+                'disc': {
+                    name: 'DISC Personality Test',
+                    description: 'Questions to assess your personality traits and work style',
+                    icon: 'user',
+                    color: 'blue',
+                    questions: questionCounts['disc'] || 0,
+                    time: '15-20 minutes'
+                },
+                'msdt': {
+                    name: 'MSDT Management Style',
+                    description: 'Questions to evaluate your management and leadership style',
+                    icon: 'users',
+                    color: 'green',
+                    questions: questionCounts['msdt'] || 0,
+                    time: '25-30 minutes'
+                },
+                'intelligence': {
+                    name: 'Army Alpha Intelligence Test',
+                    description: 'Sections testing various cognitive abilities and intelligence',
+                    icon: 'brain',
+                    color: 'purple',
+                    questions: questionCounts['intelligence'] || 0,
+                    time: '30-40 minutes'
+                }
+            };
+
+            testData.testTypes.forEach(testType => {
+                const config = testConfigs[testType];
+                if (!config) return;
+
+                const isCompleted = completedTests.includes(testType);
+                const cardHtml = `
+                    <div class="test-card bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-${config.color}-100 p-3 rounded-lg">
+                                    <i data-lucide="${config.icon}" class="w-8 h-8 text-${config.color}-600"></i>
+                                </div>
+                                ${isCompleted ? '<div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"><i data-lucide="check" class="w-5 h-5 text-green-600"></i></div>' : ''}
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">${config.name}</h3>
+                            <p class="text-gray-600 text-sm mb-4">${config.description}</p>
+                            <div class="space-y-2 mb-6">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Questions:</span>
+                                    <span class="font-medium">${config.questions}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Duration:</span>
+                                    <span class="font-medium">${config.time}</span>
+                                </div>
+                            </div>
+                            <button 
+                                onclick="startTest('${testType}')" 
+                                class="w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                                    isCompleted 
+                                        ? 'bg-green-100 text-green-800 cursor-not-allowed' 
+                                        : `bg-${config.color}-600 text-white hover:bg-${config.color}-700`
+                                }"
+                                ${isCompleted ? 'disabled' : ''}
+                            >
+                                ${isCompleted ? 'Completed' : 'Start Test'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+
+            // Update progress
+            updateOverallProgress();
+            lucide.createIcons();
+        }
+
+        function updateOverallProgress() {
+            const total = testData.testTypes.length;
+            const completed = completedTests.length;
+            const percentage = total > 0 ? (completed / total) * 100 : 0;
+
+            document.getElementById('overallProgress').textContent = `${completed}/${total} completed`;
+            document.getElementById('overallProgressBar').style.width = `${percentage}%`;
+        }
+
+        async function startTest(testType) {
+            if (completedTests.includes(testType)) return;
+
+            currentTest = testType;
+            currentQuestionIndex = 0;
+            testAnswers = {};
+            testStartTime = new Date();
+            
+            // Activate security measures
+            isTestActive = true;
+            console.log('🔒 Test security activated for:', testType);
+            
+            // Check for existing progress to resume from
+            const existingProgress = await getExistingTestProgress(testType);
+            if (existingProgress) {
+                currentQuestionIndex = existingProgress.currentQuestionIndex || 0;
+                testAnswers[testType] = existingProgress.answers || [];
+                console.log(`🔄 Resuming test from question ${currentQuestionIndex + 1}`);
+                
+                // Show warning to user that test is being resumed
+                if (currentQuestionIndex > 0) {
+                    alert(`⚠️ Test will resume from question ${currentQuestionIndex + 1}. Previous progress has been restored.`);
+                }
+            }
+            
+            // Show loading state
+            document.getElementById('loadingScreen').classList.remove('hidden');
+            document.getElementById('testSelectionScreen').classList.add('hidden');
+            
+            // Load test questions from database
+            await loadTestQuestions(testType);
+            showTestInterface();
+        }
+        
+        async function getExistingTestProgress(testType) {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const candidateId = urlParams.get('candidate');
+                
+                if (!token || !candidateId) return null;
+                
+                const response = await fetch(`/api/test-link/${token}/progress?candidate=${candidateId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.progress && data.progress.results) {
+                        return data.progress.results[testType] || null;
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error getting existing progress:', error);
+                return null;
+            }
+        }
+
+        async function loadTestQuestions(testType) {
+            try {
+                // Get token and candidate ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const candidateId = urlParams.get('candidate');
+
+                if (!token || !candidateId) {
+                    showError('Invalid test link parameters');
+                    return;
+                }
+
+                // Fetch all questions for this test link
+                const response = await fetch(`/api/test-link/${token}/questions?candidate=${candidateId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch test questions');
+                }
+
+                const data = await response.json();
+                if (!data.success || !data.questions) {
+                    throw new Error(data.error || 'No questions available');
+                }
+
+                // Filter questions by test type categories
+                const categoryMapping = {
+                    'disc': [1, 6], // DISC categories
+                    'msdt': [2], // Management Style
+                    'intelligence': [3] // Intelligence Test
+                };
+
+                const relevantCategoryIds = categoryMapping[testType] || [];
+                const filteredQuestions = data.questions.filter(q => 
+                    relevantCategoryIds.includes(q.category_id)
+                );
+
+                if (filteredQuestions.length === 0) {
+                    console.warn(`No questions found for test type: ${testType}, falling back to generated questions`);
+                    // Fallback to generated questions
+                    const questions = {
+                        'disc': generateDiscQuestions(),
+                        'msdt': generateMsdtQuestions(),
+                        'intelligence': generateIntelligenceQuestions()
+                    };
+                    testAnswers[testType] = questions[testType];
+                } else {
+                    // Format questions for the test interface
+                    const formattedQuestions = filteredQuestions.map((q, index) => ({
+                        id: q.id || (index + 1),
+                        type: q.question_type || 'multiple_choice',
+                        text: q.question_text,
+                        options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : [],
+                        correct_answer: q.correct_answer,
+                        scoring_config: q.scoring_config ? (typeof q.scoring_config === 'string' ? JSON.parse(q.scoring_config) : q.scoring_config) : null,
+                        category_name: q.category_name,
+                        category_code: q.category_code,
+                        answer: q.question_type === 'ranking' ? { most: null, least: null } : null
+                    }));
+                    
+                    testAnswers[testType] = formattedQuestions;
+                    console.log(`Loaded ${formattedQuestions.length} questions for ${testType} from database`);
+                    console.log('Sample questions:', formattedQuestions.slice(0, 2));
+                }
+
+                currentTest = testType;
+                showFirstQuestion();
+                
+            } catch (error) {
+                console.error('Error loading test questions:', error);
+                showError('Failed to load test questions: ' + error.message);
+            }
+        }
+
+        function generateDiscQuestions() {
+            const questions = [
+                {
+                    id: 1,
+                    type: 'ranking',
+                    options: [
+                        "Gampangan, Mudah setuju",
+                        "Percaya, Mudah percaya pada orang",
+                        "Petualang, Mengambil resiko", 
+                        "Toleran, Menghormati"
+                    ],
+                    answer: { most: null, least: null }
+                },
+                {
+                    id: 2,
+                    type: 'ranking',
+                    options: [
+                        "Lembut suara, Pendiam",
+                        "Optimistik, Visioner",
+                        "Pusat Perhatian, Suka gaul",
+                        "Pendamai, Membawa Harmoni"
+                    ],
+                    answer: { most: null, least: null }
+                },
+                {
+                    id: 3,
+                    type: 'ranking',
+                    options: [
+                        "Menyemangati orang",
+                        "Berusaha sempurna",
+                        "Bagian dari kelompok",
+                        "Ingin membuat tujuan"
+                    ],
+                    answer: { most: null, least: null }
+                },
+                {
+                    id: 4,
+                    type: 'ranking',
+                    options: [
+                        "Menjadi frustrasi",
+                        "Menyimpan perasaan saya",
+                        "Menceritakan sisi saya",
+                        "Siap beroposisi"
+                    ],
+                    answer: { most: null, least: null }
+                },
+                {
+                    id: 5,
+                    type: 'ranking',
+                    options: [
+                        "Hidup, Suka bicara",
+                        "Gerak cepat, Tekun",
+                        "Usaha menjaga keseimbangan",
+                        "Usaha mengikuti aturan"
+                    ],
+                    answer: { most: null, least: null }
+                }
+            ];
+
+            // Generate 24 questions by cycling through the 5 base patterns
+            const fullQuestions = [];
+            for (let i = 0; i < 24; i++) {
+                const baseQ = questions[i % 5];
+                fullQuestions.push({
+                    ...baseQ,
+                    id: i + 1,
+                    options: baseQ.options.map(opt => `${opt} (${i + 1})`)
+                });
+            }
+            return fullQuestions;
+        }
+
+        function generateMsdtQuestions() {
+            const msdtQuestions = [
+                {
+                    id: 1,
+                    questionA: "Saya mengabaikan pelanggar-pelanggar peraturan bila saya merasa pasti bahwa tidak ada satu orangpun yang mengetahui tentang pelanggaran-pelanggaran tersebut.",
+                    questionB: "Bila saya mengumumkan suatu keputusan yang kurang menyenangkan, saya akan menjelaskan kepada bawahan saya bahwa keputusan ini dibuat oleh Direktur."
+                },
+                {
+                    id: 2,
+                    questionA: "Bila ada seorang karyawan yang hasil kerjanya selalu tidak memuaskan saya, saya akan menunggu suatu kesempatan untuk memindahkannya dan bukan untuk memecatnya.",
+                    questionB: "Di dalam diskusi, saya memberikan fakta-fakta seperti apa yang mereka pahami, dan membiarkan mereka melukiskan kesimpulan-kesimpulan mereka sendiri."
+                },
+                {
+                    id: 3,
+                    questionA: "Bila Direktur memberikan perintah yang kurang menyenangkan, saya pikir adalah cukup bijaksana bila saya menyebutkan namanya dan bukan nama saya.",
+                    questionB: "Saya merasa bahwa tidak terlalu perlu untuk bawahan-bawahan saya mengerti mengapa mereka mengerjakan sesuatu hal sejauh mereka mengerjakan hal tersebut."
+                },
+                {
+                    id: 4,
+                    questionA: "Bila saya ditegur oleh atasan saya, saya akan memanggil semua bawahan saya dan mengatakan semua teguran tersebut kepada mereka.",
+                    questionB: "Bila seorang karyawan tidak sanggup menyelesaikan tugasnya, saya akan membantu dia untuk menyelesaikan tugas tersebut."
+                },
+                {
+                    id: 5,
+                    questionA: "Saya selalu melakukan diskusi-diskusi untuk mencapai kata sepakat.",
+                    questionB: "Saya selalu menganjurkan kepada bawahan saya untuk memberikan usul-usul, tetapi kadang-kadang juga saya langsung membuat suatu tindakan tertentu."
+                }
+            ];
+
+            // Generate 64 questions by cycling and expanding the base patterns
+            const fullQuestions = [];
+            for (let i = 0; i < 64; i++) {
+                const baseQ = msdtQuestions[i % 5];
+                fullQuestions.push({
+                    id: i + 1,
+                    type: 'binary_choice',
+                    question: `Pertanyaan ${i + 1}: Dari dua pernyataan berikut, pilih yang paling menggambarkan apa yang biasanya anda lakukan:`,
+                    optionA: baseQ.questionA,
+                    optionB: baseQ.questionB,
+                    answer: null
+                });
+            }
+            return fullQuestions;
+        }
+
+        function generateIntelligenceQuestions() {
+            const sections = [
+                {
+                    id: 1,
+                    type: 'multiple_choice_grid',
+                    section: "Analogi Verbal",
+                    instruction: "Pilih jawaban yang memiliki hubungan sama seperti pasangan kata pertama",
+                    question: "KAPAL : MUATAN = GUDANG : ?",
+                    options: ["BARANG", "TEMPAT", "SIMPAN", "BESAR"],
+                    answer: null
+                },
+                {
+                    id: 2,
+                    type: 'sequence_completion',
+                    section: "Urutan Angka",
+                    instruction: "Lengkapi urutan angka berikut",
+                    question: "2, 4, 8, 16, ?, 64",
+                    options: ["20", "24", "32", "48"],
+                    answer: null
+                },
+                {
+                    id: 3,
+                    type: 'pattern_recognition',
+                    section: "Pola Gambar",
+                    instruction: "Pilih gambar yang melengkapi pola",
+                    question: "Tentukan pola yang hilang dalam urutan geometric",
+                    options: ["Pola A", "Pola B", "Pola C", "Pola D"],
+                    answer: null
+                },
+                {
+                    id: 4,
+                    type: 'arithmetic',
+                    section: "Aritmatika",
+                    instruction: "Hitung hasil operasi matematika berikut",
+                    question: "Jika 6 pensil harganya 45 rupiah, berapa harga 8 pensil?",
+                    options: ["50", "60", "70", "80"],
+                    answer: null
+                },
+                {
+                    id: 5,
+                    type: 'spatial_reasoning',
+                    section: "Penalaran Spasial",
+                    instruction: "Identifikasi bentuk yang sesuai",
+                    question: "Manakah yang merupakan bentuk 3D dari pola 2D yang diberikan?",
+                    options: ["Kubus", "Kerucut", "Silinder", "Prisma"],
+                    answer: null
+                },
+                {
+                    id: 6,
+                    type: 'vocabulary',
+                    section: "Kosakata",
+                    instruction: "Pilih sinonim yang tepat",
+                    question: "RAJIN memiliki arti yang sama dengan:",
+                    options: ["Malas", "Tekun", "Cepat", "Lambat"],
+                    answer: null
+                },
+                {
+                    id: 7,
+                    type: 'classification',
+                    section: "Klasifikasi",
+                    instruction: "Pilih kata yang tidak termasuk dalam kelompok",
+                    question: "Manakah yang berbeda: Apel, Jeruk, Wortel, Mangga",
+                    options: ["Apel", "Jeruk", "Wortel", "Mangga"],
+                    answer: null
+                },
+                {
+                    id: 8,
+                    type: 'logical_reasoning',
+                    section: "Penalaran Logis",
+                    instruction: "Pilih kesimpulan yang logis",
+                    question: "Semua kucing adalah mamalia. Fluffy adalah kucing. Maka:",
+                    options: ["Fluffy bukan mamalia", "Fluffy adalah mamalia", "Tidak dapat disimpulkan", "Semua mamalia adalah kucing"],
+                    answer: null
+                },
+                {
+                    id: 9,
+                    type: 'memory_test',
+                    section: "Tes Memori",
+                    instruction: "Ingat urutan angka yang ditampilkan: 7, 3, 9, 1, 5",
+                    question: "Angka ketiga dalam urutan adalah:",
+                    options: ["7", "3", "9", "1"],
+                    answer: null
+                },
+                {
+                    id: 10,
+                    type: 'problem_solving',
+                    section: "Pemecahan Masalah",
+                    instruction: "Temukan solusi dari masalah berikut",
+                    question: "Jika A + B = 12 dan A - B = 4, maka nilai A adalah:",
+                    options: ["6", "8", "10", "4"],
+                    answer: null
+                },
+                {
+                    id: 11,
+                    type: 'comprehension',
+                    section: "Pemahaman",
+                    instruction: "Baca teks singkat kemudian jawab pertanyaan",
+                    question: "Dari teks: 'Hujan turun deras sepanjang hari.' Kesimpulan yang tepat:",
+                    options: ["Cuaca cerah", "Cuaca buruk", "Tidak ada hujan", "Hujan ringan"],
+                    answer: null
+                },
+                {
+                    id: 12,
+                    type: 'analysis',
+                    section: "Analisis",
+                    instruction: "Analisis hubungan cause-effect",
+                    question: "Jika harga BBM naik, maka yang paling mungkin terjadi:",
+                    options: ["Harga barang turun", "Harga barang naik", "Tidak ada pengaruh", "Orang lebih banyak beli bensin"],
+                    answer: null
+                }
+            ];
+            return sections;
+        }
+
+        function showFirstQuestion() {
+            currentQuestionIndex = 0;
+            displayCurrentQuestion();
+            startTimer();
+        }
+
+        function displayCurrentQuestion() {
+            const questions = testAnswers[currentTest];
+            console.log(`Displaying question for test: ${currentTest}`);
+            console.log('Available questions:', questions ? questions.length : 'none');
+            console.log('Current question index:', currentQuestionIndex);
+            
+            if (!questions || currentQuestionIndex >= questions.length) {
+                console.warn('No questions available or index out of range');
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            console.log('Current question:', question);
+            const container = document.getElementById('questionContainer');
+            
+            // Update test info
+            document.getElementById('testTitle').textContent = getTestTitle(currentTest);
+            document.getElementById('testDescription').textContent = getTestDescription(currentTest);
+            document.getElementById('questionProgress').textContent = `${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById('questionCount').textContent = `${questions.length} ${currentTest === 'intelligence' ? 'sections' : 'questions'}`;
+            
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('testProgressBar').style.width = `${progress}%`;
+
+            // Generate question HTML based on type
+            let questionHtml = '';
+            
+            if (question.type === 'ranking') {
+                questionHtml = `
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Pertanyaan ${question.id}</h3>
+                        <p class="text-gray-700 mb-6">Pilih pernyataan yang PALING menggambarkan diri Anda dan yang PALING TIDAK menggambarkan diri Anda:</p>
+                        
+                        <div class="space-y-4">
+                            ${question.options.map((option, index) => `
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="font-medium text-gray-900">${String.fromCharCode(65 + index)}.</span>
+                                        <span class="text-gray-800">${option}</span>
+                                    </div>
+                                    <div class="ml-8 flex space-x-6">
+                                        <label class="flex items-center space-x-2">
+                                            <input type="radio" name="most_${question.id}" value="${index}" class="w-4 h-4 text-green-600">
+                                            <span class="text-sm text-green-700">PALING seperti saya</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="radio" name="least_${question.id}" value="${index}" class="w-4 h-4 text-red-600">
+                                            <span class="text-sm text-red-700">PALING TIDAK seperti saya</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p class="text-sm text-blue-800">
+                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                Pilih satu "PALING seperti saya" dan satu "PALING TIDAK seperti saya".
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else if (question.type === 'binary_choice') {
+                questionHtml = `
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Pertanyaan ${question.id}</h3>
+                        <p class="text-gray-700 mb-6">${question.question}</p>
+                        
+                        <div class="space-y-4">
+                            <label class="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="question_${question.id}" value="A" class="w-4 h-4 text-blue-600 mt-1">
+                                <div>
+                                    <span class="font-medium text-blue-600">A.</span>
+                                    <span class="text-gray-800 ml-2">${question.optionA}</span>
+                                </div>
+                            </label>
+                            <label class="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="question_${question.id}" value="B" class="w-4 h-4 text-blue-600 mt-1">
+                                <div>
+                                    <span class="font-medium text-blue-600">B.</span>
+                                    <span class="text-gray-800 ml-2">${question.optionB}</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            } else if (question.type === 'multiple_choice' || question.type.includes('multiple_choice')) {
+                questionHtml = `
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            ${currentTest === 'intelligence' ? `Bagian ${question.id}: ${question.section}` : `Pertanyaan ${question.id}`}
+                        </h3>
+                        ${question.instruction ? `<p class="text-blue-700 mb-4 font-medium">${question.instruction}</p>` : ''}
+                        <p class="text-gray-700 mb-6">${question.question}</p>
+                        
+                        <div class="space-y-3">
+                            ${question.options.map((option, index) => `
+                                <label class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <input type="radio" name="question_${question.id}" value="${index}" class="w-4 h-4 text-blue-600">
+                                    <div>
+                                        <span class="font-medium text-gray-600">${String.fromCharCode(65 + index)}.</span>
+                                        <span class="text-gray-800 ml-2">${option}</span>
+                                    </div>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = questionHtml;
+            
+            // Update navigation buttons
+            updateNavigationButtons();
+            
+            lucide.createIcons();
+        }
+
+        function updateNavigationButtons() {
+            const questions = testAnswers[currentTest];
+            const prevBtn = document.getElementById('prevButton');
+            const nextBtn = document.getElementById('nextButton');
+            const submitBtn = document.getElementById('submitButton');
+
+            // Show/hide previous button
+            if (currentQuestionIndex > 0) {
+                prevBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.add('hidden');
+            }
+
+            // Show/hide next/submit button
+            if (currentQuestionIndex >= questions.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        function startTimer() {
+            startTime = new Date();
+            setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            if (!startTime) return;
+            
+            const now = new Date();
+            const elapsed = Math.floor((now - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            
+            document.getElementById('timeElapsed').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Navigation functions
+        document.getElementById('prevButton').addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayCurrentQuestion();
+            }
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            const questions = testAnswers[currentTest];
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                displayCurrentQuestion();
+                
+                // Save progress after moving to next question
+                if (isTestActive) {
+                    saveTestProgress();
+                }
+            }
+        });
+
+        document.getElementById('submitButton').addEventListener('click', async () => {
+            if (await submitCurrentTest()) {
+                completedTests.push(currentTest);
+                
+                // Deactivate security for this test
+                if (completedTests.length >= testData.testTypes.length) {
+                    isTestActive = false;
+                    console.log('🔓 All tests completed - security deactivated');
+                    
+                    // Clear security interval
+                    if (securityInterval) {
+                        clearInterval(securityInterval);
+                        securityInterval = null;
+                    }
+                    
+                    showCompletion();
+                } else {
+                    // Mark current test as inactive, but keep overall security for remaining tests
+                    console.log(`✅ Test ${currentTest} completed - ${testData.testTypes.length - completedTests.length} remaining`);
+                    
+                    showTestSelection();
+                }
+                
+                // Final progress save for completed test
+                await saveTestProgress();
+            }
+        });
+
+        async function submitCurrentTest() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const candidateId = urlParams.get('candidate');
+                
+                if (!token || !candidateId || !currentTest) {
+                    throw new Error('Missing required parameters for test submission');
+                }
+
+                // Calculate test results
+                const testResults = calculateTestResults();
+                
+                // Save final test results and mark as completed
+                const finalData = {
+                    candidateId: parseInt(candidateId),
+                    testType: currentTest,
+                    currentQuestionIndex: testAnswers[currentTest].length - 1, // Last question
+                    answers: testAnswers[currentTest],
+                    startTime: testStartTime,
+                    completedAt: new Date().toISOString(),
+                    results: testResults,
+                    suspiciousActivity,
+                    isCompleted: true
+                };
+
+                console.log(`📊 Submitting ${currentTest} test results:`, testResults);
+                
+                // Send completion data to server
+                const response = await fetch(`/api/test-link/${token}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(finalData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Test submitted successfully:', result);
+                    return true;
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Failed to submit test:', error);
+                    // Still return true to allow UI progression, but log the error
+                    return true;
+                }
+                
+            } catch (error) {
+                console.error('Error submitting test:', error);
+                // Return true to not block UI, but log the error
+                return true;
+            }
+        }
+
+        function calculateTestResults() {
+            const questions = testAnswers[currentTest] || [];
+            let score = 0;
+            let totalQuestions = questions.length;
+            let correctAnswers = 0;
+            
+            // Calculate score based on test type
+            if (currentTest === 'disc') {
+                // DISC scoring - count personality traits
+                const discScores = { D: 0, I: 0, S: 0, C: 0 };
+                
+                questions.forEach(question => {
+                    if (question.answer && question.scoring_config) {
+                        const config = question.scoring_config;
+                        if (question.answer.most !== null) {
+                            const mostIndex = question.answer.most;
+                            Object.keys(config).forEach(trait => {
+                                if (config[trait][mostIndex]) {
+                                    discScores[trait] += config[trait][mostIndex];
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                const dominantTrait = Object.keys(discScores).reduce((a, b) => 
+                    discScores[a] > discScores[b] ? a : b
+                );
+                
+                return {
+                    type: 'DISC',
+                    scores: discScores,
+                    dominantTrait,
+                    totalQuestions,
+                    completionRate: 100
+                };
+                
+            } else if (currentTest === 'intelligence') {
+                // Intelligence test scoring
+                questions.forEach(question => {
+                    if (question.answer !== undefined && question.correct_answer) {
+                        if (question.answer === question.correct_answer.correct) {
+                            correctAnswers++;
+                        }
+                    }
+                });
+                
+                score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+                
+                return {
+                    type: 'INTELLIGENCE',
+                    score,
+                    correctAnswers,
+                    totalQuestions,
+                    completionRate: 100
+                };
+                
+            } else if (currentTest === 'msdt') {
+                // Management style scoring
+                const styleScores = { E: 0, Au: 0, Ba: 0, Bu: 0, Co: 0, Ds: 0, Dv: 0, Mi: 0 };
+                
+                questions.forEach(question => {
+                    if (question.answer !== undefined && question.scoring_config) {
+                        const config = question.scoring_config;
+                        Object.keys(config).forEach(style => {
+                            if (config[style] && question.answer === 'A') {
+                                styleScores[style] += config[style];
+                            }
+                        });
+                    }
+                });
+                
+                const dominantStyle = Object.keys(styleScores).reduce((a, b) => 
+                    styleScores[a] > styleScores[b] ? a : b
+                );
+                
+                return {
+                    type: 'MANAGEMENT_STYLE',
+                    scores: styleScores,
+                    dominantStyle,
+                    totalQuestions,
+                    completionRate: 100
+                };
+            }
+            
+            // Default scoring
+            return {
+                type: 'GENERAL',
+                score: 0,
+                totalQuestions,
+                completionRate: 100
+            };
+        }
+
+        function getTestTitle(testType) {
+            const titles = {
+                'disc': 'DISC Personality Test',
+                'msdt': 'MSDT Management Style Test',
+                'intelligence': 'Army Alpha Intelligence Test'
+            };
+            return titles[testType] || testType;
+        }
+
+        function getTestDescription(testType) {
+            const descriptions = {
+                'disc': 'Assess your personality traits and work style preferences',
+                'msdt': 'Evaluate your management and leadership approach',
+                'intelligence': 'Test various cognitive abilities and intelligence factors'
+            };
+            return descriptions[testType] || 'Complete this assessment test';
+        }
+
+        // Screen management functions
+        function showError(message) {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorScreen').classList.remove('hidden');
+        }
+
+        function showTestSelection() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('errorScreen').classList.add('hidden');
+            document.getElementById('testInterfaceScreen').classList.add('hidden');
+            document.getElementById('completionScreen').classList.add('hidden');
+            document.getElementById('testSelectionScreen').classList.remove('hidden');
+            createTestCards();
+        }
+
+        function showTestInterface() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('testSelectionScreen').classList.add('hidden');
+            document.getElementById('testInterfaceScreen').classList.remove('hidden');
+            console.log('Showing test interface');
+        }
+
+        function showCompletion() {
+            document.getElementById('testInterfaceScreen').classList.add('hidden');
+            document.getElementById('completionScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
