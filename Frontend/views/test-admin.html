@@ -576,6 +576,53 @@
         // Initialize user from localStorage
         let currentUser = localStorage.getItem('hr_user') ? JSON.parse(localStorage.getItem('hr_user')) : null;
         
+        // Dummy test categories dan questions
+        const dummyCategories = [
+            {
+                id: 'cat-001',
+                name: 'DISC Assessment',
+                code: 'DISC',
+                description: 'Personality and behavioral assessment',
+                color: '#dc2626',
+                icon_url: null,
+                questions_count: 24
+            },
+            {
+                id: 'cat-002',
+                name: 'MSDT Assessment',
+                code: 'MSDT',
+                description: 'Motivational and skill development test',
+                color: '#2563eb',
+                icon_url: null,
+                questions_count: 20
+            },
+            {
+                id: 'cat-003',
+                name: 'Intelligence Test',
+                code: 'IQ',
+                description: 'Logical reasoning and problem solving',
+                color: '#059669',
+                icon_url: null,
+                questions_count: 30
+            }
+        ];
+
+        const dummyQuestionsMap = {
+            'cat-001': [
+                { id: 'q1', category_id: 'cat-001', question: 'You are most likely to be described as:', options: ['Dominant', 'Influential', 'Steady', 'Careful'], correct_answer: 0, order: 1 },
+                { id: 'q2', category_id: 'cat-001', question: 'When facing challenges, you prefer to:', options: ['Take charge', 'Collaborate', 'Plan carefully', 'Follow procedures'], correct_answer: 1, order: 2 },
+                { id: 'q3', category_id: 'cat-001', question: 'Your work style is best described as:', options: ['Results-oriented', 'People-focused', 'Methodical', 'Compliance-focused'], correct_answer: 2, order: 3 }
+            ],
+            'cat-002': [
+                { id: 'q4', category_id: 'cat-002', question: 'What motivates you most in a job?', options: ['Achievement', 'Recognition', 'Security', 'Growth'], correct_answer: 0, order: 1 },
+                { id: 'q5', category_id: 'cat-002', question: 'Your ideal work environment would include:', options: ['Competition', 'Teamwork', 'Stability', 'Clear rules'], correct_answer: 1, order: 2 }
+            ],
+            'cat-003': [
+                { id: 'q6', category_id: 'cat-003', question: 'If A = 2, B = 4, C = 6, then D = ?', options: ['7', '8', '9', '10'], correct_answer: 1, order: 1 },
+                { id: 'q7', category_id: 'cat-003', question: 'Complete the sequence: 2, 4, 8, 16, ?', options: ['24', '28', '32', '36'], correct_answer: 2, order: 2 }
+            ]
+        };
+        
         // Global variables for admin functionality
         let currentTab = 'categories';
         let currentCategoryId = null;
@@ -787,20 +834,24 @@
         // Load test categories
         async function loadCategories() {
             try {
-                const response = await fetch('/api/admin/test-categories');
-                const data = await response.json();
+                console.log('✅ Loading categories (dummy - tanpa backend)...');
                 
-                if (data.success) {
-                    categories = data.categories;
-                    displayCategories();
-                }
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Gunakan dummy data lokal
+                categories = [...dummyCategories];
+                displayCategories();
+                
+                console.log('✅ Categories loaded:', categories.length, 'categories');
+                
             } catch (error) {
                 console.error('Error loading categories:', error);
                 showNotification('Error loading categories', 'error');
             }
         }
 
-        // Load questions for specific category
+        // Load questions for specific category - menggunakan dummy data
         async function loadQuestionsForCategory(categoryId) {
             if (!categoryId) {
                 document.getElementById('questionsList').innerHTML = '<p class="text-gray-500 text-center py-8">Please select a category to view questions</p>';
@@ -808,15 +859,17 @@
             }
 
             try {
-                const response = await fetch(`/api/admin/test-questions/${categoryId}`);
-                const data = await response.json();
+                console.log('✅ Loading questions for category (dummy):', categoryId);
                 
-                if (data.success) {
-                    currentQuestions = data.questions;
-                    displayQuestions();
-                } else {
-                    document.getElementById('questionsList').innerHTML = '<p class="text-gray-500 text-center py-8">Error loading questions</p>';
-                }
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Gunakan dummy data lokal
+                currentQuestions = dummyQuestionsMap[categoryId] || [];
+                displayQuestions();
+                
+                console.log('✅ Questions loaded:', currentQuestions.length, 'questions');
+                
             } catch (error) {
                 console.error('Error loading questions:', error);
                 document.getElementById('questionsList').innerHTML = '<p class="text-gray-500 text-center py-8">Error loading questions</p>';

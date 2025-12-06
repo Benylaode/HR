@@ -1,624 +1,983 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kandidat - HR Recruitment System</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>"
+    />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
     <style>
-        /* Professional Corporate Design */
-        .card-sharp {
-            border-radius: 0px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-hover:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .btn-sharp {
-            border-radius: 0px;
-        }
-        
-        .input-sharp {
-            border-radius: 0px;
-        }
-        
-        /* Professional Color Scheme */
-        :root {
-            --primary: #1e3a8a;    /* Deep Blue */
-            --secondary: #64748b;  /* Slate Gray */
-            --accent: #0ea5e9;     /* Sky Blue */
-            --success: #059669;    /* Emerald */
-            --warning: #d97706;    /* Amber */
-            --danger: #dc2626;     /* Red */
-            --dark: #0f172a;       /* Slate 900 */
-            --light: #f8fafc;      /* Slate 50 */
-        }
-        
-        .bg-primary { background-color: var(--primary); }
-        .bg-secondary { background-color: var(--secondary); }
-        .bg-accent { background-color: var(--accent); }
-        .text-primary { color: var(--primary); }
-        .text-secondary { color: var(--secondary); }
-        .border-primary { border-color: var(--primary); }
-        
-        /* Remove all rounded corners */
-        * {
-            border-radius: 0 !important;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: var(--secondary); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-        
-        .transition-all { transition: all 0.2s ease-in-out; }
-        
-        /* Login Form Styles */
-        .login-container {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-        }
+      /* Professional Corporate Design */
+      .card-sharp {
+        border-radius: 0px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
 
-        .dashboard-section {
-            margin-bottom: 3rem;
-        }
+      .card-hover:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
 
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-        }
+      .btn-sharp {
+        border-radius: 0px;
+      }
 
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
-            margin-right: 12px;
-            border-radius: 2px;
-        }
+      .input-sharp {
+        border-radius: 0px;
+      }
 
-        .table-container {
-            overflow-x: auto;
-            border: 1px solid #e5e7eb;
-        }
+      /* Professional Color Scheme */
+      :root {
+        --primary: #1e3a8a; /* Deep Blue */
+        --secondary: #64748b; /* Slate Gray */
+        --accent: #0ea5e9; /* Sky Blue */
+        --success: #059669; /* Emerald */
+        --warning: #d97706; /* Amber */
+        --danger: #dc2626; /* Red */
+        --dark: #0f172a; /* Slate 900 */
+        --light: #f8fafc; /* Slate 50 */
+      }
 
-        .candidate-status {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .bg-secondary {
+        background-color: var(--secondary);
+      }
+      .bg-accent {
+        background-color: var(--accent);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .text-secondary {
+        color: var(--secondary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
 
-        .status-pending { background-color: #fef3c7; color: #92400e; }
-        .status-interview { background-color: #dbeafe; color: #1e40af; }
-        .status-hired { background-color: #dcfce7; color: #166534; }
-        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+      /* Remove all rounded corners */
+      * {
+        border-radius: 0 !important;
+      }
 
-        .disc-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: white;
-        }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
 
-        .disc-d { background-color: #dc2626; }
-        .disc-i { background-color: #ea580c; }
-        .disc-s { background-color: #16a34a; }
-        .disc-c { background-color: #2563eb; }
+      .transition-all {
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Login Form Styles */
+      .login-container {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        min-height: 100vh;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+      }
+
+      .dashboard-section {
+        margin-bottom: 3rem;
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
+        margin-right: 12px;
+        border-radius: 2px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+        border: 1px solid #e5e7eb;
+      }
+
+      .candidate-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+      }
+      .status-interview {
+        background-color: #dbeafe;
+        color: #1e40af;
+      }
+      .status-hired {
+        background-color: #dcfce7;
+        color: #166534;
+      }
+      .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+
+      .disc-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+      }
+
+      .disc-d {
+        background-color: #dc2626;
+      }
+      .disc-i {
+        background-color: #ea580c;
+      }
+      .disc-s {
+        background-color: #16a34a;
+      }
+      .disc-c {
+        background-color: #2563eb;
+      }
     </style>
-</head>
-<body class="bg-gray-50 font-inter">
+  </head>
+  <body class="bg-gray-50 font-inter">
     <!-- Login Modal (Initially Hidden) -->
-    <div id="loginModal" class="fixed inset-0 z-50 login-container flex items-center justify-center">
-        <div class="bg-white p-10 w-full max-w-lg mx-4 shadow-2xl border">
-            <div class="text-center mb-10">
-                <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center mb-6">
-                    <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">HR Recruitment System</h2>
-                <p class="text-gray-600 text-lg">Login untuk Akses Dashboard</p>
-            </div>
-            
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">Email HR</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder="hr@company.com"
-                        autocomplete="email"
-                        required
-                    >
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder="••••••••"
-                        autocomplete="current-password"
-                        required
-                    >
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="remember" class="mr-3 w-4 h-4">
-                        <label for="remember" class="text-sm text-gray-600">Ingat saya</label>
-                    </div>
-                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Lupa password?</a>
-                </div>
-                
-                <button 
-                    type="submit" 
-                    class="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white py-4 px-6 font-semibold transition-all transform hover:scale-[1.02]"
-                >
-                    Login ke Dashboard
-                </button>
-                
-                <div class="text-center">
-                    <p class="text-sm text-gray-500">
-                        Demo: hr@company.com / password123
-                    </p>
-                </div>
-            </form>
+    <div
+      id="loginModal"
+      class="fixed inset-0 z-50 login-container flex items-center justify-center"
+    >
+      <div class="bg-white p-10 w-full max-w-lg mx-4 shadow-2xl border">
+        <div class="text-center mb-10">
+          <div
+            class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center mb-6"
+          >
+            <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+          </div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">
+            HR Recruitment System
+          </h2>
+          <p class="text-gray-600 text-lg">Login untuk Akses Dashboard</p>
         </div>
+
+        <form id="loginForm" class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3"
+              >Email HR</label
+            >
+            <input
+              type="email"
+              id="email"
+              class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="hr@company.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="checkbox" id="remember" class="mr-3 w-4 h-4" />
+              <label for="remember" class="text-sm text-gray-600"
+                >Ingat saya</label
+              >
+            </div>
+            <a
+              href="#"
+              class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >Lupa password?</a
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white py-4 px-6 font-semibold transition-all transform hover:scale-[1.02]"
+          >
+            Login ke Dashboard
+          </button>
+
+          <div class="text-center">
+            <p class="text-sm text-gray-500">
+              Demo: hr@company.com / password123
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Main Application (Initially Hidden) -->
     <div id="mainApp" class="hidden">
-        <!-- Modern Sidebar Layout -->
-        <div class="flex h-screen bg-gray-50">
-            <!-- Sidebar -->
-            <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50">
-                <div class="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
-                    <!-- Logo -->
-                    <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-                        <div class="flex items-center flex-shrink-0 px-6">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
-                            </div>
-                            <div class="ml-3">
-                                <h1 class="text-lg font-bold text-gray-900">HR System</h1>
-                                <p class="text-xs text-gray-500">Kandidat</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Navigation -->
-                        <nav class="mt-8 flex-1 px-4 space-y-1">
-                            <a href="dashboard.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="home" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-                            <a href="kandidat.html" class="sidebar-item active bg-blue-50 border-r-2 border-blue-600 text-blue-700 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="users" class="text-blue-500 mr-3 h-5 w-5"></i>
-                                Kandidat
-                            </a>
-                            <a href="posisi.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="briefcase" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Posisi
-                            </a>
-                            <a href="test-management.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="file-text" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Test Management
-                            </a>
-                            <a href="analytics.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="bar-chart-3" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Analytics
-                            </a>
-                            <a href="laporan.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="file-bar-chart" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Laporan
-                            </a>
-                            <a href="form-apply.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="file-plus" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Form Apply
-                            </a>
-                            <a href="/admin/tests" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="settings" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Admin Tes
-                            </a>
-                        </nav>
-                    </div>
-                    
-                    <!-- User Profile -->
-                    <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                <span class="text-white text-sm font-semibold" id="sidebarUserInitial">H</span>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-gray-700" id="sidebarUserName">HR Manager</p>
-                                <p class="text-xs text-gray-500" id="sidebarUserEmail">hr@company.com</p>
-                            </div>
-                        </div>
-                    </div>
+      <!-- Modern Sidebar Layout -->
+      <div class="flex h-screen bg-gray-50">
+        <!-- Sidebar -->
+        <div
+          class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50"
+        >
+          <div
+            class="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200"
+          >
+            <!-- Logo -->
+            <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+              <div class="flex items-center flex-shrink-0 px-6">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                >
+                  <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
                 </div>
-            </div>
-            
-            <!-- Mobile sidebar -->
-            <div id="mobileSidebar" class="lg:hidden fixed inset-0 flex z-40 hidden">
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()"></div>
-                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-                    <div class="absolute top-0 right-0 -mr-12 pt-2">
-                        <button onclick="toggleMobileSidebar()" class="ml-1 flex items-center justify-center h-10 w-10 text-white">
-                            <i data-lucide="x" class="h-6 w-6"></i>
-                        </button>
-                    </div>
-                    <!-- Mobile sidebar content same as desktop -->
-                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                        <div class="flex-shrink-0 flex items-center px-4">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
-                            </div>
-                            <h1 class="ml-3 text-lg font-bold text-gray-900">HR System</h1>
-                        </div>
-                        <nav class="mt-5 px-2 space-y-1">
-                            <a href="dashboard.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="home" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Dashboard
-                            </a>
-                            <a href="kandidat.html" class="mobile-sidebar-item active bg-blue-100 text-blue-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="users" class="text-blue-500 mr-4 h-6 w-6"></i>
-                                Kandidat
-                            </a>
-                            <a href="posisi.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="briefcase" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Posisi
-                            </a>
-                        </nav>
-                    </div>
+                <div class="ml-3">
+                  <h1 class="text-lg font-bold text-gray-900">HR System</h1>
+                  <p class="text-xs text-gray-500">Kandidat</p>
                 </div>
+              </div>
+
+              <!-- Navigation -->
+              <nav class="mt-8 flex-1 px-4 space-y-1">
+                <a
+                  href="dashboard.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="home"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Dashboard
+                </a>
+                <a
+                  href="kandidat.html"
+                  class="sidebar-item active bg-blue-50 border-r-2 border-blue-600 text-blue-700 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i data-lucide="users" class="text-blue-500 mr-3 h-5 w-5"></i>
+                  Kandidat
+                </a>
+                <a
+                  href="posisi.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="briefcase"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Posisi
+                </a>
+                <a
+                  href="test-management.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="file-text"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Test Management
+                </a>
+                <a
+                  href="analytics.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="bar-chart-3"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Analytics
+                </a>
+                <a
+                  href="laporan.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="file-bar-chart"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Laporan
+                </a>
+                <a
+                  href="form-apply.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="file-plus"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Form Apply
+                </a>
+                <a
+                  href="/admin/tests"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="settings"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Admin Tes
+                </a>
+              </nav>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="lg:pl-64 flex flex-col flex-1">
-                <!-- Top Header -->
-                <div class="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
-                    <button onclick="toggleMobileSidebar()" class="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none">
-                        <i data-lucide="menu" class="h-6 w-6"></i>
-                    </button>
+            <!-- User Profile -->
+            <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
+              <div class="flex items-center">
+                <div
+                  class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                >
+                  <span
+                    class="text-white text-sm font-semibold"
+                    id="sidebarUserInitial"
+                    >H</span
+                  >
                 </div>
-                
-                <!-- Header with notifications -->
-                <header class="bg-white shadow-sm border-b border-gray-200 lg:border-l-0">
-                    <div class="px-4 sm:px-6 lg:px-8">
-                        <div class="flex justify-between items-center h-16">
-                            <div class="flex-1">
-                                <h1 class="text-2xl font-bold text-gray-900" id="pageTitle">Manajemen Kandidat</h1>
-                                <p class="text-sm text-gray-600" id="pageSubtitle">Kelola data kandidat dan lihat hasil tes DISC</p>
-                            </div>
-                            
-                            <!-- Right side actions -->
-                            <div class="flex items-center space-x-4">
-                                <!-- Search -->
-                                <div class="hidden md:block">
-                                    <div class="relative">
-                                        <input 
-                                            type="text" 
-                                            id="searchInput"
-                                            placeholder="Cari kandidat..." 
-                                            class="w-64 pl-10 pr-4 py-2 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                        >
-                                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
-                                    </div>
-                                </div>
-                                
-                                <!-- Add New Candidate -->
-                                <button onclick="addNewCandidate()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium transition-colors flex items-center">
-                                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                                    Tambah Kandidat
-                                </button>
-                                
-                                <!-- Refresh Button -->
-                                <button onclick="refreshCandidates()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                                </button>
-                                
-                                <!-- Notifications -->
-                                <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative">
-                                    <i data-lucide="bell" class="w-5 h-5"></i>
-                                    <span id="notificationCount" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center font-bold rounded-full">0</span>
-                                </button>
-                                
-                                <!-- User Menu -->
-                                <div class="relative">
-                                    <button onclick="toggleUserMenu()" class="flex items-center space-x-3 p-2 text-sm rounded-lg hover:bg-gray-100 transition-colors">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                            <span class="text-white text-sm font-semibold" id="headerUserInitial">H</span>
-                                        </div>
-                                        <div class="hidden sm:block text-left">
-                                            <div class="font-medium text-gray-700" id="headerUserName">HR Manager</div>
-                                            <div class="text-xs text-gray-500" id="headerUserEmail">hr@company.com</div>
-                                        </div>
-                                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
-                                    </button>
-                                    
-                                    <!-- Dropdown menu -->
-                                    <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                                        <div class="border-t border-gray-200"></div>
-                                        <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-                
-                <!-- Main Content -->
-                <main class="flex-1 overflow-y-auto">
-                    <div class="px-4 sm:px-6 lg:px-8 py-8">
-                        
-                        <!-- Filter and Stats Section -->
-                        <div class="mb-8">
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                                <!-- Total Kandidat -->
-                                <div class="bg-white p-6 shadow border border-gray-200">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                                            <i data-lucide="users" class="w-5 h-5 text-white"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <p class="text-sm font-medium text-gray-500">Total Kandidat</p>
-                                            <p class="text-2xl font-bold text-gray-900" id="totalCandidatesCount">0</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Kandidat Baru -->
-                                <div class="bg-white p-6 shadow border border-gray-200">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                                            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <p class="text-sm font-medium text-gray-500">Baru Minggu Ini</p>
-                                            <p class="text-2xl font-bold text-gray-900" id="newCandidatesCount">0</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Test Selesai -->
-                                <div class="bg-white p-6 shadow border border-gray-200">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                                            <i data-lucide="check-circle" class="w-5 h-5 text-white"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <p class="text-sm font-medium text-gray-500">Test Selesai</p>
-                                            <p class="text-2xl font-bold text-gray-900" id="completedTestsCount">0</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Pending Review -->
-                                <div class="bg-white p-6 shadow border border-gray-200">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-                                            <i data-lucide="clock" class="w-5 h-5 text-white"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <p class="text-sm font-medium text-gray-500">Pending Review</p>
-                                            <p class="text-2xl font-bold text-gray-900" id="pendingReviewCount">0</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Filter Options -->
-                            <div class="bg-white p-6 shadow border border-gray-200">
-                                <div class="flex flex-wrap items-center gap-4">
-                                    <div class="flex items-center">
-                                        <label class="text-sm font-medium text-gray-700 mr-2">Status:</label>
-                                        <select id="statusFilter" class="border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                            <option value="">Semua Status</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="interview">Interview</option>
-                                            <option value="hired">Hired</option>
-                                            <option value="rejected">Rejected</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="flex items-center">
-                                        <label class="text-sm font-medium text-gray-700 mr-2">DISC Type:</label>
-                                        <select id="discFilter" class="border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                            <option value="">Semua Tipe</option>
-                                            <option value="D">Dominance (D)</option>
-                                            <option value="I">Influence (I)</option>
-                                            <option value="S">Steadiness (S)</option>
-                                            <option value="C">Conscientiousness (C)</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="flex items-center">
-                                        <label class="text-sm font-medium text-gray-700 mr-2">Posisi:</label>
-                                        <select id="positionFilter" class="border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-                                            <option value="">Semua Posisi</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <button onclick="clearFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 font-medium transition-colors">
-                                        Clear Filters
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Candidates Table -->
-                        <div class="bg-white shadow border border-gray-200">
-                            <div class="px-6 py-4 border-b border-gray-200">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="text-lg font-semibold text-gray-900">Daftar Kandidat</h3>
-                                    <div class="flex items-center space-x-2">
-                                        <button onclick="exportCandidates()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 font-medium transition-colors flex items-center">
-                                            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
-                                            Export
-                                        </button>
-                                        <button onclick="bulkActions()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 font-medium transition-colors flex items-center">
-                                            <i data-lucide="settings" class="w-4 h-4 mr-2"></i>
-                                            Bulk Actions
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="table-container">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                <input type="checkbox" id="selectAll" class="mr-2">
-                                                Kandidat
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Posisi Applied
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                DISC Type
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Test Date
-                                            </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="candidatesTableBody" class="bg-white divide-y divide-gray-200">
-                                        <!-- Loading state -->
-                                        <tr>
-                                            <td colspan="6" class="px-6 py-12 text-center">
-                                                <div class="flex items-center justify-center text-gray-500">
-                                                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-3"></i>
-                                                    Loading candidates data...
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Pagination -->
-                            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                                <div class="flex items-center justify-between">
-                                    <div class="text-sm text-gray-700">
-                                        Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalEntries">0</span> entries
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <button onclick="previousPage()" class="px-3 py-2 border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors">
-                                            Previous
-                                        </button>
-                                        <button class="px-3 py-2 border border-blue-500 bg-blue-500 text-white">
-                                            1
-                                        </button>
-                                        <button onclick="nextPage()" class="px-3 py-2 border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors">
-                                            Next
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </main>
+                <div class="ml-3">
+                  <p
+                    class="text-sm font-medium text-gray-700"
+                    id="sidebarUserName"
+                  >
+                    HR Manager
+                  </p>
+                  <p class="text-xs text-gray-500" id="sidebarUserEmail">
+                    hr@company.com
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+
+        <!-- Mobile sidebar -->
+        <div
+          id="mobileSidebar"
+          class="lg:hidden fixed inset-0 flex z-40 hidden"
+        >
+          <div
+            class="fixed inset-0 bg-gray-600 bg-opacity-75"
+            onclick="toggleMobileSidebar()"
+          ></div>
+          <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+            <div class="absolute top-0 right-0 -mr-12 pt-2">
+              <button
+                onclick="toggleMobileSidebar()"
+                class="ml-1 flex items-center justify-center h-10 w-10 text-white"
+              >
+                <i data-lucide="x" class="h-6 w-6"></i>
+              </button>
+            </div>
+            <!-- Mobile sidebar content same as desktop -->
+            <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+              <div class="flex-shrink-0 flex items-center px-4">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                >
+                  <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                </div>
+                <h1 class="ml-3 text-lg font-bold text-gray-900">HR System</h1>
+              </div>
+              <nav class="mt-5 px-2 space-y-1">
+                <a
+                  href="dashboard.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i data-lucide="home" class="text-gray-400 mr-4 h-6 w-6"></i>
+                  Dashboard
+                </a>
+                <a
+                  href="kandidat.html"
+                  class="mobile-sidebar-item active bg-blue-100 text-blue-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i data-lucide="users" class="text-blue-500 mr-4 h-6 w-6"></i>
+                  Kandidat
+                </a>
+                <a
+                  href="posisi.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="briefcase"
+                    class="text-gray-400 mr-4 h-6 w-6"
+                  ></i>
+                  Posisi
+                </a>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="lg:pl-64 flex flex-col flex-1">
+          <!-- Top Header -->
+          <div
+            class="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50"
+          >
+            <button
+              onclick="toggleMobileSidebar()"
+              class="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none"
+            >
+              <i data-lucide="menu" class="h-6 w-6"></i>
+            </button>
+          </div>
+
+          <!-- Header with notifications -->
+          <header
+            class="bg-white shadow-sm border-b border-gray-200 lg:border-l-0"
+          >
+            <div class="px-4 sm:px-6 lg:px-8">
+              <div class="flex justify-between items-center h-16">
+                <div class="flex-1">
+                  <h1 class="text-2xl font-bold text-gray-900" id="pageTitle">
+                    Manajemen Kandidat
+                  </h1>
+                  <p class="text-sm text-gray-600" id="pageSubtitle">
+                    Kelola data kandidat dan lihat hasil tes DISC
+                  </p>
+                </div>
+
+                <!-- Right side actions -->
+                <div class="flex items-center space-x-4">
+                  <!-- Search -->
+                  <div class="hidden md:block">
+                    <div class="relative">
+                      <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Cari kandidat..."
+                        class="w-64 pl-10 pr-4 py-2 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <i
+                        data-lucide="search"
+                        class="w-4 h-4 absolute left-3 top-3 text-gray-400"
+                      ></i>
+                    </div>
+                  </div>
+
+                  <!-- Add New Candidate -->
+                  <button
+                    onclick="addNewCandidate()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium transition-colors flex items-center"
+                  >
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Kandidat
+                  </button>
+
+                  <!-- Refresh Button -->
+                  <button
+                    onclick="refreshCandidates()"
+                    class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                  </button>
+
+                  <!-- Notifications -->
+                  <button
+                    class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative"
+                  >
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span
+                      id="notificationCount"
+                      class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center font-bold rounded-full"
+                      >0</span
+                    >
+                  </button>
+
+                  <!-- User Menu -->
+                  <div class="relative">
+                    <button
+                      onclick="toggleUserMenu()"
+                      class="flex items-center space-x-3 p-2 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                      >
+                        <span
+                          class="text-white text-sm font-semibold"
+                          id="headerUserInitial"
+                          >H</span
+                        >
+                      </div>
+                      <div class="hidden sm:block text-left">
+                        <div
+                          class="font-medium text-gray-700"
+                          id="headerUserName"
+                        >
+                          HR Manager
+                        </div>
+                        <div class="text-xs text-gray-500" id="headerUserEmail">
+                          hr@company.com
+                        </div>
+                      </div>
+                      <i
+                        data-lucide="chevron-down"
+                        class="w-4 h-4 text-gray-400"
+                      ></i>
+                    </button>
+
+                    <!-- Dropdown menu -->
+                    <div
+                      id="userMenu"
+                      class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20"
+                    >
+                      <a
+                        href="#"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >Profile</a
+                      >
+                      <a
+                        href="#"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >Settings</a
+                      >
+                      <div class="border-t border-gray-200"></div>
+                      <button
+                        onclick="logout()"
+                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Main Content -->
+          <main class="flex-1 overflow-y-auto">
+            <div class="px-4 sm:px-6 lg:px-8 py-8">
+              <!-- Filter and Stats Section -->
+              <div class="mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                  <!-- Total Kandidat -->
+                  <div class="bg-white p-6 shadow border border-gray-200">
+                    <div class="flex items-center">
+                      <div
+                        class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center"
+                      >
+                        <i data-lucide="users" class="w-5 h-5 text-white"></i>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">
+                          Total Kandidat
+                        </p>
+                        <p
+                          class="text-2xl font-bold text-gray-900"
+                          id="totalCandidatesCount"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Kandidat Baru -->
+                  <div class="bg-white p-6 shadow border border-gray-200">
+                    <div class="flex items-center">
+                      <div
+                        class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center"
+                      >
+                        <i
+                          data-lucide="user-plus"
+                          class="w-5 h-5 text-white"
+                        ></i>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">
+                          Baru Minggu Ini
+                        </p>
+                        <p
+                          class="text-2xl font-bold text-gray-900"
+                          id="newCandidatesCount"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Test Selesai -->
+                  <div class="bg-white p-6 shadow border border-gray-200">
+                    <div class="flex items-center">
+                      <div
+                        class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center"
+                      >
+                        <i
+                          data-lucide="check-circle"
+                          class="w-5 h-5 text-white"
+                        ></i>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">
+                          Test Selesai
+                        </p>
+                        <p
+                          class="text-2xl font-bold text-gray-900"
+                          id="completedTestsCount"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Pending Review -->
+                  <div class="bg-white p-6 shadow border border-gray-200">
+                    <div class="flex items-center">
+                      <div
+                        class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center"
+                      >
+                        <i data-lucide="clock" class="w-5 h-5 text-white"></i>
+                      </div>
+                      <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">
+                          Pending Review
+                        </p>
+                        <p
+                          class="text-2xl font-bold text-gray-900"
+                          id="pendingReviewCount"
+                        >
+                          0
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Filter Options -->
+                <div class="bg-white p-6 shadow border border-gray-200">
+                  <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center">
+                      <label class="text-sm font-medium text-gray-700 mr-2"
+                        >Status:</label
+                      >
+                      <select
+                        id="statusFilter"
+                        class="border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Semua Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="interview">Interview</option>
+                        <option value="hired">Hired</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+
+                    <div class="flex items-center">
+                      <label class="text-sm font-medium text-gray-700 mr-2"
+                        >DISC Type:</label
+                      >
+                      <select
+                        id="discFilter"
+                        class="border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Semua Tipe</option>
+                        <option value="D">Dominance (D)</option>
+                        <option value="I">Influence (I)</option>
+                        <option value="S">Steadiness (S)</option>
+                        <option value="C">Conscientiousness (C)</option>
+                      </select>
+                    </div>
+
+                    <div class="flex items-center">
+                      <label class="text-sm font-medium text-gray-700 mr-2"
+                        >Posisi:</label
+                      >
+                      <select
+                        id="positionFilter"
+                        class="border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="">Semua Posisi</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onclick="clearFilters()"
+                      class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 font-medium transition-colors"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Candidates Table -->
+              <div class="bg-white shadow border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                      Daftar Kandidat
+                    </h3>
+                    <div class="flex items-center space-x-2">
+                      <button
+                        onclick="exportCandidates()"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 font-medium transition-colors flex items-center"
+                      >
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                        Export
+                      </button>
+                      <button
+                        onclick="bulkActions()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 font-medium transition-colors flex items-center"
+                      >
+                        <i data-lucide="settings" class="w-4 h-4 mr-2"></i>
+                        Bulk Actions
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="table-container">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          <input type="checkbox" id="selectAll" class="mr-2" />
+                          Kandidat
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Posisi Applied
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          DISC Type
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Status
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Test Date
+                        </th>
+                        <th
+                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      id="candidatesTableBody"
+                      class="bg-white divide-y divide-gray-200"
+                    >
+                      <!-- Loading state -->
+                      <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                          <div
+                            class="flex items-center justify-center text-gray-500"
+                          >
+                            <i
+                              data-lucide="loader-2"
+                              class="w-6 h-6 animate-spin mr-3"
+                            ></i>
+                            Loading candidates data...
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                      Showing <span id="showingFrom">1</span> to
+                      <span id="showingTo">10</span> of
+                      <span id="totalEntries">0</span> entries
+                    </div>
+                    <div class="flex space-x-2">
+                      <button
+                        onclick="previousPage()"
+                        class="px-3 py-2 border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        class="px-3 py-2 border border-blue-500 bg-blue-500 text-white"
+                      >
+                        1
+                      </button>
+                      <button
+                        onclick="nextPage()"
+                        class="px-3 py-2 border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3011/api';
-        // Initialize user from localStorage
-        let currentUser = localStorage.getItem('hr_user') ? JSON.parse(localStorage.getItem('hr_user')) : null;
-        let candidatesData = [];
-        let currentPage = 1;
-        let itemsPerPage = 10;
+      const API_BASE = "http://localhost:3011/api";
+      // Initialize user from localStorage
+      let currentUser = localStorage.getItem("hr_user")
+        ? JSON.parse(localStorage.getItem("hr_user"))
+        : null;
+      let candidatesData = [];
+      let currentPage = 1;
+      let itemsPerPage = 10;
 
-        // Initialize Lucide icons
-        lucide.createIcons();
+      // DUMMY DATA - Kandidat lokal untuk testing tanpa backend
+      const dummyCandidatesData = [
+        {
+          id: 1,
+          name: "Budi Santoso",
+          email: "budi.santoso@example.com",
+          phone: "081234567890",
+          position: "Software Engineer",
+          status: "applied",
+          appliedDate: "2024-12-01",
+          score: null,
+        },
+        {
+          id: 2,
+          name: "Siti Nurhaliza",
+          email: "siti.nurhaliza@example.com",
+          phone: "082345678901",
+          position: "Product Manager",
+          status: "screening",
+          appliedDate: "2024-11-28",
+          score: null,
+        },
+        {
+          id: 3,
+          name: "Ahmad Wijaya",
+          email: "ahmad.wijaya@example.com",
+          phone: "083456789012",
+          position: "UI/UX Designer",
+          status: "interview",
+          appliedDate: "2024-11-25",
+          score: 85,
+        },
+        {
+          id: 4,
+          name: "Rina Kusuma",
+          email: "rina.kusuma@example.com",
+          phone: "084567890123",
+          position: "Data Analyst",
+          status: "applied",
+          appliedDate: "2024-12-02",
+          score: null,
+        },
+        {
+          id: 5,
+          name: "Rudi Hermawan",
+          email: "rudi.hermawan@example.com",
+          phone: "085678901234",
+          position: "Backend Developer",
+          status: "screening",
+          appliedDate: "2024-11-30",
+          score: null,
+        },
+      ];
 
-        // Sidebar Navigation Functions
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
-            sidebar.classList.toggle('hidden');
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Sidebar Navigation Functions
+      function toggleMobileSidebar() {
+        const sidebar = document.getElementById("mobileSidebar");
+        sidebar.classList.toggle("hidden");
+      }
+
+      function toggleUserMenu() {
+        const userMenu = document.getElementById("userMenu");
+        userMenu.classList.toggle("hidden");
+      }
+
+      // Close user menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const userMenu = document.getElementById("userMenu");
+        const userButton = event.target.closest('[onclick="toggleUserMenu()"]');
+
+        if (!userButton && !userMenu.contains(event.target)) {
+          userMenu.classList.add("hidden");
         }
+      });
 
-        function toggleUserMenu() {
-            const userMenu = document.getElementById('userMenu');
-            userMenu.classList.toggle('hidden');
+      // Load candidates data - menggunakan dummy data lokal (tanpa backend)
+      async function loadCandidatesData() {
+        try {
+          console.log("Loading candidates data...");
+
+          // Simulasi delay loading
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // Gunakan dummy data lokal
+          candidatesData = [...dummyCandidatesData];
+
+          // Update UI with data
+          updateCandidatesUI();
+          updateStats();
+
+          console.log(
+            "✅ Candidates data loaded successfully (using dummy data)"
+          );
+        } catch (error) {
+          console.error("Error loading candidates data:", error);
+          showErrorState();
         }
+      }
 
-        // Close user menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const userMenu = document.getElementById('userMenu');
-            const userButton = event.target.closest('[onclick="toggleUserMenu()"]');
-            
-            if (!userButton && !userMenu.contains(event.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
+      // Update candidates table UI
+      function updateCandidatesUI() {
+        const tbody = document.getElementById("candidatesTableBody");
 
-        // Load candidates data
-        async function loadCandidatesData() {
-            try {
-                console.log('Loading candidates data...');
-                
-                // Load candidates from API
-                const response = await fetch(`${API_BASE}/candidates`);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch candidates: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                candidatesData = data.candidates || data || [];
-                
-                // Update UI with data
-                updateCandidatesUI();
-                updateStats();
-                
-                console.log('✅ Candidates data loaded successfully');
-                
-            } catch (error) {
-                console.error('Error loading candidates data:', error);
-                showErrorState();
-            }
-        }
-
-        // Update candidates table UI
-        function updateCandidatesUI() {
-            const tbody = document.getElementById('candidatesTableBody');
-            
-            if (candidatesData.length === 0) {
-                tbody.innerHTML = `
+        if (candidatesData.length === 0) {
+          tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="px-6 py-12 text-center">
                             <div class="text-gray-500">
@@ -629,37 +988,62 @@
                         </td>
                     </tr>
                 `;
-                lucide.createIcons();
-                return;
-            }
-            
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageData = candidatesData.slice(startIndex, endIndex);
-            
-            tbody.innerHTML = pageData.map(candidate => `
+          lucide.createIcons();
+          return;
+        }
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageData = candidatesData.slice(startIndex, endIndex);
+
+        tbody.innerHTML = pageData
+          .map(
+            (candidate) => `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
-                            <input type="checkbox" class="candidate-checkbox mr-3" value="${candidate.id}">
+                            <input type="checkbox" class="candidate-checkbox mr-3" value="${
+                              candidate.id
+                            }">
                             <div>
-                                <div class="text-sm font-medium text-gray-900">${candidate.name}</div>
-                                <div class="text-sm text-gray-500">${candidate.email}</div>
-                                <div class="text-xs text-gray-400">${candidate.phone}</div>
+                                <div class="text-sm font-medium text-gray-900">${
+                                  candidate.name
+                                }</div>
+                                <div class="text-sm text-gray-500">${
+                                  candidate.email
+                                }</div>
+                                <div class="text-xs text-gray-400">${
+                                  candidate.phone
+                                }</div>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${candidate.position}</div>
-                        <div class="text-xs text-gray-500">Applied: ${candidate.appliedDate}</div>
+                        <div class="text-sm text-gray-900">${
+                          candidate.position
+                        }</div>
+                        <div class="text-xs text-gray-500">Applied: ${
+                          candidate.appliedDate
+                        }</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="disc-badge disc-${(candidate.discType || '').toLowerCase()}">${candidate.discType || 'N/A'}</span>
-                        <div class="text-xs text-gray-500 mt-1">Score: ${candidate.score}%</div>
+                        <span class="disc-badge disc-${(
+                          candidate.discType || ""
+                        ).toLowerCase()}">${candidate.discType || "N/A"}</span>
+                        <div class="text-xs text-gray-500 mt-1">Score: ${
+                          candidate.score
+                        }%</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="candidate-status status-${candidate.status || 'unknown'}">
-                            ${(candidate.status || 'unknown').charAt(0).toUpperCase() + (candidate.status || 'unknown').slice(1)}
+                        <span class="candidate-status status-${
+                          candidate.status || "unknown"
+                        }">
+                            ${
+                              (candidate.status || "unknown")
+                                .charAt(0)
+                                .toUpperCase() +
+                              (candidate.status || "unknown").slice(1)
+                            }
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -667,49 +1051,72 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button onclick="viewCandidate(${candidate.id})" class="text-blue-600 hover:text-blue-900">
+                            <button onclick="viewCandidate(${
+                              candidate.id
+                            })" class="text-blue-600 hover:text-blue-900">
                                 <i data-lucide="eye" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="editCandidate(${candidate.id})" class="text-green-600 hover:text-green-900">
+                            <button onclick="editCandidate(${
+                              candidate.id
+                            })" class="text-green-600 hover:text-green-900">
                                 <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteCandidate(${candidate.id})" class="text-red-600 hover:text-red-900">
+                            <button onclick="deleteCandidate(${
+                              candidate.id
+                            })" class="text-red-600 hover:text-red-900">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
-            
-            // Update pagination info
-            document.getElementById('showingFrom').textContent = startIndex + 1;
-            document.getElementById('showingTo').textContent = Math.min(endIndex, candidatesData.length);
-            document.getElementById('totalEntries').textContent = candidatesData.length;
-            
-            lucide.createIcons();
-        }
+            `
+          )
+          .join("");
 
-        // Update statistics
-        function updateStats() {
-            const totalCandidates = candidatesData.length;
-            const newThisWeek = candidatesData.filter(c => new Date(c.appliedDate) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length;
-            const completedTests = candidatesData.filter(c => c.discType).length;
-            const pendingReview = candidatesData.filter(c => c.status === 'pending').length;
-            
-            document.getElementById('totalCandidatesCount').textContent = totalCandidates;
-            document.getElementById('newCandidatesCount').textContent = newThisWeek;
-            document.getElementById('completedTestsCount').textContent = completedTests;
-            document.getElementById('pendingReviewCount').textContent = pendingReview;
-            
-            // Update notification count
-            document.getElementById('notificationCount').textContent = pendingReview;
-            document.getElementById('notificationCount').style.display = pendingReview > 0 ? 'flex' : 'none';
-        }
+        // Update pagination info
+        document.getElementById("showingFrom").textContent = startIndex + 1;
+        document.getElementById("showingTo").textContent = Math.min(
+          endIndex,
+          candidatesData.length
+        );
+        document.getElementById("totalEntries").textContent =
+          candidatesData.length;
 
-        // Show error state
-        function showErrorState() {
-            const tbody = document.getElementById('candidatesTableBody');
-            tbody.innerHTML = `
+        lucide.createIcons();
+      }
+
+      // Update statistics
+      function updateStats() {
+        const totalCandidates = candidatesData.length;
+        const newThisWeek = candidatesData.filter(
+          (c) =>
+            new Date(c.appliedDate) >=
+            new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        ).length;
+        const completedTests = candidatesData.filter((c) => c.discType).length;
+        const pendingReview = candidatesData.filter(
+          (c) => c.status === "pending"
+        ).length;
+
+        document.getElementById("totalCandidatesCount").textContent =
+          totalCandidates;
+        document.getElementById("newCandidatesCount").textContent = newThisWeek;
+        document.getElementById("completedTestsCount").textContent =
+          completedTests;
+        document.getElementById("pendingReviewCount").textContent =
+          pendingReview;
+
+        // Update notification count
+        document.getElementById("notificationCount").textContent =
+          pendingReview;
+        document.getElementById("notificationCount").style.display =
+          pendingReview > 0 ? "flex" : "none";
+      }
+
+      // Show error state
+      function showErrorState() {
+        const tbody = document.getElementById("candidatesTableBody");
+        tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="px-6 py-12 text-center">
                         <div class="text-red-500">
@@ -720,159 +1127,168 @@
                     </td>
                 </tr>
             `;
-            lucide.createIcons();
-        }
+        lucide.createIcons();
+      }
 
-        // Action functions
-        function addNewCandidate() {
-            alert('Add New Candidate functionality would be implemented here');
-        }
+      // Action functions
+      function addNewCandidate() {
+        alert("Add New Candidate functionality would be implemented here");
+      }
 
-        function refreshCandidates() {
-            console.log('Refreshing candidates data...');
-            loadCandidatesData();
-        }
+      function refreshCandidates() {
+        console.log("Refreshing candidates data...");
+        loadCandidatesData();
+      }
 
-        function viewCandidate(id) {
-            const candidate = candidatesData.find(c => c.id === id);
-            alert(`View details for: ${candidate.name}`);
-        }
+      function viewCandidate(id) {
+        const candidate = candidatesData.find((c) => c.id === id);
+        alert(`View details for: ${candidate.name}`);
+      }
 
-        function editCandidate(id) {
-            const candidate = candidatesData.find(c => c.id === id);
-            alert(`Edit candidate: ${candidate.name}`);
-        }
+      function editCandidate(id) {
+        const candidate = candidatesData.find((c) => c.id === id);
+        alert(`Edit candidate: ${candidate.name}`);
+      }
 
-        function deleteCandidate(id) {
-            if (confirm('Are you sure you want to delete this candidate?')) {
-                candidatesData = candidatesData.filter(c => c.id !== id);
-                updateCandidatesUI();
-                updateStats();
-            }
+      function deleteCandidate(id) {
+        if (confirm("Are you sure you want to delete this candidate?")) {
+          candidatesData = candidatesData.filter((c) => c.id !== id);
+          updateCandidatesUI();
+          updateStats();
         }
+      }
 
-        function exportCandidates() {
-            alert('Export functionality would be implemented here');
-        }
+      function exportCandidates() {
+        alert("Export functionality would be implemented here");
+      }
 
-        function bulkActions() {
-            alert('Bulk actions functionality would be implemented here');
-        }
+      function bulkActions() {
+        alert("Bulk actions functionality would be implemented here");
+      }
 
-        function clearFilters() {
-            document.getElementById('statusFilter').value = '';
-            document.getElementById('discFilter').value = '';
-            document.getElementById('positionFilter').value = '';
-            document.getElementById('searchInput').value = '';
-            // Reset filters and reload data
-            loadCandidatesData();
-        }
+      function clearFilters() {
+        document.getElementById("statusFilter").value = "";
+        document.getElementById("discFilter").value = "";
+        document.getElementById("positionFilter").value = "";
+        document.getElementById("searchInput").value = "";
+        // Reset filters and reload data
+        loadCandidatesData();
+      }
 
-        function previousPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                updateCandidatesUI();
-            }
+      function previousPage() {
+        if (currentPage > 1) {
+          currentPage--;
+          updateCandidatesUI();
         }
+      }
 
-        function nextPage() {
-            const totalPages = Math.ceil(candidatesData.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                updateCandidatesUI();
-            }
+      function nextPage() {
+        const totalPages = Math.ceil(candidatesData.length / itemsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          updateCandidatesUI();
         }
+      }
 
-        // Login success handler
-        function loginSuccess(userData) {
-            currentUser = userData;
-            // Save user data to localStorage
-            localStorage.setItem('hr_user', JSON.stringify(userData));
-            
-            // Update user info in header and sidebar
-            updateUserUI(userData);
-            
-            // Hide login, show main app
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            // Load candidates data
-            loadCandidatesData();
+      // Login success handler
+      function loginSuccess(userData) {
+        currentUser = userData;
+        // Save user data to localStorage
+        localStorage.setItem("hr_user", JSON.stringify(userData));
+
+        // Update user info in header and sidebar
+        updateUserUI(userData);
+
+        // Hide login, show main app
+        document.getElementById("loginModal").classList.add("hidden");
+        document.getElementById("mainApp").classList.remove("hidden");
+
+        // Load candidates data
+        loadCandidatesData();
+      }
+
+      // Update user UI elements
+      function updateUserUI(userData) {
+        if (document.getElementById("headerUserEmail")) {
+          document.getElementById("headerUserEmail").textContent =
+            userData.email;
         }
-        
-        // Update user UI elements
-        function updateUserUI(userData) {
-            if (document.getElementById('headerUserEmail')) {
-                document.getElementById('headerUserEmail').textContent = userData.email;
-            }
-            if (document.getElementById('headerUserName')) {
-                document.getElementById('headerUserName').textContent = userData.name;
-            }
-            if (document.getElementById('headerUserInitial')) {
-                document.getElementById('headerUserInitial').textContent = userData.name.charAt(0);
-            }
-            if (document.getElementById('sidebarUserEmail')) {
-                document.getElementById('sidebarUserEmail').textContent = userData.email;
-            }
-            if (document.getElementById('sidebarUserName')) {
-                document.getElementById('sidebarUserName').textContent = userData.name;
-            }
-            if (document.getElementById('sidebarUserInitial')) {
-                document.getElementById('sidebarUserInitial').textContent = userData.name.charAt(0);
-            }
+        if (document.getElementById("headerUserName")) {
+          document.getElementById("headerUserName").textContent = userData.name;
         }
-        
-        // Check authentication state on page load
-        function checkAuthState() {
-            if (currentUser) {
-                // User is already logged in
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                // Update UI with user info
-                updateUserUI(currentUser);
-                // Load candidates data
-                loadCandidatesData();
+        if (document.getElementById("headerUserInitial")) {
+          document.getElementById("headerUserInitial").textContent =
+            userData.name.charAt(0);
+        }
+        if (document.getElementById("sidebarUserEmail")) {
+          document.getElementById("sidebarUserEmail").textContent =
+            userData.email;
+        }
+        if (document.getElementById("sidebarUserName")) {
+          document.getElementById("sidebarUserName").textContent =
+            userData.name;
+        }
+        if (document.getElementById("sidebarUserInitial")) {
+          document.getElementById("sidebarUserInitial").textContent =
+            userData.name.charAt(0);
+        }
+      }
+
+      // Check authentication state on page load
+      function checkAuthState() {
+        if (currentUser) {
+          // User is already logged in
+          document.getElementById("loginModal").classList.add("hidden");
+          document.getElementById("mainApp").classList.remove("hidden");
+          // Update UI with user info
+          updateUserUI(currentUser);
+          // Load candidates data
+          loadCandidatesData();
+        } else {
+          // Show login modal
+          document.getElementById("loginModal").classList.remove("hidden");
+          document.getElementById("mainApp").classList.add("hidden");
+        }
+      }
+
+      // Login functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check if user is already logged in
+        checkAuthState();
+
+        // Set up login form
+        document
+          .getElementById("loginForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            // Demo login validation
+            if (email === "hr@company.com" && password === "password123") {
+              const userData = {
+                email: email,
+                name: "HR Manager",
+                role: "hr_manager",
+              };
+
+              loginSuccess(userData);
             } else {
-                // Show login modal
-                document.getElementById('loginModal').classList.remove('hidden');
-                document.getElementById('mainApp').classList.add('hidden');
+              alert(
+                "Email atau password salah. Gunakan: hr@company.com / password123"
+              );
             }
-        }
-        
-        // Login functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is already logged in
-            checkAuthState();
-            
-            // Set up login form
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                
-                // Demo login validation
-                if (email === 'hr@company.com' && password === 'password123') {
-                    const userData = {
-                        email: email,
-                        name: 'HR Manager',
-                        role: 'hr_manager'
-                    };
-                    
-                    loginSuccess(userData);
-                } else {
-                    alert('Email atau password salah. Gunakan: hr@company.com / password123');
-                }
-            });
-        });
+          });
+      });
 
-        // Logout functionality
-        function logout() {
-            currentUser = null;
-            // Clear localStorage
-            localStorage.removeItem('hr_user');
-            document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('hidden');
-        }
+      // Logout functionality
+      function logout() {
+        currentUser = null;
+        // Clear localStorage
+        localStorage.removeItem("hr_user");
+        document.getElementById("loginModal").classList.remove("hidden");
+        document.getElementById("mainApp").classList.add("hidden");
+      }
     </script>
-</body>
+  </body>
 </html>

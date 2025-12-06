@@ -508,47 +508,45 @@
             }
         });
 
-        // Load dashboard data
+        // Load dashboard data - menggunakan dummy data lokal (tanpa backend)
         async function loadDashboardData() {
             try {
                 showLoadingState();
                 
-                // Load dashboard metrics from synchronized API
-                const metricsResponse = await fetch(`${API_BASE}/dashboard/metrics`);
-                const metricsData = await metricsResponse.json();
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
                 
-                // Load analytics data
-                const analyticsResponse = await fetch(`${API_BASE}/analytics/test-performance`);
-                const analyticsData = await analyticsResponse.json();
-                
-                // Update dashboard data with real synchronized data
+                // Gunakan dummy data lokal
                 dashboardData = {
                     candidates: { 
-                        total: metricsData.metrics?.candidates?.total || 0,
+                        total: 25,
                         data: [] 
                     },
                     jobs: { 
-                        total: 0, // Jobs data not yet in metrics API
+                        total: 8,
                         data: [] 
                     },
-                    discTests: metricsData.metrics?.tests?.totalTaken || 0,
-                    completedTests: metricsData.metrics?.tests?.completed || 0,
-                    pendingTests: metricsData.metrics?.tests?.pending || 0,
-                    activeLinks: metricsData.metrics?.testLinks?.active || 0,
+                    discTests: 15,
+                    completedTests: 10,
+                    pendingTests: 5,
+                    activeLinks: 12,
                     statistics: {
-                        newCandidatesWeek: metricsData.metrics?.candidates?.newThisWeek || 0,
-                        completionRate: metricsData.metrics?.tests?.completionRate || 0,
-                        securityIncidents: 0, // Not yet in metrics API
-                        averageScore: 0, // Average score calculation needs to be implemented in backend
-                        categoriesCount: metricsData.metrics?.testContent?.categories || 0,
-                        questionsCount: metricsData.metrics?.testContent?.questions || 0
+                        newCandidatesWeek: 5,
+                        completionRate: 67,
+                        securityIncidents: 0,
+                        averageScore: 78,
+                        categoriesCount: 3,
+                        questionsCount: 120
                     },
-                    analytics: analyticsData
+                    analytics: {
+                        success: true,
+                        data: []
+                    }
                 };
                 
-                console.log('✅ Dashboard loaded with real synchronized data:', dashboardData);
+                console.log('✅ Dashboard loaded with dummy data (no backend)');
                 
-                // Update UI with real data
+                // Update UI with dummy data
                 updateDashboardUI();
                 
                 hideLoadingState();
@@ -556,7 +554,7 @@
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
                 
-                // Use minimal fallback data if API fails
+                // Use minimal fallback data if something goes wrong
                 dashboardData = {
                     candidates: { total: 0, data: [] },
                     jobs: { total: 0, data: [] },

@@ -467,7 +467,55 @@
         let applicationData = {};
         let discQuestions = [];
         let discAnswers = {};
-        let availableJobs = [];
+        
+        // Dummy jobs untuk application form
+        let availableJobs = [
+            { 
+                id: 'job-001', 
+                title: 'Senior Backend Developer', 
+                department: 'Engineering',
+                description: 'Develop scalable backend systems',
+                location: 'Jakarta',
+                employmentType: 'Full Time',
+                salaryRange: { min: 8000000, max: 15000000, currency: 'IDR' }
+            },
+            { 
+                id: 'job-002', 
+                title: 'Frontend Engineer React', 
+                department: 'Engineering',
+                description: 'Build interactive UI with React',
+                location: 'Jakarta',
+                employmentType: 'Full Time',
+                salaryRange: { min: 7000000, max: 12000000, currency: 'IDR' }
+            },
+            { 
+                id: 'job-003', 
+                title: 'HR Manager', 
+                department: 'Human Resources',
+                description: 'Manage recruitment and employee relations',
+                location: 'Jakarta',
+                employmentType: 'Full Time',
+                salaryRange: { min: 8000000, max: 13000000, currency: 'IDR' }
+            },
+            { 
+                id: 'job-004', 
+                title: 'Product Manager', 
+                department: 'Product',
+                description: 'Lead product strategy and development',
+                location: 'Jakarta',
+                employmentType: 'Full Time',
+                salaryRange: { min: 10000000, max: 18000000, currency: 'IDR' }
+            },
+            { 
+                id: 'job-005', 
+                title: 'QA Automation Engineer', 
+                department: 'Quality Assurance',
+                description: 'Develop automated test frameworks',
+                location: 'Jakarta',
+                employmentType: 'Full Time',
+                salaryRange: { min: 6000000, max: 10000000, currency: 'IDR' }
+            }
+        ];
 
         // Initialize
         async function initializeApp() {
@@ -475,20 +523,22 @@
             lucide.createIcons();
         }
         
-        // Load available jobs from API
+        // Load available jobs from dummy data (tanpa backend)
         async function loadAvailableJobs() {
             try {
-                const response = await fetch(`${API_BASE}/public/jobs`);
-                const data = await response.json();
+                console.log('✅ Loading jobs (dummy - tanpa backend)...');
                 
-                if (data.success && data.jobs) {
-                    availableJobs = data.jobs;
-                    populateJobSelect();
-                }
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Gunakan dummy jobs
+                console.log('✅ Jobs loaded:', availableJobs.length, 'positions');
+                populateJobSelect();
+                
             } catch (error) {
                 console.error('Failed to load jobs:', error);
-                // Fallback to hardcoded options if API fails
-                populateJobSelectFallback();
+                // Fallback to dummy
+                populateJobSelect();
             }
         }
         
@@ -842,7 +892,7 @@
             discAnswers[questionId][type] = discType;
         }
 
-        // Submit application
+        // Submit application - menggunakan dummy submission (tanpa backend)
         async function submitApplication() {
             showLoading('Mengirim Aplikasi', 'Memproses data dan psikotest...');
 
@@ -885,43 +935,16 @@
                 const personalityType = getPersonalityType(discScores);
                 const analysis = getPersonalityAnalysis(personalityType);
 
-                // Submit candidate data using public API
-                const candidateResponse = await fetch('/api/public/candidates/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(personalData)
-                });
-
-                const candidateResult = await candidateResponse.json();
-
-                if (!candidateResponse.ok) {
-                    throw new Error(candidateResult.message || 'Failed to submit application');
-                }
-
-                const candidateId = candidateResult.candidateId;
-
-                // Submit DISC test using public API
-                const discResponse = await fetch('/api/public/disc-test/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        candidateId: candidateId,
-                        answers: discAnswers,
-                        totalScore: totalScore,
-                        personalityType: personalityType,
-                        analysis: analysis
-                    })
-                });
-
-                const discResult = await discResponse.json();
-
-                if (!discResponse.ok) {
-                    console.error('DISC test submission failed, but candidate created');
-                }
+                console.log('✅ Submitting application (dummy - tanpa backend):', personalData);
+                
+                // Simulasi delay submission
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Simulasi success responses
+                const candidateId = 'cand-' + Date.now();
+                
+                console.log('✅ Candidate created (dummy):', candidateId);
+                console.log('✅ DISC test submitted (dummy):', personalityType);
 
                 hideLoading();
 

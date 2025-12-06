@@ -527,7 +527,46 @@
         const API_BASE = 'http://localhost:3011/api';
         // Initialize user from localStorage
         let currentUser = localStorage.getItem('hr_user') ? JSON.parse(localStorage.getItem('hr_user')) : null;
-        let analyticsData = {};
+        let analyticsData = {
+            metrics: {
+                conversionRate: 23,
+                avgTimeToHire: 18,
+                testCompletionRate: 78,
+                costPerHire: 2500000
+            },
+            trends: {
+                conversionRate: 5,
+                avgTimeToHire: -3,
+                testCompletionRate: 8,
+                costPerHire: -2
+            },
+            funnelData: [
+                { stage: 'Applications', count: 150 },
+                { stage: 'Screening', count: 89 },
+                { stage: 'Interviews', count: 34 },
+                { stage: 'Offers', count: 8 },
+                { stage: 'Hired', count: 5 }
+            ],
+            discDistribution: [
+                { type: 'Dominance', percentage: 28, count: 21 },
+                { type: 'Influence', percentage: 32, count: 24 },
+                { type: 'Steadiness', percentage: 22, count: 17 },
+                { type: 'Compliance', percentage: 18, count: 14 }
+            ],
+            timeline: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                applications: [45, 52, 48, 65, 78, 92],
+                interviews: [15, 18, 14, 22, 28, 34],
+                hires: [2, 3, 2, 4, 5, 6]
+            },
+            departmentPerformance: [
+                { department: 'Engineering', applications: 45, hires: 8 },
+                { department: 'Marketing', applications: 32, hires: 5 },
+                { department: 'Sales', applications: 28, hires: 4 },
+                { department: 'HR', applications: 20, hires: 3 },
+                { department: 'Finance', applications: 25, hires: 4 }
+            ]
+        };
         let charts = {};
 
         // Initialize Lucide icons
@@ -554,26 +593,20 @@
             }
         });
 
-        // Load analytics data
+        // Load analytics data - menggunakan dummy data lokal (tanpa backend)
         async function loadAnalyticsData() {
             try {
-                console.log('Loading analytics data...');
+                console.log('✅ Loading analytics data (dummy - tanpa backend)...');
                 
-                // Load analytics from API
-                const response = await fetch(`${API_BASE}/analytics/test-performance`);
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch analytics: ${response.statusText}`);
-                }
+                // Gunakan dummy data lokal
+                console.log('✅ Analytics data loaded dengan dummy charts & metrics');
                 
-                const data = await response.json();
-                analyticsData = data.analytics || data || {};
-                
-                // Update UI with data
+                // Update UI dengan data
                 updateMetrics();
                 initializeCharts();
-                
-                console.log('✅ Analytics data loaded successfully');
                 
             } catch (error) {
                 console.error('Error loading analytics data:', error);

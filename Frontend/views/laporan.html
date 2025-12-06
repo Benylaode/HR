@@ -571,7 +571,55 @@
         const API_BASE = 'http://localhost:3011/api';
         // Initialize user from localStorage
         let currentUser = localStorage.getItem('hr_user') ? JSON.parse(localStorage.getItem('hr_user')) : null;
-        let reportsData = [];
+        
+        // Dummy reports data
+        let reportsData = [
+            {
+                id: 'report-001',
+                name: 'Recruitment Pipeline Report',
+                description: 'Detailed analysis of current recruitment pipeline',
+                type: 'recruitment',
+                status: 'ready',
+                generated: new Date('2024-02-15'),
+                dataPoints: 245
+            },
+            {
+                id: 'report-002',
+                name: 'Test Performance Analytics',
+                description: 'Candidate test results and performance metrics',
+                type: 'analytics',
+                status: 'ready',
+                generated: new Date('2024-02-14'),
+                dataPoints: 156
+            },
+            {
+                id: 'report-003',
+                name: 'DISC Assessment Summary',
+                description: 'Personality assessment distribution and trends',
+                type: 'assessment',
+                status: 'ready',
+                generated: new Date('2024-02-13'),
+                dataPoints: 89
+            },
+            {
+                id: 'report-004',
+                name: 'Hiring Timeline Report',
+                description: 'Time to hire metrics and recruitment efficiency',
+                type: 'metrics',
+                status: 'ready',
+                generated: new Date('2024-02-12'),
+                dataPoints: 567
+            },
+            {
+                id: 'report-005',
+                name: 'Department Breakdown Analysis',
+                description: 'Recruitment by department and position level',
+                type: 'breakdown',
+                status: 'ready',
+                generated: new Date('2024-02-11'),
+                dataPoints: 434
+            }
+        ];
 
         // Initialize Lucide icons
         lucide.createIcons();
@@ -597,26 +645,19 @@
             }
         });
 
-        // Load reports data
+        // Load reports data - menggunakan dummy data lokal (tanpa backend)
         async function loadReportsData() {
             try {
-                console.log('Loading reports data...');
+                console.log('✅ Loading reports data (dummy - tanpa backend)...');
                 
-                // Load reports from API
-                const response = await fetch(`${API_BASE}/dashboard/metrics`);
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch reports: ${response.statusText}`);
-                }
+                console.log('✅ Reports loaded dengan dummy data:', reportsData.length, 'reports');
                 
-                const data = await response.json();
-                reportsData = data.reports || data || [];
-                
-                // Update UI with data
+                // Update UI dengan data
                 updateReportsUI();
                 updateStats();
-                
-                console.log('✅ Reports data loaded successfully');
                 
             } catch (error) {
                 console.error('Error loading reports data:', error);

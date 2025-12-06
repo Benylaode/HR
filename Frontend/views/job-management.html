@@ -677,30 +677,33 @@
             setupJobForm();
         });
 
-        // Load jobs data
+        // Load jobs data - menggunakan dummy data lokal (tanpa backend)
         async function loadJobs() {
             try {
-                const response = await fetch(`${API_BASE}/jobs`);
-                const data = await response.json();
+                console.log('✅ Loading jobs data (dummy - tanpa backend)...');
                 
-                if (data.success) {
-                    allJobs = data.jobs || [];
-                } else {
-                    // Use sample data if API fails
-                    allJobs = generateSampleJobs();
-                }
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Gunakan dummy data lokal
+                allJobs = generateSampleJobs();
                 
                 filteredJobs = [...allJobs];
                 renderJobsTable();
                 updatePagination();
                 updateStats();
+                
+                console.log('✅ Jobs loaded dengan dummy data:', allJobs.length, 'positions');
+                
             } catch (error) {
                 console.error('Error loading jobs:', error);
+                // Fallback dengan sample data
                 allJobs = generateSampleJobs();
                 filteredJobs = [...allJobs];
                 renderJobsTable();
                 updatePagination();
                 updateStats();
+                console.log('📦 Using fallback jobs data');
             }
         }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Management Kandidat - HR Recruitment System</title>
+    <title>Daftar Kandidat - HR Recruitment System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
     <style>
@@ -302,15 +302,12 @@
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-3xl font-bold text-slate-900">Management Kandidat</h2>
-                    <p class="text-slate-600 mt-2">Kelola dan review aplikasi kandidat</p>
+                    <h2 class="text-3xl font-bold text-slate-900">Daftar Kandidat</h2>
+                    <p class="text-slate-600 mt-2">Lihat dan review semua aplikasi kandidat</p>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="exportCandidates()" class="btn-sharp bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-medium transition-all">
-                        <i data-lucide="download" class="w-4 h-4 mr-2 inline"></i>Export Data
-                    </button>
-                    <button onclick="showBulkActions()" class="btn-sharp bg-secondary hover:bg-slate-700 text-white px-6 py-2 font-medium transition-all">
-                        <i data-lucide="settings" class="w-4 h-4 mr-2 inline"></i>Bulk Actions
+                    <button onclick="refreshCandidates()" class="btn-sharp bg-primary hover:bg-blue-800 text-white px-6 py-2 font-medium transition-all">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 mr-2 inline"></i>Refresh
                     </button>
                 </div>
             </div>
@@ -625,6 +622,65 @@
         const itemsPerPage = 10;
         let selectedCandidates = [];
 
+        // DUMMY DATA - Kandidat lokal untuk testing tanpa backend
+        const dummyCandidates = [
+            {
+                id: 1,
+                fullName: 'Budi Santoso',
+                email: 'budi.santoso@example.com',
+                phone: '081234567890',
+                appliedPosition: 'Software Engineer',
+                status: 'applied',
+                appliedDate: '2024-12-01',
+                testLink: null,
+                testStatus: null
+            },
+            {
+                id: 2,
+                fullName: 'Siti Nurhaliza',
+                email: 'siti.nurhaliza@example.com',
+                phone: '082345678901',
+                appliedPosition: 'Product Manager',
+                status: 'screening',
+                appliedDate: '2024-11-28',
+                testLink: null,
+                testStatus: 'pending'
+            },
+            {
+                id: 3,
+                fullName: 'Ahmad Wijaya',
+                email: 'ahmad.wijaya@example.com',
+                phone: '083456789012',
+                appliedPosition: 'UI/UX Designer',
+                status: 'interview',
+                appliedDate: '2024-11-25',
+                testLink: 'http://localhost:5174/views/test.html?token=test_disc_3_abc123&candidate=Ahmad%20Wijaya',
+                testStatus: 'completed'
+            },
+            {
+                id: 4,
+                fullName: 'Rina Kusuma',
+                email: 'rina.kusuma@example.com',
+                phone: '084567890123',
+                appliedPosition: 'Data Analyst',
+                status: 'applied',
+                appliedDate: '2024-12-02',
+                testLink: null,
+                testStatus: null
+            },
+            {
+                id: 5,
+                fullName: 'Rudi Hermawan',
+                email: 'rudi.hermawan@example.com',
+                phone: '085678901234',
+                appliedPosition: 'Backend Developer',
+                status: 'screening',
+                appliedDate: '2024-11-30',
+                testLink: null,
+                testStatus: 'pending'
+            }
+        ];
+
         // Navbar functions
         function toggleMobileMenu() {
             const mobileMenu = document.getElementById('mobileMenu');
@@ -645,24 +701,29 @@
             loadCandidates();
         });
 
-        // Load candidates data
+        // Load candidates data - menggunakan dummy data lokal (tanpa backend)
         async function loadCandidates() {
             try {
-                const response = await fetch(`${API_BASE}/candidates`);
-                const data = await response.json();
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
                 
-                if (data.candidates && Array.isArray(data.candidates)) {
-                    allCandidates = data.candidates;
-                    filteredCandidates = [...allCandidates];
-                    renderCandidatesTable();
-                    updatePagination();
-                } else {
-                    showEmptyState();
-                }
+                // Gunakan dummy data lokal
+                allCandidates = [...dummyCandidates];
+                filteredCandidates = [...allCandidates];
+                renderCandidatesTable();
+                updatePagination();
+                
+                console.log('✅ Loaded dummy candidates data (no backend)');
             } catch (error) {
                 console.error('Error loading candidates:', error);
                 showEmptyState();
             }
+        }
+
+        // Refresh candidates data
+        function refreshCandidates() {
+            console.log('🔄 Refreshing candidates...');
+            loadCandidates();
         }
 
         // Render candidates table
@@ -739,18 +800,6 @@
                         <div class="flex items-center space-x-2">
                             <button onclick="viewCandidate('${candidate.id}')" class="action-btn bg-blue-50 text-blue-700 hover:bg-blue-100" title="View Details">
                                 <i data-lucide="eye" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="generateTestLink('${candidate.id}')" class="action-btn bg-orange-50 text-orange-700 hover:bg-orange-100" title="Generate Test Link">
-                                <i data-lucide="link" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="editCandidate('${candidate.id}')" class="action-btn bg-green-50 text-green-700 hover:bg-green-100" title="Edit Candidate">
-                                <i data-lucide="edit" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="downloadCV('${candidate.id}')" class="action-btn bg-purple-50 text-purple-700 hover:bg-purple-100" title="Download CV">
-                                <i data-lucide="download" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteCandidate('${candidate.id}')" class="action-btn bg-red-50 text-red-700 hover:bg-red-100" title="Delete Candidate">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </td>
@@ -1285,21 +1334,22 @@
         async function loadTestCategories() {
             const container = document.getElementById('testTypesContainer');
             
+            // For now, use default categories (can switch to API later when backend is ready)
+            loadDefaultCategories();
+            
+            // Optional: Try to fetch from API in the background for future use
             try {
-                const response = await fetch(`${API_BASE}/admin/test-categories`);
+                const response = await fetch(`${API_BASE}/admin/test-categories`, { timeout: 2000 });
                 const data = await response.json();
                 
                 if (data.success && data.categories) {
                     availableCategories = data.categories.filter(cat => cat.is_active);
                     renderTestCategories();
-                } else {
-                    // Fallback to hardcoded categories if admin system not available
-                    loadDefaultCategories();
+                    console.log('✅ Loaded test categories from API');
                 }
             } catch (error) {
-                console.error('Error loading test categories:', error);
-                // Fallback to hardcoded categories
-                loadDefaultCategories();
+                console.log('ℹ️ Using default test categories (API not available)');
+                // Keep using default categories
             }
         }
         
@@ -1376,40 +1426,28 @@
                 generateBtn.disabled = true;
                 generateBtn.textContent = 'Generating...';
                 
-                // Collect selected category information for the API
-                const selectedCategories = selectedTests.map(testId => {
-                    const category = availableCategories.find(cat => cat.id == testId);
-                    return {
-                        id: testId,
-                        name: category?.name || testId,
-                        type: category?.code || testId
-                    };
+                // Generate test link locally without API call (since backend not ready yet)
+                const token = `test_${selectedTests[0]}_${currentTestCandidateId}_${Date.now()}`;
+                const candidateName = document.getElementById('testCandidateName').textContent;
+                const baseUrl = window.location.origin;
+                const testLink = `${baseUrl}/views/test.html?token=${token}&candidate=${encodeURIComponent(candidateName)}`;
+                
+                // Show generated link
+                document.getElementById('generatedTestLink').textContent = testLink;
+                document.getElementById('linkExpiryText').textContent = expiryDays;
+                document.getElementById('generatedLinkSection').classList.remove('hidden');
+                
+                showNotification('Test link berhasil dibuat!', 'success');
+                
+                // Optional: Log for debugging
+                console.log('Generated test link:', {
+                    token,
+                    candidate: candidateName,
+                    categories: selectedTests,
+                    expiryDays,
+                    link: testLink
                 });
                 
-                const response = await fetch(`${API_BASE}/candidates/${currentTestCandidateId}/generate-test-link`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        testTypes: selectedTests,
-                        testCategories: selectedCategories,
-                        expiryDays: expiryDays
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    // Show generated link
-                    document.getElementById('generatedTestLink').textContent = result.testLink?.url || result.testLink;
-                    document.getElementById('linkExpiryText').textContent = expiryDays;
-                    document.getElementById('generatedLinkSection').classList.remove('hidden');
-                    
-                    showNotification('Test link berhasil dibuat!', 'success');
-                } else {
-                    showNotification(`Gagal membuat test link: ${result.error || result.message || 'Unknown error'}`, 'error');
-                }
             } catch (error) {
                 console.error('Error creating test link:', error);
                 showNotification('Gagal membuat test link', 'error');

@@ -549,93 +549,123 @@
         });
 
         // Load positions data
+        // Dummy positions data (tanpa backend API)
+        const dummyPositions = [
+            {
+                id: 'job-001',
+                title: 'Senior Backend Developer',
+                department: 'Engineering',
+                location: 'Jakarta',
+                description: 'Develop scalable backend systems using Node.js, Python, dan databases modern',
+                status: 'active',
+                priority: 'high',
+                openings: 3,
+                applicants: 12,
+                postedDate: '2024-01-15',
+                salary_range: { min: 8000000, max: 15000000 },
+                requirements: ['Node.js', 'PostgreSQL', 'Redis', '5+ years experience'],
+                benefits: ['Health Insurance', 'Work from Home', 'Professional Development']
+            },
+            {
+                id: 'job-002',
+                title: 'Frontend Engineer React',
+                department: 'Engineering',
+                location: 'Jakarta',
+                description: 'Build interactive UI components dengan React, TypeScript, dan modern CSS frameworks',
+                status: 'active',
+                priority: 'high',
+                openings: 2,
+                applicants: 8,
+                postedDate: '2024-01-20',
+                salary_range: { min: 7000000, max: 12000000 },
+                requirements: ['React', 'TypeScript', 'Tailwind CSS', '3+ years experience'],
+                benefits: ['Health Insurance', 'Flexible Hours', 'Learning Budget']
+            },
+            {
+                id: 'job-003',
+                title: 'HR Manager',
+                department: 'Human Resources',
+                location: 'Jakarta',
+                description: 'Mengelola rekrutmen, development, dan employee relations untuk tim 50+ orang',
+                status: 'active',
+                priority: 'medium',
+                openings: 1,
+                applicants: 5,
+                postedDate: '2024-01-25',
+                salary_range: { min: 8000000, max: 13000000 },
+                requirements: ['HR Management', 'Recruitment', 'Employee Relations', 'Minimal 5 tahun'],
+                benefits: ['Health Insurance', 'Bonus Performance', 'Career Development']
+            },
+            {
+                id: 'job-004',
+                title: 'Product Manager',
+                department: 'Product',
+                location: 'Jakarta',
+                description: 'Lead product strategy dan development untuk platform SaaS kami yang berkembang pesat',
+                status: 'active',
+                priority: 'high',
+                openings: 1,
+                applicants: 6,
+                postedDate: '2024-02-01',
+                salary_range: { min: 10000000, max: 18000000 },
+                requirements: ['Product Strategy', 'Data Analytics', 'Agile', '4+ years experience'],
+                benefits: ['Health Insurance', 'Stock Options', 'Remote Work']
+            },
+            {
+                id: 'job-005',
+                title: 'QA Automation Engineer',
+                department: 'Quality Assurance',
+                location: 'Jakarta',
+                description: 'Develop automated test frameworks dan ensure product quality di semua platform',
+                status: 'active',
+                priority: 'medium',
+                openings: 2,
+                applicants: 4,
+                postedDate: '2024-02-05',
+                salary_range: { min: 6000000, max: 10000000 },
+                requirements: ['Selenium', 'Python/JavaScript', 'Test Automation', '2+ years experience'],
+                benefits: ['Health Insurance', 'Professional Development', 'Performance Bonus']
+            },
+            {
+                id: 'job-006',
+                title: 'Data Analyst',
+                department: 'Data & Analytics',
+                location: 'Jakarta',
+                description: 'Analyze data trends dan provide insights untuk business decision making',
+                status: 'paused',
+                priority: 'low',
+                openings: 1,
+                applicants: 3,
+                postedDate: '2024-02-10',
+                salary_range: { min: 6500000, max: 11000000 },
+                requirements: ['SQL', 'Python/R', 'Tableau/Power BI', '3+ years experience'],
+                benefits: ['Health Insurance', 'Learning Stipend', 'Remote Work']
+            }
+        ];
+
         async function loadPositionsData() {
             try {
-                console.log('Loading positions data...');
+                console.log('✅ Loading positions data (dummy - tanpa backend)...');
                 
-                // Load positions from API
-                const response = await fetch(`${API_BASE}/jobs`);
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch jobs: ${response.statusText}`);
-                }
+                // Gunakan dummy data lokal
+                positionsData = [...dummyPositions];
                 
-                const data = await response.json();
-                positionsData = data.jobs || data || [];
-                
-                // Add sample job if empty and Supabase timeout
-                if (positionsData.length === 0) {
-                    try {
-                        const sampleJob = {
-                            title: 'Software Engineer',
-                            department: 'Engineering',
-                            location: 'Jakarta',
-                            description: 'Develop and maintain web applications using modern technologies',
-                            status: 'active',
-                            priority: 'high',
-                            requirements: [],
-                            benefits: [],
-                            salary_range: { min: 0, max: 0 }
-                        };
-                        
-                        const createResponse = await fetch(`${API_BASE}/jobs`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(sampleJob)
-                        });
-                        
-                        if (createResponse.ok) {
-                            const createdJob = await createResponse.json();
-                            positionsData = [createdJob.job];
-                            console.log('🎯 Sample job created in Supabase:', createdJob.job);
-                        } else {
-                            throw new Error('Failed to create sample job');
-                        }
-                    } catch (error) {
-                        console.warn('Sample job creation failed, using local:', error);
-                        positionsData = [
-                            {
-                                id: 'local-' + Date.now(),
-                                title: 'Software Engineer',
-                                department: 'Engineering',
-                                location: 'Jakarta',
-                                description: 'Develop and maintain web applications using modern technologies',
-                                status: 'active',
-                                priority: 'high',
-                                openings: 2,
-                                applicants: 0,
-                                postedDate: new Date().toISOString().split('T')[0]
-                            }
-                        ];
-                    }
-                }
-                
-                // Update UI with data
+                // Update UI dengan data
                 updatePositionsUI();
                 updateStats();
                 
-                console.log('✅ Positions data loaded successfully');
+                console.log('✅ Positions loaded dengan dummy data:', positionsData.length, 'positions');
                 
             } catch (error) {
                 console.error('Error loading positions data:', error);
-                // Fallback with sample data
-                positionsData = [
-                    {
-                        id: Date.now(),
-                        title: 'Software Engineer',
-                        department: 'Engineering', 
-                        location: 'Jakarta',
-                        description: 'Develop and maintain web applications using modern technologies',
-                        status: 'active',
-                        priority: 'high',
-                        openings: 2,
-                        applicants: 0,
-                        postedDate: new Date().toISOString().split('T')[0]
-                    }
-                ];
+                // Fallback dengan dummy data
+                positionsData = [...dummyPositions];
                 updatePositionsUI();
                 updateStats();
-                console.log('📦 Using fallback sample data');
+                console.log('📦 Using fallback positions data');
             }
         }
 

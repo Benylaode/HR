@@ -933,9 +933,18 @@
         }
 
         // Form submission with Supabase integration
+        // Dummy jobs untuk form apply
+        const dummyJobsForForm = [
+            { id: 'job-001', title: 'Senior Backend Developer', jobId: 1 },
+            { id: 'job-002', title: 'Frontend Engineer React', jobId: 2 },
+            { id: 'job-003', title: 'HR Manager', jobId: 3 },
+            { id: 'job-004', title: 'Product Manager', jobId: 4 },
+            { id: 'job-005', title: 'QA Automation Engineer', jobId: 5 }
+        ];
+
         async function submitApplication(formData) {
             try {
-                // Prepare data for API
+                // Prepare data
                 const candidateData = {
                     fullName: formData.get('fullName'),
                     email: formData.get('email'),
@@ -966,31 +975,16 @@
                     coverLetter: formData.get('coverLetter')
                 };
 
-                console.log('Submitting application to Supabase:', candidateData);
+                console.log('✅ Submitting application (dummy - tanpa backend):', candidateData);
 
-                // Submit to API
-                const response = await fetch(`${API_BASE}/public/candidates/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(candidateData)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Registration failed: ${response.statusText}`);
-                }
-
-                const result = await response.json();
+                // Simulasi delay submission
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
-                if (result.success) {
-                    alert('Application submitted successfully! Your data has been saved to the system. You will receive a confirmation email shortly.');
-                    document.getElementById('applicationForm').reset();
-                    currentStep = 1;
-                    updateStep(currentStep);
-                } else {
-                    throw new Error(result.message || 'Registration failed');
-                }
+                // Simulasi success response
+                alert('✅ Application submitted successfully! Data tersimpan di browser. You will receive a confirmation email shortly.');
+                document.getElementById('applicationForm').reset();
+                currentStep = 1;
+                updateStep(currentStep);
                 
             } catch (error) {
                 console.error('Error submitting application:', error);
@@ -998,24 +992,24 @@
             }
         }
 
-        // Load positions from API
+        // Load positions from dummy data (tanpa backend)
         async function loadPositions() {
             try {
-                const response = await fetch(`${API_BASE}/jobs`);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch jobs: ${response.statusText}`);
-                }
-                const data = await response.json();
-                const jobs = data.jobs || data || [];
+                console.log('✅ Loading positions (dummy - tanpa backend)...');
+                
+                // Simulasi delay loading
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                const jobs = [...dummyJobsForForm];
                 
                 const positionSelect = document.getElementById('position');
                 positionSelect.innerHTML = '<option value="">Select position</option>';
                 
                 jobs.forEach(job => {
                     const option = document.createElement('option');
-                    option.value = job.id || job._id;
-                    option.textContent = job.title || job.name;
-                    option.setAttribute('data-job-id', job.id || job._id);
+                    option.value = job.id;
+                    option.textContent = job.title;
+                    option.setAttribute('data-job-id', job.jobId);
                     positionSelect.appendChild(option);
                 });
 
@@ -1023,10 +1017,11 @@
                 const jobId = urlParams.get('jobId');
                 if (jobId) {
                     positionSelect.value = jobId;
-                    // Extract numeric part from job ID if needed, or use the string ID as-is
                     const numericId = parseInt(jobId.replace(/\D/g, '')) || 1;
                     window.selectedJobId = numericId;
                 }
+                
+                console.log('✅ Positions loaded:', jobs.length, 'jobs');
                 
             } catch (error) {
                 console.error('Error loading positions:', error);

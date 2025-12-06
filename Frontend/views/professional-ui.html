@@ -2439,7 +2439,7 @@
             try {
                 // Generate unique test token
                 const testToken = 'test_' + candidateId + '_' + Date.now();
-                const testLink = `${window.location.origin}/test?token=${testToken}&candidate=${candidateId}`;
+                const testLink = `${window.location.origin}/views/test.html?token=${testToken}&candidate=${candidateId}`;
                 
                 const response = await fetch(`${API_BASE}/candidates/${candidateId}`, {
                     method: 'PUT',

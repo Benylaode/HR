@@ -1017,7 +1017,16 @@
                 await new Promise(resolve => setTimeout(resolve, 300));
 
                 // Use dummy data (already defined above)
-                // No need to overwrite testLinksData and submissionsData
+                // Ensure each test link has a direct URL to `test.html` for local testing
+                try {
+                    const baseUrl = window.location.origin;
+                    testLinksData = (testLinksData || []).map(link => ({
+                        ...link,
+                        link: link.link || `${baseUrl}/views/test.html?token=${link.token}&candidate=${encodeURIComponent(link.candidateName)}`
+                    }));
+                } catch (e) {
+                    console.warn('Could not set link property for testLinksData:', e);
+                }
 
                 // Update UI with data
                 updateTestLinksUI();
@@ -1058,9 +1067,9 @@
                         <div class="flex items-center">
                             <input type="checkbox" class="link-checkbox mr-3" value="${link?.id || ''}">
                             <div class="flex-1">
-                                <div class="text-sm font-medium text-gray-900">${link?.name || 'Unnamed Link'}</div>
+                                <div class="text-sm font-medium text-gray-900">${link?.testName || 'Unnamed Link'}</div>
                                 <div class="text-xs text-gray-500 flex items-center">
-                                    <span class="font-mono">${link?.link || '#'}</span>
+                                    <a href="${link?.link || '#'}" class="font-mono text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">${link?.link || '#'}</a>
                                     <button onclick="copyToClipboard('${link?.link || ''}')" class="copy-btn ml-2 text-blue-600 hover:text-blue-800">
                                         <i data-lucide="copy" class="w-4 h-4"></i>
                                     </button>
@@ -1070,7 +1079,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">${link.position}</div>
-                        <div class="text-xs text-gray-500">Created: ${link.created}</div>
+                        <div class="text-xs text-gray-500">Created: ${link.createdDate ? new Date(link.createdDate).toLocaleString('id-ID') : ''}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="test-link-status status-${link.status}">
@@ -1281,11 +1290,13 @@
                 candidateEmail: candidateEmail
             };
 
-            testLinksData.push(newTestLink);
-
-            // Generate URL
+            // Generate URL -> point to test.html so clicking opens the local test page
             const baseUrl = window.location.origin;
-            const testUrl = `${baseUrl}/test?token=${token}&candidate=${encodeURIComponent(candidateName)}`;
+            const testUrl = `${baseUrl}/views/test.html?token=${token}&candidate=${encodeURIComponent(candidateName)}`;
+
+            // Attach link to the new test link object for table rendering
+            newTestLink.link = testUrl;
+            testLinksData.push(newTestLink);
 
             // Show link preview
             document.getElementById('generatedTestLink').textContent = testUrl;
@@ -1343,7 +1354,7 @@ Expires: ${new Date(link.expires).toLocaleString('id-ID')}
 Created: ${new Date(link.createdDate).toLocaleString('id-ID')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Token: ${link.token}
-Link: ${window.location.origin}/test?token=${link.token}&candidate=${encodeURIComponent(link.candidateName)}
+Link: ${link.link || `${window.location.origin}/views/test.html?token=${link.token}&candidate=${encodeURIComponent(link.candidateName)}`}
             `;
 
             alert(details);
