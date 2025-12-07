@@ -1,1076 +1,1620 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Tes - HR Recruitment System</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>"
+    />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
     <style>
-        /* Professional Corporate Design */
-        .card-sharp {
-            border-radius: 0px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-hover:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .btn-sharp {
-            border-radius: 0px;
-        }
-        
-        .input-sharp {
-            border-radius: 0px;
-        }
-        
-        /* Professional Color Scheme */
-        :root {
-            --primary: #1e3a8a;    /* Deep Blue */
-            --secondary: #64748b;  /* Slate Gray */
-            --accent: #0ea5e9;     /* Sky Blue */
-            --success: #059669;    /* Emerald */
-            --warning: #d97706;    /* Amber */
-            --danger: #dc2626;     /* Red */
-            --dark: #0f172a;       /* Slate 900 */
-            --light: #f8fafc;      /* Slate 50 */
-        }
-        
-        .bg-primary { background-color: var(--primary); }
-        .bg-secondary { background-color: var(--secondary); }
-        .bg-accent { background-color: var(--accent); }
-        .text-primary { color: var(--primary); }
-        .text-secondary { color: var(--secondary); }
-        .border-primary { border-color: var(--primary); }
-        
-        /* Remove all rounded corners */
-        * {
-            border-radius: 0 !important;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: var(--secondary); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-        
-        .transition-all { transition: all 0.2s ease-in-out; }
-        
-        /* Login Form Styles */
-        .login-container {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-        }
-        
-        /* Admin specific styles */
-        .admin-card { 
-            transition: all 0.3s ease; 
-            border-radius: 0px;
-        }
-        
-        .admin-card:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
-        }
-        
-        .tab-active { 
-            border-bottom: 2px solid var(--primary); 
-            color: var(--primary); 
-        }
-        
-        .modal-overlay { 
-            backdrop-filter: blur(4px); 
-        }
+      /* Professional Corporate Design */
+      .card-sharp {
+        border-radius: 0px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
 
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-        }
+      .card-hover:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
 
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
-            margin-right: 12px;
-        }
+      .btn-sharp {
+        border-radius: 0px;
+      }
+
+      .input-sharp {
+        border-radius: 0px;
+      }
+
+      /* Professional Color Scheme */
+      :root {
+        --primary: #1e3a8a; /* Deep Blue */
+        --secondary: #64748b; /* Slate Gray */
+        --accent: #0ea5e9; /* Sky Blue */
+        --success: #059669; /* Emerald */
+        --warning: #d97706; /* Amber */
+        --danger: #dc2626; /* Red */
+        --dark: #0f172a; /* Slate 900 */
+        --light: #f8fafc; /* Slate 50 */
+      }
+
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .bg-secondary {
+        background-color: var(--secondary);
+      }
+      .bg-accent {
+        background-color: var(--accent);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .text-secondary {
+        color: var(--secondary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
+
+      /* Remove all rounded corners */
+      * {
+        border-radius: 0 !important;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      .transition-all {
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Login Form Styles */
+      .login-container {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        min-height: 100vh;
+      }
+
+      /* Admin specific styles */
+      .admin-card {
+        transition: all 0.3s ease;
+        border-radius: 0px;
+      }
+
+      .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .tab-active {
+        border-bottom: 2px solid var(--primary);
+        color: var(--primary);
+      }
+
+      .modal-overlay {
+        backdrop-filter: blur(4px);
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
+        margin-right: 12px;
+      }
     </style>
-</head>
-<body class="bg-gray-50 font-inter">
+  </head>
+  <body class="bg-gray-50 font-inter">
     <!-- Login Modal (Initially Hidden) -->
-    <div id="loginModal" class="fixed inset-0 z-50 login-container flex items-center justify-center">
-        <div class="bg-white p-10 w-full max-w-lg mx-4 shadow-2xl border">
-            <div class="text-center mb-10">
-                <div class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center mb-6">
-                    <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">HR Recruitment System</h2>
-                <p class="text-gray-600 text-lg">Login untuk Akses Admin Tes</p>
-            </div>
-            
-            <form id="loginForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">Email HR</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder="hr@company.com"
-                        autocomplete="email"
-                        required
-                    >
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                        placeholder="••••••••"
-                        autocomplete="current-password"
-                        required
-                    >
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="remember" class="mr-3 w-4 h-4">
-                        <label for="remember" class="text-sm text-gray-600">Ingat saya</label>
-                    </div>
-                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Lupa password?</a>
-                </div>
-                
-                <button 
-                    type="submit" 
-                    class="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white py-4 px-6 font-semibold transition-all transform hover:scale-[1.02]"
-                >
-                    Login ke Admin Tes
-                </button>
-                
-                <div class="text-center">
-                    <p class="text-sm text-gray-500">
-                        Demo: hr@company.com / password123
-                    </p>
-                </div>
-            </form>
+    <div
+      id="loginModal"
+      class="fixed inset-0 z-50 login-container flex items-center justify-center"
+    >
+      <div class="bg-white p-10 w-full max-w-lg mx-4 shadow-2xl border">
+        <div class="text-center mb-10">
+          <div
+            class="mx-auto w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center mb-6"
+          >
+            <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+          </div>
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">
+            HR Recruitment System
+          </h2>
+          <p class="text-gray-600 text-lg">Login untuk Akses Admin Tes</p>
         </div>
+
+        <form id="loginForm" class="space-y-6">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3"
+              >Email HR</label
+            >
+            <input
+              type="email"
+              id="email"
+              class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="hr@company.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              class="w-full px-4 py-4 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="checkbox" id="remember" class="mr-3 w-4 h-4" />
+              <label for="remember" class="text-sm text-gray-600"
+                >Ingat saya</label
+              >
+            </div>
+            <a
+              href="#"
+              class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >Lupa password?</a
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white py-4 px-6 font-semibold transition-all transform hover:scale-[1.02]"
+          >
+            Login ke Admin Tes
+          </button>
+
+          <div class="text-center">
+            <p class="text-sm text-gray-500">
+              Demo: hr@company.com / password123
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Main Application (Initially Hidden) -->
     <div id="mainApp" class="hidden">
-        <!-- Modern Sidebar Layout -->
-        <div class="flex h-screen bg-gray-50">
-            <!-- Sidebar -->
-            <div class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50">
-                <div class="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
-                    <!-- Logo -->
-                    <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-                        <div class="flex items-center flex-shrink-0 px-6">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
-                            </div>
-                            <div class="ml-3">
-                                <h1 class="text-lg font-bold text-gray-900">HR System</h1>
-                                <p class="text-xs text-gray-500">Admin Panel</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Navigation -->
-                        <nav class="mt-8 flex-1 px-4 space-y-1">
-                            <a href="../dashboard.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="home" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-                            <a href="../kandidat.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="users" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Kandidat
-                            </a>
-                            <a href="../posisi.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="briefcase" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Posisi
-                            </a>
-                            <a href="../test-management.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="file-text" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Test Management
-                            </a>
-                            <a href="../analytics.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="bar-chart-3" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Analytics
-                            </a>
-                            <a href="../laporan.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="file-bar-chart" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Laporan
-                            </a>
-                            <a href="../form-apply.html" class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="file-plus" class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"></i>
-                                Form Apply
-                            </a>
-                            <a href="tests" class="sidebar-item active bg-blue-50 border-r-2 border-blue-600 text-blue-700 group flex items-center px-3 py-3 text-sm font-medium">
-                                <i data-lucide="settings" class="text-blue-500 mr-3 h-5 w-5"></i>
-                                Admin Tes
-                            </a>
-                        </nav>
-                    </div>
-                    
-                    <!-- User Profile -->
-                    <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                <span class="text-white text-sm font-semibold" id="sidebarUserInitial">H</span>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-gray-700" id="sidebarUserName">HR Manager</p>
-                                <p class="text-xs text-gray-500" id="sidebarUserEmail">hr@company.com</p>
-                            </div>
-                        </div>
-                    </div>
+      <!-- Modern Sidebar Layout -->
+      <div class="flex h-screen bg-gray-50">
+        <!-- Sidebar -->
+        <div
+          class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 z-50"
+        >
+          <div
+            class="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200"
+          >
+            <!-- Logo -->
+            <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+              <div class="flex items-center flex-shrink-0 px-6">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                >
+                  <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
                 </div>
-            </div>
-            
-            <!-- Mobile sidebar -->
-            <div id="mobileSidebar" class="lg:hidden fixed inset-0 flex z-40 hidden">
-                <div class="fixed inset-0 bg-gray-600 bg-opacity-75" onclick="toggleMobileSidebar()"></div>
-                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-                    <div class="absolute top-0 right-0 -mr-12 pt-2">
-                        <button onclick="toggleMobileSidebar()" class="ml-1 flex items-center justify-center h-10 w-10 text-white">
-                            <i data-lucide="x" class="h-6 w-6"></i>
-                        </button>
-                    </div>
-                    <!-- Mobile sidebar content same as desktop -->
-                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                        <div class="flex-shrink-0 flex items-center px-4">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
-                            </div>
-                            <h1 class="ml-3 text-lg font-bold text-gray-900">HR System</h1>
-                        </div>
-                        <nav class="mt-5 px-2 space-y-1">
-                            <a href="../dashboard.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="home" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Dashboard
-                            </a>
-                            <a href="../kandidat.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="users" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Kandidat
-                            </a>
-                            <a href="../posisi.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="briefcase" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Posisi
-                            </a>
-                            <a href="../test-management.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="file-text" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Test Management
-                            </a>
-                            <a href="../analytics.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="bar-chart-3" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Analytics
-                            </a>
-                            <a href="../laporan.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="file-bar-chart" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Laporan
-                            </a>
-                            <a href="../form-apply.html" class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="file-plus" class="text-gray-400 mr-4 h-6 w-6"></i>
-                                Form Apply
-                            </a>
-                            <a href="tests" class="mobile-sidebar-item active bg-blue-100 text-blue-900 group flex items-center px-2 py-2 text-base font-medium">
-                                <i data-lucide="settings" class="text-blue-500 mr-4 h-6 w-6"></i>
-                                Admin Tes
-                            </a>
-                        </nav>
-                    </div>
+                <div class="ml-3">
+                  <h1 class="text-lg font-bold text-gray-900">HR System</h1>
+                  <p class="text-xs text-gray-500">Admin Panel</p>
                 </div>
+              </div>
+
+              <!-- Navigation -->
+              <nav class="mt-8 flex-1 px-4 space-y-1">
+                <a
+                  href="../dashboard.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="home"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Dashboard
+                </a>
+                <a
+                  href="../kandidat.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="users"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Kandidat
+                </a>
+                <a
+                  href="../posisi.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="briefcase"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Posisi
+                </a>
+                <a
+                  href="../test-management.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="file-text"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Test Management
+                </a>
+                <a
+                  href="../analytics.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="bar-chart-3"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Analytics
+                </a>
+                <a
+                  href="../laporan.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="file-bar-chart"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Laporan
+                </a>
+                <a
+                  href="../form-apply.html"
+                  class="sidebar-item text-gray-700 hover:text-blue-700 hover:bg-blue-50 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="file-plus"
+                    class="text-gray-400 group-hover:text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Form Apply
+                </a>
+                <a
+                  href="tests"
+                  class="sidebar-item active bg-blue-50 border-r-2 border-blue-600 text-blue-700 group flex items-center px-3 py-3 text-sm font-medium"
+                >
+                  <i
+                    data-lucide="settings"
+                    class="text-blue-500 mr-3 h-5 w-5"
+                  ></i>
+                  Admin Tes
+                </a>
+              </nav>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="lg:pl-64 flex flex-col flex-1">
-                <!-- Top Header -->
-                <div class="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
-                    <button onclick="toggleMobileSidebar()" class="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none">
-                        <i data-lucide="menu" class="h-6 w-6"></i>
-                    </button>
+            <!-- User Profile -->
+            <div class="flex-shrink-0 flex border-t border-gray-200 p-4">
+              <div class="flex items-center">
+                <div
+                  class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                >
+                  <span
+                    class="text-white text-sm font-semibold"
+                    id="sidebarUserInitial"
+                    >H</span
+                  >
                 </div>
-                
-                <!-- Header with notifications -->
-                <header class="bg-white shadow-sm border-b border-gray-200 lg:border-l-0">
-                    <div class="px-4 sm:px-6 lg:px-8">
-                        <div class="flex justify-between items-center h-16">
-                            <div class="flex-1">
-                                <h1 class="text-2xl font-bold text-gray-900">Test Management</h1>
-                                <p class="text-sm text-gray-600">Kelola kategori tes, pertanyaan, dan konfigurasi scoring</p>
-                            </div>
-                            
-                            <!-- Right side actions -->
-                            <div class="flex items-center space-x-4">
-                                <!-- Refresh Button -->
-                                <button onclick="refreshData()" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                                </button>
-                                
-                                <!-- Notifications -->
-                                <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative">
-                                    <i data-lucide="bell" class="w-5 h-5"></i>
-                                    <span id="notificationCount" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center font-bold rounded-full hidden">0</span>
-                                </button>
-                                
-                                <!-- User Menu -->
-                                <div class="relative">
-                                    <button onclick="toggleUserMenu()" class="flex items-center space-x-3 p-2 text-sm hover:bg-gray-100 transition-colors">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                                            <span class="text-white text-sm font-semibold" id="headerUserInitial">H</span>
-                                        </div>
-                                        <div class="hidden sm:block text-left">
-                                            <div class="font-medium text-gray-700" id="headerUserName">HR Manager</div>
-                                            <div class="text-xs text-gray-500" id="headerUserEmail">hr@company.com</div>
-                                        </div>
-                                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
-                                    </button>
-                                    
-                                    <!-- Dropdown menu -->
-                                    <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-200 py-1 z-20">
-                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                                        <div class="border-t border-gray-200"></div>
-                                        <button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Tab Navigation -->
-                <div class="bg-white border-b">
-                    <div class="px-4 sm:px-6 lg:px-8">
-                        <nav class="flex space-x-8" aria-label="Tabs">
-                            <button onclick="switchTab('categories')" id="tab-categories" class="py-4 px-1 border-b-2 font-medium text-sm tab-active">
-                                Test Categories
-                            </button>
-                            <button onclick="switchTab('questions')" id="tab-questions" class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
-                                Questions Management
-                            </button>
-                            <button onclick="switchTab('scoring')" id="tab-scoring" class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
-                                Scoring Configuration
-                            </button>
-                        </nav>
-                    </div>
+                <div class="ml-3">
+                  <p
+                    class="text-sm font-medium text-gray-700"
+                    id="sidebarUserName"
+                  >
+                    HR Manager
+                  </p>
+                  <p class="text-xs text-gray-500" id="sidebarUserEmail">
+                    hr@company.com
+                  </p>
                 </div>
-                
-                <!-- Main Content -->
-                <main class="flex-1 overflow-y-auto">
-                    <div class="px-4 sm:px-6 lg:px-8 py-8">
-                        
-                        <!-- Categories Tab -->
-                        <div id="categories-content" class="tab-content">
-                            <div class="mb-6 flex justify-between items-center">
-                                <div>
-                                    <h2 class="section-title">Test Categories</h2>
-                                    <p class="text-gray-600">Manage different types of assessment tests</p>
-                                </div>
-                                <button onclick="openCategoryModal()" class="bg-primary hover:opacity-90 text-white px-4 py-2 flex items-center space-x-2 transition-all">
-                                    <i data-lucide="plus" class="w-4 h-4"></i>
-                                    <span>Add Category</span>
-                                </button>
-                            </div>
-
-                            <div id="categoriesGrid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                <!-- Categories will be loaded here -->
-                            </div>
-                        </div>
-
-                        <!-- Questions Tab -->
-                        <div id="questions-content" class="tab-content hidden">
-                            <div class="mb-6 flex justify-between items-center">
-                                <div>
-                                    <h2 class="section-title">Questions Management</h2>
-                                    <p class="text-gray-600">Add, edit, and organize test questions</p>
-                                </div>
-                                <button onclick="showAddQuestionModal()" class="bg-primary text-white px-4 py-2 hover:opacity-90 transition-colors flex items-center space-x-2">
-                                    <i data-lucide="plus" class="w-4 h-4"></i>
-                                    <span>Add Question</span>
-                                </button>
-                            </div>
-
-                            <!-- Category Selection -->
-                            <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Category</label>
-                                <select id="categorySelect" onchange="loadQuestions()" class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Select a category...</option>
-                                </select>
-                            </div>
-
-                            <!-- Questions List -->
-                            <div id="questionsList" class="space-y-4">
-                                <!-- Questions will be loaded here -->
-                            </div>
-                        </div>
-
-                        <!-- Scoring Tab -->
-                        <div id="scoring-content" class="tab-content hidden">
-                            <div class="mb-6">
-                                <h2 class="section-title">Scoring Configuration</h2>
-                                <p class="text-gray-600">Configure scoring rules and weights for each test type</p>
-                            </div>
-
-                            <!-- Scoring Configuration will be loaded here -->
-                            <div id="scoringConfig">
-                                <p class="text-gray-500 text-center py-8">Select a category from Questions tab to configure scoring</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </main>
+              </div>
             </div>
+          </div>
         </div>
+
+        <!-- Mobile sidebar -->
+        <div
+          id="mobileSidebar"
+          class="lg:hidden fixed inset-0 flex z-40 hidden"
+        >
+          <div
+            class="fixed inset-0 bg-gray-600 bg-opacity-75"
+            onclick="toggleMobileSidebar()"
+          ></div>
+          <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+            <div class="absolute top-0 right-0 -mr-12 pt-2">
+              <button
+                onclick="toggleMobileSidebar()"
+                class="ml-1 flex items-center justify-center h-10 w-10 text-white"
+              >
+                <i data-lucide="x" class="h-6 w-6"></i>
+              </button>
+            </div>
+            <!-- Mobile sidebar content same as desktop -->
+            <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+              <div class="flex-shrink-0 flex items-center px-4">
+                <div
+                  class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                >
+                  <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                </div>
+                <h1 class="ml-3 text-lg font-bold text-gray-900">HR System</h1>
+              </div>
+              <nav class="mt-5 px-2 space-y-1">
+                <a
+                  href="../dashboard.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i data-lucide="home" class="text-gray-400 mr-4 h-6 w-6"></i>
+                  Dashboard
+                </a>
+                <a
+                  href="../kandidat.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i data-lucide="users" class="text-gray-400 mr-4 h-6 w-6"></i>
+                  Kandidat
+                </a>
+                <a
+                  href="../posisi.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="briefcase"
+                    class="text-gray-400 mr-4 h-6 w-6"
+                  ></i>
+                  Posisi
+                </a>
+                <a
+                  href="../test-management.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="file-text"
+                    class="text-gray-400 mr-4 h-6 w-6"
+                  ></i>
+                  Test Management
+                </a>
+                <a
+                  href="../analytics.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="bar-chart-3"
+                    class="text-gray-400 mr-4 h-6 w-6"
+                  ></i>
+                  Analytics
+                </a>
+                <a
+                  href="../laporan.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="file-bar-chart"
+                    class="text-gray-400 mr-4 h-6 w-6"
+                  ></i>
+                  Laporan
+                </a>
+                <a
+                  href="../form-apply.html"
+                  class="mobile-sidebar-item text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="file-plus"
+                    class="text-gray-400 mr-4 h-6 w-6"
+                  ></i>
+                  Form Apply
+                </a>
+                <a
+                  href="tests"
+                  class="mobile-sidebar-item active bg-blue-100 text-blue-900 group flex items-center px-2 py-2 text-base font-medium"
+                >
+                  <i
+                    data-lucide="settings"
+                    class="text-blue-500 mr-4 h-6 w-6"
+                  ></i>
+                  Admin Tes
+                </a>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="lg:pl-64 flex flex-col flex-1">
+          <!-- Top Header -->
+          <div
+            class="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50"
+          >
+            <button
+              onclick="toggleMobileSidebar()"
+              class="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none"
+            >
+              <i data-lucide="menu" class="h-6 w-6"></i>
+            </button>
+          </div>
+
+          <!-- Header with notifications -->
+          <header
+            class="bg-white shadow-sm border-b border-gray-200 lg:border-l-0"
+          >
+            <div class="px-4 sm:px-6 lg:px-8">
+              <div class="flex justify-between items-center h-16">
+                <div class="flex-1">
+                  <h1 class="text-2xl font-bold text-gray-900">
+                    Test Management
+                  </h1>
+                  <p class="text-sm text-gray-600">
+                    Kelola kategori tes, pertanyaan, dan konfigurasi scoring
+                  </p>
+                </div>
+
+                <!-- Right side actions -->
+                <div class="flex items-center space-x-4">
+                  <!-- Refresh Button -->
+                  <button
+                    onclick="refreshData()"
+                    class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                  </button>
+
+                  <!-- Notifications -->
+                  <button
+                    class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors relative"
+                  >
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span
+                      id="notificationCount"
+                      class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center font-bold rounded-full hidden"
+                      >0</span
+                    >
+                  </button>
+
+                  <!-- User Menu -->
+                  <div class="relative">
+                    <button
+                      onclick="toggleUserMenu()"
+                      class="flex items-center space-x-3 p-2 text-sm hover:bg-gray-100 transition-colors"
+                    >
+                      <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+                      >
+                        <span
+                          class="text-white text-sm font-semibold"
+                          id="headerUserInitial"
+                          >H</span
+                        >
+                      </div>
+                      <div class="hidden sm:block text-left">
+                        <div
+                          class="font-medium text-gray-700"
+                          id="headerUserName"
+                        >
+                          HR Manager
+                        </div>
+                        <div class="text-xs text-gray-500" id="headerUserEmail">
+                          hr@company.com
+                        </div>
+                      </div>
+                      <i
+                        data-lucide="chevron-down"
+                        class="w-4 h-4 text-gray-400"
+                      ></i>
+                    </button>
+
+                    <!-- Dropdown menu -->
+                    <div
+                      id="userMenu"
+                      class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-200 py-1 z-20"
+                    >
+                      <a
+                        href="#"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >Profile</a
+                      >
+                      <a
+                        href="#"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >Settings</a
+                      >
+                      <div class="border-t border-gray-200"></div>
+                      <button
+                        onclick="logout()"
+                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Tab Navigation -->
+          <div class="bg-white border-b">
+            <div class="px-4 sm:px-6 lg:px-8">
+              <nav class="flex space-x-8" aria-label="Tabs">
+                <button
+                  onclick="switchTab('categories')"
+                  id="tab-categories"
+                  class="py-4 px-1 border-b-2 font-medium text-sm tab-active"
+                >
+                  Test Categories
+                </button>
+                <button
+                  onclick="switchTab('questions')"
+                  id="tab-questions"
+                  class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm"
+                >
+                  Questions Management
+                </button>
+                <button
+                  onclick="switchTab('scoring')"
+                  id="tab-scoring"
+                  class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm"
+                >
+                  Scoring Configuration
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <main class="flex-1 overflow-y-auto">
+            <div class="px-4 sm:px-6 lg:px-8 py-8">
+              <!-- Categories Tab -->
+              <div id="categories-content" class="tab-content">
+                <div class="mb-6 flex justify-between items-center">
+                  <div>
+                    <h2 class="section-title">Test Categories</h2>
+                    <p class="text-gray-600">
+                      Manage different types of assessment tests
+                    </p>
+                  </div>
+                  <button
+                    onclick="openCategoryModal()"
+                    class="bg-primary hover:opacity-90 text-white px-4 py-2 flex items-center space-x-2 transition-all"
+                  >
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Add Category</span>
+                  </button>
+                </div>
+
+                <div
+                  id="categoriesGrid"
+                  class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                >
+                  <!-- Categories will be loaded here -->
+                </div>
+              </div>
+
+              <!-- Questions Tab -->
+              <div id="questions-content" class="tab-content hidden">
+                <div class="mb-6 flex justify-between items-center">
+                  <div>
+                    <h2 class="section-title">Questions Management</h2>
+                    <p class="text-gray-600">
+                      Add, edit, and organize test questions
+                    </p>
+                  </div>
+                  <button
+                    onclick="showAddQuestionModal()"
+                    class="bg-primary text-white px-4 py-2 hover:opacity-90 transition-colors flex items-center space-x-2"
+                  >
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Add Question</span>
+                  </button>
+                </div>
+
+                <!-- Category Selection -->
+                <div class="mb-6">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Select Category</label
+                  >
+                  <select
+                    id="categorySelect"
+                    onchange="loadQuestions()"
+                    class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select a category...</option>
+                  </select>
+                </div>
+
+                <!-- Questions List -->
+                <div id="questionsList" class="space-y-4">
+                  <!-- Questions will be loaded here -->
+                </div>
+              </div>
+
+              <!-- Scoring Tab -->
+              <div id="scoring-content" class="tab-content hidden">
+                <div class="mb-6">
+                  <h2 class="section-title">Scoring Configuration</h2>
+                  <p class="text-gray-600">
+                    Configure scoring rules and weights for each test type
+                  </p>
+                </div>
+
+                <!-- Scoring Configuration will be loaded here -->
+                <div id="scoringConfig">
+                  <p class="text-gray-500 text-center py-8">
+                    Select a category from Questions tab to configure scoring
+                  </p>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
     </div>
 
     <!-- Add/Edit Question Modal -->
-    <div id="questionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-overlay hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Add New Question</h3>
-                        <button onclick="closeQuestionModal()" class="text-gray-400 hover:text-gray-600">
-                            <i data-lucide="x" class="w-6 h-6"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <form id="questionForm" class="px-6 py-4 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select id="modalCategorySelect" required class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select a category...</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
-                        <select id="questionType" onchange="updateQuestionFields()" required class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select type...</option>
-                            <option value="ranking">Ranking (Most/Least)</option>
-                            <option value="binary_choice">Binary Choice (A/B)</option>
-                            <option value="multiple_choice">Multiple Choice</option>
-                            <option value="scale">Scale Rating</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
-                        <textarea id="questionText" required rows="3" class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter the question text..."></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Question Image (Optional)</label>
-                        <input type="file" id="questionImage" accept="image/*" class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <p class="mt-1 text-sm text-gray-500">Upload an image to accompany the question (max 5MB)</p>
-                        <div id="questionImagePreview" class="mt-2 hidden">
-                            <img id="questionImagePreviewImg" src="" alt="Question preview" class="max-w-xs max-h-32 object-contain border">
-                            <button type="button" onclick="removeQuestionImage()" class="mt-1 text-red-600 hover:text-red-800 text-sm">Remove Image</button>
-                        </div>
-                    </div>
-
-                    <div id="optionsSection" class="hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Options</label>
-                        <div id="optionsList" class="space-y-2">
-                            <!-- Options will be added dynamically -->
-                        </div>
-                        <button type="button" onclick="addOption()" class="mt-2 text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span>Add Option</span>
-                        </button>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Order Index</label>
-                        <input type="number" id="orderIndex" min="0" class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0">
-                    </div>
-
-                    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                        <button type="button" onclick="closeQuestionModal()" class="px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white text-sm font-medium hover:opacity-90">
-                            Save Question
-                        </button>
-                    </div>
-                </form>
+    <div
+      id="questionModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-overlay hidden z-50"
+    >
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div
+          class="bg-white shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto"
+        >
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+              <h3 id="modalTitle" class="text-lg font-medium text-gray-900">
+                Add New Question
+              </h3>
+              <button
+                onclick="closeQuestionModal()"
+                class="text-gray-400 hover:text-gray-600"
+              >
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
             </div>
+          </div>
+
+          <form id="questionForm" class="px-6 py-4 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Category</label
+              >
+              <select
+                id="modalCategorySelect"
+                required
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select a category...</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Question Type</label
+              >
+              <select
+                id="questionType"
+                onchange="updateQuestionFields()"
+                required
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select type...</option>
+                <option value="ranking">Ranking (Most/Least)</option>
+                <option value="binary_choice">Binary Choice (A/B)</option>
+                <option value="multiple_choice">Multiple Choice</option>
+                <option value="scale">Scale Rating</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Question Text</label
+              >
+              <textarea
+                id="questionText"
+                required
+                rows="3"
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter the question text..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Question Image (Optional)</label
+              >
+              <input
+                type="file"
+                id="questionImage"
+                accept="image/*"
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                Upload an image to accompany the question (max 5MB)
+              </p>
+              <div id="questionImagePreview" class="mt-2 hidden">
+                <img
+                  id="questionImagePreviewImg"
+                  src=""
+                  alt="Question preview"
+                  class="max-w-xs max-h-32 object-contain border"
+                />
+                <button
+                  type="button"
+                  onclick="removeQuestionImage()"
+                  class="mt-1 text-red-600 hover:text-red-800 text-sm"
+                >
+                  Remove Image
+                </button>
+              </div>
+            </div>
+
+            <div id="optionsSection" class="hidden">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Options</label
+              >
+              <div id="optionsList" class="space-y-2">
+                <!-- Options will be added dynamically -->
+              </div>
+              <button
+                type="button"
+                onclick="addOption()"
+                class="mt-2 text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1"
+              >
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Add Option</span>
+              </button>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Order Index</label
+              >
+              <input
+                type="number"
+                id="orderIndex"
+                min="0"
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0"
+              />
+            </div>
+
+            <div
+              class="flex justify-end space-x-3 pt-4 border-t border-gray-200"
+            >
+              <button
+                type="button"
+                onclick="closeQuestionModal()"
+                class="px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-4 py-2 bg-primary text-white text-sm font-medium hover:opacity-90"
+              >
+                Save Question
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
     <!-- Add/Edit Category Modal -->
-    <div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-overlay hidden z-50">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white shadow-xl max-w-lg w-full">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h3 id="categoryModalTitle" class="text-lg font-medium text-gray-900">Add New Category</h3>
-                        <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-600">
-                            <i data-lucide="x" class="w-6 h-6"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <form id="categoryForm" class="px-6 py-4 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
-                        <input type="text" id="categoryName" required class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Personality Test">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category Code</label>
-                        <input type="text" id="categoryCode" required class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., DISC">
-                        <p class="mt-1 text-sm text-gray-500">Unique identifier for this category</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea id="categoryDescription" rows="3" class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Describe what this category tests..."></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category Icon (Optional)</label>
-                        <input type="file" id="categoryIcon" accept="image/*" class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <p class="mt-1 text-sm text-gray-500">Upload an icon for this category (max 5MB)</p>
-                        <div id="categoryIconPreview" class="mt-2 hidden">
-                            <img id="categoryIconPreviewImg" src="" alt="Icon preview" class="w-16 h-16 object-contain border">
-                            <button type="button" onclick="removeCategoryIcon()" class="mt-1 text-red-600 hover:text-red-800 text-sm">Remove Icon</button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
-                        <div class="flex space-x-2">
-                            <input type="color" id="categoryColor" value="#3b82f6" class="w-12 h-10 border border-gray-300">
-                            <input type="text" id="categoryColorText" value="#3b82f6" class="flex-1 px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                        <button type="button" onclick="closeCategoryModal()" class="px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white text-sm font-medium hover:opacity-90">
-                            Save Category
-                        </button>
-                    </div>
-                </form>
+    <div
+      id="categoryModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-overlay hidden z-50"
+    >
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white shadow-xl max-w-lg w-full">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+              <h3
+                id="categoryModalTitle"
+                class="text-lg font-medium text-gray-900"
+              >
+                Add New Category
+              </h3>
+              <button
+                onclick="closeCategoryModal()"
+                class="text-gray-400 hover:text-gray-600"
+              >
+                <i data-lucide="x" class="w-6 h-6"></i>
+              </button>
             </div>
+          </div>
+
+          <form id="categoryForm" class="px-6 py-4 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Category Name</label
+              >
+              <input
+                type="text"
+                id="categoryName"
+                required
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g., Personality Test"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Category Code</label
+              >
+              <input
+                type="text"
+                id="categoryCode"
+                required
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="e.g., DISC"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                Unique identifier for this category
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Description</label
+              >
+              <textarea
+                id="categoryDescription"
+                rows="3"
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Describe what this category tests..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Category Icon (Optional)</label
+              >
+              <input
+                type="file"
+                id="categoryIcon"
+                accept="image/*"
+                class="block w-full px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                Upload an icon for this category (max 5MB)
+              </p>
+              <div id="categoryIconPreview" class="mt-2 hidden">
+                <img
+                  id="categoryIconPreviewImg"
+                  src=""
+                  alt="Icon preview"
+                  class="w-16 h-16 object-contain border"
+                />
+                <button
+                  type="button"
+                  onclick="removeCategoryIcon()"
+                  class="mt-1 text-red-600 hover:text-red-800 text-sm"
+                >
+                  Remove Icon
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Color Theme</label
+              >
+              <div class="flex space-x-2">
+                <input
+                  type="color"
+                  id="categoryColor"
+                  value="#3b82f6"
+                  class="w-12 h-10 border border-gray-300"
+                />
+                <input
+                  type="text"
+                  id="categoryColorText"
+                  value="#3b82f6"
+                  class="flex-1 px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div
+              class="flex justify-end space-x-3 pt-4 border-t border-gray-200"
+            >
+              <button
+                type="button"
+                onclick="closeCategoryModal()"
+                class="px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-4 py-2 bg-primary text-white text-sm font-medium hover:opacity-90"
+              >
+                Save Category
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3011/api';
-        // Initialize user from localStorage
-        let currentUser = localStorage.getItem('hr_user') ? JSON.parse(localStorage.getItem('hr_user')) : null;
-        
-        // Dummy test categories dan questions
-        const dummyCategories = [
-            {
-                id: 'cat-001',
-                name: 'DISC Assessment',
-                code: 'DISC',
-                description: 'Personality and behavioral assessment',
-                color: '#dc2626',
-                icon_url: null,
-                questions_count: 24
-            },
-            {
-                id: 'cat-002',
-                name: 'MSDT Assessment',
-                code: 'MSDT',
-                description: 'Motivational and skill development test',
-                color: '#2563eb',
-                icon_url: null,
-                questions_count: 20
-            },
-            {
-                id: 'cat-003',
-                name: 'Intelligence Test',
-                code: 'IQ',
-                description: 'Logical reasoning and problem solving',
-                color: '#059669',
-                icon_url: null,
-                questions_count: 30
-            }
-        ];
+      const API_BASE = "http://localhost:3011/api";
+      // Initialize user from localStorage
+      let currentUser = localStorage.getItem("hr_user")
+        ? JSON.parse(localStorage.getItem("hr_user"))
+        : null;
 
-        const dummyQuestionsMap = {
-            'cat-001': [
-                { id: 'q1', category_id: 'cat-001', question: 'You are most likely to be described as:', options: ['Dominant', 'Influential', 'Steady', 'Careful'], correct_answer: 0, order: 1 },
-                { id: 'q2', category_id: 'cat-001', question: 'When facing challenges, you prefer to:', options: ['Take charge', 'Collaborate', 'Plan carefully', 'Follow procedures'], correct_answer: 1, order: 2 },
-                { id: 'q3', category_id: 'cat-001', question: 'Your work style is best described as:', options: ['Results-oriented', 'People-focused', 'Methodical', 'Compliance-focused'], correct_answer: 2, order: 3 }
-            ],
-            'cat-002': [
-                { id: 'q4', category_id: 'cat-002', question: 'What motivates you most in a job?', options: ['Achievement', 'Recognition', 'Security', 'Growth'], correct_answer: 0, order: 1 },
-                { id: 'q5', category_id: 'cat-002', question: 'Your ideal work environment would include:', options: ['Competition', 'Teamwork', 'Stability', 'Clear rules'], correct_answer: 1, order: 2 }
-            ],
-            'cat-003': [
-                { id: 'q6', category_id: 'cat-003', question: 'If A = 2, B = 4, C = 6, then D = ?', options: ['7', '8', '9', '10'], correct_answer: 1, order: 1 },
-                { id: 'q7', category_id: 'cat-003', question: 'Complete the sequence: 2, 4, 8, 16, ?', options: ['24', '28', '32', '36'], correct_answer: 2, order: 2 }
-            ]
-        };
-        
-        // Global variables for admin functionality
-        let currentTab = 'categories';
-        let currentCategoryId = null;
-        let categories = [];
-        let currentQuestions = [];
-        let editingQuestionId = null;
+      // Dummy test categories dan questions
+      const dummyCategories = [
+        {
+          id: "cat-001",
+          name: "DISC Assessment",
+          code: "DISC",
+          description: "Personality and behavioral assessment",
+          color: "#dc2626",
+          icon_url: null,
+          questions_count: 24,
+        },
+        {
+          id: "cat-002",
+          name: "MSDT Assessment",
+          code: "MSDT",
+          description: "Motivational and skill development test",
+          color: "#2563eb",
+          icon_url: null,
+          questions_count: 20,
+        },
+        {
+          id: "cat-003",
+          name: "Intelligence Test",
+          code: "IQ",
+          description: "Logical reasoning and problem solving",
+          color: "#059669",
+          icon_url: null,
+          questions_count: 30,
+        },
+      ];
 
-        // Initialize Lucide icons
+      const dummyQuestionsMap = {
+        "cat-001": [
+          {
+            id: "q1",
+            category_id: "cat-001",
+            question: "You are most likely to be described as:",
+            options: ["Dominant", "Influential", "Steady", "Careful"],
+            correct_answer: 0,
+            order: 1,
+          },
+          {
+            id: "q2",
+            category_id: "cat-001",
+            question: "When facing challenges, you prefer to:",
+            options: [
+              "Take charge",
+              "Collaborate",
+              "Plan carefully",
+              "Follow procedures",
+            ],
+            correct_answer: 1,
+            order: 2,
+          },
+          {
+            id: "q3",
+            category_id: "cat-001",
+            question: "Your work style is best described as:",
+            options: [
+              "Results-oriented",
+              "People-focused",
+              "Methodical",
+              "Compliance-focused",
+            ],
+            correct_answer: 2,
+            order: 3,
+          },
+        ],
+        "cat-002": [
+          {
+            id: "q4",
+            category_id: "cat-002",
+            question: "What motivates you most in a job?",
+            options: ["Achievement", "Recognition", "Security", "Growth"],
+            correct_answer: 0,
+            order: 1,
+          },
+          {
+            id: "q5",
+            category_id: "cat-002",
+            question: "Your ideal work environment would include:",
+            options: ["Competition", "Teamwork", "Stability", "Clear rules"],
+            correct_answer: 1,
+            order: 2,
+          },
+        ],
+        "cat-003": [
+          {
+            id: "q6",
+            category_id: "cat-003",
+            question: "If A = 2, B = 4, C = 6, then D = ?",
+            options: ["7", "8", "9", "10"],
+            correct_answer: 1,
+            order: 1,
+          },
+          {
+            id: "q7",
+            category_id: "cat-003",
+            question: "Complete the sequence: 2, 4, 8, 16, ?",
+            options: ["24", "28", "32", "36"],
+            correct_answer: 2,
+            order: 2,
+          },
+        ],
+      };
+
+      // Global variables for admin functionality
+      let currentTab = "categories";
+      let currentCategoryId = null;
+      let categories = [];
+      let currentQuestions = [];
+      let editingQuestionId = null;
+
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Sidebar Navigation Functions
+      function toggleMobileSidebar() {
+        const sidebar = document.getElementById("mobileSidebar");
+        sidebar.classList.toggle("hidden");
+      }
+
+      function toggleUserMenu() {
+        const userMenu = document.getElementById("userMenu");
+        userMenu.classList.toggle("hidden");
+      }
+
+      // Close user menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const userMenu = document.getElementById("userMenu");
+        const userButton = event.target.closest('[onclick="toggleUserMenu()"]');
+
+        if (!userButton && !userMenu.contains(event.target)) {
+          userMenu.classList.add("hidden");
+        }
+      });
+
+      // Authentication Functions
+      function loginSuccess(userData) {
+        currentUser = userData;
+        // Save user data to localStorage
+        localStorage.setItem("hr_user", JSON.stringify(userData));
+
+        // Update user info in header and sidebar
+        updateUserUI(userData);
+
+        // Hide login, show main app
+        document.getElementById("loginModal").classList.add("hidden");
+        document.getElementById("mainApp").classList.remove("hidden");
+
+        // Load admin data
+        loadCategories();
+      }
+
+      // Update user UI elements
+      function updateUserUI(userData) {
+        if (document.getElementById("headerUserEmail")) {
+          document.getElementById("headerUserEmail").textContent =
+            userData.email;
+        }
+        if (document.getElementById("headerUserName")) {
+          document.getElementById("headerUserName").textContent = userData.name;
+        }
+        if (document.getElementById("headerUserInitial")) {
+          document.getElementById("headerUserInitial").textContent =
+            userData.name.charAt(0);
+        }
+        if (document.getElementById("sidebarUserEmail")) {
+          document.getElementById("sidebarUserEmail").textContent =
+            userData.email;
+        }
+        if (document.getElementById("sidebarUserName")) {
+          document.getElementById("sidebarUserName").textContent =
+            userData.name;
+        }
+        if (document.getElementById("sidebarUserInitial")) {
+          document.getElementById("sidebarUserInitial").textContent =
+            userData.name.charAt(0);
+        }
+      }
+
+      // Check authentication state on page load
+      function checkAuthState() {
+        if (currentUser) {
+          // User is already logged in
+          document.getElementById("loginModal").classList.add("hidden");
+          document.getElementById("mainApp").classList.remove("hidden");
+          // Update UI with user info
+          updateUserUI(currentUser);
+          // Load admin data
+          loadCategories();
+        } else {
+          // Show login modal
+          document.getElementById("loginModal").classList.remove("hidden");
+          document.getElementById("mainApp").classList.add("hidden");
+        }
+      }
+
+      // Logout functionality
+      function logout() {
+        currentUser = null;
+        // Clear localStorage
+        localStorage.removeItem("hr_user");
+        document.getElementById("loginModal").classList.remove("hidden");
+        document.getElementById("mainApp").classList.add("hidden");
+      }
+
+      // Initialize the application
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("🔄 DOM loaded, checking authentication state...");
         lucide.createIcons();
 
-        // Sidebar Navigation Functions
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mobileSidebar');
-            sidebar.classList.toggle('hidden');
-        }
+        // Check if user is already logged in
+        checkAuthState();
 
-        function toggleUserMenu() {
-            const userMenu = document.getElementById('userMenu');
-            userMenu.classList.toggle('hidden');
-        }
+        // Set up login form
+        document
+          .getElementById("loginForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            console.log("🔐 Login form submitted");
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-        // Close user menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const userMenu = document.getElementById('userMenu');
-            const userButton = event.target.closest('[onclick="toggleUserMenu()"]');
-            
-            if (!userButton && !userMenu.contains(event.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
+            // Demo login validation
+            if (email === "hr@company.com" && password === "password123") {
+              console.log("✅ Login successful!");
+              const userData = {
+                email: email,
+                name: "HR Manager",
+                role: "hr_manager",
+              };
 
-        // Authentication Functions
-        function loginSuccess(userData) {
-            currentUser = userData;
-            // Save user data to localStorage
-            localStorage.setItem('hr_user', JSON.stringify(userData));
-            
-            // Update user info in header and sidebar
-            updateUserUI(userData);
-            
-            // Hide login, show main app
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            // Load admin data
-            loadCategories();
-        }
-        
-        // Update user UI elements
-        function updateUserUI(userData) {
-            if (document.getElementById('headerUserEmail')) {
-                document.getElementById('headerUserEmail').textContent = userData.email;
-            }
-            if (document.getElementById('headerUserName')) {
-                document.getElementById('headerUserName').textContent = userData.name;
-            }
-            if (document.getElementById('headerUserInitial')) {
-                document.getElementById('headerUserInitial').textContent = userData.name.charAt(0);
-            }
-            if (document.getElementById('sidebarUserEmail')) {
-                document.getElementById('sidebarUserEmail').textContent = userData.email;
-            }
-            if (document.getElementById('sidebarUserName')) {
-                document.getElementById('sidebarUserName').textContent = userData.name;
-            }
-            if (document.getElementById('sidebarUserInitial')) {
-                document.getElementById('sidebarUserInitial').textContent = userData.name.charAt(0);
-            }
-        }
-        
-        // Check authentication state on page load
-        function checkAuthState() {
-            if (currentUser) {
-                // User is already logged in
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                // Update UI with user info
-                updateUserUI(currentUser);
-                // Load admin data
-                loadCategories();
+              loginSuccess(userData);
             } else {
-                // Show login modal
-                document.getElementById('loginModal').classList.remove('hidden');
-                document.getElementById('mainApp').classList.add('hidden');
+              alert(
+                "Email atau password salah. Gunakan: hr@company.com / password123"
+              );
             }
-        }
+          });
 
-        // Logout functionality
-        function logout() {
-            currentUser = null;
-            // Clear localStorage
-            localStorage.removeItem('hr_user');
-            document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('hidden');
-        }
+        // Form event listeners
+        document
+          .getElementById("questionForm")
+          .addEventListener("submit", submitQuestionForm);
+        document
+          .getElementById("categoryForm")
+          .addEventListener("submit", submitCategoryForm);
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔄 DOM loaded, checking authentication state...');
-            lucide.createIcons();
-            
-            // Check if user is already logged in
-            checkAuthState();
-            
-            // Set up login form
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                console.log('🔐 Login form submitted');
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                
-                // Demo login validation
-                if (email === 'hr@company.com' && password === 'password123') {
-                    console.log('✅ Login successful!');
-                    const userData = {
-                        email: email,
-                        name: 'HR Manager',
-                        role: 'hr_manager'
-                    };
-                    
-                    loginSuccess(userData);
-                } else {
-                    alert('Email atau password salah. Gunakan: hr@company.com / password123');
-                }
-            });
+        // Image preview event listeners
+        document
+          .getElementById("questionImage")
+          .addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                showQuestionImagePreview(e.target.result);
+              };
+              reader.readAsDataURL(file);
+            }
+          });
 
-            // Form event listeners
-            document.getElementById('questionForm').addEventListener('submit', submitQuestionForm);
-            document.getElementById('categoryForm').addEventListener('submit', submitCategoryForm);
-            
-            // Image preview event listeners
-            document.getElementById('questionImage').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        showQuestionImagePreview(e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+        document
+          .getElementById("categoryIcon")
+          .addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                showCategoryIconPreview(e.target.result);
+              };
+              reader.readAsDataURL(file);
+            }
+          });
 
-            document.getElementById('categoryIcon').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        showCategoryIconPreview(e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+        // Color picker sync
+        document
+          .getElementById("categoryColor")
+          .addEventListener("change", function (e) {
+            document.getElementById("categoryColorText").value = e.target.value;
+          });
 
-            // Color picker sync
-            document.getElementById('categoryColor').addEventListener('change', function(e) {
-                document.getElementById('categoryColorText').value = e.target.value;
-            });
-            
-            document.getElementById('categoryColorText').addEventListener('change', function(e) {
-                document.getElementById('categoryColor').value = e.target.value;
-            });
+        document
+          .getElementById("categoryColorText")
+          .addEventListener("change", function (e) {
+            document.getElementById("categoryColor").value = e.target.value;
+          });
+      });
+
+      // Tab switching
+      window.switchTab = function switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('[id^="tab-"]').forEach((tab) => {
+          tab.classList.remove("tab-active");
+          tab.classList.add("border-transparent", "text-gray-500");
         });
 
-        // Tab switching
-        window.switchTab = function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
-                tab.classList.remove('tab-active');
-                tab.classList.add('border-transparent', 'text-gray-500');
-            });
-            
-            document.getElementById(`tab-${tabName}`).classList.add('tab-active');
-            document.getElementById(`tab-${tabName}`).classList.remove('border-transparent', 'text-gray-500');
+        document.getElementById(`tab-${tabName}`).classList.add("tab-active");
+        document
+          .getElementById(`tab-${tabName}`)
+          .classList.remove("border-transparent", "text-gray-500");
 
-            // Update content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            document.getElementById(`${tabName}-content`).classList.remove('hidden');
-            
-            currentTab = tabName;
+        // Update content
+        document.querySelectorAll(".tab-content").forEach((content) => {
+          content.classList.add("hidden");
+        });
 
-            // Load data based on active tab
-            if (tabName === 'categories') {
-                loadCategories();
-            } else if (tabName === 'questions') {
-                loadCategoryOptions();
-            } else if (tabName === 'scoring') {
-                loadScoringConfig();
-            }
+        document
+          .getElementById(`${tabName}-content`)
+          .classList.remove("hidden");
+
+        currentTab = tabName;
+
+        // Load data based on active tab
+        if (tabName === "categories") {
+          loadCategories();
+        } else if (tabName === "questions") {
+          loadCategoryOptions();
+        } else if (tabName === "scoring") {
+          loadScoringConfig();
+        }
+      };
+
+      // Switch to questions tab and select category
+      window.switchToQuestions = function switchToQuestions(categoryId) {
+        currentCategoryId = categoryId;
+        switchTab("questions");
+
+        // Set the category selector to the specified category
+        setTimeout(() => {
+          const categorySelect = document.getElementById("categorySelect");
+          if (categorySelect) {
+            categorySelect.value = categoryId;
+            loadQuestionsForCategory(categoryId);
+          }
+        }, 100);
+      };
+
+      // Load test categories
+      async function loadCategories() {
+        try {
+          console.log("✅ Loading categories (dummy - tanpa backend)...");
+
+          // Simulasi delay loading
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // Gunakan dummy data lokal
+          categories = [...dummyCategories];
+          displayCategories();
+
+          console.log("✅ Categories loaded:", categories.length, "categories");
+        } catch (error) {
+          console.error("Error loading categories:", error);
+          showNotification("Error loading categories", "error");
+        }
+      }
+
+      // Load questions for specific category - menggunakan dummy data
+      async function loadQuestionsForCategory(categoryId) {
+        if (!categoryId) {
+          document.getElementById("questionsList").innerHTML =
+            '<p class="text-gray-500 text-center py-8">Please select a category to view questions</p>';
+          return;
         }
 
-        // Switch to questions tab and select category
-        window.switchToQuestions = function switchToQuestions(categoryId) {
-            currentCategoryId = categoryId;
-            switchTab('questions');
-            
-            // Set the category selector to the specified category
-            setTimeout(() => {
-                const categorySelect = document.getElementById('categorySelect');
-                if (categorySelect) {
-                    categorySelect.value = categoryId;
-                    loadQuestionsForCategory(categoryId);
-                }
-            }, 100);
+        try {
+          console.log("✅ Loading questions for category (dummy):", categoryId);
+
+          // Simulasi delay loading
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // Gunakan dummy data lokal
+          currentQuestions = dummyQuestionsMap[categoryId] || [];
+          displayQuestions();
+
+          console.log(
+            "✅ Questions loaded:",
+            currentQuestions.length,
+            "questions"
+          );
+        } catch (error) {
+          console.error("Error loading questions:", error);
+          document.getElementById("questionsList").innerHTML =
+            '<p class="text-gray-500 text-center py-8">Error loading questions</p>';
+        }
+      }
+
+      // Display categories
+      function displayCategories() {
+        renderCategories(categories);
+      }
+
+      // Enhanced category rendering
+      function renderCategories(categoriesList) {
+        const grid = document.getElementById("categoriesGrid");
+
+        if (categoriesList.length === 0) {
+          grid.innerHTML =
+            '<div class="col-span-full text-center py-8 text-gray-500">No categories found. Click "Add Category" to create your first test category.</div>';
+          return;
         }
 
-        // Load test categories
-        async function loadCategories() {
-            try {
-                console.log('✅ Loading categories (dummy - tanpa backend)...');
-                
-                // Simulasi delay loading
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                // Gunakan dummy data lokal
-                categories = [...dummyCategories];
-                displayCategories();
-                
-                console.log('✅ Categories loaded:', categories.length, 'categories');
-                
-            } catch (error) {
-                console.error('Error loading categories:', error);
-                showNotification('Error loading categories', 'error');
-            }
-        }
-
-        // Load questions for specific category - menggunakan dummy data
-        async function loadQuestionsForCategory(categoryId) {
-            if (!categoryId) {
-                document.getElementById('questionsList').innerHTML = '<p class="text-gray-500 text-center py-8">Please select a category to view questions</p>';
-                return;
-            }
-
-            try {
-                console.log('✅ Loading questions for category (dummy):', categoryId);
-                
-                // Simulasi delay loading
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                // Gunakan dummy data lokal
-                currentQuestions = dummyQuestionsMap[categoryId] || [];
-                displayQuestions();
-                
-                console.log('✅ Questions loaded:', currentQuestions.length, 'questions');
-                
-            } catch (error) {
-                console.error('Error loading questions:', error);
-                document.getElementById('questionsList').innerHTML = '<p class="text-gray-500 text-center py-8">Error loading questions</p>';
-            }
-        }
-
-        // Display categories
-        function displayCategories() {
-            renderCategories(categories);
-        }
-
-        // Enhanced category rendering
-        function renderCategories(categoriesList) {
-            const grid = document.getElementById('categoriesGrid');
-            
-            if (categoriesList.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">No categories found. Click "Add Category" to create your first test category.</div>';
-                return;
-            }
-            
-            grid.innerHTML = categoriesList.map(category => `
+        grid.innerHTML = categoriesList
+          .map(
+            (category) => `
                 <div class="bg-white border border-gray-200 p-6 card-sharp card-hover transition-shadow">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center space-x-3">
-                            ${category.icon_url ? 
-                                `<img src="${category.icon_url}" alt="${category.name}" class="w-12 h-12 object-cover">` :
-                                `<div class="w-12 h-12 flex items-center justify-center text-white font-bold text-lg" style="background-color: ${category.color || '#3b82f6'}">${category.name.charAt(0)}</div>`
+                            ${
+                              category.icon_url
+                                ? `<img src="${category.icon_url}" alt="${category.name}" class="w-12 h-12 object-cover">`
+                                : `<div class="w-12 h-12 flex items-center justify-center text-white font-bold text-lg" style="background-color: ${
+                                    category.color || "#3b82f6"
+                                  }">${category.name.charAt(0)}</div>`
                             }
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900">${category.name}</h3>
-                                <p class="text-sm text-gray-500">${category.code}</p>
+                                <h3 class="text-lg font-semibold text-gray-900">${
+                                  category.name
+                                }</h3>
+                                <p class="text-sm text-gray-500">${
+                                  category.code
+                                }</p>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="openCategoryModal(${category.id})" class="text-blue-600 hover:text-blue-800 p-1">
+                            <button onclick="openCategoryModal(${
+                              category.id
+                            })" class="text-blue-600 hover:text-blue-800 p-1">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteCategory(${category.id})" class="text-red-600 hover:text-red-800 p-1">
+                            <button onclick="deleteCategory(${
+                              category.id
+                            })" class="text-red-600 hover:text-red-800 p-1">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
                     
                     <div class="mb-4">
-                        <p class="text-gray-600 text-sm">${category.description || 'No description available'}</p>
+                        <p class="text-gray-600 text-sm">${
+                          category.description || "No description available"
+                        }</p>
                     </div>
                     
                     <div class="flex items-center justify-between text-sm text-gray-500">
                         <span>${category.question_count || 0} questions</span>
-                        <button onclick="switchToQuestions(${category.id})" class="text-blue-600 hover:text-blue-800 font-medium">
+                        <button onclick="switchToQuestions(${
+                          category.id
+                        })" class="text-blue-600 hover:text-blue-800 font-medium">
                             View Questions →
                         </button>
                     </div>
                 </div>
-            `).join('');
-            
-            // Reinitialize Lucide icons
-            lucide.createIcons();
+            `
+          )
+          .join("");
+
+        // Reinitialize Lucide icons
+        lucide.createIcons();
+      }
+
+      // Load category options for dropdowns
+      async function loadCategoryOptions() {
+        try {
+          const categorySelect = document.getElementById("categorySelect");
+          const modalCategorySelect = document.getElementById(
+            "modalCategorySelect"
+          );
+
+          categorySelect.innerHTML =
+            '<option value="">Select a category...</option>';
+          modalCategorySelect.innerHTML =
+            '<option value="">Select a category...</option>';
+
+          categories.forEach((category) => {
+            const option1 = new Option(category.name, category.id);
+            const option2 = new Option(category.name, category.id);
+            categorySelect.add(option1);
+            modalCategorySelect.add(option2);
+          });
+        } catch (error) {
+          console.error("Error loading category options:", error);
+        }
+      }
+
+      // Load questions for selected category
+      async function loadQuestions() {
+        const categoryId = document.getElementById("categorySelect").value;
+        if (!categoryId) {
+          document.getElementById("questionsList").innerHTML =
+            '<p class="text-gray-500 text-center py-8">Please select a category to view questions</p>';
+          return;
         }
 
-        // Load category options for dropdowns
-        async function loadCategoryOptions() {
-            try {
-                const categorySelect = document.getElementById('categorySelect');
-                const modalCategorySelect = document.getElementById('modalCategorySelect');
-                
-                categorySelect.innerHTML = '<option value="">Select a category...</option>';
-                modalCategorySelect.innerHTML = '<option value="">Select a category...</option>';
-                
-                categories.forEach(category => {
-                    const option1 = new Option(category.name, category.id);
-                    const option2 = new Option(category.name, category.id);
-                    categorySelect.add(option1);
-                    modalCategorySelect.add(option2);
-                });
-            } catch (error) {
-                console.error('Error loading category options:', error);
-            }
+        try {
+          const response = await fetch(
+            `/api/admin/test-questions/${categoryId}`
+          );
+          const data = await response.json();
+
+          if (data.success) {
+            currentQuestions = data.questions;
+            displayQuestions();
+          }
+        } catch (error) {
+          console.error("Error loading questions:", error);
+          showNotification("Error loading questions", "error");
+        }
+      }
+
+      // Display questions
+      function displayQuestions() {
+        const container = document.getElementById("questionsList");
+
+        if (currentQuestions.length === 0) {
+          container.innerHTML =
+            '<div class="text-center py-8 text-gray-500">No questions found for this category</div>';
+          return;
         }
 
-        // Load questions for selected category
-        async function loadQuestions() {
-            const categoryId = document.getElementById('categorySelect').value;
-            if (!categoryId) {
-                document.getElementById('questionsList').innerHTML = '<p class="text-gray-500 text-center py-8">Please select a category to view questions</p>';
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/admin/test-questions/${categoryId}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentQuestions = data.questions;
-                    displayQuestions();
-                }
-            } catch (error) {
-                console.error('Error loading questions:', error);
-                showNotification('Error loading questions', 'error');
-            }
-        }
-
-        // Display questions
-        function displayQuestions() {
-            const container = document.getElementById('questionsList');
-            
-            if (currentQuestions.length === 0) {
-                container.innerHTML = '<div class="text-center py-8 text-gray-500">No questions found for this category</div>';
-                return;
-            }
-
-            container.innerHTML = currentQuestions.map(question => `
+        container.innerHTML = currentQuestions
+          .map(
+            (question) => `
                 <div class="bg-white border border-gray-200 p-6 card-sharp">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex-1">
                             <div class="flex items-center space-x-2 mb-2">
-                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">${question.question_type}</span>
-                                <span class="text-sm text-gray-500">Order: ${question.order_index}</span>
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5">${
+                                  question.question_type
+                                }</span>
+                                <span class="text-sm text-gray-500">Order: ${
+                                  question.order_index
+                                }</span>
                             </div>
-                            <p class="text-gray-900 font-medium">${question.question_text}</p>
+                            <p class="text-gray-900 font-medium">${
+                              question.question_text
+                            }</p>
                         </div>
                         <div class="flex space-x-2">
-                            <button onclick="editQuestion(${question.id})" class="text-blue-600 hover:text-blue-800">
+                            <button onclick="editQuestion(${
+                              question.id
+                            })" class="text-blue-600 hover:text-blue-800">
                                 <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteQuestion(${question.id})" class="text-red-600 hover:text-red-800">
+                            <button onclick="deleteQuestion(${
+                              question.id
+                            })" class="text-red-600 hover:text-red-800">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
                     
-                    ${question.options ? `
+                    ${
+                      question.options
+                        ? `
                         <div class="mt-4">
                             <p class="text-sm font-medium text-gray-700 mb-2">Options:</p>
                             <div class="text-sm text-gray-600">
-                                ${typeof question.options === 'string' ? 
-                                    JSON.parse(question.options).map ? 
-                                        JSON.parse(question.options).map((opt, i) => `${i + 1}. ${opt}`).join('<br>') :
-                                        Object.entries(JSON.parse(question.options)).map(([key, val]) => `${key}: ${val}`).join('<br>')
-                                    : 'Invalid options format'
+                                ${
+                                  typeof question.options === "string"
+                                    ? JSON.parse(question.options).map
+                                      ? JSON.parse(question.options)
+                                          .map((opt, i) => `${i + 1}. ${opt}`)
+                                          .join("<br>")
+                                      : Object.entries(
+                                          JSON.parse(question.options)
+                                        )
+                                          .map(([key, val]) => `${key}: ${val}`)
+                                          .join("<br>")
+                                    : "Invalid options format"
                                 }
                             </div>
                         </div>
-                    ` : ''}
+                    `
+                        : ""
+                    }
                 </div>
-            `).join('');
-            
-            lucide.createIcons();
-        }
+            `
+          )
+          .join("");
 
-        // Show add question modal
-        window.showAddQuestionModal = function showAddQuestionModal() {
-            editingQuestionId = null;
-            document.getElementById('modalTitle').textContent = 'Add New Question';
-            document.getElementById('questionForm').reset();
-            document.getElementById('optionsSection').classList.add('hidden');
-            document.getElementById('questionModal').classList.remove('hidden');
-        }
+        lucide.createIcons();
+      }
 
-        // Close question modal
-        window.closeQuestionModal = function closeQuestionModal() {
-            document.getElementById('questionModal').classList.add('hidden');
-            document.getElementById('questionForm').reset();
-            editingQuestionId = null;
-        }
+      // Show add question modal
+      window.showAddQuestionModal = function showAddQuestionModal() {
+        editingQuestionId = null;
+        document.getElementById("modalTitle").textContent = "Add New Question";
+        document.getElementById("questionForm").reset();
+        document.getElementById("optionsSection").classList.add("hidden");
+        document.getElementById("questionModal").classList.remove("hidden");
+      };
 
-        // Update question fields based on type
-        function updateQuestionFields() {
-            const questionType = document.getElementById('questionType').value;
-            const optionsSection = document.getElementById('optionsSection');
-            
-            if (questionType === 'ranking' || questionType === 'multiple_choice') {
-                optionsSection.classList.remove('hidden');
-                setupOptionsForType(questionType);
-            } else if (questionType === 'binary_choice') {
-                optionsSection.classList.remove('hidden');
-                setupBinaryChoiceOptions();
-            } else {
-                optionsSection.classList.add('hidden');
-            }
-        }
+      // Close question modal
+      window.closeQuestionModal = function closeQuestionModal() {
+        document.getElementById("questionModal").classList.add("hidden");
+        document.getElementById("questionForm").reset();
+        editingQuestionId = null;
+      };
 
-        // Setup options for different question types
-        function setupOptionsForType(type) {
-            const optionsList = document.getElementById('optionsList');
-            optionsList.innerHTML = '';
-            
-            if (type === 'ranking' || type === 'multiple_choice') {
-                for (let i = 0; i < 4; i++) {
-                    addOption();
-                }
-            }
-        }
+      // Update question fields based on type
+      function updateQuestionFields() {
+        const questionType = document.getElementById("questionType").value;
+        const optionsSection = document.getElementById("optionsSection");
 
-        // Setup binary choice options
-        function setupBinaryChoiceOptions() {
-            const optionsList = document.getElementById('optionsList');
-            const optionAId = Date.now();
-            const optionBId = Date.now() + 1;
-            
-            optionsList.innerHTML = `
+        if (questionType === "ranking" || questionType === "multiple_choice") {
+          optionsSection.classList.remove("hidden");
+          setupOptionsForType(questionType);
+        } else if (questionType === "binary_choice") {
+          optionsSection.classList.remove("hidden");
+          setupBinaryChoiceOptions();
+        } else {
+          optionsSection.classList.add("hidden");
+        }
+      }
+
+      // Setup options for different question types
+      function setupOptionsForType(type) {
+        const optionsList = document.getElementById("optionsList");
+        optionsList.innerHTML = "";
+
+        if (type === "ranking" || type === "multiple_choice") {
+          for (let i = 0; i < 4; i++) {
+            addOption();
+          }
+        }
+      }
+
+      // Setup binary choice options
+      function setupBinaryChoiceOptions() {
+        const optionsList = document.getElementById("optionsList");
+        const optionAId = Date.now();
+        const optionBId = Date.now() + 1;
+
+        optionsList.innerHTML = `
                 <div class="space-y-4">
                     <div class="border border-gray-200 p-4 space-y-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Option A</label>
@@ -1098,16 +1642,21 @@
                     </div>
                 </div>
             `;
-        }
+      }
 
-        // Add option input
-        window.addOption = function addOption() {
-            const optionsList = document.getElementById('optionsList');
-            const optionDiv = document.createElement('div');
-            const optionId = Date.now(); // Unique ID for this option
-            
-            optionDiv.classList.add('border', 'border-gray-200', 'p-4', 'space-y-3');
-            optionDiv.innerHTML = `
+      // Add option input
+      window.addOption = function addOption() {
+        const optionsList = document.getElementById("optionsList");
+        const optionDiv = document.createElement("div");
+        const optionId = Date.now(); // Unique ID for this option
+
+        optionDiv.classList.add(
+          "border",
+          "border-gray-200",
+          "p-4",
+          "space-y-3"
+        );
+        optionDiv.innerHTML = `
                 <div class="flex space-x-2">
                     <input type="text" class="option-input flex-1 px-3 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter option text...">
                     <button type="button" onclick="removeOption(this)" class="text-red-600 hover:text-red-800 p-2">
@@ -1123,372 +1672,423 @@
                     </div>
                 </div>
             `;
-            optionsList.appendChild(optionDiv);
-            lucide.createIcons();
-        }
+        optionsList.appendChild(optionDiv);
+        lucide.createIcons();
+      };
 
-        // Preview option image
-        window.previewOptionImage = function previewOptionImage(input, optionId) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById(`optionPreview${optionId}`);
-                    const img = document.getElementById(`optionImg${optionId}`);
-                    img.src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Remove option image
-        window.removeOptionImage = function removeOptionImage(optionId) {
+      // Preview option image
+      window.previewOptionImage = function previewOptionImage(input, optionId) {
+        const file = input.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
             const preview = document.getElementById(`optionPreview${optionId}`);
-            const input = document.querySelector(`input[onchange="previewOptionImage(this, ${optionId})"]`);
-            if (input) input.value = '';
-            if (preview) preview.classList.add('hidden');
+            const img = document.getElementById(`optionImg${optionId}`);
+            img.src = e.target.result;
+            preview.classList.remove("hidden");
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      // Remove option image
+      window.removeOptionImage = function removeOptionImage(optionId) {
+        const preview = document.getElementById(`optionPreview${optionId}`);
+        const input = document.querySelector(
+          `input[onchange="previewOptionImage(this, ${optionId})"]`
+        );
+        if (input) input.value = "";
+        if (preview) preview.classList.add("hidden");
+      };
+
+      // Remove option
+      window.removeOption = function removeOption(button) {
+        button.closest(".border").remove();
+      };
+
+      // Edit question
+      function editQuestion(questionId) {
+        const question = currentQuestions.find((q) => q.id === questionId);
+        if (!question) return;
+
+        editingQuestionId = questionId;
+        document.getElementById("modalTitle").textContent = "Edit Question";
+
+        // Populate form
+        document.getElementById("modalCategorySelect").value =
+          question.category_id;
+        document.getElementById("questionType").value = question.question_type;
+        document.getElementById("questionText").value = question.question_text;
+        document.getElementById("orderIndex").value = question.order_index;
+
+        // Setup options based on type
+        updateQuestionFields();
+
+        // Populate options
+        if (question.options) {
+          const options =
+            typeof question.options === "string"
+              ? JSON.parse(question.options)
+              : question.options;
+          const optionInputs = document.querySelectorAll(".option-input");
+
+          if (question.question_type === "binary_choice") {
+            if (optionInputs[0]) optionInputs[0].value = options.optionA || "";
+            if (optionInputs[1]) optionInputs[1].value = options.optionB || "";
+          } else if (Array.isArray(options)) {
+            options.forEach((opt, index) => {
+              if (optionInputs[index]) {
+                optionInputs[index].value = opt;
+              }
+            });
+          }
         }
 
-        // Remove option
-        window.removeOption = function removeOption(button) {
-            button.closest('.border').remove();
-        }
+        document.getElementById("questionModal").classList.remove("hidden");
+      }
 
-        // Edit question
-        function editQuestion(questionId) {
-            const question = currentQuestions.find(q => q.id === questionId);
-            if (!question) return;
+      // Delete question
+      async function deleteQuestion(questionId) {
+        if (!confirm("Are you sure you want to delete this question?")) return;
 
-            editingQuestionId = questionId;
-            document.getElementById('modalTitle').textContent = 'Edit Question';
-            
-            // Populate form
-            document.getElementById('modalCategorySelect').value = question.category_id;
-            document.getElementById('questionType').value = question.question_type;
-            document.getElementById('questionText').value = question.question_text;
-            document.getElementById('orderIndex').value = question.order_index;
-            
-            // Setup options based on type
-            updateQuestionFields();
-            
-            // Populate options
-            if (question.options) {
-                const options = typeof question.options === 'string' ? JSON.parse(question.options) : question.options;
-                const optionInputs = document.querySelectorAll('.option-input');
-                
-                if (question.question_type === 'binary_choice') {
-                    if (optionInputs[0]) optionInputs[0].value = options.optionA || '';
-                    if (optionInputs[1]) optionInputs[1].value = options.optionB || '';
-                } else if (Array.isArray(options)) {
-                    options.forEach((opt, index) => {
-                        if (optionInputs[index]) {
-                            optionInputs[index].value = opt;
-                        }
-                    });
-                }
+        try {
+          const response = await fetch(
+            `/api/admin/test-questions/${questionId}`,
+            {
+              method: "DELETE",
             }
-            
-            document.getElementById('questionModal').classList.remove('hidden');
+          );
+
+          const result = await response.json();
+
+          if (result.success) {
+            showNotification(result.message, "success");
+            loadQuestions();
+          } else {
+            showNotification(
+              result.error || "Failed to delete question",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Error deleting question:", error);
+          showNotification("Error deleting question", "error");
+        }
+      }
+
+      // Category Management Functions
+      window.openCategoryModal = function openCategoryModal(categoryId = null) {
+        currentCategoryId = categoryId;
+        const modal = document.getElementById("categoryModal");
+        const title = document.getElementById("categoryModalTitle");
+        const form = document.getElementById("categoryForm");
+
+        if (categoryId) {
+          title.textContent = "Edit Category";
+          const category = categories.find((c) => c.id === categoryId);
+          if (category) {
+            document.getElementById("categoryName").value = category.name || "";
+            document.getElementById("categoryCode").value = category.code || "";
+            document.getElementById("categoryDescription").value =
+              category.description || "";
+            document.getElementById("categoryColor").value =
+              category.color || "#3b82f6";
+            document.getElementById("categoryColorText").value =
+              category.color || "#3b82f6";
+
+            if (category.icon_url) {
+              showCategoryIconPreview(category.icon_url);
+            }
+          }
+        } else {
+          title.textContent = "Add New Category";
+          form.reset();
+          document
+            .getElementById("categoryIconPreview")
+            .classList.add("hidden");
+          document.getElementById("categoryColor").value = "#3b82f6";
+          document.getElementById("categoryColorText").value = "#3b82f6";
         }
 
-        // Delete question
-        async function deleteQuestion(questionId) {
-            if (!confirm('Are you sure you want to delete this question?')) return;
+        modal.classList.remove("hidden");
+      };
 
-            try {
-                const response = await fetch(`/api/admin/test-questions/${questionId}`, {
-                    method: 'DELETE'
+      window.closeCategoryModal = function closeCategoryModal() {
+        document.getElementById("categoryModal").classList.add("hidden");
+        currentCategoryId = null;
+      };
+
+      function showCategoryIconPreview(iconUrl) {
+        const preview = document.getElementById("categoryIconPreview");
+        const img = document.getElementById("categoryIconPreviewImg");
+        img.src = iconUrl;
+        preview.classList.remove("hidden");
+      }
+
+      window.removeCategoryIcon = function removeCategoryIcon() {
+        document.getElementById("categoryIcon").value = "";
+        document.getElementById("categoryIconPreview").classList.add("hidden");
+      };
+
+      // Image Upload Functions for Questions
+      function showQuestionImagePreview(imageUrl) {
+        const preview = document.getElementById("questionImagePreview");
+        const img = document.getElementById("questionImagePreviewImg");
+        img.src = imageUrl;
+        preview.classList.remove("hidden");
+      }
+
+      window.removeQuestionImage = function removeQuestionImage() {
+        document.getElementById("questionImage").value = "";
+        document.getElementById("questionImagePreview").classList.add("hidden");
+      };
+
+      window.deleteCategory = async function deleteCategory(categoryId) {
+        const category = categories.find((c) => c.id === categoryId);
+        if (!category) return;
+
+        if (
+          !confirm(
+            `Are you sure you want to delete "${category.name}" category? This action cannot be undone.`
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/admin/test-categories/${categoryId}`,
+            {
+              method: "DELETE",
+            }
+          );
+
+          const result = await response.json();
+          if (result.success) {
+            alert("Category deleted successfully!");
+            await loadCategories();
+          } else {
+            alert("Error: " + result.error);
+          }
+        } catch (error) {
+          console.error("Error deleting category:", error);
+          alert("Error deleting category: " + error.message);
+        }
+      };
+
+      // Enhanced form submission for questions with image upload
+      async function submitQuestionForm(event) {
+        event.preventDefault();
+
+        // Show loading state
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = "Saving...";
+        submitBtn.disabled = true;
+
+        try {
+          const formData = new FormData();
+          const categoryId = document.getElementById(
+            "modalCategorySelect"
+          ).value;
+          const questionText = document.getElementById("questionText").value;
+          const questionType = document.getElementById("questionType").value;
+          const orderIndex = document.getElementById("orderIndex").value || 0;
+          const questionImage =
+            document.getElementById("questionImage").files[0];
+
+          // Collect options based on question type (optimized)
+          let options = [];
+          let optionImageCount = 0;
+
+          // Handle different question types more efficiently
+          if (questionType === "binary_choice") {
+            // For binary choice, find the two main containers
+            const optionInputs = document.querySelectorAll(
+              "#optionsList .option-input"
+            );
+            const optionImages = document.querySelectorAll(
+              "#optionsList .option-image"
+            );
+
+            for (let i = 0; i < optionInputs.length; i++) {
+              const input = optionInputs[i];
+              if (input.value.trim()) {
+                const imageFile = optionImages[i]
+                  ? optionImages[i].files[0]
+                  : null;
+                options.push({
+                  text: input.value.trim(),
+                  image: !!imageFile, // just indicate if image exists
                 });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showNotification(result.message, 'success');
-                    loadQuestions();
-                } else {
-                    showNotification(result.error || 'Failed to delete question', 'error');
+
+                // Add image file to FormData if present
+                if (imageFile) {
+                  formData.append(`optionImage${optionImageCount}`, imageFile);
+                  optionImageCount++;
                 }
-            } catch (error) {
-                console.error('Error deleting question:', error);
-                showNotification('Error deleting question', 'error');
+              }
             }
-        }
+          } else {
+            // For other types (ranking, multiple choice)
+            const optionContainers = document.querySelectorAll(
+              "#optionsList .border"
+            );
+            for (const container of optionContainers) {
+              const textInput = container.querySelector(".option-input");
+              const imageInput = container.querySelector(".option-image");
 
-        // Category Management Functions
-        window.openCategoryModal = function openCategoryModal(categoryId = null) {
-            currentCategoryId = categoryId;
-            const modal = document.getElementById('categoryModal');
-            const title = document.getElementById('categoryModalTitle');
-            const form = document.getElementById('categoryForm');
-            
-            if (categoryId) {
-                title.textContent = 'Edit Category';
-                const category = categories.find(c => c.id === categoryId);
-                if (category) {
-                    document.getElementById('categoryName').value = category.name || '';
-                    document.getElementById('categoryCode').value = category.code || '';
-                    document.getElementById('categoryDescription').value = category.description || '';
-                    document.getElementById('categoryColor').value = category.color || '#3b82f6';
-                    document.getElementById('categoryColorText').value = category.color || '#3b82f6';
-                    
-                    if (category.icon_url) {
-                        showCategoryIconPreview(category.icon_url);
-                    }
-                }
-            } else {
-                title.textContent = 'Add New Category';
-                form.reset();
-                document.getElementById('categoryIconPreview').classList.add('hidden');
-                document.getElementById('categoryColor').value = '#3b82f6';
-                document.getElementById('categoryColorText').value = '#3b82f6';
-            }
-            
-            modal.classList.remove('hidden');
-        }
-
-        window.closeCategoryModal = function closeCategoryModal() {
-            document.getElementById('categoryModal').classList.add('hidden');
-            currentCategoryId = null;
-        }
-
-        function showCategoryIconPreview(iconUrl) {
-            const preview = document.getElementById('categoryIconPreview');
-            const img = document.getElementById('categoryIconPreviewImg');
-            img.src = iconUrl;
-            preview.classList.remove('hidden');
-        }
-
-        window.removeCategoryIcon = function removeCategoryIcon() {
-            document.getElementById('categoryIcon').value = '';
-            document.getElementById('categoryIconPreview').classList.add('hidden');
-        }
-
-        // Image Upload Functions for Questions
-        function showQuestionImagePreview(imageUrl) {
-            const preview = document.getElementById('questionImagePreview');
-            const img = document.getElementById('questionImagePreviewImg');
-            img.src = imageUrl;
-            preview.classList.remove('hidden');
-        }
-
-        window.removeQuestionImage = function removeQuestionImage() {
-            document.getElementById('questionImage').value = '';
-            document.getElementById('questionImagePreview').classList.add('hidden');
-        }
-
-        window.deleteCategory = async function deleteCategory(categoryId) {
-            const category = categories.find(c => c.id === categoryId);
-            if (!category) return;
-            
-            if (!confirm(`Are you sure you want to delete "${category.name}" category? This action cannot be undone.`)) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/admin/test-categories/${categoryId}`, {
-                    method: 'DELETE'
+              if (textInput && textInput.value.trim()) {
+                const imageFile = imageInput ? imageInput.files[0] : null;
+                options.push({
+                  text: textInput.value.trim(),
+                  image: !!imageFile, // just indicate if image exists
                 });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert('Category deleted successfully!');
-                    await loadCategories();
-                } else {
-                    alert('Error: ' + result.error);
+
+                // Add image file to FormData if present
+                if (imageFile) {
+                  formData.append(`optionImage${optionImageCount}`, imageFile);
+                  optionImageCount++;
                 }
-            } catch (error) {
-                console.error('Error deleting category:', error);
-                alert('Error deleting category: ' + error.message);
+              }
             }
+          }
+
+          formData.append("categoryId", categoryId);
+          formData.append("questionText", questionText);
+          formData.append("questionType", questionType);
+          formData.append("options", JSON.stringify(options));
+          formData.append("correctAnswer", JSON.stringify(null));
+          formData.append("scoringConfig", JSON.stringify({}));
+          formData.append("orderIndex", orderIndex);
+
+          if (questionImage) {
+            formData.append("questionImage", questionImage);
+          }
+
+          const url = editingQuestionId
+            ? `/api/admin/test-questions/${editingQuestionId}`
+            : "/api/admin/test-questions";
+          const method = editingQuestionId ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method: method,
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            alert(
+              editingQuestionId
+                ? "Question updated successfully!"
+                : "Question created successfully!"
+            );
+            closeQuestionModal();
+            await loadQuestionsForCategory(categoryId);
+          } else {
+            alert("Error: " + result.error);
+          }
+        } catch (error) {
+          console.error("Error saving question:", error);
+          alert("Error saving question: " + error.message);
+        } finally {
+          // Reset button state
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        }
+      }
+
+      // Enhanced category form submission
+      async function submitCategoryForm(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        const name = document.getElementById("categoryName").value;
+        const code = document.getElementById("categoryCode").value;
+        const description = document.getElementById(
+          "categoryDescription"
+        ).value;
+        const color = document.getElementById("categoryColor").value;
+        const iconFile = document.getElementById("categoryIcon").files[0];
+
+        formData.append("name", name);
+        formData.append("code", code);
+        formData.append("description", description);
+        formData.append("color", color);
+
+        if (iconFile) {
+          formData.append("icon", iconFile);
         }
 
-        // Enhanced form submission for questions with image upload
-        async function submitQuestionForm(event) {
-            event.preventDefault();
-            
-            // Show loading state
-            const submitBtn = event.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Saving...';
-            submitBtn.disabled = true;
-            
-            try {
-                const formData = new FormData();
-                const categoryId = document.getElementById('modalCategorySelect').value;
-                const questionText = document.getElementById('questionText').value;
-                const questionType = document.getElementById('questionType').value;
-                const orderIndex = document.getElementById('orderIndex').value || 0;
-                const questionImage = document.getElementById('questionImage').files[0];
-                
-                // Collect options based on question type (optimized)
-                let options = [];
-                let optionImageCount = 0;
-                
-                // Handle different question types more efficiently
-                if (questionType === 'binary_choice') {
-                    // For binary choice, find the two main containers
-                    const optionInputs = document.querySelectorAll('#optionsList .option-input');
-                    const optionImages = document.querySelectorAll('#optionsList .option-image');
-                    
-                    for (let i = 0; i < optionInputs.length; i++) {
-                        const input = optionInputs[i];
-                        if (input.value.trim()) {
-                            const imageFile = optionImages[i] ? optionImages[i].files[0] : null;
-                            options.push({
-                                text: input.value.trim(),
-                                image: !!imageFile // just indicate if image exists
-                            });
-                            
-                            // Add image file to FormData if present
-                            if (imageFile) {
-                                formData.append(`optionImage${optionImageCount}`, imageFile);
-                                optionImageCount++;
-                            }
-                        }
-                    }
-                } else {
-                    // For other types (ranking, multiple choice)
-                    const optionContainers = document.querySelectorAll('#optionsList .border');
-                    for (const container of optionContainers) {
-                        const textInput = container.querySelector('.option-input');
-                        const imageInput = container.querySelector('.option-image');
-                        
-                        if (textInput && textInput.value.trim()) {
-                            const imageFile = imageInput ? imageInput.files[0] : null;
-                            options.push({
-                                text: textInput.value.trim(),
-                                image: !!imageFile // just indicate if image exists
-                            });
-                            
-                            // Add image file to FormData if present
-                            if (imageFile) {
-                                formData.append(`optionImage${optionImageCount}`, imageFile);
-                                optionImageCount++;
-                            }
-                        }
-                    }
-                }
-            
-            formData.append('categoryId', categoryId);
-            formData.append('questionText', questionText);
-            formData.append('questionType', questionType);
-            formData.append('options', JSON.stringify(options));
-            formData.append('correctAnswer', JSON.stringify(null));
-            formData.append('scoringConfig', JSON.stringify({}));
-            formData.append('orderIndex', orderIndex);
-            
-            if (questionImage) {
-                formData.append('questionImage', questionImage);
-            }
-            
-                const url = editingQuestionId ? 
-                    `/api/admin/test-questions/${editingQuestionId}` : 
-                    '/api/admin/test-questions';
-                const method = editingQuestionId ? 'PUT' : 'POST';
-                
-                const response = await fetch(url, {
-                    method: method,
-                    body: formData
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert(editingQuestionId ? 'Question updated successfully!' : 'Question created successfully!');
-                    closeQuestionModal();
-                    await loadQuestionsForCategory(categoryId);
-                } else {
-                    alert('Error: ' + result.error);
-                }
-            } catch (error) {
-                console.error('Error saving question:', error);
-                alert('Error saving question: ' + error.message);
-            } finally {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
+        try {
+          const url = currentCategoryId
+            ? `/api/admin/test-categories/${currentCategoryId}`
+            : "/api/admin/test-categories";
+          const method = currentCategoryId ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method: method,
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            alert(
+              currentCategoryId
+                ? "Category updated successfully!"
+                : "Category created successfully!"
+            );
+            closeCategoryModal();
+            await loadCategories();
+          } else {
+            alert("Error: " + result.error);
+          }
+        } catch (error) {
+          console.error("Error saving category:", error);
+          alert("Error saving category: " + error.message);
+        }
+      }
+
+      // Load scoring configuration
+      async function loadScoringConfig(categoryId = currentCategoryId) {
+        const container = document.getElementById("scoringConfig");
+
+        if (!categoryId) {
+          container.innerHTML =
+            '<p class="text-gray-500 text-center py-8">Please select a category to configure scoring</p>';
+          return;
         }
 
-        // Enhanced category form submission
-        async function submitCategoryForm(event) {
-            event.preventDefault();
-            
-            const formData = new FormData();
-            const name = document.getElementById('categoryName').value;
-            const code = document.getElementById('categoryCode').value;
-            const description = document.getElementById('categoryDescription').value;
-            const color = document.getElementById('categoryColor').value;
-            const iconFile = document.getElementById('categoryIcon').files[0];
-            
-            formData.append('name', name);
-            formData.append('code', code);
-            formData.append('description', description);
-            formData.append('color', color);
-            
-            if (iconFile) {
-                formData.append('icon', iconFile);
-            }
-            
-            try {
-                const url = currentCategoryId ? 
-                    `/api/admin/test-categories/${currentCategoryId}` : 
-                    '/api/admin/test-categories';
-                const method = currentCategoryId ? 'PUT' : 'POST';
-                
-                const response = await fetch(url, {
-                    method: method,
-                    body: formData
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    alert(currentCategoryId ? 'Category updated successfully!' : 'Category created successfully!');
-                    closeCategoryModal();
-                    await loadCategories();
-                } else {
-                    alert('Error: ' + result.error);
-                }
-            } catch (error) {
-                console.error('Error saving category:', error);
-                alert('Error saving category: ' + error.message);
-            }
+        try {
+          const response = await fetch(
+            `/api/admin/scoring-config/${categoryId}`
+          );
+          const data = await response.json();
+
+          if (data.success) {
+            displayScoringConfig(data.scoringRules, categoryId);
+          }
+        } catch (error) {
+          console.error("Error loading scoring config:", error);
+          showNotification("Error loading scoring configuration", "error");
         }
+      }
 
-        // Load scoring configuration
-        async function loadScoringConfig(categoryId = currentCategoryId) {
-            const container = document.getElementById('scoringConfig');
-            
-            if (!categoryId) {
-                container.innerHTML = '<p class="text-gray-500 text-center py-8">Please select a category to configure scoring</p>';
-                return;
-            }
+      // Display scoring configuration
+      function displayScoringConfig(scoringRules, categoryId) {
+        const container = document.getElementById("scoringConfig");
 
-            try {
-                const response = await fetch(`/api/admin/scoring-config/${categoryId}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayScoringConfig(data.scoringRules, categoryId);
-                }
-            } catch (error) {
-                console.error('Error loading scoring config:', error);
-                showNotification('Error loading scoring configuration', 'error');
-            }
-        }
-
-        // Display scoring configuration
-        function displayScoringConfig(scoringRules, categoryId) {
-            const container = document.getElementById('scoringConfig');
-            
-            container.innerHTML = `
+        container.innerHTML = `
                 <div class="bg-white border border-gray-200 p-6 card-sharp">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Scoring Rules</h3>
                     
                     <div class="space-y-4">
-                        ${scoringRules.length === 0 ? 
-                            '<p class="text-gray-500">No scoring rules configured yet.</p>' :
-                            scoringRules.map(rule => `
+                        ${
+                          scoringRules.length === 0
+                            ? '<p class="text-gray-500">No scoring rules configured yet.</p>'
+                            : scoringRules
+                                .map(
+                                  (rule) => `
                                 <div class="flex justify-between items-center p-3 border">
                                     <div>
                                         <p class="font-medium">${rule.rule_name}</p>
@@ -1503,7 +2103,9 @@
                                         </button>
                                     </div>
                                 </div>
-                            `).join('')
+                            `
+                                )
+                                .join("")
                         }
                         
                         <button onclick="addScoringRule(${categoryId})" class="w-full border-2 border-dashed border-gray-300 p-4 text-gray-600 hover:border-blue-300 hover:text-blue-600 transition-colors">
@@ -1513,50 +2115,52 @@
                     </div>
                 </div>
             `;
-            
-            lucide.createIcons();
-        }
 
-        // Refresh data
-        function refreshData() {
-            if (currentTab === 'categories') {
-                loadCategories();
-            } else if (currentTab === 'questions') {
-                loadQuestions();
-            } else if (currentTab === 'scoring') {
-                loadScoringConfig();
-            }
-        }
+        lucide.createIcons();
+      }
 
-        // Show notification
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-4 py-2 shadow-lg z-50 ${
-                type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
-                type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
-                'bg-blue-100 text-blue-800 border border-blue-200'
-            }`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
+      // Refresh data
+      function refreshData() {
+        if (currentTab === "categories") {
+          loadCategories();
+        } else if (currentTab === "questions") {
+          loadQuestions();
+        } else if (currentTab === "scoring") {
+          loadScoringConfig();
         }
+      }
 
-        // Placeholder functions for scoring
-        function addScoringRule(categoryId) {
-            alert('Add scoring rule functionality will be implemented');
-        }
+      // Show notification
+      function showNotification(message, type = "info") {
+        const notification = document.createElement("div");
+        notification.className = `fixed top-4 right-4 px-4 py-2 shadow-lg z-50 ${
+          type === "success"
+            ? "bg-green-100 text-green-800 border border-green-200"
+            : type === "error"
+            ? "bg-red-100 text-red-800 border border-red-200"
+            : "bg-blue-100 text-blue-800 border border-blue-200"
+        }`;
+        notification.textContent = message;
 
-        function editScoringRule(ruleId) {
-            alert('Edit scoring rule functionality will be implemented');
-        }
+        document.body.appendChild(notification);
 
-        function deleteScoringRule(ruleId) {
-            alert('Delete scoring rule functionality will be implemented');
-        }
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
+
+      // Placeholder functions for scoring
+      function addScoringRule(categoryId) {
+        alert("Add scoring rule functionality will be implemented");
+      }
+
+      function editScoringRule(ruleId) {
+        alert("Edit scoring rule functionality will be implemented");
+      }
+
+      function deleteScoringRule(ruleId) {
+        alert("Delete scoring rule functionality will be implemented");
+      }
     </script>
-</body>
+  </body>
 </html>

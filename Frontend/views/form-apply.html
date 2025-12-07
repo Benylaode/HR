@@ -1,1099 +1,1322 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Form - HR Recruitment System</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='20' height='14' x='2' y='5' rx='2'/><path d='m9 12 2 2 4-4'/></svg>"
+    />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
     <style>
-        /* Professional Corporate Design */
-        .card-sharp {
-            border-radius: 0px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-hover:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .btn-sharp {
-            border-radius: 0px;
-        }
-        
-        .input-sharp {
-            border-radius: 0px;
-        }
-        
-        /* Professional Color Scheme */
-        :root {
-            --primary: #1e3a8a;    /* Deep Blue */
-            --secondary: #64748b;  /* Slate Gray */
-            --accent: #0ea5e9;     /* Sky Blue */
-            --success: #059669;    /* Emerald */
-            --warning: #d97706;    /* Amber */
-            --danger: #dc2626;     /* Red */
-            --dark: #0f172a;       /* Slate 900 */
-            --light: #f8fafc;      /* Slate 50 */
-        }
-        
-        .bg-primary { background-color: var(--primary); }
-        .bg-secondary { background-color: var(--secondary); }
-        .bg-accent { background-color: var(--accent); }
-        .text-primary { color: var(--primary); }
-        .text-secondary { color: var(--secondary); }
-        .border-primary { border-color: var(--primary); }
-        
-        /* Remove all rounded corners */
-        * {
-            border-radius: 0 !important;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: var(--secondary); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-        
-        .transition-all { transition: all 0.2s ease-in-out; }
-        
-        /* Login Form Styles */
-        .login-container {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-        }
-        
-        /* Form Steps */
-        .step-indicator {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .step {
-            flex: 1;
-            display: flex;
-            align-items: center;
-        }
-        
-        .step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .step-active .step-number {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .step-completed .step-number {
-            background-color: var(--success);
-            color: white;
-        }
-        
-        .step-inactive .step-number {
-            background-color: #e5e7eb;
-            color: #6b7280;
-        }
-        
-        .step-line {
-            flex: 1;
-            height: 2px;
-            background-color: #e5e7eb;
-            margin: 0 1rem;
-        }
-        
-        .step-completed .step-line {
-            background-color: var(--success);
-        }
-        
-        /* Form Sections */
-        .form-section {
-            display: none;
-        }
-        
-        .form-section.active {
-            display: block;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-        
+      /* Professional Corporate Design */
+      .card-sharp {
+        border-radius: 0px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-hover:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .btn-sharp {
+        border-radius: 0px;
+      }
+
+      .input-sharp {
+        border-radius: 0px;
+      }
+
+      /* Professional Color Scheme */
+      :root {
+        --primary: #1e3a8a; /* Deep Blue */
+        --secondary: #64748b; /* Slate Gray */
+        --accent: #0ea5e9; /* Sky Blue */
+        --success: #059669; /* Emerald */
+        --warning: #d97706; /* Amber */
+        --danger: #dc2626; /* Red */
+        --dark: #0f172a; /* Slate 900 */
+        --light: #f8fafc; /* Slate 50 */
+      }
+
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .bg-secondary {
+        background-color: var(--secondary);
+      }
+      .bg-accent {
+        background-color: var(--accent);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .text-secondary {
+        color: var(--secondary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
+
+      /* Remove all rounded corners */
+      * {
+        border-radius: 0 !important;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      .transition-all {
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Login Form Styles */
+      .login-container {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        min-height: 100vh;
+      }
+
+      /* Form Steps */
+      .step-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .step {
+        flex: 1;
+        display: flex;
+        align-items: center;
+      }
+
+      .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .step-active .step-number {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .step-completed .step-number {
+        background-color: var(--success);
+        color: white;
+      }
+
+      .step-inactive .step-number {
+        background-color: #e5e7eb;
+        color: #6b7280;
+      }
+
+      .step-line {
+        flex: 1;
+        height: 2px;
+        background-color: #e5e7eb;
+        margin: 0 1rem;
+      }
+
+      .step-completed .step-line {
+        background-color: var(--success);
+      }
+
+      /* Form Sections */
+      .form-section {
+        display: none;
+      }
+
+      .form-section.active {
+        display: block;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .form-grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      @media (max-width: 768px) {
         .form-grid-2 {
-            grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr;
         }
-        
-        @media (max-width: 768px) {
-            .form-grid-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* File Upload */
-        .file-upload {
-            border: 2px dashed #d1d5db;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .file-upload:hover {
-            border-color: var(--primary);
-            background-color: #f8fafc;
-        }
-        
-        .file-upload.drag-over {
-            border-color: var(--primary);
-            background-color: #eff6ff;
-        }
-        
-        /* Progress Bar */
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background-color: #e5e7eb;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: width 0.3s ease;
-        }
+      }
+
+      /* File Upload */
+      .file-upload {
+        border: 2px dashed #d1d5db;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .file-upload:hover {
+        border-color: var(--primary);
+        background-color: #f8fafc;
+      }
+
+      .file-upload.drag-over {
+        border-color: var(--primary);
+        background-color: #eff6ff;
+      }
+
+      /* Progress Bar */
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e5e7eb;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        transition: width 0.3s ease;
+      }
     </style>
-</head>
-<body class="bg-gray-50 font-inter">
+  </head>
+  <body class="bg-gray-50 font-inter">
     <!-- Public Application Form (No login required) -->
     <div class="min-h-screen bg-gray-50">
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-                            <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h1 class="text-lg font-bold text-gray-900">PT. Company Name</h1>
-                            <p class="text-xs text-gray-500">Career Application</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center space-x-4">
-                        <a href="admin" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                            Admin Login
-                        </a>
-                    </div>
-                </div>
+      <!-- Header -->
+      <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            <div class="flex items-center">
+              <div
+                class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center"
+              >
+                <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+              </div>
+              <div class="ml-3">
+                <h1 class="text-lg font-bold text-gray-900">
+                  PT. Company Name
+                </h1>
+                <p class="text-xs text-gray-500">Career Application</p>
+              </div>
             </div>
-        </header>
-        
-        <!-- Main Content -->
-        <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Progress Bar -->
-            <div class="mb-8">
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill" style="width: 25%"></div>
-                </div>
+
+            <div class="flex items-center space-x-4">
+              <a
+                href="admin"
+                class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Admin Login
+              </a>
             </div>
-            
-            <!-- Step Indicator -->
-            <div class="step-indicator">
-                <div class="step step-active" id="step1">
-                    <div class="step-number">1</div>
-                    <div class="step-text">
-                        <div class="font-medium text-gray-900">Personal Info</div>
-                        <div class="text-sm text-gray-500">Basic information</div>
-                    </div>
-                    <div class="step-line"></div>
-                </div>
-                <div class="step step-inactive" id="step2">
-                    <div class="step-number">2</div>
-                    <div class="step-text">
-                        <div class="font-medium text-gray-700">Experience</div>
-                        <div class="text-sm text-gray-500">Work history</div>
-                    </div>
-                    <div class="step-line"></div>
-                </div>
-                <div class="step step-inactive" id="step3">
-                    <div class="step-number">3</div>
-                    <div class="step-text">
-                        <div class="font-medium text-gray-700">Documents</div>
-                        <div class="text-sm text-gray-500">CV & certificates</div>
-                    </div>
-                    <div class="step-line"></div>
-                </div>
-                <div class="step step-inactive" id="step4">
-                    <div class="step-number">4</div>
-                    <div class="step-text">
-                        <div class="font-medium text-gray-700">Review</div>
-                        <div class="text-sm text-gray-500">Final check</div>
-                    </div>
-                </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+          <div class="progress-bar">
+            <div
+              id="progressFill"
+              class="progress-fill"
+              style="width: 25%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+          <div class="step step-active" id="step1">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <div class="font-medium text-gray-900">Personal Info</div>
+              <div class="text-sm text-gray-500">Basic information</div>
             </div>
-            
-            <!-- Application Form -->
-            <form id="applicationForm" class="bg-white shadow border border-gray-200 p-8">
-                <!-- Step 1: Personal Information -->
-                <div id="section1" class="form-section active">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Personal Information</h2>
-                        <p class="text-gray-600">Please provide your basic personal information.</p>
-                    </div>
-                    
-                    <div class="form-grid form-grid-2">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                            <input 
-                                type="text" 
-                                id="fullName" 
-                                name="fullName"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="Enter your full name"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="your.email@example.com"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                            <input 
-                                type="tel" 
-                                id="phone" 
-                                name="phone"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="+62 812-3456-7890"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
-                            <input 
-                                type="date" 
-                                id="dateOfBirth" 
-                                name="dateOfBirth"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
-                            <select 
-                                id="gender" 
-                                name="gender"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            >
-                                <option value="">Select gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Marital Status</label>
-                            <select 
-                                id="maritalStatus" 
-                                name="maritalStatus"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            >
-                                <option value="">Select status</option>
-                                <option value="single">Single</option>
-                                <option value="married">Married</option>
-                                <option value="divorced">Divorced</option>
-                                <option value="widowed">Widowed</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-grid mt-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-                            <textarea 
-                                id="address" 
-                                name="address"
-                                required
-                                rows="3"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="Enter your complete address"
-                            ></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Position Applied For *</label>
-                            <select 
-                                id="position" 
-                                name="position"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            >
-                                <option value="">Select position</option>
-                            </select>
-                        </div>
-                    </div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step step-inactive" id="step2">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <div class="font-medium text-gray-700">Experience</div>
+              <div class="text-sm text-gray-500">Work history</div>
+            </div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step step-inactive" id="step3">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <div class="font-medium text-gray-700">Documents</div>
+              <div class="text-sm text-gray-500">CV & certificates</div>
+            </div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step step-inactive" id="step4">
+            <div class="step-number">4</div>
+            <div class="step-text">
+              <div class="font-medium text-gray-700">Review</div>
+              <div class="text-sm text-gray-500">Final check</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Application Form -->
+        <form
+          id="applicationForm"
+          class="bg-white shadow border border-gray-200 p-8"
+        >
+          <!-- Step 1: Personal Information -->
+          <div id="section1" class="form-section active">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                Personal Information
+              </h2>
+              <p class="text-gray-600">
+                Please provide your basic personal information.
+              </p>
+            </div>
+
+            <div class="form-grid form-grid-2">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Full Name *</label
+                >
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Email Address *</label
+                >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Phone Number *</label
+                >
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="+62 812-3456-7890"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Date of Birth *</label
+                >
+                <input
+                  type="date"
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Gender *</label
+                >
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Marital Status</label
+                >
+                <select
+                  id="maritalStatus"
+                  name="maritalStatus"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">Select status</option>
+                  <option value="single">Single</option>
+                  <option value="married">Married</option>
+                  <option value="divorced">Divorced</option>
+                  <option value="widowed">Widowed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid mt-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Address *</label
+                >
+                <textarea
+                  id="address"
+                  name="address"
+                  required
+                  rows="3"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Enter your complete address"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Position Applied For *</label
+                >
+                <select
+                  id="position"
+                  name="position"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">Select position</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Experience & Education -->
+          <div id="section2" class="form-section">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                Experience & Education
+              </h2>
+              <p class="text-gray-600">
+                Tell us about your work experience and educational background.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Education Level *</label
+                >
+                <select
+                  id="education"
+                  name="education"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">Select education level</option>
+                  <option value="sma">SMA/SMK</option>
+                  <option value="d3">Diploma (D3)</option>
+                  <option value="s1">Bachelor's Degree (S1)</option>
+                  <option value="s2">Master's Degree (S2)</option>
+                  <option value="s3">Doctorate (S3)</option>
+                </select>
+              </div>
+
+              <div class="form-grid form-grid-2">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >University/School *</label
+                  >
+                  <input
+                    type="text"
+                    id="university"
+                    name="university"
+                    required
+                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="University or school name"
+                  />
                 </div>
-                
-                <!-- Step 2: Experience & Education -->
-                <div id="section2" class="form-section">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Experience & Education</h2>
-                        <p class="text-gray-600">Tell us about your work experience and educational background.</p>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Education Level *</label>
-                            <select 
-                                id="education" 
-                                name="education"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            >
-                                <option value="">Select education level</option>
-                                <option value="sma">SMA/SMK</option>
-                                <option value="d3">Diploma (D3)</option>
-                                <option value="s1">Bachelor's Degree (S1)</option>
-                                <option value="s2">Master's Degree (S2)</option>
-                                <option value="s3">Doctorate (S3)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-grid form-grid-2">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">University/School *</label>
-                                <input 
-                                    type="text" 
-                                    id="university" 
-                                    name="university"
-                                    required
-                                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                    placeholder="University or school name"
-                                >
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Major/Field of Study *</label>
-                                <input 
-                                    type="text" 
-                                    id="major" 
-                                    name="major"
-                                    required
-                                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                    placeholder="Your major or field of study"
-                                >
-                            </div>
-                        </div>
-                        
-                        <div class="form-grid form-grid-2">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Graduation Year *</label>
-                                <input 
-                                    type="number" 
-                                    id="graduationYear" 
-                                    name="graduationYear"
-                                    required
-                                    min="1970"
-                                    max="2030"
-                                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                    placeholder="2020"
-                                >
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">GPA (Optional)</label>
-                                <input 
-                                    type="number" 
-                                    id="gpa" 
-                                    name="gpa"
-                                    step="0.01"
-                                    min="0"
-                                    max="4"
-                                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                    placeholder="3.50"
-                                >
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Work Experience *</label>
-                            <select 
-                                id="experience" 
-                                name="experience"
-                                required
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            >
-                                <option value="">Select experience level</option>
-                                <option value="fresh-graduate">Fresh Graduate</option>
-                                <option value="1-2-years">1-2 years</option>
-                                <option value="3-5-years">3-5 years</option>
-                                <option value="5-10-years">5-10 years</option>
-                                <option value="10-years">10+ years</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Previous Job Title</label>
-                            <input 
-                                type="text" 
-                                id="previousJob" 
-                                name="previousJob"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="Your most recent job title"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Previous Company</label>
-                            <input 
-                                type="text" 
-                                id="previousCompany" 
-                                name="previousCompany"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="Your most recent company"
-                            >
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Skills & Competencies *</label>
-                            <textarea 
-                                id="skills" 
-                                name="skills"
-                                required
-                                rows="4"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="List your relevant skills and competencies (e.g., Programming languages, Software tools, Certifications, etc.)"
-                            ></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Expected Salary (IDR)</label>
-                            <input 
-                                type="number" 
-                                id="expectedSalary" 
-                                name="expectedSalary"
-                                min="0"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="15000000"
-                            >
-                        </div>
-                    </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Major/Field of Study *</label
+                  >
+                  <input
+                    type="text"
+                    id="major"
+                    name="major"
+                    required
+                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="Your major or field of study"
+                  />
                 </div>
-                
-                <!-- Step 3: Documents Upload -->
-                <div id="section3" class="form-section">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Document Upload</h2>
-                        <p class="text-gray-600">Please upload your CV and supporting documents.</p>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-4">Curriculum Vitae (CV) *</label>
-                            <div class="file-upload" id="cvUpload">
-                                <input type="file" id="cvFile" name="cvFile" accept=".pdf,.doc,.docx" class="hidden" required>
-                                <div class="text-center">
-                                    <i data-lucide="upload" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
-                                    <p class="text-lg font-medium text-gray-900 mb-2">Upload your CV</p>
-                                    <p class="text-sm text-gray-500 mb-4">PDF, DOC, or DOCX (max 5MB)</p>
-                                    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors">
-                                        Choose File
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="cvPreview" class="mt-4 hidden">
-                                <div class="flex items-center p-4 bg-green-50 border border-green-200">
-                                    <i data-lucide="file-text" class="w-5 h-5 text-green-600 mr-3"></i>
-                                    <div class="flex-1">
-                                        <p class="text-sm font-medium text-green-900" id="cvFileName"></p>
-                                        <p class="text-xs text-green-700" id="cvFileSize"></p>
-                                    </div>
-                                    <button type="button" onclick="removeFile('cv')" class="text-red-600 hover:text-red-800">
-                                        <i data-lucide="x" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-4">Supporting Documents (Optional)</label>
-                            <div class="file-upload" id="documentsUpload">
-                                <input type="file" id="documentsFile" name="documentsFile" accept=".pdf,.doc,.docx,.jpg,.png" multiple class="hidden">
-                                <div class="text-center">
-                                    <i data-lucide="file-plus" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
-                                    <p class="text-lg font-medium text-gray-900 mb-2">Upload certificates, portfolios</p>
-                                    <p class="text-sm text-gray-500 mb-4">PDF, DOC, DOCX, JPG, PNG (max 5MB each)</p>
-                                    <button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 font-medium transition-colors">
-                                        Choose Files
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="documentsPreview" class="mt-4 space-y-2"></div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Cover Letter</label>
-                            <textarea 
-                                id="coverLetter" 
-                                name="coverLetter"
-                                rows="6"
-                                class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
-                            ></textarea>
-                        </div>
-                    </div>
+              </div>
+
+              <div class="form-grid form-grid-2">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Graduation Year *</label
+                  >
+                  <input
+                    type="number"
+                    id="graduationYear"
+                    name="graduationYear"
+                    required
+                    min="1970"
+                    max="2030"
+                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="2020"
+                  />
                 </div>
-                
-                <!-- Step 4: Review & Submit -->
-                <div id="section4" class="form-section">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Review & Submit</h2>
-                        <p class="text-gray-600">Please review your information before submitting your application.</p>
-                    </div>
-                    
-                    <div id="reviewContent" class="space-y-6">
-                        <!-- Review content will be populated by JavaScript -->
-                    </div>
-                    
-                    <div class="mt-8 p-6 bg-blue-50 border border-blue-200">
-                        <div class="flex items-start">
-                            <i data-lucide="info" class="w-6 h-6 text-blue-600 mt-0.5 mr-3"></i>
-                            <div>
-                                <h4 class="font-semibold text-blue-900 mb-2">Next Steps</h4>
-                                <ul class="text-sm text-blue-800 space-y-1">
-                                    <li>• You will receive a confirmation email after submitting</li>
-                                    <li>• Our HR team will review your application within 3-5 business days</li>
-                                    <li>• If selected, you will receive a DISC personality test link</li>
-                                    <li>• Successful candidates will be invited for interviews</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6">
-                        <div class="flex items-center mb-4">
-                            <input type="checkbox" id="termsAccepted" name="termsAccepted" required class="mr-3 w-4 h-4">
-                            <label for="termsAccepted" class="text-sm text-gray-700">
-                                I agree to the <a href="#" class="text-blue-600 hover:text-blue-800 underline">Terms and Conditions</a> 
-                                and <a href="#" class="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center">
-                            <input type="checkbox" id="dataConsent" name="dataConsent" required class="mr-3 w-4 h-4">
-                            <label for="dataConsent" class="text-sm text-gray-700">
-                                I consent to the processing of my personal data for recruitment purposes
-                            </label>
-                        </div>
-                    </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >GPA (Optional)</label
+                  >
+                  <input
+                    type="number"
+                    id="gpa"
+                    name="gpa"
+                    step="0.01"
+                    min="0"
+                    max="4"
+                    class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="3.50"
+                  />
                 </div>
-                
-                <!-- Navigation Buttons -->
-                <div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
-                    <button 
-                        type="button" 
-                        id="prevBtn" 
-                        class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        style="display: none;"
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Work Experience *</label
+                >
+                <select
+                  id="experience"
+                  name="experience"
+                  required
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">Select experience level</option>
+                  <option value="fresh-graduate">Fresh Graduate</option>
+                  <option value="1-2-years">1-2 years</option>
+                  <option value="3-5-years">3-5 years</option>
+                  <option value="5-10-years">5-10 years</option>
+                  <option value="10-years">10+ years</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Previous Job Title</label
+                >
+                <input
+                  type="text"
+                  id="previousJob"
+                  name="previousJob"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Your most recent job title"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Previous Company</label
+                >
+                <input
+                  type="text"
+                  id="previousCompany"
+                  name="previousCompany"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Your most recent company"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Skills & Competencies *</label
+                >
+                <textarea
+                  id="skills"
+                  name="skills"
+                  required
+                  rows="4"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="List your relevant skills and competencies (e.g., Programming languages, Software tools, Certifications, etc.)"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Expected Salary (IDR)</label
+                >
+                <input
+                  type="number"
+                  id="expectedSalary"
+                  name="expectedSalary"
+                  min="0"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="15000000"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Documents Upload -->
+          <div id="section3" class="form-section">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                Document Upload
+              </h2>
+              <p class="text-gray-600">
+                Please upload your CV and supporting documents.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-4"
+                  >Curriculum Vitae (CV) *</label
+                >
+                <div class="file-upload" id="cvUpload">
+                  <input
+                    type="file"
+                    id="cvFile"
+                    name="cvFile"
+                    accept=".pdf,.doc,.docx"
+                    class="hidden"
+                    required
+                  />
+                  <div class="text-center">
+                    <i
+                      data-lucide="upload"
+                      class="w-12 h-12 text-gray-400 mx-auto mb-4"
+                    ></i>
+                    <p class="text-lg font-medium text-gray-900 mb-2">
+                      Upload your CV
+                    </p>
+                    <p class="text-sm text-gray-500 mb-4">
+                      PDF, DOC, or DOCX (max 5MB)
+                    </p>
+                    <button
+                      type="button"
+                      class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors"
                     >
-                        <i data-lucide="chevron-left" class="w-4 h-4 mr-2 inline"></i>
-                        Previous
+                      Choose File
                     </button>
-                    
-                    <div class="ml-auto flex space-x-4">
-                        <button
-                            type="button"
-                            id="nextBtn"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors"
-                        >
-                            Next
-                            <i data-lucide="chevron-right" class="w-4 h-4 ml-2 inline"></i>
-                        </button>
-                        
-                        <button 
-                            type="submit" 
-                            id="submitBtn" 
-                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-medium transition-colors"
-                            style="display: none;"
-                        >
-                            <i data-lucide="send" class="w-4 h-4 mr-2 inline"></i>
-                            Submit Application
-                        </button>
-                    </div>
+                  </div>
                 </div>
-            </form>
-        </main>
+                <div id="cvPreview" class="mt-4 hidden">
+                  <div
+                    class="flex items-center p-4 bg-green-50 border border-green-200"
+                  >
+                    <i
+                      data-lucide="file-text"
+                      class="w-5 h-5 text-green-600 mr-3"
+                    ></i>
+                    <div class="flex-1">
+                      <p
+                        class="text-sm font-medium text-green-900"
+                        id="cvFileName"
+                      ></p>
+                      <p class="text-xs text-green-700" id="cvFileSize"></p>
+                    </div>
+                    <button
+                      type="button"
+                      onclick="removeFile('cv')"
+                      class="text-red-600 hover:text-red-800"
+                    >
+                      <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-4"
+                  >Supporting Documents (Optional)</label
+                >
+                <div class="file-upload" id="documentsUpload">
+                  <input
+                    type="file"
+                    id="documentsFile"
+                    name="documentsFile"
+                    accept=".pdf,.doc,.docx,.jpg,.png"
+                    multiple
+                    class="hidden"
+                  />
+                  <div class="text-center">
+                    <i
+                      data-lucide="file-plus"
+                      class="w-12 h-12 text-gray-400 mx-auto mb-4"
+                    ></i>
+                    <p class="text-lg font-medium text-gray-900 mb-2">
+                      Upload certificates, portfolios
+                    </p>
+                    <p class="text-sm text-gray-500 mb-4">
+                      PDF, DOC, DOCX, JPG, PNG (max 5MB each)
+                    </p>
+                    <button
+                      type="button"
+                      class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 font-medium transition-colors"
+                    >
+                      Choose Files
+                    </button>
+                  </div>
+                </div>
+                <div id="documentsPreview" class="mt-4 space-y-2"></div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Cover Letter</label
+                >
+                <textarea
+                  id="coverLetter"
+                  name="coverLetter"
+                  rows="6"
+                  class="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Review & Submit -->
+          <div id="section4" class="form-section">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                Review & Submit
+              </h2>
+              <p class="text-gray-600">
+                Please review your information before submitting your
+                application.
+              </p>
+            </div>
+
+            <div id="reviewContent" class="space-y-6">
+              <!-- Review content will be populated by JavaScript -->
+            </div>
+
+            <div class="mt-8 p-6 bg-blue-50 border border-blue-200">
+              <div class="flex items-start">
+                <i
+                  data-lucide="info"
+                  class="w-6 h-6 text-blue-600 mt-0.5 mr-3"
+                ></i>
+                <div>
+                  <h4 class="font-semibold text-blue-900 mb-2">Next Steps</h4>
+                  <ul class="text-sm text-blue-800 space-y-1">
+                    <li>
+                      • You will receive a confirmation email after submitting
+                    </li>
+                    <li>
+                      • Our HR team will review your application within 3-5
+                      business days
+                    </li>
+                    <li>
+                      • If selected, you will receive a DISC personality test
+                      link
+                    </li>
+                    <li>
+                      • Successful candidates will be invited for interviews
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  id="termsAccepted"
+                  name="termsAccepted"
+                  required
+                  class="mr-3 w-4 h-4"
+                />
+                <label for="termsAccepted" class="text-sm text-gray-700">
+                  I agree to the
+                  <a
+                    href="#"
+                    class="text-blue-600 hover:text-blue-800 underline"
+                    >Terms and Conditions</a
+                  >
+                  and
+                  <a
+                    href="#"
+                    class="text-blue-600 hover:text-blue-800 underline"
+                    >Privacy Policy</a
+                  >
+                </label>
+              </div>
+
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  id="dataConsent"
+                  name="dataConsent"
+                  required
+                  class="mr-3 w-4 h-4"
+                />
+                <label for="dataConsent" class="text-sm text-gray-700">
+                  I consent to the processing of my personal data for
+                  recruitment purposes
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              id="prevBtn"
+              class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style="display: none"
+            >
+              <i data-lucide="chevron-left" class="w-4 h-4 mr-2 inline"></i>
+              Previous
+            </button>
+
+            <div class="ml-auto flex space-x-4">
+              <button
+                type="button"
+                id="nextBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition-colors"
+              >
+                Next
+                <i data-lucide="chevron-right" class="w-4 h-4 ml-2 inline"></i>
+              </button>
+
+              <button
+                type="submit"
+                id="submitBtn"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 font-medium transition-colors"
+                style="display: none"
+              >
+                <i data-lucide="send" class="w-4 h-4 mr-2 inline"></i>
+                Submit Application
+              </button>
+            </div>
+          </div>
+        </form>
+      </main>
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3011/api';
-        let currentStep = 1;
-        const totalSteps = 4;
+      const API_BASE = "http://localhost:3011/api";
+      let currentStep = 1;
+      const totalSteps = 4;
 
-        // Initialize Lucide icons
-        lucide.createIcons();
+      // Initialize Lucide icons
+      lucide.createIcons();
 
-        // Form navigation
-        function updateStep(step) {
-            console.log('updateStep called with step:', step);
+      // Form navigation
+      function updateStep(step) {
+        console.log("updateStep called with step:", step);
 
-            // Update step indicators
-            for (let i = 1; i <= totalSteps; i++) {
-                const stepElement = document.getElementById(`step${i}`);
-                const sectionElement = document.getElementById(`section${i}`);
+        // Update step indicators
+        for (let i = 1; i <= totalSteps; i++) {
+          const stepElement = document.getElementById(`step${i}`);
+          const sectionElement = document.getElementById(`section${i}`);
 
-                console.log(`Processing step ${i}: stepElement=${!!stepElement}, sectionElement=${!!sectionElement}`);
+          console.log(
+            `Processing step ${i}: stepElement=${!!stepElement}, sectionElement=${!!sectionElement}`
+          );
 
-                if (i < step) {
-                    stepElement.className = 'step step-completed';
-                } else if (i === step) {
-                    stepElement.className = 'step step-active';
-                } else {
-                    stepElement.className = 'step step-inactive';
-                }
+          if (i < step) {
+            stepElement.className = "step step-completed";
+          } else if (i === step) {
+            stepElement.className = "step step-active";
+          } else {
+            stepElement.className = "step step-inactive";
+          }
 
-                // Show/hide sections
-                if (i === step) {
-                    sectionElement.classList.add('active');
-                    console.log(`Showing section ${i}`);
-                } else {
-                    sectionElement.classList.remove('active');
-                    console.log(`Hiding section ${i}`);
-                }
-            }
-            
-            // Update progress bar
-            const progress = (step / totalSteps) * 100;
-            document.getElementById('progressFill').style.width = `${progress}%`;
-            
-            // Update buttons
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            prevBtn.style.display = step > 1 ? 'block' : 'none';
-            
-            if (step === totalSteps) {
-                nextBtn.style.display = 'none';
-                submitBtn.style.display = 'block';
-                populateReview();
-            } else {
-                nextBtn.style.display = 'block';
-                submitBtn.style.display = 'none';
-            }
+          // Show/hide sections
+          if (i === step) {
+            sectionElement.classList.add("active");
+            console.log(`Showing section ${i}`);
+          } else {
+            sectionElement.classList.remove("active");
+            console.log(`Hiding section ${i}`);
+          }
         }
 
-        // Validate current step
-        function validateCurrentStep() {
-            const section = document.getElementById(`section${currentStep}`);
-            const requiredFields = section.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    field.classList.remove('border-red-500');
-                }
-            });
-            
-            return isValid;
+        // Update progress bar
+        const progress = (step / totalSteps) * 100;
+        document.getElementById("progressFill").style.width = `${progress}%`;
+
+        // Update buttons
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const submitBtn = document.getElementById("submitBtn");
+
+        prevBtn.style.display = step > 1 ? "block" : "none";
+
+        if (step === totalSteps) {
+          nextBtn.style.display = "none";
+          submitBtn.style.display = "block";
+          populateReview();
+        } else {
+          nextBtn.style.display = "block";
+          submitBtn.style.display = "none";
         }
+      }
 
-        // Navigate to next step
-        function nextStep() {
-            console.log('nextStep called - currentStep:', currentStep, 'totalSteps:', totalSteps);
+      // Validate current step
+      function validateCurrentStep() {
+        const section = document.getElementById(`section${currentStep}`);
+        const requiredFields = section.querySelectorAll("[required]");
+        let isValid = true;
 
-            const isValid = validateCurrentStep();
-            console.log('Validation result:', isValid);
+        requiredFields.forEach((field) => {
+          if (!field.value.trim()) {
+            field.classList.add("border-red-500");
+            isValid = false;
+          } else {
+            field.classList.remove("border-red-500");
+          }
+        });
 
-            if (isValid && currentStep < totalSteps) {
-                currentStep++;
-                console.log('Moving to step:', currentStep);
-                updateStep(currentStep);
-            } else if (!isValid) {
-                console.log('Validation failed - showing alert');
-                alert('Please fill in all required fields before proceeding.');
-            } else {
-                console.log('Already at last step');
-            }
+        return isValid;
+      }
+
+      // Navigate to next step
+      function nextStep() {
+        console.log(
+          "nextStep called - currentStep:",
+          currentStep,
+          "totalSteps:",
+          totalSteps
+        );
+
+        const isValid = validateCurrentStep();
+        console.log("Validation result:", isValid);
+
+        if (isValid && currentStep < totalSteps) {
+          currentStep++;
+          console.log("Moving to step:", currentStep);
+          updateStep(currentStep);
+        } else if (!isValid) {
+          console.log("Validation failed - showing alert");
+          alert("Please fill in all required fields before proceeding.");
+        } else {
+          console.log("Already at last step");
         }
+      }
 
-        // Navigate to previous step
-        function prevStep() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateStep(currentStep);
-            }
+      // Navigate to previous step
+      function prevStep() {
+        if (currentStep > 1) {
+          currentStep--;
+          updateStep(currentStep);
         }
+      }
 
-        // Populate review section
-        function populateReview() {
-            const formData = new FormData(document.getElementById('applicationForm'));
-            const reviewContent = document.getElementById('reviewContent');
-            
-            const sections = [
-                {
-                    title: 'Personal Information',
-                    fields: [
-                        { label: 'Full Name', key: 'fullName' },
-                        { label: 'Email', key: 'email' },
-                        { label: 'Phone', key: 'phone' },
-                        { label: 'Date of Birth', key: 'dateOfBirth' },
-                        { label: 'Gender', key: 'gender' },
-                        { label: 'Marital Status', key: 'maritalStatus' },
-                        { label: 'Address', key: 'address' },
-                        { label: 'Position Applied', key: 'position' }
-                    ]
-                },
-                {
-                    title: 'Experience & Education',
-                    fields: [
-                        { label: 'Education Level', key: 'education' },
-                        { label: 'University/School', key: 'university' },
-                        { label: 'Major', key: 'major' },
-                        { label: 'Graduation Year', key: 'graduationYear' },
-                        { label: 'GPA', key: 'gpa' },
-                        { label: 'Work Experience', key: 'experience' },
-                        { label: 'Previous Job', key: 'previousJob' },
-                        { label: 'Previous Company', key: 'previousCompany' },
-                        { label: 'Skills', key: 'skills' },
-                        { label: 'Expected Salary', key: 'expectedSalary' }
-                    ]
-                }
-            ];
-            
-            let reviewHTML = '';
-            
-            sections.forEach(section => {
-                reviewHTML += `<div class="bg-gray-50 p-6 border border-gray-200">
+      // Populate review section
+      function populateReview() {
+        const formData = new FormData(
+          document.getElementById("applicationForm")
+        );
+        const reviewContent = document.getElementById("reviewContent");
+
+        const sections = [
+          {
+            title: "Personal Information",
+            fields: [
+              { label: "Full Name", key: "fullName" },
+              { label: "Email", key: "email" },
+              { label: "Phone", key: "phone" },
+              { label: "Date of Birth", key: "dateOfBirth" },
+              { label: "Gender", key: "gender" },
+              { label: "Marital Status", key: "maritalStatus" },
+              { label: "Address", key: "address" },
+              { label: "Position Applied", key: "position" },
+            ],
+          },
+          {
+            title: "Experience & Education",
+            fields: [
+              { label: "Education Level", key: "education" },
+              { label: "University/School", key: "university" },
+              { label: "Major", key: "major" },
+              { label: "Graduation Year", key: "graduationYear" },
+              { label: "GPA", key: "gpa" },
+              { label: "Work Experience", key: "experience" },
+              { label: "Previous Job", key: "previousJob" },
+              { label: "Previous Company", key: "previousCompany" },
+              { label: "Skills", key: "skills" },
+              { label: "Expected Salary", key: "expectedSalary" },
+            ],
+          },
+        ];
+
+        let reviewHTML = "";
+
+        sections.forEach((section) => {
+          reviewHTML += `<div class="bg-gray-50 p-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">${section.title}</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-                
-                section.fields.forEach(field => {
-                    const value = formData.get(field.key) || '-';
-                    reviewHTML += `
+
+          section.fields.forEach((field) => {
+            const value = formData.get(field.key) || "-";
+            reviewHTML += `
                         <div>
                             <dt class="text-sm font-medium text-gray-500">${field.label}</dt>
                             <dd class="text-sm text-gray-900 mt-1">${value}</dd>
                         </div>
                     `;
-                });
-                
-                reviewHTML += `</div></div>`;
-            });
-            
-            // Add documents section
-            const cvFile = document.getElementById('cvFile').files[0];
-            const documentsFiles = document.getElementById('documentsFile').files;
-            
-            reviewHTML += `<div class="bg-gray-50 p-6 border border-gray-200">
+          });
+
+          reviewHTML += `</div></div>`;
+        });
+
+        // Add documents section
+        const cvFile = document.getElementById("cvFile").files[0];
+        const documentsFiles = document.getElementById("documentsFile").files;
+
+        reviewHTML += `<div class="bg-gray-50 p-6 border border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Documents</h3>
                 <div class="space-y-2">
                     <div>
                         <dt class="text-sm font-medium text-gray-500">CV</dt>
-                        <dd class="text-sm text-gray-900 mt-1">${cvFile ? cvFile.name : 'Not uploaded'}</dd>
+                        <dd class="text-sm text-gray-900 mt-1">${
+                          cvFile ? cvFile.name : "Not uploaded"
+                        }</dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Supporting Documents</dt>
                         <dd class="text-sm text-gray-900 mt-1">
-                            ${documentsFiles.length > 0 ? 
-                                Array.from(documentsFiles).map(f => f.name).join(', ') : 
-                                'None uploaded'
+                            ${
+                              documentsFiles.length > 0
+                                ? Array.from(documentsFiles)
+                                    .map((f) => f.name)
+                                    .join(", ")
+                                : "None uploaded"
                             }
                         </dd>
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Cover Letter</dt>
-                        <dd class="text-sm text-gray-900 mt-1">${formData.get('coverLetter') ? 'Provided' : 'Not provided'}</dd>
+                        <dd class="text-sm text-gray-900 mt-1">${
+                          formData.get("coverLetter")
+                            ? "Provided"
+                            : "Not provided"
+                        }</dd>
                     </div>
                 </div>
             </div>`;
-            
-            reviewContent.innerHTML = reviewHTML;
-        }
 
-        // File upload handlers
-        function setupFileUpload(inputId, uploadAreaId, previewId) {
-            const input = document.getElementById(inputId);
-            const uploadArea = document.getElementById(uploadAreaId);
-            const preview = document.getElementById(previewId);
-            
-            uploadArea.addEventListener('click', () => input.click());
-            
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('drag-over');
-            });
-            
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('drag-over');
-            });
-            
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('drag-over');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    input.files = files;
-                    updateFilePreview(inputId, previewId);
-                }
-            });
-            
-            input.addEventListener('change', () => {
-                updateFilePreview(inputId, previewId);
-            });
-        }
+        reviewContent.innerHTML = reviewHTML;
+      }
 
-        function updateFilePreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            
-            if (inputId === 'cvFile' && input.files.length > 0) {
-                const file = input.files[0];
-                document.getElementById('cvFileName').textContent = file.name;
-                document.getElementById('cvFileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-                preview.classList.remove('hidden');
-            } else if (inputId === 'documentsFile' && input.files.length > 0) {
-                let previewHTML = '';
-                Array.from(input.files).forEach((file, index) => {
-                    previewHTML += `
+      // File upload handlers
+      function setupFileUpload(inputId, uploadAreaId, previewId) {
+        const input = document.getElementById(inputId);
+        const uploadArea = document.getElementById(uploadAreaId);
+        const preview = document.getElementById(previewId);
+
+        uploadArea.addEventListener("click", () => input.click());
+
+        uploadArea.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          uploadArea.classList.add("drag-over");
+        });
+
+        uploadArea.addEventListener("dragleave", () => {
+          uploadArea.classList.remove("drag-over");
+        });
+
+        uploadArea.addEventListener("drop", (e) => {
+          e.preventDefault();
+          uploadArea.classList.remove("drag-over");
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            input.files = files;
+            updateFilePreview(inputId, previewId);
+          }
+        });
+
+        input.addEventListener("change", () => {
+          updateFilePreview(inputId, previewId);
+        });
+      }
+
+      function updateFilePreview(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+
+        if (inputId === "cvFile" && input.files.length > 0) {
+          const file = input.files[0];
+          document.getElementById("cvFileName").textContent = file.name;
+          document.getElementById("cvFileSize").textContent = `${(
+            file.size /
+            1024 /
+            1024
+          ).toFixed(2)} MB`;
+          preview.classList.remove("hidden");
+        } else if (inputId === "documentsFile" && input.files.length > 0) {
+          let previewHTML = "";
+          Array.from(input.files).forEach((file, index) => {
+            previewHTML += `
                         <div class="flex items-center p-3 bg-blue-50 border border-blue-200">
                             <i data-lucide="file" class="w-4 h-4 text-blue-600 mr-3"></i>
                             <div class="flex-1">
-                                <p class="text-sm font-medium text-blue-900">${file.name}</p>
-                                <p class="text-xs text-blue-700">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                <p class="text-sm font-medium text-blue-900">${
+                                  file.name
+                                }</p>
+                                <p class="text-xs text-blue-700">${(
+                                  file.size /
+                                  1024 /
+                                  1024
+                                ).toFixed(2)} MB</p>
                             </div>
                             <button type="button" onclick="removeDocumentFile(${index})" class="text-red-600 hover:text-red-800">
                                 <i data-lucide="x" class="w-4 h-4"></i>
                             </button>
                         </div>
                     `;
-                });
-                preview.innerHTML = previewHTML;
-                lucide.createIcons();
-            }
+          });
+          preview.innerHTML = previewHTML;
+          lucide.createIcons();
         }
+      }
 
-        function removeFile(type) {
-            if (type === 'cv') {
-                document.getElementById('cvFile').value = '';
-                document.getElementById('cvPreview').classList.add('hidden');
-            }
+      function removeFile(type) {
+        if (type === "cv") {
+          document.getElementById("cvFile").value = "";
+          document.getElementById("cvPreview").classList.add("hidden");
         }
+      }
 
-        function removeDocumentFile(index) {
-            const input = document.getElementById('documentsFile');
-            const dt = new DataTransfer();
-            
-            Array.from(input.files).forEach((file, i) => {
-                if (i !== index) dt.items.add(file);
-            });
-            
-            input.files = dt.files;
-            updateFilePreview('documentsFile', 'documentsPreview');
-        }
+      function removeDocumentFile(index) {
+        const input = document.getElementById("documentsFile");
+        const dt = new DataTransfer();
 
-        // Helper function to calculate age
-        function calculateAge(dateOfBirth) {
-            if (!dateOfBirth) return null;
-            const today = new Date();
-            const birthDate = new Date(dateOfBirth);
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            return age;
-        }
-
-        // Form submission with Supabase integration
-        // Dummy jobs untuk form apply
-        const dummyJobsForForm = [
-            { id: 'job-001', title: 'Senior Backend Developer', jobId: 1 },
-            { id: 'job-002', title: 'Frontend Engineer React', jobId: 2 },
-            { id: 'job-003', title: 'HR Manager', jobId: 3 },
-            { id: 'job-004', title: 'Product Manager', jobId: 4 },
-            { id: 'job-005', title: 'QA Automation Engineer', jobId: 5 }
-        ];
-
-        async function submitApplication(formData) {
-            try {
-                // Prepare data
-                const candidateData = {
-                    fullName: formData.get('fullName'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    age: calculateAge(formData.get('dateOfBirth')),
-                    gender: formData.get('gender'),
-                    address: {
-                        street: formData.get('address'),
-                        city: 'Jakarta',
-                        country: 'Indonesia'
-                    },
-                    appliedPosition: formData.get('position'),
-                    appliedJobId: window.selectedJobId || 1,
-                    education: {
-                        level: formData.get('education'),
-                        university: formData.get('university'),
-                        major: formData.get('major'),
-                        graduationYear: formData.get('graduationYear'),
-                        gpa: formData.get('gpa')
-                    },
-                    experience: {
-                        level: formData.get('experience'),
-                        previousJob: formData.get('previousJob'),
-                        previousCompany: formData.get('previousCompany')
-                    },
-                    skills: formData.get('skills'),
-                    expectedSalary: formData.get('expectedSalary'),
-                    coverLetter: formData.get('coverLetter')
-                };
-
-                console.log('✅ Submitting application (dummy - tanpa backend):', candidateData);
-
-                // Simulasi delay submission
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Simulasi success response
-                alert('✅ Application submitted successfully! Data tersimpan di browser. You will receive a confirmation email shortly.');
-                document.getElementById('applicationForm').reset();
-                currentStep = 1;
-                updateStep(currentStep);
-                
-            } catch (error) {
-                console.error('Error submitting application:', error);
-                alert(`Error submitting application: ${error.message}. Please try again.`);
-            }
-        }
-
-        // Load positions from dummy data (tanpa backend)
-        async function loadPositions() {
-            try {
-                console.log('✅ Loading positions (dummy - tanpa backend)...');
-                
-                // Simulasi delay loading
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                const jobs = [...dummyJobsForForm];
-                
-                const positionSelect = document.getElementById('position');
-                positionSelect.innerHTML = '<option value="">Select position</option>';
-                
-                jobs.forEach(job => {
-                    const option = document.createElement('option');
-                    option.value = job.id;
-                    option.textContent = job.title;
-                    option.setAttribute('data-job-id', job.jobId);
-                    positionSelect.appendChild(option);
-                });
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const jobId = urlParams.get('jobId');
-                if (jobId) {
-                    positionSelect.value = jobId;
-                    const numericId = parseInt(jobId.replace(/\D/g, '')) || 1;
-                    window.selectedJobId = numericId;
-                }
-                
-                console.log('✅ Positions loaded:', jobs.length, 'jobs');
-                
-            } catch (error) {
-                console.error('Error loading positions:', error);
-            }
-        }
-
-        // Handle position selection change
-        function handlePositionChange() {
-            const positionSelect = document.getElementById('position');
-            const selectedOption = positionSelect.options[positionSelect.selectedIndex];
-            if (selectedOption && selectedOption.value) {
-                // Extract numeric part from job ID if needed, or use the string ID as-is
-                const numericId = parseInt(selectedOption.value.replace(/\D/g, '')) || 1;
-                window.selectedJobId = numericId;
-            }
-        }
-
-        // Initialize event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded - Initializing form...');
-
-            // Test if elements exist
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtn = document.getElementById('prevBtn');
-            const applicationForm = document.getElementById('applicationForm');
-
-            console.log('Next button found:', !!nextBtn);
-            console.log('Previous button found:', !!prevBtn);
-            console.log('Application form found:', !!applicationForm);
-
-            if (!nextBtn || !prevBtn || !applicationForm) {
-                console.error('Missing form elements!');
-                return;
-            }
-
-            loadPositions();
-
-            document.getElementById('position').addEventListener('change', handlePositionChange);
-
-            // Navigation buttons
-            nextBtn.addEventListener('click', function(e) {
-                console.log('Next button clicked!');
-                e.preventDefault();
-                nextStep();
-            });
-
-            prevBtn.addEventListener('click', function(e) {
-                console.log('Previous button clicked!');
-                e.preventDefault();
-                prevStep();
-            });
-            
-            // Form submission
-            document.getElementById('applicationForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                if (!validateCurrentStep()) {
-                    alert('Please fill in all required fields and accept the terms.');
-                    return;
-                }
-                
-                const formData = new FormData(this);
-                submitApplication(formData);
-            });
-            
-            // File upload setup
-            setupFileUpload('cvFile', 'cvUpload', 'cvPreview');
-            setupFileUpload('documentsFile', 'documentsUpload', 'documentsPreview');
-            
-            // Initialize first step
-            updateStep(1);
+        Array.from(input.files).forEach((file, i) => {
+          if (i !== index) dt.items.add(file);
         });
+
+        input.files = dt.files;
+        updateFilePreview("documentsFile", "documentsPreview");
+      }
+
+      // Helper function to calculate age
+      function calculateAge(dateOfBirth) {
+        if (!dateOfBirth) return null;
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
+        return age;
+      }
+
+      // Form submission with Supabase integration
+      // Dummy jobs untuk form apply
+      const dummyJobsForForm = [
+        { id: "job-001", title: "Senior Backend Developer", jobId: 1 },
+        { id: "job-002", title: "Frontend Engineer React", jobId: 2 },
+        { id: "job-003", title: "HR Manager", jobId: 3 },
+        { id: "job-004", title: "Product Manager", jobId: 4 },
+        { id: "job-005", title: "QA Automation Engineer", jobId: 5 },
+      ];
+
+      async function submitApplication(formData) {
+        try {
+          // Prepare data
+          const candidateData = {
+            fullName: formData.get("fullName"),
+            email: formData.get("email"),
+            phone: formData.get("phone"),
+            age: calculateAge(formData.get("dateOfBirth")),
+            gender: formData.get("gender"),
+            address: {
+              street: formData.get("address"),
+              city: "Jakarta",
+              country: "Indonesia",
+            },
+            appliedPosition: formData.get("position"),
+            appliedJobId: window.selectedJobId || 1,
+            education: {
+              level: formData.get("education"),
+              university: formData.get("university"),
+              major: formData.get("major"),
+              graduationYear: formData.get("graduationYear"),
+              gpa: formData.get("gpa"),
+            },
+            experience: {
+              level: formData.get("experience"),
+              previousJob: formData.get("previousJob"),
+              previousCompany: formData.get("previousCompany"),
+            },
+            skills: formData.get("skills"),
+            expectedSalary: formData.get("expectedSalary"),
+            coverLetter: formData.get("coverLetter"),
+          };
+
+          console.log(
+            "✅ Submitting application (dummy - tanpa backend):",
+            candidateData
+          );
+
+          // Simulasi delay submission
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // Simulasi success response
+          alert(
+            "✅ Application submitted successfully! Data tersimpan di browser. You will receive a confirmation email shortly."
+          );
+          document.getElementById("applicationForm").reset();
+          currentStep = 1;
+          updateStep(currentStep);
+        } catch (error) {
+          console.error("Error submitting application:", error);
+          alert(
+            `Error submitting application: ${error.message}. Please try again.`
+          );
+        }
+      }
+
+      // Load positions from dummy data (tanpa backend)
+      async function loadPositions() {
+        try {
+          console.log("✅ Loading positions (dummy - tanpa backend)...");
+
+          // Simulasi delay loading
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          const jobs = [...dummyJobsForForm];
+
+          const positionSelect = document.getElementById("position");
+          positionSelect.innerHTML =
+            '<option value="">Select position</option>';
+
+          jobs.forEach((job) => {
+            const option = document.createElement("option");
+            option.value = job.id;
+            option.textContent = job.title;
+            option.setAttribute("data-job-id", job.jobId);
+            positionSelect.appendChild(option);
+          });
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const jobId = urlParams.get("jobId");
+          if (jobId) {
+            positionSelect.value = jobId;
+            const numericId = parseInt(jobId.replace(/\D/g, "")) || 1;
+            window.selectedJobId = numericId;
+          }
+
+          console.log("✅ Positions loaded:", jobs.length, "jobs");
+        } catch (error) {
+          console.error("Error loading positions:", error);
+        }
+      }
+
+      // Handle position selection change
+      function handlePositionChange() {
+        const positionSelect = document.getElementById("position");
+        const selectedOption =
+          positionSelect.options[positionSelect.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+          // Extract numeric part from job ID if needed, or use the string ID as-is
+          const numericId =
+            parseInt(selectedOption.value.replace(/\D/g, "")) || 1;
+          window.selectedJobId = numericId;
+        }
+      }
+
+      // Initialize event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM Content Loaded - Initializing form...");
+
+        // Test if elements exist
+        const nextBtn = document.getElementById("nextBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const applicationForm = document.getElementById("applicationForm");
+
+        console.log("Next button found:", !!nextBtn);
+        console.log("Previous button found:", !!prevBtn);
+        console.log("Application form found:", !!applicationForm);
+
+        if (!nextBtn || !prevBtn || !applicationForm) {
+          console.error("Missing form elements!");
+          return;
+        }
+
+        loadPositions();
+
+        document
+          .getElementById("position")
+          .addEventListener("change", handlePositionChange);
+
+        // Navigation buttons
+        nextBtn.addEventListener("click", function (e) {
+          console.log("Next button clicked!");
+          e.preventDefault();
+          nextStep();
+        });
+
+        prevBtn.addEventListener("click", function (e) {
+          console.log("Previous button clicked!");
+          e.preventDefault();
+          prevStep();
+        });
+
+        // Form submission
+        document
+          .getElementById("applicationForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            if (!validateCurrentStep()) {
+              alert("Please fill in all required fields and accept the terms.");
+              return;
+            }
+
+            const formData = new FormData(this);
+            submitApplication(formData);
+          });
+
+        // File upload setup
+        setupFileUpload("cvFile", "cvUpload", "cvPreview");
+        setupFileUpload("documentsFile", "documentsUpload", "documentsPreview");
+
+        // Initialize first step
+        updateStep(1);
+      });
     </script>
-</body>
+  </body>
 </html>

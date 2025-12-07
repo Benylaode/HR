@@ -1,1058 +1,1432 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aplikasi Kerja - HR Recruitment System</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.292.0/dist/umd/lucide.js"></script>
     <style>
-        /* Professional Corporate Design */
-        .card-sharp {
-            border-radius: 0px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .btn-sharp {
-            border-radius: 0px;
-        }
-        
-        .input-sharp {
-            border-radius: 0px;
-        }
-        
-        /* Remove all rounded corners */
-        * {
-            border-radius: 0 !important;
-        }
-        
-        /* Professional Color Scheme */
-        :root {
-            --primary: #1e3a8a;
-            --secondary: #64748b;
-            --accent: #0ea5e9;
-            --success: #059669;
-            --warning: #d97706;
-            --danger: #dc2626;
-            --dark: #0f172a;
-            --light: #f8fafc;
-        }
-        
-        .bg-primary { background-color: var(--primary); }
-        .bg-secondary { background-color: var(--secondary); }
-        .text-primary { color: var(--primary); }
-        .border-primary { border-color: var(--primary); }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: var(--secondary); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-        
-        .transition-all { transition: all 0.2s ease-in-out; }
-        
-        /* Step indicator */
-        .step {
-            position: relative;
-        }
-        
-        .step::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            right: -50%;
-            width: 100%;
-            height: 2px;
-            background: #e5e7eb;
-            z-index: 1;
-        }
-        
-        .step:last-child::before {
-            display: none;
-        }
-        
-        .step.active::before {
-            background: var(--primary);
-        }
-        
-        .step.completed::before {
-            background: var(--success);
-        }
-        
-        /* File upload styling */
-        .file-upload {
-            border: 2px dashed #d1d5db;
-            transition: all 0.3s ease;
-        }
-        
-        .file-upload:hover {
-            border-color: var(--primary);
-            background-color: #f8fafc;
-        }
-        
-        .file-upload.dragover {
-            border-color: var(--primary);
-            background-color: #eff6ff;
-        }
-        
-        /* Progress bar */
-        .progress-bar {
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        /* Animation for form steps */
-        .form-step {
-            display: none;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: all 0.3s ease;
-        }
-        
-        .form-step.active {
-            display: block;
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        /* DISC Test styles */
-        .disc-question {
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .disc-option {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            margin: 0.25rem 0;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .disc-option:hover {
-            background: #eff6ff;
-        }
-        
-        .disc-option input[type="radio"] {
-            margin-right: 0.5rem;
-        }
+      /* Professional Corporate Design */
+      .card-sharp {
+        border-radius: 0px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-sharp {
+        border-radius: 0px;
+      }
+
+      .input-sharp {
+        border-radius: 0px;
+      }
+
+      /* Remove all rounded corners */
+      * {
+        border-radius: 0 !important;
+      }
+
+      /* Professional Color Scheme */
+      :root {
+        --primary: #1e3a8a;
+        --secondary: #64748b;
+        --accent: #0ea5e9;
+        --success: #059669;
+        --warning: #d97706;
+        --danger: #dc2626;
+        --dark: #0f172a;
+        --light: #f8fafc;
+      }
+
+      .bg-primary {
+        background-color: var(--primary);
+      }
+      .bg-secondary {
+        background-color: var(--secondary);
+      }
+      .text-primary {
+        color: var(--primary);
+      }
+      .border-primary {
+        border-color: var(--primary);
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+
+      .transition-all {
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Step indicator */
+      .step {
+        position: relative;
+      }
+
+      .step::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -50%;
+        width: 100%;
+        height: 2px;
+        background: #e5e7eb;
+        z-index: 1;
+      }
+
+      .step:last-child::before {
+        display: none;
+      }
+
+      .step.active::before {
+        background: var(--primary);
+      }
+
+      .step.completed::before {
+        background: var(--success);
+      }
+
+      /* File upload styling */
+      .file-upload {
+        border: 2px dashed #d1d5db;
+        transition: all 0.3s ease;
+      }
+
+      .file-upload:hover {
+        border-color: var(--primary);
+        background-color: #f8fafc;
+      }
+
+      .file-upload.dragover {
+        border-color: var(--primary);
+        background-color: #eff6ff;
+      }
+
+      /* Progress bar */
+      .progress-bar {
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      /* Animation for form steps */
+      .form-step {
+        display: none;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+      }
+
+      .form-step.active {
+        display: block;
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* DISC Test styles */
+      .disc-question {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .disc-option {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .disc-option:hover {
+        background: #eff6ff;
+      }
+
+      .disc-option input[type="radio"] {
+        margin-right: 0.5rem;
+      }
     </style>
-</head>
-<body class="bg-slate-50 min-h-screen">
+  </head>
+  <body class="bg-slate-50 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b border-slate-200">
-        <div class="max-w-4xl mx-auto px-6 py-4">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-primary flex items-center justify-center">
-                    <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-slate-900">HR Recruitment System</h1>
-                    <p class="text-sm text-slate-600">Portal Aplikasi Kerja</p>
-                </div>
-            </div>
+      <div class="max-w-4xl mx-auto px-6 py-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-primary flex items-center justify-center">
+            <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-slate-900">
+              HR Recruitment System
+            </h1>
+            <p class="text-sm text-slate-600">Portal Aplikasi Kerja</p>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto py-8 px-6">
-        <!-- Progress Steps -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between relative">
-                <div class="step active flex items-center space-x-2 relative z-10">
-                    <div class="w-8 h-8 bg-primary text-white flex items-center justify-center font-semibold text-sm" id="step1">1</div>
-                    <span class="text-sm font-medium text-primary" id="step1-text">Informasi Pribadi</span>
-                </div>
-                <div class="step flex items-center space-x-2 relative z-10">
-                    <div class="w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm" id="step2">2</div>
-                    <span class="text-sm text-slate-600" id="step2-text">Upload CV & Dokumen</span>
-                </div>
-                <div class="step flex items-center space-x-2 relative z-10">
-                    <div class="w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm" id="step3">3</div>
-                    <span class="text-sm text-slate-600" id="step3-text">Psikotest DISC</span>
-                </div>
-                <div class="step flex items-center space-x-2 relative z-10">
-                    <div class="w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm" id="step4">4</div>
-                    <span class="text-sm text-slate-600" id="step4-text">Selesai</span>
-                </div>
+      <!-- Progress Steps -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between relative">
+          <div class="step active flex items-center space-x-2 relative z-10">
+            <div
+              class="w-8 h-8 bg-primary text-white flex items-center justify-center font-semibold text-sm"
+              id="step1"
+            >
+              1
             </div>
-            
-            <!-- Progress Bar -->
-            <div class="mt-4 h-2 bg-slate-200">
-                <div class="progress-bar h-full bg-primary" style="width: 25%"></div>
+            <span class="text-sm font-medium text-primary" id="step1-text"
+              >Informasi Pribadi</span
+            >
+          </div>
+          <div class="step flex items-center space-x-2 relative z-10">
+            <div
+              class="w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm"
+              id="step2"
+            >
+              2
             </div>
+            <span class="text-sm text-slate-600" id="step2-text"
+              >Upload CV & Dokumen</span
+            >
+          </div>
+          <div class="step flex items-center space-x-2 relative z-10">
+            <div
+              class="w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm"
+              id="step3"
+            >
+              3
+            </div>
+            <span class="text-sm text-slate-600" id="step3-text"
+              >Psikotest DISC</span
+            >
+          </div>
+          <div class="step flex items-center space-x-2 relative z-10">
+            <div
+              class="w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm"
+              id="step4"
+            >
+              4
+            </div>
+            <span class="text-sm text-slate-600" id="step4-text">Selesai</span>
+          </div>
         </div>
 
-        <!-- Form Container -->
-        <div class="bg-white card-sharp border border-slate-200 p-8">
-            <!-- Step 1: Personal Information -->
-            <div class="form-step active" id="step-1">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Informasi Pribadi</h2>
-                    <p class="text-slate-600">Silakan lengkapi data pribadi Anda dengan benar</p>
-                </div>
-
-                <form id="personalForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Nama Lengkap *</label>
-                            <input type="text" id="fullName" name="fullName" required
-                                   class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                   placeholder="Contoh: Ahmad Budi Santoso">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Email *</label>
-                            <input type="email" id="email" name="email" required
-                                   class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                   placeholder="contoh@email.com">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Nomor Telepon *</label>
-                            <input type="tel" id="phone" name="phone" required
-                                   class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                   placeholder="08xxxxxxxxxx">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Tanggal Lahir *</label>
-                            <input type="date" id="birthDate" name="birthDate" required
-                                   class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Jenis Kelamin *</label>
-                            <select id="gender" name="gender" required
-                                    class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                                <option value="">Pilih jenis kelamin</option>
-                                <option value="Male">Laki-laki</option>
-                                <option value="Female">Perempuan</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Kota Domisili *</label>
-                            <input type="text" id="city" name="city" required
-                                   class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                   placeholder="Contoh: Jakarta">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Alamat Lengkap *</label>
-                        <textarea id="address" name="address" required rows="3"
-                                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                  placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi"></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Pendidikan Terakhir *</label>
-                            <select id="education" name="education" required
-                                    class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                                <option value="">Pilih pendidikan</option>
-                                <option value="SMA/SMK">SMA/SMK</option>
-                                <option value="D3">Diploma 3 (D3)</option>
-                                <option value="S1">Sarjana (S1)</option>
-                                <option value="S2">Magister (S2)</option>
-                                <option value="S3">Doktor (S3)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Jurusan/Program Studi</label>
-                            <input type="text" id="major" name="major"
-                                   class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                   placeholder="Contoh: Teknik Informatika">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Posisi yang Dilamar *</label>
-                        <select id="position" name="position" required
-                                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                onchange="showJobDetails(this.value)">
-                            <option value="">Pilih posisi</option>
-                            <!-- Will be populated from API -->
-                        </select>
-                        <div id="jobDetails" class="mt-3 p-3 bg-slate-50 border border-slate-200 hidden">
-                            <div id="jobDescription" class="text-sm text-slate-700 mb-2"></div>
-                            <div class="flex justify-between text-sm">
-                                <span id="jobLocation" class="text-slate-600"></span>
-                                <span id="jobSalary" class="text-green-600 font-semibold"></span>
-                            </div>
-                            <div id="jobDepartment" class="text-xs text-slate-500 mt-1"></div>
-                        </div>
-                    </div>
-                </form>
-
-                <div class="flex justify-end mt-8">
-                    <button type="button" onclick="nextStep()"
-                            class="btn-sharp bg-primary hover:bg-blue-800 text-white px-8 py-3 font-medium transition-all">
-                        Selanjutnya
-                        <i data-lucide="arrow-right" class="w-4 h-4 ml-2 inline"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 2: Document Upload -->
-            <div class="form-step" id="step-2">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Upload CV & Dokumen</h2>
-                    <p class="text-slate-600">Upload CV dan dokumen pendukung Anda</p>
-                </div>
-
-                <div class="space-y-6">
-                    <!-- CV Upload -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-4">Upload CV (PDF, DOC, DOCX) *</label>
-                        <div class="file-upload p-8 text-center cursor-pointer" onclick="document.getElementById('cvFile').click()">
-                            <input type="file" id="cvFile" accept=".pdf,.doc,.docx" hidden onchange="handleFileUpload(this, 'cv')">
-                            <div id="cvUploadArea">
-                                <i data-lucide="upload" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i>
-                                <p class="text-lg font-medium text-slate-700">Klik untuk upload CV</p>
-                                <p class="text-sm text-slate-500 mt-2">atau drag & drop file di sini</p>
-                                <p class="text-xs text-slate-400 mt-2">Maksimal 5MB - PDF, DOC, DOCX</p>
-                            </div>
-                            <div id="cvPreview" class="hidden">
-                                <i data-lucide="file-text" class="w-12 h-12 text-green-600 mx-auto mb-4"></i>
-                                <p class="text-lg font-medium text-green-700" id="cvFileName"></p>
-                                <p class="text-sm text-slate-500 mt-2">CV berhasil diupload</p>
-                                <button type="button" onclick="removeFile('cv')" class="text-red-600 hover:text-red-800 text-sm mt-2">
-                                    <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>Hapus
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Portfolio Upload (Optional) -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-4">Upload Portfolio (Opsional)</label>
-                        <div class="file-upload p-6 text-center cursor-pointer" onclick="document.getElementById('portfolioFile').click()">
-                            <input type="file" id="portfolioFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" hidden onchange="handleFileUpload(this, 'portfolio')">
-                            <div id="portfolioUploadArea">
-                                <i data-lucide="image" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
-                                <p class="font-medium text-slate-700">Upload Portfolio</p>
-                                <p class="text-xs text-slate-400 mt-1">PDF, DOC, JPG, PNG (Max 10MB)</p>
-                            </div>
-                            <div id="portfolioPreview" class="hidden">
-                                <i data-lucide="file-image" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
-                                <p class="font-medium text-green-700" id="portfolioFileName"></p>
-                                <button type="button" onclick="removeFile('portfolio')" class="text-red-600 hover:text-red-800 text-sm mt-2">
-                                    <i data-lucide="trash-2" class="w-3 h-3 inline mr-1"></i>Hapus
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Certificate Upload (Optional) -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-4">Upload Sertifikat (Opsional)</label>
-                        <div class="file-upload p-6 text-center cursor-pointer" onclick="document.getElementById('certificateFile').click()">
-                            <input type="file" id="certificateFile" accept=".pdf,.jpg,.jpeg,.png" multiple hidden onchange="handleFileUpload(this, 'certificate')">
-                            <div id="certificateUploadArea">
-                                <i data-lucide="award" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
-                                <p class="font-medium text-slate-700">Upload Sertifikat</p>
-                                <p class="text-xs text-slate-400 mt-1">PDF, JPG, PNG (Bisa multiple files)</p>
-                            </div>
-                            <div id="certificatePreview" class="hidden">
-                                <i data-lucide="file-check" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
-                                <p class="font-medium text-green-700" id="certificateFileName"></p>
-                                <button type="button" onclick="removeFile('certificate')" class="text-red-600 hover:text-red-800 text-sm mt-2">
-                                    <i data-lucide="trash-2" class="w-3 h-3 inline mr-1"></i>Hapus
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-between mt-8">
-                    <button type="button" onclick="prevStep()"
-                            class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 font-medium transition-all">
-                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i>Sebelumnya
-                    </button>
-                    <button type="button" onclick="nextStep()"
-                            class="btn-sharp bg-primary hover:bg-blue-800 text-white px-8 py-3 font-medium transition-all">
-                        Selanjutnya
-                        <i data-lucide="arrow-right" class="w-4 h-4 ml-2 inline"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 3: DISC Psychotest -->
-            <div class="form-step" id="step-3">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Psikotest DISC</h2>
-                    <p class="text-slate-600">Silakan jawab pertanyaan berikut dengan jujur. Tidak ada jawaban yang salah.</p>
-                    <div class="mt-4 p-4 bg-blue-50 border border-blue-200">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
-                            <p class="text-sm text-blue-800">
-                                <strong>Petunjuk:</strong> Pilih pernyataan yang <strong>PALING</strong> menggambarkan diri Anda dan yang <strong>PALING TIDAK</strong> menggambarkan diri Anda.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="discTest">
-                    <!-- DISC Questions will be generated here -->
-                </div>
-
-                <div class="flex justify-between mt-8">
-                    <button type="button" onclick="prevStep()"
-                            class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 font-medium transition-all">
-                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i>Sebelumnya
-                    </button>
-                    <button type="button" onclick="submitApplication()"
-                            class="btn-sharp bg-green-600 hover:bg-green-700 text-white px-8 py-3 font-medium transition-all">
-                        Submit Aplikasi
-                        <i data-lucide="check" class="w-4 h-4 ml-2 inline"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 4: Completion -->
-            <div class="form-step" id="step-4">
-                <div class="text-center py-12">
-                    <div class="w-20 h-20 bg-green-100 mx-auto mb-6 flex items-center justify-center">
-                        <i data-lucide="check-circle" class="w-10 h-10 text-green-600"></i>
-                    </div>
-                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Aplikasi Berhasil Dikirim!</h2>
-                    <p class="text-lg text-slate-600 mb-8">
-                        Terima kasih telah melamar di perusahaan kami. Tim HR akan meninjau aplikasi Anda dan menghubungi dalam 1-2 hari kerja.
-                    </p>
-                    
-                    <div class="bg-slate-50 p-6 border border-slate-200 mb-8">
-                        <h3 class="font-bold text-slate-900 mb-4">Detail Aplikasi Anda:</h3>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div><strong>ID Aplikasi:</strong> <span id="applicationId">-</span></div>
-                            <div><strong>Posisi:</strong> <span id="appliedPosition">-</span></div>
-                            <div><strong>Status:</strong> <span class="text-yellow-600 font-medium">Menunggu Review</span></div>
-                            <div><strong>Tanggal:</strong> <span id="applicationDate">-</span></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <p class="text-sm text-slate-500">
-                            Anda akan menerima email konfirmasi dalam beberapa menit.
-                        </p>
-                        <button onclick="window.location.reload()" 
-                                class="btn-sharp bg-primary hover:bg-blue-800 text-white px-8 py-3 font-medium transition-all">
-                            Lamar Posisi Lain
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <!-- Progress Bar -->
+        <div class="mt-4 h-2 bg-slate-200">
+          <div class="progress-bar h-full bg-primary" style="width: 25%"></div>
         </div>
+      </div>
+
+      <!-- Form Container -->
+      <div class="bg-white card-sharp border border-slate-200 p-8">
+        <!-- Step 1: Personal Information -->
+        <div class="form-step active" id="step-1">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">
+              Informasi Pribadi
+            </h2>
+            <p class="text-slate-600">
+              Silakan lengkapi data pribadi Anda dengan benar
+            </p>
+          </div>
+
+          <form id="personalForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Nama Lengkap *</label
+                >
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="Contoh: Ahmad Budi Santoso"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Email *</label
+                >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="contoh@email.com"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Nomor Telepon *</label
+                >
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="08xxxxxxxxxx"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Tanggal Lahir *</label
+                >
+                <input
+                  type="date"
+                  id="birthDate"
+                  name="birthDate"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Jenis Kelamin *</label
+                >
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">Pilih jenis kelamin</option>
+                  <option value="Male">Laki-laki</option>
+                  <option value="Female">Perempuan</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Kota Domisili *</label
+                >
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="Contoh: Jakarta"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2"
+                >Alamat Lengkap *</label
+              >
+              <textarea
+                id="address"
+                name="address"
+                required
+                rows="3"
+                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Pendidikan Terakhir *</label
+                >
+                <select
+                  id="education"
+                  name="education"
+                  required
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">Pilih pendidikan</option>
+                  <option value="SMA/SMK">SMA/SMK</option>
+                  <option value="D3">Diploma 3 (D3)</option>
+                  <option value="S1">Sarjana (S1)</option>
+                  <option value="S2">Magister (S2)</option>
+                  <option value="S3">Doktor (S3)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2"
+                  >Jurusan/Program Studi</label
+                >
+                <input
+                  type="text"
+                  id="major"
+                  name="major"
+                  class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="Contoh: Teknik Informatika"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2"
+                >Posisi yang Dilamar *</label
+              >
+              <select
+                id="position"
+                name="position"
+                required
+                class="input-sharp w-full px-4 py-3 border border-slate-300 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                onchange="showJobDetails(this.value)"
+              >
+                <option value="">Pilih posisi</option>
+                <!-- Will be populated from API -->
+              </select>
+              <div
+                id="jobDetails"
+                class="mt-3 p-3 bg-slate-50 border border-slate-200 hidden"
+              >
+                <div
+                  id="jobDescription"
+                  class="text-sm text-slate-700 mb-2"
+                ></div>
+                <div class="flex justify-between text-sm">
+                  <span id="jobLocation" class="text-slate-600"></span>
+                  <span
+                    id="jobSalary"
+                    class="text-green-600 font-semibold"
+                  ></span>
+                </div>
+                <div
+                  id="jobDepartment"
+                  class="text-xs text-slate-500 mt-1"
+                ></div>
+              </div>
+            </div>
+          </form>
+
+          <div class="flex justify-end mt-8">
+            <button
+              type="button"
+              onclick="nextStep()"
+              class="btn-sharp bg-primary hover:bg-blue-800 text-white px-8 py-3 font-medium transition-all"
+            >
+              Selanjutnya
+              <i data-lucide="arrow-right" class="w-4 h-4 ml-2 inline"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Document Upload -->
+        <div class="form-step" id="step-2">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">
+              Upload CV & Dokumen
+            </h2>
+            <p class="text-slate-600">Upload CV dan dokumen pendukung Anda</p>
+          </div>
+
+          <div class="space-y-6">
+            <!-- CV Upload -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-4"
+                >Upload CV (PDF, DOC, DOCX) *</label
+              >
+              <div
+                class="file-upload p-8 text-center cursor-pointer"
+                onclick="document.getElementById('cvFile').click()"
+              >
+                <input
+                  type="file"
+                  id="cvFile"
+                  accept=".pdf,.doc,.docx"
+                  hidden
+                  onchange="handleFileUpload(this, 'cv')"
+                />
+                <div id="cvUploadArea">
+                  <i
+                    data-lucide="upload"
+                    class="w-12 h-12 text-slate-400 mx-auto mb-4"
+                  ></i>
+                  <p class="text-lg font-medium text-slate-700">
+                    Klik untuk upload CV
+                  </p>
+                  <p class="text-sm text-slate-500 mt-2">
+                    atau drag & drop file di sini
+                  </p>
+                  <p class="text-xs text-slate-400 mt-2">
+                    Maksimal 5MB - PDF, DOC, DOCX
+                  </p>
+                </div>
+                <div id="cvPreview" class="hidden">
+                  <i
+                    data-lucide="file-text"
+                    class="w-12 h-12 text-green-600 mx-auto mb-4"
+                  ></i>
+                  <p
+                    class="text-lg font-medium text-green-700"
+                    id="cvFileName"
+                  ></p>
+                  <p class="text-sm text-slate-500 mt-2">
+                    CV berhasil diupload
+                  </p>
+                  <button
+                    type="button"
+                    onclick="removeFile('cv')"
+                    class="text-red-600 hover:text-red-800 text-sm mt-2"
+                  >
+                    <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i
+                    >Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Portfolio Upload (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-4"
+                >Upload Portfolio (Opsional)</label
+              >
+              <div
+                class="file-upload p-6 text-center cursor-pointer"
+                onclick="document.getElementById('portfolioFile').click()"
+              >
+                <input
+                  type="file"
+                  id="portfolioFile"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  hidden
+                  onchange="handleFileUpload(this, 'portfolio')"
+                />
+                <div id="portfolioUploadArea">
+                  <i
+                    data-lucide="image"
+                    class="w-8 h-8 text-slate-400 mx-auto mb-2"
+                  ></i>
+                  <p class="font-medium text-slate-700">Upload Portfolio</p>
+                  <p class="text-xs text-slate-400 mt-1">
+                    PDF, DOC, JPG, PNG (Max 10MB)
+                  </p>
+                </div>
+                <div id="portfolioPreview" class="hidden">
+                  <i
+                    data-lucide="file-image"
+                    class="w-8 h-8 text-green-600 mx-auto mb-2"
+                  ></i>
+                  <p
+                    class="font-medium text-green-700"
+                    id="portfolioFileName"
+                  ></p>
+                  <button
+                    type="button"
+                    onclick="removeFile('portfolio')"
+                    class="text-red-600 hover:text-red-800 text-sm mt-2"
+                  >
+                    <i data-lucide="trash-2" class="w-3 h-3 inline mr-1"></i
+                    >Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Certificate Upload (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-4"
+                >Upload Sertifikat (Opsional)</label
+              >
+              <div
+                class="file-upload p-6 text-center cursor-pointer"
+                onclick="document.getElementById('certificateFile').click()"
+              >
+                <input
+                  type="file"
+                  id="certificateFile"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  multiple
+                  hidden
+                  onchange="handleFileUpload(this, 'certificate')"
+                />
+                <div id="certificateUploadArea">
+                  <i
+                    data-lucide="award"
+                    class="w-8 h-8 text-slate-400 mx-auto mb-2"
+                  ></i>
+                  <p class="font-medium text-slate-700">Upload Sertifikat</p>
+                  <p class="text-xs text-slate-400 mt-1">
+                    PDF, JPG, PNG (Bisa multiple files)
+                  </p>
+                </div>
+                <div id="certificatePreview" class="hidden">
+                  <i
+                    data-lucide="file-check"
+                    class="w-8 h-8 text-green-600 mx-auto mb-2"
+                  ></i>
+                  <p
+                    class="font-medium text-green-700"
+                    id="certificateFileName"
+                  ></p>
+                  <button
+                    type="button"
+                    onclick="removeFile('certificate')"
+                    class="text-red-600 hover:text-red-800 text-sm mt-2"
+                  >
+                    <i data-lucide="trash-2" class="w-3 h-3 inline mr-1"></i
+                    >Hapus
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between mt-8">
+            <button
+              type="button"
+              onclick="prevStep()"
+              class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 font-medium transition-all"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i
+              >Sebelumnya
+            </button>
+            <button
+              type="button"
+              onclick="nextStep()"
+              class="btn-sharp bg-primary hover:bg-blue-800 text-white px-8 py-3 font-medium transition-all"
+            >
+              Selanjutnya
+              <i data-lucide="arrow-right" class="w-4 h-4 ml-2 inline"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: DISC Psychotest -->
+        <div class="form-step" id="step-3">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">
+              Psikotest DISC
+            </h2>
+            <p class="text-slate-600">
+              Silakan jawab pertanyaan berikut dengan jujur. Tidak ada jawaban
+              yang salah.
+            </p>
+            <div class="mt-4 p-4 bg-blue-50 border border-blue-200">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                <p class="text-sm text-blue-800">
+                  <strong>Petunjuk:</strong> Pilih pernyataan yang
+                  <strong>PALING</strong> menggambarkan diri Anda dan yang
+                  <strong>PALING TIDAK</strong> menggambarkan diri Anda.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div id="discTest">
+            <!-- DISC Questions will be generated here -->
+          </div>
+
+          <div class="flex justify-between mt-8">
+            <button
+              type="button"
+              onclick="prevStep()"
+              class="btn-sharp border border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 font-medium transition-all"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i
+              >Sebelumnya
+            </button>
+            <button
+              type="button"
+              onclick="submitApplication()"
+              class="btn-sharp bg-green-600 hover:bg-green-700 text-white px-8 py-3 font-medium transition-all"
+            >
+              Submit Aplikasi
+              <i data-lucide="check" class="w-4 h-4 ml-2 inline"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 4: Completion -->
+        <div class="form-step" id="step-4">
+          <div class="text-center py-12">
+            <div
+              class="w-20 h-20 bg-green-100 mx-auto mb-6 flex items-center justify-center"
+            >
+              <i
+                data-lucide="check-circle"
+                class="w-10 h-10 text-green-600"
+              ></i>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-900 mb-4">
+              Aplikasi Berhasil Dikirim!
+            </h2>
+            <p class="text-lg text-slate-600 mb-8">
+              Terima kasih telah melamar di perusahaan kami. Tim HR akan
+              meninjau aplikasi Anda dan menghubungi dalam 1-2 hari kerja.
+            </p>
+
+            <div class="bg-slate-50 p-6 border border-slate-200 mb-8">
+              <h3 class="font-bold text-slate-900 mb-4">
+                Detail Aplikasi Anda:
+              </h3>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <strong>ID Aplikasi:</strong>
+                  <span id="applicationId">-</span>
+                </div>
+                <div>
+                  <strong>Posisi:</strong> <span id="appliedPosition">-</span>
+                </div>
+                <div>
+                  <strong>Status:</strong>
+                  <span class="text-yellow-600 font-medium"
+                    >Menunggu Review</span
+                  >
+                </div>
+                <div>
+                  <strong>Tanggal:</strong> <span id="applicationDate">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <p class="text-sm text-slate-500">
+                Anda akan menerima email konfirmasi dalam beberapa menit.
+              </p>
+              <button
+                onclick="window.location.reload()"
+                class="btn-sharp bg-primary hover:bg-blue-800 text-white px-8 py-3 font-medium transition-all"
+              >
+                Lamar Posisi Lain
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Loading Modal -->
-    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white card-sharp p-8 max-w-sm mx-4">
-            <div class="text-center">
-                <i data-lucide="loader-2" class="w-12 h-12 text-primary animate-spin mx-auto mb-4"></i>
-                <h3 class="text-lg font-bold text-slate-900 mb-2" id="loadingTitle">Memproses...</h3>
-                <p class="text-sm text-slate-600" id="loadingMessage">Mohon tunggu sebentar</p>
-            </div>
+    <div
+      id="loadingModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+    >
+      <div class="bg-white card-sharp p-8 max-w-sm mx-4">
+        <div class="text-center">
+          <i
+            data-lucide="loader-2"
+            class="w-12 h-12 text-primary animate-spin mx-auto mb-4"
+          ></i>
+          <h3 class="text-lg font-bold text-slate-900 mb-2" id="loadingTitle">
+            Memproses...
+          </h3>
+          <p class="text-sm text-slate-600" id="loadingMessage">
+            Mohon tunggu sebentar
+          </p>
         </div>
+      </div>
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3011/api';
-        let currentStep = 1;
-        let applicationData = {};
-        let discQuestions = [];
-        let discAnswers = {};
-        
-        // Dummy jobs untuk application form
-        let availableJobs = [
-            { 
-                id: 'job-001', 
-                title: 'Senior Backend Developer', 
-                department: 'Engineering',
-                description: 'Develop scalable backend systems',
-                location: 'Jakarta',
-                employmentType: 'Full Time',
-                salaryRange: { min: 8000000, max: 15000000, currency: 'IDR' }
-            },
-            { 
-                id: 'job-002', 
-                title: 'Frontend Engineer React', 
-                department: 'Engineering',
-                description: 'Build interactive UI with React',
-                location: 'Jakarta',
-                employmentType: 'Full Time',
-                salaryRange: { min: 7000000, max: 12000000, currency: 'IDR' }
-            },
-            { 
-                id: 'job-003', 
-                title: 'HR Manager', 
-                department: 'Human Resources',
-                description: 'Manage recruitment and employee relations',
-                location: 'Jakarta',
-                employmentType: 'Full Time',
-                salaryRange: { min: 8000000, max: 13000000, currency: 'IDR' }
-            },
-            { 
-                id: 'job-004', 
-                title: 'Product Manager', 
-                department: 'Product',
-                description: 'Lead product strategy and development',
-                location: 'Jakarta',
-                employmentType: 'Full Time',
-                salaryRange: { min: 10000000, max: 18000000, currency: 'IDR' }
-            },
-            { 
-                id: 'job-005', 
-                title: 'QA Automation Engineer', 
-                department: 'Quality Assurance',
-                description: 'Develop automated test frameworks',
-                location: 'Jakarta',
-                employmentType: 'Full Time',
-                salaryRange: { min: 6000000, max: 10000000, currency: 'IDR' }
-            }
+      const API_BASE = "http://localhost:3011/api";
+      let currentStep = 1;
+      let applicationData = {};
+      let discQuestions = [];
+      let discAnswers = {};
+
+      // Dummy jobs untuk application form
+      let availableJobs = [
+        {
+          id: "job-001",
+          title: "Senior Backend Developer",
+          department: "Engineering",
+          description: "Develop scalable backend systems",
+          location: "Jakarta",
+          employmentType: "Full Time",
+          salaryRange: { min: 8000000, max: 15000000, currency: "IDR" },
+        },
+        {
+          id: "job-002",
+          title: "Frontend Engineer React",
+          department: "Engineering",
+          description: "Build interactive UI with React",
+          location: "Jakarta",
+          employmentType: "Full Time",
+          salaryRange: { min: 7000000, max: 12000000, currency: "IDR" },
+        },
+        {
+          id: "job-003",
+          title: "HR Manager",
+          department: "Human Resources",
+          description: "Manage recruitment and employee relations",
+          location: "Jakarta",
+          employmentType: "Full Time",
+          salaryRange: { min: 8000000, max: 13000000, currency: "IDR" },
+        },
+        {
+          id: "job-004",
+          title: "Product Manager",
+          department: "Product",
+          description: "Lead product strategy and development",
+          location: "Jakarta",
+          employmentType: "Full Time",
+          salaryRange: { min: 10000000, max: 18000000, currency: "IDR" },
+        },
+        {
+          id: "job-005",
+          title: "QA Automation Engineer",
+          department: "Quality Assurance",
+          description: "Develop automated test frameworks",
+          location: "Jakarta",
+          employmentType: "Full Time",
+          salaryRange: { min: 6000000, max: 10000000, currency: "IDR" },
+        },
+      ];
+
+      // Initialize
+      async function initializeApp() {
+        await loadAvailableJobs();
+        lucide.createIcons();
+      }
+
+      // Load available jobs from dummy data (tanpa backend)
+      async function loadAvailableJobs() {
+        try {
+          console.log("✅ Loading jobs (dummy - tanpa backend)...");
+
+          // Simulasi delay loading
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // Gunakan dummy jobs
+          console.log("✅ Jobs loaded:", availableJobs.length, "positions");
+          populateJobSelect();
+        } catch (error) {
+          console.error("Failed to load jobs:", error);
+          // Fallback to dummy
+          populateJobSelect();
+        }
+      }
+
+      // Populate job select with API data
+      function populateJobSelect() {
+        const jobSelect = document.getElementById("position");
+
+        // Clear existing options except the first one
+        jobSelect.innerHTML = '<option value="">Pilih posisi</option>';
+
+        availableJobs.forEach((job) => {
+          const option = document.createElement("option");
+          option.value = job.id;
+          option.textContent = `${job.title} - ${job.department}`;
+          option.dataset.jobData = JSON.stringify(job);
+          jobSelect.appendChild(option);
+        });
+      }
+
+      // Fallback job options if API fails
+      function populateJobSelectFallback() {
+        const jobSelect = document.getElementById("position");
+        const fallbackJobs = [
+          "Software Engineer",
+          "Senior Software Engineer",
+          "HR Specialist",
+          "Quality Assurance Engineer",
+          "Marketing Manager",
         ];
 
-        // Initialize
-        async function initializeApp() {
-            await loadAvailableJobs();
-            lucide.createIcons();
-        }
-        
-        // Load available jobs from dummy data (tanpa backend)
-        async function loadAvailableJobs() {
-            try {
-                console.log('✅ Loading jobs (dummy - tanpa backend)...');
-                
-                // Simulasi delay loading
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                // Gunakan dummy jobs
-                console.log('✅ Jobs loaded:', availableJobs.length, 'positions');
-                populateJobSelect();
-                
-            } catch (error) {
-                console.error('Failed to load jobs:', error);
-                // Fallback to dummy
-                populateJobSelect();
-            }
-        }
-        
-        // Populate job select with API data
-        function populateJobSelect() {
-            const jobSelect = document.getElementById('position');
-            
-            // Clear existing options except the first one
-            jobSelect.innerHTML = '<option value="">Pilih posisi</option>';
-            
-            availableJobs.forEach(job => {
-                const option = document.createElement('option');
-                option.value = job.id;
-                option.textContent = `${job.title} - ${job.department}`;
-                option.dataset.jobData = JSON.stringify(job);
-                jobSelect.appendChild(option);
-            });
-        }
-        
-        // Fallback job options if API fails
-        function populateJobSelectFallback() {
-            const jobSelect = document.getElementById('position');
-            const fallbackJobs = [
-                'Software Engineer',
-                'Senior Software Engineer', 
-                'HR Specialist',
-                'Quality Assurance Engineer',
-                'Marketing Manager'
-            ];
-            
-            fallbackJobs.forEach(jobTitle => {
-                const option = document.createElement('option');
-                option.value = jobTitle;
-                option.textContent = jobTitle;
-                jobSelect.appendChild(option);
-            });
-        }
-        
-        // Show job details when position is selected
-        function showJobDetails(selectedJobId) {
-            const jobDetailsDiv = document.getElementById('jobDetails');
-            
-            if (!selectedJobId) {
-                jobDetailsDiv.classList.add('hidden');
-                return;
-            }
-            
-            const selectedJob = availableJobs.find(job => job.id === selectedJobId);
-            
-            if (selectedJob) {
-                document.getElementById('jobDescription').textContent = selectedJob.description;
-                document.getElementById('jobLocation').innerHTML = `<i class="w-4 h-4 inline mr-1" data-lucide="map-pin"></i>${selectedJob.location}`;
-                document.getElementById('jobDepartment').innerHTML = `<i class="w-4 h-4 inline mr-1" data-lucide="building-2"></i>${selectedJob.department} • ${selectedJob.employmentType}`;
-                
-                if (selectedJob.salaryRange) {
-                    const salaryMin = new Intl.NumberFormat('id-ID').format(selectedJob.salaryRange.min);
-                    const salaryMax = new Intl.NumberFormat('id-ID').format(selectedJob.salaryRange.max);
-                    document.getElementById('jobSalary').innerHTML = `<i class="w-4 h-4 inline mr-1" data-lucide="dollar-sign"></i>${salaryMin} - ${salaryMax} ${selectedJob.salaryRange.currency}`;
-                }
-                
-                jobDetailsDiv.classList.remove('hidden');
-                lucide.createIcons();
-            }
+        fallbackJobs.forEach((jobTitle) => {
+          const option = document.createElement("option");
+          option.value = jobTitle;
+          option.textContent = jobTitle;
+          jobSelect.appendChild(option);
+        });
+      }
+
+      // Show job details when position is selected
+      function showJobDetails(selectedJobId) {
+        const jobDetailsDiv = document.getElementById("jobDetails");
+
+        if (!selectedJobId) {
+          jobDetailsDiv.classList.add("hidden");
+          return;
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-            loadJobPositions();
-            generateDiscQuestions();
-            setupFileUpload();
+        const selectedJob = availableJobs.find(
+          (job) => job.id === selectedJobId
+        );
+
+        if (selectedJob) {
+          document.getElementById("jobDescription").textContent =
+            selectedJob.description;
+          document.getElementById(
+            "jobLocation"
+          ).innerHTML = `<i class="w-4 h-4 inline mr-1" data-lucide="map-pin"></i>${selectedJob.location}`;
+          document.getElementById(
+            "jobDepartment"
+          ).innerHTML = `<i class="w-4 h-4 inline mr-1" data-lucide="building-2"></i>${selectedJob.department} • ${selectedJob.employmentType}`;
+
+          if (selectedJob.salaryRange) {
+            const salaryMin = new Intl.NumberFormat("id-ID").format(
+              selectedJob.salaryRange.min
+            );
+            const salaryMax = new Intl.NumberFormat("id-ID").format(
+              selectedJob.salaryRange.max
+            );
+            document.getElementById(
+              "jobSalary"
+            ).innerHTML = `<i class="w-4 h-4 inline mr-1" data-lucide="dollar-sign"></i>${salaryMin} - ${salaryMax} ${selectedJob.salaryRange.currency}`;
+          }
+
+          jobDetailsDiv.classList.remove("hidden");
+          lucide.createIcons();
+        }
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        lucide.createIcons();
+        loadJobPositions();
+        generateDiscQuestions();
+        setupFileUpload();
+      });
+
+      // Load available job positions
+      async function loadJobPositions() {
+        try {
+          const response = await fetch(`${API_BASE}/health`);
+          const health = await response.json();
+
+          // For now, add sample positions
+          const positions = [
+            { id: "job-001", title: "Senior Software Engineer" },
+            { id: "job-002", title: "R&D Specialist" },
+            { id: "job-003", title: "Quality Control Manager" },
+            { id: "general", title: "Posisi Lainnya (General Application)" },
+          ];
+
+          const positionSelect = document.getElementById("position");
+          positions.forEach((position) => {
+            const option = document.createElement("option");
+            option.value = position.id;
+            option.textContent = position.title;
+            positionSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error loading positions:", error);
+        }
+      }
+
+      // Step navigation
+      function nextStep() {
+        if (currentStep === 1 && !validatePersonalForm()) {
+          return;
+        }
+        if (currentStep === 2 && !validateDocuments()) {
+          return;
+        }
+        if (currentStep === 3 && !validateDiscTest()) {
+          return;
+        }
+
+        currentStep++;
+        updateStepDisplay();
+        showStep(currentStep);
+      }
+
+      function prevStep() {
+        if (currentStep > 1) {
+          currentStep--;
+          updateStepDisplay();
+          showStep(currentStep);
+        }
+      }
+
+      function showStep(step) {
+        document.querySelectorAll(".form-step").forEach((el) => {
+          el.classList.remove("active");
+        });
+        document.getElementById(`step-${step}`).classList.add("active");
+      }
+
+      function updateStepDisplay() {
+        const progressBar = document.querySelector(".progress-bar");
+        const progressPercent = (currentStep / 4) * 100;
+        progressBar.style.width = progressPercent + "%";
+
+        // Update step indicators
+        for (let i = 1; i <= 4; i++) {
+          const stepElement = document.getElementById(`step${i}`);
+          const stepText = document.getElementById(`step${i}-text`);
+
+          if (i < currentStep) {
+            stepElement.className =
+              "w-8 h-8 bg-green-600 text-white flex items-center justify-center font-semibold text-sm";
+            stepElement.innerHTML =
+              '<i data-lucide="check" class="w-4 h-4"></i>';
+            stepText.className = "text-sm font-medium text-green-600";
+          } else if (i === currentStep) {
+            stepElement.className =
+              "w-8 h-8 bg-primary text-white flex items-center justify-center font-semibold text-sm";
+            stepElement.textContent = i;
+            stepText.className = "text-sm font-medium text-primary";
+          } else {
+            stepElement.className =
+              "w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm";
+            stepElement.textContent = i;
+            stepText.className = "text-sm text-slate-600";
+          }
+        }
+
+        lucide.createIcons();
+      }
+
+      // Validation functions
+      function validatePersonalForm() {
+        const required = [
+          "fullName",
+          "email",
+          "phone",
+          "birthDate",
+          "gender",
+          "city",
+          "address",
+          "education",
+          "position",
+        ];
+        let isValid = true;
+
+        required.forEach((field) => {
+          const input = document.getElementById(field);
+          if (!input.value.trim()) {
+            input.classList.add("border-red-500");
+            isValid = false;
+          } else {
+            input.classList.remove("border-red-500");
+          }
         });
 
-        // Load available job positions
-        async function loadJobPositions() {
-            try {
-                const response = await fetch(`${API_BASE}/health`);
-                const health = await response.json();
-                
-                // For now, add sample positions
-                const positions = [
-                    { id: 'job-001', title: 'Senior Software Engineer' },
-                    { id: 'job-002', title: 'R&D Specialist' },
-                    { id: 'job-003', title: 'Quality Control Manager' },
-                    { id: 'general', title: 'Posisi Lainnya (General Application)' }
-                ];
-
-                const positionSelect = document.getElementById('position');
-                positions.forEach(position => {
-                    const option = document.createElement('option');
-                    option.value = position.id;
-                    option.textContent = position.title;
-                    positionSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading positions:', error);
-            }
+        if (!isValid) {
+          showAlert("error", "Mohon lengkapi semua field yang wajib diisi");
         }
 
-        // Step navigation
-        function nextStep() {
-            if (currentStep === 1 && !validatePersonalForm()) {
-                return;
-            }
-            if (currentStep === 2 && !validateDocuments()) {
-                return;
-            }
-            if (currentStep === 3 && !validateDiscTest()) {
-                return;
-            }
+        return isValid;
+      }
 
-            currentStep++;
-            updateStepDisplay();
-            showStep(currentStep);
+      function validateDocuments() {
+        const cvFile = document.getElementById("cvFile").files[0];
+        if (!cvFile) {
+          showAlert("error", "CV wajib diupload");
+          return false;
+        }
+        return true;
+      }
+
+      function validateDiscTest() {
+        const totalQuestions = discQuestions.length;
+        const answeredQuestions = Object.keys(discAnswers).length;
+
+        if (answeredQuestions < totalQuestions) {
+          showAlert(
+            "error",
+            `Mohon jawab semua pertanyaan DISC (${answeredQuestions}/${totalQuestions})`
+          );
+          return false;
         }
 
-        function prevStep() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateStepDisplay();
-                showStep(currentStep);
-            }
+        return true;
+      }
+
+      // File upload handling
+      function setupFileUpload() {
+        ["cv", "portfolio", "certificate"].forEach((type) => {
+          const uploadArea = document.querySelector(`[onclick*="${type}File"]`);
+          if (uploadArea) {
+            setupDragAndDrop(uploadArea, type);
+          }
+        });
+      }
+
+      function setupDragAndDrop(element, type) {
+        element.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          element.classList.add("dragover");
+        });
+
+        element.addEventListener("dragleave", () => {
+          element.classList.remove("dragover");
+        });
+
+        element.addEventListener("drop", (e) => {
+          e.preventDefault();
+          element.classList.remove("dragover");
+
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            const fileInput = document.getElementById(`${type}File`);
+            fileInput.files = files;
+            handleFileUpload(fileInput, type);
+          }
+        });
+      }
+
+      function handleFileUpload(input, type) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // File size validation
+        const maxSize = type === "cv" ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB for CV, 10MB for others
+        if (file.size > maxSize) {
+          showAlert(
+            "error",
+            `Ukuran file terlalu besar. Maksimal ${maxSize / 1024 / 1024}MB`
+          );
+          input.value = "";
+          return;
         }
 
-        function showStep(step) {
-            document.querySelectorAll('.form-step').forEach(el => {
-                el.classList.remove('active');
-            });
-            document.getElementById(`step-${step}`).classList.add('active');
-        }
+        // Show preview
+        document.getElementById(`${type}UploadArea`).classList.add("hidden");
+        document.getElementById(`${type}Preview`).classList.remove("hidden");
+        document.getElementById(`${type}FileName`).textContent = file.name;
 
-        function updateStepDisplay() {
-            const progressBar = document.querySelector('.progress-bar');
-            const progressPercent = (currentStep / 4) * 100;
-            progressBar.style.width = progressPercent + '%';
+        // Store file data
+        applicationData[`${type}File`] = file;
+      }
 
-            // Update step indicators
-            for (let i = 1; i <= 4; i++) {
-                const stepElement = document.getElementById(`step${i}`);
-                const stepText = document.getElementById(`step${i}-text`);
-                
-                if (i < currentStep) {
-                    stepElement.className = 'w-8 h-8 bg-green-600 text-white flex items-center justify-center font-semibold text-sm';
-                    stepElement.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
-                    stepText.className = 'text-sm font-medium text-green-600';
-                } else if (i === currentStep) {
-                    stepElement.className = 'w-8 h-8 bg-primary text-white flex items-center justify-center font-semibold text-sm';
-                    stepElement.textContent = i;
-                    stepText.className = 'text-sm font-medium text-primary';
-                } else {
-                    stepElement.className = 'w-8 h-8 bg-slate-300 text-slate-600 flex items-center justify-center font-semibold text-sm';
-                    stepElement.textContent = i;
-                    stepText.className = 'text-sm text-slate-600';
-                }
-            }
-            
-            lucide.createIcons();
-        }
+      function removeFile(type) {
+        document.getElementById(`${type}UploadArea`).classList.remove("hidden");
+        document.getElementById(`${type}Preview`).classList.add("hidden");
+        document.getElementById(`${type}File`).value = "";
+        delete applicationData[`${type}File`];
+      }
 
-        // Validation functions
-        function validatePersonalForm() {
-            const required = ['fullName', 'email', 'phone', 'birthDate', 'gender', 'city', 'address', 'education', 'position'];
-            let isValid = true;
+      // Generate DISC questions
+      function generateDiscQuestions() {
+        discQuestions = [
+          {
+            id: 1,
+            options: [
+              { text: "Saya suka mengambil keputusan dengan cepat", type: "D" },
+              { text: "Saya suka berinteraksi dengan banyak orang", type: "I" },
+              {
+                text: "Saya lebih suka bekerja dalam tim yang stabil",
+                type: "S",
+              },
+              {
+                text: "Saya selalu memperhatikan detail dalam pekerjaan",
+                type: "C",
+              },
+            ],
+          },
+          {
+            id: 2,
+            options: [
+              {
+                text: "Saya berani mengambil risiko untuk mencapai target",
+                type: "D",
+              },
+              {
+                text: "Saya mudah bergaul dan membuat orang lain nyaman",
+                type: "I",
+              },
+              {
+                text: "Saya konsisten dalam menjalankan tugas rutin",
+                type: "S",
+              },
+              {
+                text: "Saya suka menganalisis masalah secara mendalam",
+                type: "C",
+              },
+            ],
+          },
+          {
+            id: 3,
+            options: [
+              {
+                text: "Saya langsung to the point dalam berkomunikasi",
+                type: "D",
+              },
+              {
+                text: "Saya optimis dan antusias dalam menghadapi tantangan",
+                type: "I",
+              },
+              { text: "Saya sabar dan mendukung rekan kerja", type: "S" },
+              { text: "Saya berpikir sistematis sebelum bertindak", type: "C" },
+            ],
+          },
+          {
+            id: 4,
+            options: [
+              {
+                text: "Saya suka memimpin dan mengambil kontrol situasi",
+                type: "D",
+              },
+              {
+                text: "Saya expresif dan mudah memotivasi orang lain",
+                type: "I",
+              },
+              { text: "Saya loyal dan dapat diandalkan", type: "S" },
+              { text: "Saya hati-hati dan teliti dalam bekerja", type: "C" },
+            ],
+          },
+          {
+            id: 5,
+            options: [
+              { text: "Saya fokus pada hasil dan pencapaian", type: "D" },
+              { text: "Saya suka berbagi ide dan berkolaborasi", type: "I" },
+              {
+                text: "Saya menghindari konflik dan mencari solusi damai",
+                type: "S",
+              },
+              {
+                text: "Saya mengikuti prosedur dan standar yang ada",
+                type: "C",
+              },
+            ],
+          },
+        ];
 
-            required.forEach(field => {
-                const input = document.getElementById(field);
-                if (!input.value.trim()) {
-                    input.classList.add('border-red-500');
-                    isValid = false;
-                } else {
-                    input.classList.remove('border-red-500');
-                }
-            });
+        renderDiscQuestions();
+      }
 
-            if (!isValid) {
-                showAlert('error', 'Mohon lengkapi semua field yang wajib diisi');
-            }
+      function renderDiscQuestions() {
+        const testContainer = document.getElementById("discTest");
+        testContainer.innerHTML = "";
 
-            return isValid;
-        }
+        discQuestions.forEach((question, index) => {
+          const questionDiv = document.createElement("div");
+          questionDiv.className = "disc-question";
 
-        function validateDocuments() {
-            const cvFile = document.getElementById('cvFile').files[0];
-            if (!cvFile) {
-                showAlert('error', 'CV wajib diupload');
-                return false;
-            }
-            return true;
-        }
-
-        function validateDiscTest() {
-            const totalQuestions = discQuestions.length;
-            const answeredQuestions = Object.keys(discAnswers).length;
-            
-            if (answeredQuestions < totalQuestions) {
-                showAlert('error', `Mohon jawab semua pertanyaan DISC (${answeredQuestions}/${totalQuestions})`);
-                return false;
-            }
-            
-            return true;
-        }
-
-        // File upload handling
-        function setupFileUpload() {
-            ['cv', 'portfolio', 'certificate'].forEach(type => {
-                const uploadArea = document.querySelector(`[onclick*="${type}File"]`);
-                if (uploadArea) {
-                    setupDragAndDrop(uploadArea, type);
-                }
-            });
-        }
-
-        function setupDragAndDrop(element, type) {
-            element.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                element.classList.add('dragover');
-            });
-
-            element.addEventListener('dragleave', () => {
-                element.classList.remove('dragover');
-            });
-
-            element.addEventListener('drop', (e) => {
-                e.preventDefault();
-                element.classList.remove('dragover');
-                
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    const fileInput = document.getElementById(`${type}File`);
-                    fileInput.files = files;
-                    handleFileUpload(fileInput, type);
-                }
-            });
-        }
-
-        function handleFileUpload(input, type) {
-            const file = input.files[0];
-            if (!file) return;
-
-            // File size validation
-            const maxSize = type === 'cv' ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB for CV, 10MB for others
-            if (file.size > maxSize) {
-                showAlert('error', `Ukuran file terlalu besar. Maksimal ${maxSize / 1024 / 1024}MB`);
-                input.value = '';
-                return;
-            }
-
-            // Show preview
-            document.getElementById(`${type}UploadArea`).classList.add('hidden');
-            document.getElementById(`${type}Preview`).classList.remove('hidden');
-            document.getElementById(`${type}FileName`).textContent = file.name;
-
-            // Store file data
-            applicationData[`${type}File`] = file;
-        }
-
-        function removeFile(type) {
-            document.getElementById(`${type}UploadArea`).classList.remove('hidden');
-            document.getElementById(`${type}Preview`).classList.add('hidden');
-            document.getElementById(`${type}File`).value = '';
-            delete applicationData[`${type}File`];
-        }
-
-        // Generate DISC questions
-        function generateDiscQuestions() {
-            discQuestions = [
-                {
-                    id: 1,
-                    options: [
-                        { text: "Saya suka mengambil keputusan dengan cepat", type: "D" },
-                        { text: "Saya suka berinteraksi dengan banyak orang", type: "I" },
-                        { text: "Saya lebih suka bekerja dalam tim yang stabil", type: "S" },
-                        { text: "Saya selalu memperhatikan detail dalam pekerjaan", type: "C" }
-                    ]
-                },
-                {
-                    id: 2,
-                    options: [
-                        { text: "Saya berani mengambil risiko untuk mencapai target", type: "D" },
-                        { text: "Saya mudah bergaul dan membuat orang lain nyaman", type: "I" },
-                        { text: "Saya konsisten dalam menjalankan tugas rutin", type: "S" },
-                        { text: "Saya suka menganalisis masalah secara mendalam", type: "C" }
-                    ]
-                },
-                {
-                    id: 3,
-                    options: [
-                        { text: "Saya langsung to the point dalam berkomunikasi", type: "D" },
-                        { text: "Saya optimis dan antusias dalam menghadapi tantangan", type: "I" },
-                        { text: "Saya sabar dan mendukung rekan kerja", type: "S" },
-                        { text: "Saya berpikir sistematis sebelum bertindak", type: "C" }
-                    ]
-                },
-                {
-                    id: 4,
-                    options: [
-                        { text: "Saya suka memimpin dan mengambil kontrol situasi", type: "D" },
-                        { text: "Saya expresif dan mudah memotivasi orang lain", type: "I" },
-                        { text: "Saya loyal dan dapat diandalkan", type: "S" },
-                        { text: "Saya hati-hati dan teliti dalam bekerja", type: "C" }
-                    ]
-                },
-                {
-                    id: 5,
-                    options: [
-                        { text: "Saya fokus pada hasil dan pencapaian", type: "D" },
-                        { text: "Saya suka berbagi ide dan berkolaborasi", type: "I" },
-                        { text: "Saya menghindari konflik dan mencari solusi damai", type: "S" },
-                        { text: "Saya mengikuti prosedur dan standar yang ada", type: "C" }
-                    ]
-                }
-            ];
-
-            renderDiscQuestions();
-        }
-
-        function renderDiscQuestions() {
-            const testContainer = document.getElementById('discTest');
-            testContainer.innerHTML = '';
-
-            discQuestions.forEach((question, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'disc-question';
-                
-                let optionsHtml = '';
-                question.options.forEach((option, optIndex) => {
-                    optionsHtml += `
+          let optionsHtml = "";
+          question.options.forEach((option, optIndex) => {
+            optionsHtml += `
                         <label class="disc-option">
                             <input type="radio" name="most_${question.id}" value="${option.type}_${optIndex}" onchange="handleDiscAnswer(${question.id}, 'most', '${option.type}')">
                             <span>${option.text}</span>
                         </label>
                     `;
-                });
+          });
 
-                questionDiv.innerHTML = `
-                    <h4 class="font-bold text-slate-900 mb-4">Pertanyaan ${index + 1}</h4>
+          questionDiv.innerHTML = `
+                    <h4 class="font-bold text-slate-900 mb-4">Pertanyaan ${
+                      index + 1
+                    }</h4>
                     <div class="mb-4">
                         <p class="text-sm font-medium text-slate-700 mb-3">Pilih yang PALING menggambarkan diri Anda:</p>
                         ${optionsHtml}
                     </div>
                 `;
 
-                testContainer.appendChild(questionDiv);
-            });
+          testContainer.appendChild(questionDiv);
+        });
+      }
+
+      function handleDiscAnswer(questionId, type, discType) {
+        if (!discAnswers[questionId]) {
+          discAnswers[questionId] = {};
         }
+        discAnswers[questionId][type] = discType;
+      }
 
-        function handleDiscAnswer(questionId, type, discType) {
-            if (!discAnswers[questionId]) {
-                discAnswers[questionId] = {};
-            }
-            discAnswers[questionId][type] = discType;
+      // Submit application - menggunakan dummy submission (tanpa backend)
+      async function submitApplication() {
+        showLoading("Mengirim Aplikasi", "Memproses data dan psikotest...");
+
+        try {
+          // Collect all form data
+          const selectedJobId = document.getElementById("position").value;
+          const selectedJob = availableJobs.find(
+            (job) => job.id === selectedJobId
+          );
+
+          const personalData = {
+            fullName: document.getElementById("fullName").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("phone").value,
+            birthDate: document.getElementById("birthDate").value,
+            gender: document.getElementById("gender").value,
+            address: {
+              street: document.getElementById("address").value,
+              city: document.getElementById("city").value,
+              state: "",
+              country: "Indonesia",
+            },
+            education: [
+              {
+                degree: document.getElementById("education").value,
+                institution: "",
+                graduationYear: new Date().getFullYear(),
+                gpa: 0,
+              },
+            ],
+            skills: [],
+            appliedJobId: parseInt(selectedJobId.replace("job-", "")) || null,
+            appliedPosition: selectedJob
+              ? selectedJob.title
+              : document.getElementById("position").options[
+                  document.getElementById("position").selectedIndex
+                ]?.text || "General Position",
+          };
+
+          // Calculate age
+          const birthDate = new Date(personalData.birthDate);
+          const today = new Date();
+          personalData.age = today.getFullYear() - birthDate.getFullYear();
+
+          // Calculate DISC scores
+          const discScores = calculateDiscScores();
+          const totalScore = Object.values(discScores).reduce(
+            (sum, score) => sum + score,
+            0
+          );
+          const personalityType = getPersonalityType(discScores);
+          const analysis = getPersonalityAnalysis(personalityType);
+
+          console.log(
+            "✅ Submitting application (dummy - tanpa backend):",
+            personalData
+          );
+
+          // Simulasi delay submission
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // Simulasi success responses
+          const candidateId = "cand-" + Date.now();
+
+          console.log("✅ Candidate created (dummy):", candidateId);
+          console.log("✅ DISC test submitted (dummy):", personalityType);
+
+          hideLoading();
+
+          // Show success
+          currentStep = 4;
+          updateStepDisplay();
+          showStep(4);
+
+          // Update completion page
+          document.getElementById("applicationId").textContent = candidateId;
+          document.getElementById("appliedPosition").textContent =
+            personalData.appliedPosition;
+          document.getElementById("applicationDate").textContent =
+            new Date().toLocaleDateString("id-ID");
+
+          // Add personality type to completion if element exists
+          const personalityElement =
+            document.getElementById("personalityResult");
+          if (personalityElement) {
+            personalityElement.textContent = personalityType;
+          }
+        } catch (error) {
+          hideLoading();
+          showAlert("error", "Gagal mengirim aplikasi: " + error.message);
+          console.error("Submission error:", error);
         }
+      }
 
-        // Submit application - menggunakan dummy submission (tanpa backend)
-        async function submitApplication() {
-            showLoading('Mengirim Aplikasi', 'Memproses data dan psikotest...');
+      // Calculate DISC scores from answers
+      function calculateDiscScores() {
+        const scores = { D: 0, I: 0, S: 0, C: 0 };
 
-            try {
-                // Collect all form data
-                const selectedJobId = document.getElementById('position').value;
-                const selectedJob = availableJobs.find(job => job.id === selectedJobId);
-                
-                const personalData = {
-                    fullName: document.getElementById('fullName').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    birthDate: document.getElementById('birthDate').value,
-                    gender: document.getElementById('gender').value,
-                    address: {
-                        street: document.getElementById('address').value,
-                        city: document.getElementById('city').value,
-                        state: '',
-                        country: 'Indonesia'
-                    },
-                    education: [{
-                        degree: document.getElementById('education').value,
-                        institution: '',
-                        graduationYear: new Date().getFullYear(),
-                        gpa: 0
-                    }],
-                    skills: [],
-                    appliedJobId: parseInt(selectedJobId.replace('job-', '')) || null,
-                    appliedPosition: selectedJob ? selectedJob.title : document.getElementById('position').options[document.getElementById('position').selectedIndex]?.text || 'General Position'
-                };
+        Object.values(discAnswers).forEach((answer) => {
+          if (answer.most) {
+            scores[answer.most]++;
+          }
+        });
 
-                // Calculate age
-                const birthDate = new Date(personalData.birthDate);
-                const today = new Date();
-                personalData.age = today.getFullYear() - birthDate.getFullYear();
+        return scores;
+      }
 
-                // Calculate DISC scores
-                const discScores = calculateDiscScores();
-                const totalScore = Object.values(discScores).reduce((sum, score) => sum + score, 0);
-                const personalityType = getPersonalityType(discScores);
-                const analysis = getPersonalityAnalysis(personalityType);
+      // Get personality type from DISC scores
+      function getPersonalityType(scores) {
+        const maxScore = Math.max(...Object.values(scores));
+        const dominantTraits = Object.keys(scores).filter(
+          (trait) => scores[trait] === maxScore
+        );
 
-                console.log('✅ Submitting application (dummy - tanpa backend):', personalData);
-                
-                // Simulasi delay submission
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Simulasi success responses
-                const candidateId = 'cand-' + Date.now();
-                
-                console.log('✅ Candidate created (dummy):', candidateId);
-                console.log('✅ DISC test submitted (dummy):', personalityType);
-
-                hideLoading();
-
-                // Show success
-                currentStep = 4;
-                updateStepDisplay();
-                showStep(4);
-
-                // Update completion page
-                document.getElementById('applicationId').textContent = candidateId;
-                document.getElementById('appliedPosition').textContent = personalData.appliedPosition;
-                document.getElementById('applicationDate').textContent = new Date().toLocaleDateString('id-ID');
-                
-                // Add personality type to completion if element exists
-                const personalityElement = document.getElementById('personalityResult');
-                if (personalityElement) {
-                    personalityElement.textContent = personalityType;
-                }
-
-            } catch (error) {
-                hideLoading();
-                showAlert('error', 'Gagal mengirim aplikasi: ' + error.message);
-                console.error('Submission error:', error);
-            }
+        // Return primary trait or combination
+        if (dominantTraits.length === 1) {
+          const traitMap = {
+            D: "DOMINANT",
+            I: "INFLUENTIAL",
+            S: "STEADY",
+            C: "CONSCIENTIOUS",
+          };
+          return traitMap[dominantTraits[0]];
+        } else {
+          return dominantTraits.join("/");
         }
+      }
 
-        // Calculate DISC scores from answers
-        function calculateDiscScores() {
-            const scores = { D: 0, I: 0, S: 0, C: 0 };
-            
-            Object.values(discAnswers).forEach(answer => {
-                if (answer.most) {
-                    scores[answer.most]++;
-                }
-            });
+      // Get personality analysis
+      function getPersonalityAnalysis(personalityType) {
+        const analyses = {
+          DOMINANT:
+            "Anda memiliki kepribadian yang tegas, suka mengambil keputusan cepat, dan berorientasi pada hasil. Cocok untuk posisi leadership dan manajemen.",
+          INFLUENTIAL:
+            "Anda memiliki kepribadian yang komunikatif, optimis, dan suka bekerja dengan orang lain. Cocok untuk posisi sales, marketing, dan hubungan masyarakat.",
+          STEADY:
+            "Anda memiliki kepribadian yang tenang, dapat diandalkan, dan suka bekerja dalam tim. Cocok untuk posisi support, administrasi, dan layanan pelanggan.",
+          CONSCIENTIOUS:
+            "Anda memiliki kepribadian yang detail, akurat, dan suka menganalisis. Cocok untuk posisi teknis, quality control, dan research.",
+        };
 
-            return scores;
+        return (
+          analyses[personalityType] ||
+          "Anda memiliki kombinasi kepribadian yang unik dan fleksibel, cocok untuk berbagai jenis pekerjaan."
+        );
+      }
+
+      // Get guest token for API access (simplified for demo)
+      async function getGuestToken() {
+        try {
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: "hr@company.com",
+              password: "password123",
+            }),
+          });
+          const data = await response.json();
+          return data.token;
+        } catch (error) {
+          console.error("Failed to get token:", error);
+          return "";
         }
+      }
 
-        // Get personality type from DISC scores
-        function getPersonalityType(scores) {
-            const maxScore = Math.max(...Object.values(scores));
-            const dominantTraits = Object.keys(scores).filter(trait => scores[trait] === maxScore);
-            
-            // Return primary trait or combination
-            if (dominantTraits.length === 1) {
-                const traitMap = {
-                    D: 'DOMINANT',
-                    I: 'INFLUENTIAL', 
-                    S: 'STEADY',
-                    C: 'CONSCIENTIOUS'
-                };
-                return traitMap[dominantTraits[0]];
-            } else {
-                return dominantTraits.join('/');
-            }
-        }
+      // Utility functions
+      function showLoading(title, message) {
+        document.getElementById("loadingTitle").textContent = title;
+        document.getElementById("loadingMessage").textContent = message;
+        document.getElementById("loadingModal").classList.remove("hidden");
+        lucide.createIcons();
+      }
 
-        // Get personality analysis
-        function getPersonalityAnalysis(personalityType) {
-            const analyses = {
-                'DOMINANT': 'Anda memiliki kepribadian yang tegas, suka mengambil keputusan cepat, dan berorientasi pada hasil. Cocok untuk posisi leadership dan manajemen.',
-                'INFLUENTIAL': 'Anda memiliki kepribadian yang komunikatif, optimis, dan suka bekerja dengan orang lain. Cocok untuk posisi sales, marketing, dan hubungan masyarakat.',
-                'STEADY': 'Anda memiliki kepribadian yang tenang, dapat diandalkan, dan suka bekerja dalam tim. Cocok untuk posisi support, administrasi, dan layanan pelanggan.',
-                'CONSCIENTIOUS': 'Anda memiliki kepribadian yang detail, akurat, dan suka menganalisis. Cocok untuk posisi teknis, quality control, dan research.'
-            };
-            
-            return analyses[personalityType] || 'Anda memiliki kombinasi kepribadian yang unik dan fleksibel, cocok untuk berbagai jenis pekerjaan.';
-        }
+      function hideLoading() {
+        document.getElementById("loadingModal").classList.add("hidden");
+      }
 
-        // Get guest token for API access (simplified for demo)
-        async function getGuestToken() {
-            try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: 'hr@company.com',
-                        password: 'password123'
-                    })
-                });
-                const data = await response.json();
-                return data.token;
-            } catch (error) {
-                console.error('Failed to get token:', error);
-                return '';
-            }
-        }
+      function showAlert(type, message) {
+        // Simple alert for now - can be enhanced with better UI
+        const bgColor =
+          type === "error"
+            ? "bg-red-100 border-red-500 text-red-700"
+            : "bg-green-100 border-green-500 text-green-700";
 
-        // Utility functions
-        function showLoading(title, message) {
-            document.getElementById('loadingTitle').textContent = title;
-            document.getElementById('loadingMessage').textContent = message;
-            document.getElementById('loadingModal').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingModal').classList.add('hidden');
-        }
-
-        function showAlert(type, message) {
-            // Simple alert for now - can be enhanced with better UI
-            const bgColor = type === 'error' ? 'bg-red-100 border-red-500 text-red-700' : 'bg-green-100 border-green-500 text-green-700';
-            
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `fixed top-4 right-4 p-4 border-l-4 ${bgColor} z-50 max-w-sm`;
-            alertDiv.innerHTML = `
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `fixed top-4 right-4 p-4 border-l-4 ${bgColor} z-50 max-w-sm`;
+        alertDiv.innerHTML = `
                 <div class="flex">
                     <div>
                         <p class="font-medium">${message}</p>
@@ -1062,14 +1436,14 @@
                     </button>
                 </div>
             `;
-            
-            document.body.appendChild(alertDiv);
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 5000);
-        }
+
+        document.body.appendChild(alertDiv);
+        lucide.createIcons();
+
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 5000);
+      }
     </script>
-</body>
+  </body>
 </html>
