@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Scanner - Recruitment System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .processing {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .match-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Layout -->
+    <div id="layout-container"></div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <i data-lucide="scan-text" class="w-8 h-8 text-blue-600"></i>
+                        CV Scanner
+                    </h1>
+                    <p class="text-gray-600 mt-2">Upload CV pelamar dan sistem akan menemukan posisi yang cocok</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="clearAll()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>
+                        Clear All
+                    </button>
+                    <button onclick="exportResults()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i data-lucide="download" class="w-4 h-4 inline mr-2"></i>
+                        Export Results
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
+            <div id="uploadArea" class="upload-area rounded-lg p-12 text-center cursor-pointer hover:bg-gray-50">
+                <i data-lucide="cloud-upload" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">Upload CV Pelamar</h3>
+                <p class="text-gray-500 mb-4">Drag & drop PDF files atau klik untuk browse</p>
+                <p class="text-sm text-gray-400">Support: PDF (Max 10MB per file)</p>
+                <input type="file" id="fileInput" multiple accept=".pdf" class="hidden">
+                <button onclick="document.getElementById('fileInput').click()"
+                        class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <i data-lucide="folder-open" class="w-4 h-4 inline mr-2"></i>
+                    Pilih Files
+                </button>
+            </div>
+        </div>
+
+        <!-- Processing Status -->
+        <div id="processingStatus" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
+            <div class="flex items-center">
+                <div class="processing">
+                    <i data-lucide="loader-2" class="w-6 h-6 text-blue-600 animate-spin"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-blue-800 font-medium">Memproses CV...</p>
+                    <p class="text-blue-600 text-sm" id="processingText">Menganalisis dokumen</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total CV</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalCV">0</p>
+                        </div>
+                        <i data-lucide="file-text" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Processed</p>
+                            <p class="text-2xl font-bold text-green-600" id="processedCV">0</p>
+                        </div>
+                        <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">High Match</p>
+                            <p class="text-2xl font-bold text-purple-600" id="highMatch">0</p>
+                        </div>
+                        <i data-lucide="star" class="w-8 h-8 text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Positions</p>
+                            <p class="text-2xl font-bold text-orange-600" id="totalPositions">0</p>
+                        </div>
+                        <i data-lucide="briefcase" class="w-8 h-8 text-orange-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <div class="flex-1 min-w-[300px]">
+                        <div class="relative">
+                            <i data-lucide="search" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="searchInput" placeholder="Cari nama pelamar..."
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <select id="positionFilter" class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Semua Posisi</option>
+                    </select>
+                    <select id="scoreFilter" class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Semua Score</option>
+                        <option value="high">80% - 100%</option>
+                        <option value="medium">60% - 79%</option>
+                        <option value="low">0% - 59%</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CV Results Grid -->
+            <div id="cvResults" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Cards will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/src/services/cv-scanner.js"></script>
+    <script src="/src/services/layout.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Initialize CV Scanner
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCVScanner();
+        });
+    </script>
+</body>
+</html>

@@ -17,8 +17,7 @@ const views = [
   { name: 'Test Interface', path: '/views/test.html', icon: '🖥️' },
   { name: 'Analytics', path: '/views/analytics.html', icon: '📈' },
   { name: 'Laporan', path: '/views/laporan.html', icon: '📄' },
-  { name: 'Application Form', path: '/views/application-form.html', icon: '📝' },
-  { name: 'Form Apply', path: '/views/form-apply.html', icon: '✍️' },
+  { name: 'CV Scanner', path: '/views/cv-scanner.html', icon: '📄' },
 ]
 
 // Create index page
