@@ -33,7 +33,6 @@
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
         <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
             <div class="flex items-center justify-between">
                 <div>
@@ -56,7 +55,6 @@
             </div>
         </div>
 
-        <!-- Upload Area -->
         <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
             <div id="uploadArea" class="upload-area rounded-lg p-12 text-center cursor-pointer hover:bg-gray-50">
                 <i data-lucide="cloud-upload" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
@@ -72,7 +70,6 @@
             </div>
         </div>
 
-        <!-- Processing Status -->
         <div id="processingStatus" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
             <div class="flex items-center">
                 <div class="processing">
@@ -85,9 +82,8 @@
             </div>
         </div>
 
-        <!-- Results Section -->
         <div id="resultsSection" class="hidden">
-            <!-- Statistics Cards -->
+
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <div class="flex items-center justify-between">
@@ -127,7 +123,6 @@
                 </div>
             </div>
 
-            <!-- Filter & Search -->
             <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
                 <div class="flex flex-wrap gap-4 items-center">
                     <div class="flex-1 min-w-[300px]">
@@ -149,9 +144,7 @@
                 </div>
             </div>
 
-            <!-- CV Results Grid -->
             <div id="cvResults" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                <!-- Cards will be dynamically added here -->
             </div>
         </div>
     </div>
@@ -159,10 +152,9 @@
     <script src="/src/services/cv-scanner.js"></script>
     <script src="/src/services/layout.js"></script>
     <script>
-        // Initialize Lucide icons
+
         lucide.createIcons();
 
-        // Initialize CV Scanner
         document.addEventListener('DOMContentLoaded', () => {
             initializeCVScanner();
         });

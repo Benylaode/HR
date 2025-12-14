@@ -1,4 +1,6 @@
 // CV Scanner Service
+const API_BASE_URL = "http://localhost:5000"; 
+
 class CVScanner {
     constructor() {
         this.candidates = [];
@@ -87,14 +89,14 @@ class CVScanner {
         this.processing = false;
     }
 
-    // Initialize CV Scanner
     initialize() {
         this.setupEventListeners();
         this.loadPositionFilters();
         this.updateStatistics();
+        this.loadCandidatesFromDB();
+        // this.loadLeaderboard(5);
     }
 
-    // Setup Event Listeners
     setupEventListeners() {
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -173,60 +175,182 @@ class CVScanner {
         this.renderResults();
     }
 
+    // Load Leaderboard from Backend
+    // async loadLeaderboard(limit = 5) {
+    //     try {
+    //         const res = await fetch(`${API_BASE_URL}/screening/leaderboard?limit=${limit}`);
+    //         if (!res.ok) {
+    //             throw new Error("Failed to fetch leaderboard");
+    //         }
+
+    //         const data = await res.json();
+    //         this.renderLeaderboard(data.leaderboard);
+
+    //     } catch (err) {
+    //         console.error("Leaderboard error:", err);
+    //     }
+    // }
+    // renderLeaderboard(leaderboardData) {
+    //     const container = document.getElementById("leaderboardSection");
+    //     if (!container) return;
+
+    //     container.innerHTML = "";
+
+    //     Object.entries(leaderboardData).forEach(([position, candidates]) => {
+    //         if (candidates.length === 0) return;
+
+    //         const section = document.createElement("div");
+    //         section.className = "bg-white rounded-xl shadow-sm p-6 mb-6";
+
+    //         section.innerHTML = `
+    //             <h3 class="text-lg font-semibold text-gray-900 mb-4">
+    //                 🏆 Leaderboard – ${position}
+    //             </h3>
+    //             <div class="space-y-3">
+    //                 ${candidates.map((c, idx) => `
+    //                     <div class="flex items-center justify-between p-3 rounded-lg ${
+    //                         idx === 0 ? "bg-green-50 border border-green-200" : "bg-gray-50"
+    //                     }">
+    //                         <div>
+    //                             <p class="font-medium text-gray-900">
+    //                                 ${idx + 1}. ${c.name}
+    //                             </p>
+    //                             <p class="text-xs text-gray-600">
+    //                                 ${c.education || "-"} • ${c.experience || "-"}
+    //                             </p>
+    //                         </div>
+    //                         <div class="text-right">
+    //                             <div class="text-lg font-bold ${
+    //                                 idx === 0 ? "text-green-600" : "text-gray-700"
+    //                             }">
+    //                                 ${c.match_score}%
+    //                             </div>
+    //                             <p class="text-xs text-gray-500">Match</p>
+    //                         </div>
+    //                     </div>
+    //                 `).join("")}
+    //             </div>
+    //         `;
+
+    //         container.appendChild(section);
+    //     });
+    // }
+
+
+    // Load candidates from backend database
+    async loadCandidatesFromDB() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/screening/candidates`);
+            if (!res.ok) {
+                throw new Error("Failed to fetch candidates");
+            }
+
+            const data = await res.json();
+
+            // Normalisasi agar kompatibel dengan UI yang sudah ada
+            this.candidates = data.map(c => ({
+                id: String(c.resume_id),
+                name: c.name || "Unknown",
+                email: c.email || "-",
+                phone: c.phone || "-",
+                education: c.education || "-",
+                experience: c.experience || "-",
+                skills: Array.isArray(c.skills) ? c.skills : [],
+                matches: [
+                    {
+                        position: {
+                            title: c.top_position,
+                            department: "-",
+                            salary: "-",
+                            level: "-"
+                        },
+                        matchScore: c.match_score,
+                        skillMatch: Math.min(100, c.match_score + 5),
+                        experienceMatch: Math.max(40, c.match_score - 10),
+                        reasons: c.verdict ? [c.verdict] : []
+                    }
+                ],
+                topMatch: {
+                    position: {
+                        title: c.top_position,
+                        department: "-",
+                        salary: "-",
+                        level: "-"
+                    },
+                    matchScore: c.match_score,
+                    skillMatch: Math.min(100, c.match_score + 5),
+                    experienceMatch: Math.max(40, c.match_score - 10),
+                    reasons: c.verdict ? [c.verdict] : []
+                },
+                fileName: "-",
+                processedAt: c.created_at
+            }));
+
+            this.renderResults();
+            this.updateStatistics();
+
+        } catch (err) {
+            console.error("Load candidates error:", err);
+        }
+    }
+
     // Analyze CV (Automated Analysis)
     async analyzeCV(file) {
-        // Generate random candidate data for simulation
-        const names = ['Ahmad Rizki', 'Siti Nurhaliza', 'Budi Santoso', 'Diana Putri', 'Eko Prasetyo',
-                      'Fitri Handayani', 'Gunawan Wijaya', 'Hana Amelia', 'Indra Kusuma', 'Julia Rahmawati'];
-        const educations = ['S1 Teknik Informatika', 'S1 Sistem Informasi', 'S1 Manajemen', 'S2 Computer Science', 'D3 Teknik Komputer'];
-        const experiences = ['1 tahun', '2 tahun', '3 tahun', '4 tahun', '5 tahun', '6 tahun', '7 tahun'];
-        const skillsPool = [
-            'JavaScript', 'Python', 'React', 'Node.js', 'TypeScript', 'Java', 'C++', 'SQL', 'MongoDB',
-            'Docker', 'Kubernetes', 'AWS', 'Google Cloud', 'Azure', 'Git', 'Agile', 'Scrum',
-            'Machine Learning', 'Data Analysis', 'Tableau', 'Figma', 'Adobe XD', 'Project Management',
-            'Communication', 'Leadership', 'Problem Solving', 'Critical Thinking', 'Team Work'
-        ];
+        // 1️⃣ Upload CV
+        const formData = new FormData();
+        formData.append("file", file);
 
-        const randomName = names[Math.floor(Math.random() * names.length)];
-        const randomEducation = educations[Math.floor(Math.random() * educations.length)];
-        const randomExperience = experiences[Math.floor(Math.random() * experiences.length)];
-        const numSkills = Math.floor(Math.random() * 8) + 5; // 5-12 skills
-        const randomSkills = [];
-        const shuffledSkills = [...skillsPool].sort(() => 0.5 - Math.random());
-        for (let i = 0; i < numSkills; i++) {
-            randomSkills.push(shuffledSkills[i]);
+        const uploadRes = await fetch(`${API_BASE_URL}/screening/upload_resume`, {
+            method: "POST",
+            body: formData
+        });
+
+        if (!uploadRes.ok) {
+            throw new Error("Upload resume failed");
         }
 
-        // Position Matching Simulation
-        const matches = this.availablePositions.map(position => {
-            const skillMatch = this.calculateSkillMatch(randomSkills, position.requirements);
-            const experienceMatch = this.calculateExperienceMatch(randomExperience, position.experience);
-            const totalScore = (skillMatch * 0.6) + (experienceMatch * 0.4);
+        const uploadData = await uploadRes.json();
+        const resumeId = uploadData.id;
 
-            return {
-                position: position,
-                matchScore: Math.round(totalScore),
-                skillMatch: Math.round(skillMatch),
-                experienceMatch: Math.round(experienceMatch),
-                reasons: this.generateMatchReasons(randomSkills, position, skillMatch, experienceMatch)
-            };
-        }).sort((a, b) => b.matchScore - a.matchScore);
+        // 2️⃣ Match CV dengan JD (bisa kamu ganti dinamis)
+        const jobDescription = `
+            Software engineer with experience in web development,
+            backend systems, APIs, databases, and teamwork.
+        `;
 
+        const matchRes = await fetch(`${API_BASE_URL}/screening/match_resume`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                resume_id: resumeId,
+                job_description: jobDescription,
+                top_k: 5
+            })
+        });
+
+        if (!matchRes.ok) {
+            throw new Error("Resume matching failed");
+        }
+
+        const candidate = await matchRes.json();
+
+        // 3️⃣ NORMALISASI DATA (ATS SAFE)
         return {
-            id: Date.now() + Math.random(),
-            name: randomName,
-            email: `${randomName.toLowerCase().replace(' ', '.')}@email.com`,
-            phone: `+62 812-3456-${Math.floor(Math.random() * 9000) + 1000}`,
-            file: file,
+            id: String(candidate.id), // UUID string
+            name: candidate.name || "Unknown",
+            email: candidate.email || "-",
+            phone: candidate.phone || "-",
+            education: candidate.education || "-",
+            experience: candidate.experience || "-",
+            skills: Array.isArray(candidate.skills) ? candidate.skills : [],
+            matches: Array.isArray(candidate.matches) ? candidate.matches : [],
+            topMatch: candidate.topMatch || candidate.matches?.[0],
             fileName: file.name,
-            education: randomEducation,
-            experience: randomExperience,
-            skills: randomSkills,
-            matches: matches.slice(0, 3), // Top 3 matches
-            topMatch: matches[0],
             processedAt: new Date().toISOString()
         };
     }
+
+
 
     // Calculate Skill Match
     calculateSkillMatch(candidateSkills, positionRequirements) {
@@ -372,11 +496,11 @@ class CVScanner {
 
                 <!-- Actions -->
                 <div class="flex gap-2 mt-4">
-                    <button onclick="cvScanner.viewDetails(${candidate.id})"
+                    <button onclick="cvScanner.viewDetails('${candidate.id}')"
                             class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
                         View Details
                     </button>
-                    <button onclick="cvScheduler.scheduleInterview(${candidate.id})"
+                    <button onclick="cvScheduler.scheduleInterview('${candidate.id}')"
                             class="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
                         Schedule Interview
                     </button>
@@ -388,8 +512,9 @@ class CVScanner {
 
     // View Candidate Details
     viewDetails(candidateId) {
-        const candidate = this.candidates.find(c => c.id === candidateId);
-        if (!candidate) return;
+        const candidate = this.candidates.find(
+            c => String(c.id) === String(candidateId)
+        );
 
         // Create modal
         const modal = document.createElement('div');
@@ -491,14 +616,13 @@ class CVScanner {
                                                 </p>`
                                             ).join('')}
                                         </div>
-
                                         ${index === 0 ? `
                                             <div class="mt-3 flex gap-2">
-                                                <button onclick="cvScheduler.scheduleInterview(${candidate.id})"
+                                                <button onclick="cvScheduler.scheduleInterview('${candidate.id}')"
                                                         class="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">
                                                     Schedule Interview
                                                 </button>
-                                                <button onclick="cvScanner.moveToNextStep(${candidate.id})"
+                                                <button onclick="cvScanner.moveToNextStep('${candidate.id}')"
                                                         class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
                                                     Move to Next Step
                                                 </button>
