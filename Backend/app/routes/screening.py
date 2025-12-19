@@ -1,16 +1,17 @@
 import os
 import uuid
 import json
-import sqlite3
 import re
 from datetime import datetime
-
 import numpy as np
 import faiss
 from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from openai import OpenAI
+
+from app import db
+from app.models import Resume, Candidate, JobPosition
 
 load_dotenv()
 
@@ -19,7 +20,6 @@ BASE = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 UPLOAD_FOLDER = os.path.join(BASE, "uploads")
 INDEX_FOLDER = os.path.join(BASE, "indexes")
 CHUNKS_FOLDER = os.path.join(BASE, "chunks")
-DB_PATH = os.path.join(BASE, "storage.db")
 
 ALLOWED_EXT = {"pdf"}
 
@@ -32,117 +32,38 @@ client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
-screening_bp = Blueprint("screening", __name__, url_prefix="/screening")
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS resumes (
-            id TEXT PRIMARY KEY,
-            filename TEXT,
-            uploaded_at TEXT,
-            index_path TEXT,
-            chunks_path TEXT,
-            raw_text TEXT
-        )
-    """)
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS candidates (
-            id TEXT PRIMARY KEY,
-            resume_id TEXT,
-            name TEXT,
-            email TEXT,
-            phone TEXT,
-            education TEXT,
-            experience TEXT,
-            skills TEXT,
-            top_position TEXT,
-            match_score INTEGER,
-            verdict TEXT,
-            created_at TEXT,
-            FOREIGN KEY (resume_id) REFERENCES resumes(id)
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-init_db()
+screening_bp = Blueprint("screening", __name__)
 
 
-def load_resume_meta(resume_id):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""
-        SELECT id, filename, uploaded_at, index_path, chunks_path, raw_text
-        FROM resumes WHERE id = ?
-    """, (resume_id,))
-    row = c.fetchone()
-    conn.close()
-    if not row:
-        return None
-    return {
-        "id": row[0],
-        "filename": row[1],
-        "uploaded_at": row[2],
-        "index_path": row[3],
-        "chunks_path": row[4],
-        "raw_text": row[5]
-    }
+def job_to_text(job: JobPosition) -> str:
+    """
+    Mengubah JobPosition menjadi teks untuk embedding & LLM
+    """
+    requirements = ", ".join(job.requirements or [])
+    skills = ", ".join(job.required_skills or [])
 
-def get_leaderboard_by_position(limit_per_position=10):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
+    salary = ""
+    if job.salary_min and job.salary_max:
+        salary = f"Gaji {job.salary_min}-{job.salary_max} {job.salary_currency}"
 
-    leaderboard = {}
+    return f"""
+    Posisi: {job.title}
+    Departemen: {job.department}
+    Level: {job.level}
+    Lokasi: {job.location}
+    Tipe Kerja: {job.employment_type}
+    Prioritas: {job.priority}
+    {salary}
 
-    for pos in AVAILABLE_POSITIONS:
-        title = pos["title"]
+    Deskripsi Pekerjaan:
+    {job.job_description}
 
-        c.execute("""
-            SELECT
-                id,
-                resume_id,
-                name,
-                email,
-                phone,
-                education,
-                experience,
-                skills,
-                top_position,
-                match_score,
-                verdict,
-                created_at
-            FROM candidates
-            WHERE top_position = ?
-            ORDER BY match_score DESC, created_at ASC
-            LIMIT ?
-        """, (title, limit_per_position))
+    Persyaratan:
+    {requirements}
 
-        rows = c.fetchall()
-
-        leaderboard[title] = [
-            {
-                "candidate_id": row["id"],
-                "name": row["name"],
-                "email": row["email"],
-                "phone": row["phone"],
-                "education": row["education"],
-                "experience": row["experience"],
-                "match_score": row["match_score"],
-                "verdict": row["verdict"],
-                "created_at": row["created_at"]
-            }
-            for row in rows
-        ]
-
-    conn.close()
-    return leaderboard
-
+    Keahlian Wajib:
+    {skills}
+    """
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
@@ -157,13 +78,13 @@ def extract_candidate_name(filename):
 
 
 def extract_email(text):
-    match = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
-    return match.group(0) if match else None
+    m = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
+    return m.group(0) if m else None
 
 
 def extract_phone(text):
-    match = re.search(r'(\+62|62|0)8[1-9][0-9]{6,10}', text)
-    return match.group(0) if match else None
+    m = re.search(r'(\+62|62|0)8[1-9][0-9]{6,10}', text)
+    return m.group(0) if m else None
 
 
 def generate_verdict(context, job_description):
@@ -181,7 +102,7 @@ Lakukan hal berikut:
    - Atau status seperti Fresh Graduate jika belum memiliki pengalaman kerja
 3. Berikan verdict kecocokan kandidat terhadap pekerjaan.
    - 2–3 kalimat singkat
-   - Fokus pada kesesuaian kompetensi, pengalaman, dan latar belakang
+   - Fokus pada kesesuaian kompetensi, pengalaman, dan latar belakang dengan konsep 100 poin skala yang mana poin nya di jelaskan dalam daftar job desc
    - Gunakan Bahasa Indonesia formal dan profesional
 
 WAJIB kembalikan dalam format JSON murni berikut (tanpa teks tambahan):
@@ -221,131 +142,36 @@ Gunakan null jika informasi tidak tersedia secara eksplisit di CV.
             "verdict": "Kecocokan kandidat dievaluasi berdasarkan kesesuaian umum antara profil CV dan kebutuhan posisi."
         }
 
-AVAILABLE_POSITIONS = [
-    {"title": "Frontend Developer", "department": "Engineering"},
-    {"title": "Backend Developer", "department": "Engineering"},
-    {"title": "Data Scientist", "department": "Data"},
-]
 
-
-def build_match(position, avg_score, reason=None):
-    score = normalize_score(avg_score)
+def load_resume_meta(resume_id):
+    r = db.session.get(Resume, resume_id)
+    if not r:
+        return None
     return {
-        "position": position,
-        "matchScore": score,
-        "skillMatch": min(100, score + 5),
-        "experienceMatch": max(40, score - 10),
-        "reasons": [reason] if reason else []
+        "id": r.id,
+        "filename": r.filename,
+        "index_path": r.index_path,
+        "chunks_path": r.chunks_path,
+        "raw_text": r.raw_text
     }
 
-def save_candidate_result(
-    resume_id,
-    name,
-    email,
-    phone,
-    education,
-    experience,
-    skills,
-    top_match,
-    verdict
-):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
 
-    c.execute("""
-        INSERT OR REPLACE INTO candidates (
-            id,
-            resume_id,
-            name,
-            email,
-            phone,
-            education,
-            experience,
-            skills,
-            top_position,
-            match_score,
-            verdict,
-            created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        str(uuid.uuid4()),
-        resume_id,
-        name,
-        email,
-        phone,
-        education,
-        experience,
-        json.dumps(skills, ensure_ascii=False),
-        top_match["position"]["title"],
-        top_match["matchScore"],
-        verdict,
-        datetime.utcnow().isoformat()
-    ))
+def save_candidate_result(**data):
+    c = Candidate(
+        resume_id=data["resume_id"],
+        name=data["name"],
+        email=data["email"],
+        phone=data["phone"],
+        education=data["education"],
+        experience=data["experience"],
+        skills=json.dumps(data["skills"], ensure_ascii=False),
+        top_position=data["top_match"]["position"]["title"],
+        match_score=data["top_match"]["matchScore"],
+        verdict=data["verdict"]
+    )
+    db.session.add(c)
+    db.session.commit()
 
-    conn.commit()
-    conn.close()
-
-@screening_bp.route("/leaderboard", methods=["GET"])
-def leaderboard():
-    """
-    HR Leaderboard:
-    - Grouped by job title
-    - Sorted by match_score DESC
-    """
-    limit = int(request.args.get("limit", 10))
-    data = get_leaderboard_by_position(limit)
-
-    return jsonify({
-        "generated_at": datetime.utcnow().isoformat(),
-        "leaderboard": data
-    })
-
-
-@screening_bp.route("/candidates", methods=["GET"])
-def list_candidates():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-
-    c.execute("""
-        SELECT
-            id,
-            resume_id,
-            name,
-            email,
-            phone,
-            education,
-            experience,
-            skills,
-            top_position,
-            match_score,
-            verdict,
-            created_at
-        FROM candidates
-        ORDER BY created_at DESC
-    """)
-
-    rows = c.fetchall()
-    conn.close()
-
-    candidates = []
-    for row in rows:
-        candidates.append({
-            "id": row["id"],
-            "resume_id": row["resume_id"],
-            "name": row["name"],
-            "email": row["email"],
-            "phone": row["phone"],
-            "education": row["education"],
-            "experience": row["experience"],
-            "skills": json.loads(row["skills"]) if row["skills"] else [],
-            "top_position": row["top_position"],
-            "match_score": row["match_score"],
-            "verdict": row["verdict"],
-            "created_at": row["created_at"]
-        })
-
-    return jsonify(candidates)
 
 @screening_bp.route("/upload_resume", methods=["POST"])
 def upload_resume():
@@ -376,59 +202,77 @@ def upload_resume():
     faiss.write_index(index, index_path)
     json.dump(chunks, open(chunks_path, "w", encoding="utf-8"), ensure_ascii=False)
 
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO resumes VALUES (?, ?, ?, ?, ?, ?)",
-        (resume_id, filename, datetime.utcnow().isoformat(), index_path, chunks_path, text)
+    r = Resume(
+        id=resume_id,
+        filename=filename,
+        index_path=index_path,
+        chunks_path=chunks_path,
+        raw_text=text
     )
-    conn.commit()
-    conn.close()
+    db.session.add(r)
+    db.session.commit()
 
     return jsonify({"id": resume_id})
-
 
 @screening_bp.route("/match_resume", methods=["POST"])
 def match_resume():
     data = request.get_json(force=True)
-    meta = load_resume_meta(data.get("resume_id"))
+    resume_id = data.get("resume_id")
+    job_description = data.get("job_description")
 
+    if not resume_id or not job_description:
+        return jsonify({"error": "resume_id & job_description required"}), 400
+
+    meta = load_resume_meta(resume_id)
     if not meta:
         return jsonify({"error": "resume not found"}), 404
+
+    job_title = job_description.split("-")[0].strip()
+
+    job = JobPosition.query.filter(
+        JobPosition.title.ilike(f"%{job_title}%"),
+        JobPosition.available.is_(True),
+        JobPosition.status == "active"
+    ).first()
+
+    if not job:
+        return jsonify({"error": "job not found"}), 404
 
     from extractor import embed_query
 
     index = faiss.read_index(meta["index_path"])
     chunks = json.load(open(meta["chunks_path"], encoding="utf-8"))
 
-    q_emb = embed_query(data.get("job_description", ""))
-    D, I = index.search(q_emb, min(5, len(chunks)))
+    job_text = job_to_text(job)
+    q_emb = embed_query(job_text)
 
+    D, I = index.search(q_emb, min(5, len(chunks)))
     avg_score = float(np.mean(D[0])) if len(D[0]) else 0.0
+    score = normalize_score(avg_score)
+
     context = "\n\n".join(chunks[i] for i in I[0][:3])
 
-    llm = generate_verdict(context, data.get("job_description", ""))
-    print(llm)
+    llm = generate_verdict(context, job_text)
 
-    matches = [
-        build_match(pos, avg_score, llm["verdict"] if i == 0 else None)
-        for i, pos in enumerate(AVAILABLE_POSITIONS)
-    ]
+    match = build_position_match(
+        job=job,
+        base_score=score,
+        verdict=llm["verdict"]
+    )
 
     raw_text = meta["raw_text"]
 
     save_candidate_result(
-    resume_id=meta["id"],
-    name=extract_candidate_name(meta["filename"]),
-    email=extract_email(raw_text) or "Not found",
-    phone=extract_phone(raw_text) or "Not found",
-    education=llm["education"] or "Not found",
-    experience=llm["experience"] or "Not found",
-    skills=data.get("job_description", "").split()[:8],
-    top_match=matches[0],
-    verdict=llm["verdict"]
+        resume_id=meta["id"],
+        name=extract_candidate_name(meta["filename"]),
+        email=extract_email(raw_text) or "Not found",
+        phone=extract_phone(raw_text) or "Not found",
+        education=llm["education"] or "Not found",
+        experience=llm["experience"] or "Not found",
+        skills=(job.required_skills or [])[:8],
+        top_match=match,
+        verdict=llm["verdict"]
     )
-
 
     return jsonify({
         "id": meta["id"],
@@ -437,7 +281,48 @@ def match_resume():
         "phone": extract_phone(raw_text) or "Not found",
         "education": llm["education"] or "Not found",
         "experience": llm["experience"] or "Not found",
-        "skills": data.get("job_description", "").split()[:8],
-        "matches": matches,
-        "topMatch": matches[0]
+        "skills": (job.required_skills or [])[:8],
+        "matches": [match],          
+        "topMatch": match
     })
+
+
+@screening_bp.route("/candidates", methods=["GET"])
+def list_candidates():
+    rows = Candidate.query.order_by(Candidate.created_at.desc()).all()
+    return jsonify([
+        {
+            "id": c.id,
+            "resume_id": c.resume_id,  
+            "name": c.name,
+            "email": c.email,
+            "phone": c.phone,
+            "education": c.education,
+            "experience": c.experience,
+            "skills": json.loads(c.skills),
+            "top_position": c.top_position,
+            "match_score": c.match_score,
+            "verdict": c.verdict,
+            "created_at": c.created_at.isoformat()
+        } for c in rows
+    ])
+
+
+def build_position_match(job: JobPosition, base_score: int, verdict: str):
+    """
+    Bangun struktur match per JobPosition
+    """
+    return {
+        "position": {
+            "id": job.id,
+            "title": job.title,
+            "department": job.department,
+            "level": job.level,
+            "employment_type": job.employment_type,
+            "location": job.location
+        },
+        "matchScore": base_score,
+        "skillMatch": min(100, base_score + 5),
+        "experienceMatch": max(40, base_score - 10),
+        "reasons": [verdict]
+    }
