@@ -201,7 +201,6 @@ def upload_resume():
 
     faiss.write_index(index, index_path)
     json.dump(chunks, open(chunks_path, "w", encoding="utf-8"), ensure_ascii=False)
-
     r = Resume(
         id=resume_id,
         filename=filename,
@@ -210,9 +209,29 @@ def upload_resume():
         raw_text=text
     )
     db.session.add(r)
+
+    candidate = Candidate(
+        resume_id=resume_id,
+        name=extract_candidate_name(filename),
+        email=extract_email(text) or "Not found",
+        phone=extract_phone(text) or "Not found",
+        education="Not matched yet",
+        experience="Not matched yet",
+        skills=json.dumps([]),
+        top_position="Not matched yet",
+        match_score=0,
+        verdict="Resume uploaded. Awaiting job matching."
+    )
+
+    db.session.add(candidate)
     db.session.commit()
 
-    return jsonify({"id": resume_id})
+    return jsonify({
+        "id": resume_id,
+        "candidate_id": candidate.id,
+        "status": "uploaded"
+    })
+
 
 @screening_bp.route("/match_resume", methods=["POST"])
 def match_resume():
