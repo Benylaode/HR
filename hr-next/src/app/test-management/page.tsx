@@ -139,9 +139,24 @@ export default function TestManagementPage() {
   };
 
   const copyLink = (token: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/test/${token}`);
-    alert("Link copied!");
+    const text = `${window.location.origin}/test/${token}`;
+
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => alert("Link copied!"))
+        .catch(err => console.error("Clipboard error:", err));
+    } else {
+      // fallback untuk browser lama
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      alert("Link copied (fallback)!");
+    }
   };
+
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
