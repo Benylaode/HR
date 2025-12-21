@@ -12,7 +12,7 @@ def create_app():
 
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL",
-        "postgresql://postgres:123@localhost:5432/hrrs"
+        "postgresql://postgres:password@localhost:5432/hrrs"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
