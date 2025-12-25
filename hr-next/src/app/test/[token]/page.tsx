@@ -3,12 +3,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { AlertTriangle, Clock, Shield, ClipboardCheck, Info, Check } from "lucide-react";
+// Pastikan path import komponen di bawah ini sudah benar di project Anda
 import CFITTest from "@/components/test/CFITTest";
 import PAPITest from "@/components/test/PAPITest";
 import KraepelinTest from "@/components/test/KraepelinTest";
 import { cfitQuestions, papiQuestions, TEST_DURATION } from "@/lib/test-data";
 
 type TestType = "cfit" | "kraepelin" | "papi";
+
+// API Config
+// const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface TestState {
   currentTest: TestType;
@@ -23,8 +28,14 @@ interface TestState {
 export default function TestExamPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const token = params.token as string;
-  const candidateName = searchParams.get("candidate") || "Kandidat";
+  
+  // --- PERBAIKAN: Hooks dipindahkan ke DALAM function component ---
+  const token = params?.token as string; // Tambahkan safe access
+  const candidateNameParam = searchParams.get("candidate") || "Kandidat";
+
+  const [realCandidateName, setRealCandidateName] = useState<string>("");
+  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
+  // ---------------------------------------------------------------
 
   const [state, setState] = useState<TestState>({
     currentTest: "cfit",
@@ -39,44 +50,127 @@ export default function TestExamPage() {
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
   const [completedTests, setCompletedTests] = useState<TestType[]>([]);
+  
+  // State data dari DB
+  const [dbQuestions, setDbQuestions] = useState<{cfit: any[], papi: any[]}>({ cfit: [], papi: [] });
+  const [kraepelinConfig, setKraepelinConfig] = useState<any>(null);
 
-  // Timer
+  // Fetch Data dari Database & Validasi Token
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchAllData = async () => {
+      try {
+        // 1. Cek Token
+        const res = await fetch(`${API_BASE_URL}/submission/check-token/${token}`);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setRealCandidateName(data.candidate_name);
+          setIsTokenValid(true);
+        } else {
+          setIsTokenValid(false);
+          // Jika token tidak valid, stop fetch lainnya
+          return;
+        }
+
+        // 2. Ambil Config Kraepelin
+        const resKrae = await fetch("${API_BASE_URL}/management/config/kraepelin");
+        if (resKrae.ok) {
+           const dataKrae = await resKrae.json();
+           setKraepelinConfig(dataKrae);
+        }
+
+        // 3. Ambil Soal CFIT
+        const resCfit = await fetch("${API_BASE_URL}/management/questions/cfit");
+        const dataCfit = await resCfit.json();
+        
+        // 4. Ambil Soal PAPI
+        const resPapi = await fetch("${API_BASE_URL}/management/questions/papi");
+        const dataPapi = await resPapi.json();
+
+        setDbQuestions({ cfit: dataCfit, papi: dataPapi });
+
+        // Update state jawaban sesuai jumlah soal dari DB
+        setState(prev => ({
+          ...prev,
+          cfitAnswers: new Array(dataCfit.length).fill(null),
+          papiAnswers: new Array(dataPapi.length).fill(null),
+        }));
+
+      } catch (err) {
+        console.error("Gagal mengambil data dari database:", err);
+        setIsTokenValid(false); // Anggap invalid jika koneksi error
+      }
+    };
+
+    fetchAllData();
+  }, [token]); 
+
+  // Timer Logic
   useEffect(() => {
     if (!state.isStarted || state.isCompleted) return;
 
     const timer = setInterval(() => {
       setState((prev) => {
         if (prev.timeRemaining <= 1) {
-          handleTestComplete();
-          return { ...prev, timeRemaining: 0 };
+          // Waktu habis, otomatis trigger selesai untuk tes saat ini
+          // Note: handleTestComplete butuh dipanggil di effect atau event handler lain
+          // Di sini kita set time 0 dulu, nanti logic submit bisa ditrigger
+          return { ...prev, timeRemaining: 0 }; 
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [state.isStarted, state.isCompleted, state.currentTest]);
+  }, [state.isStarted, state.isCompleted]);
 
-  // Anti-cheat
+  // Pantau Timer Habis (0 detik) -> Auto Submit / Complete
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && state.isStarted) {
-        setWarningMessage("Anda keluar dari halaman tes!");
-        setShowWarning(true);
+      if (state.isStarted && state.timeRemaining === 0) {
+          handleTestComplete();
       }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [state.isStarted]);
+  }, [state.timeRemaining, state.isStarted]);
+
 
   const startTest = (testType: TestType) => {
+    let duration = TEST_DURATION;
+
+    // Override durasi jika tes Kraepelin dan config tersedia
+    if (testType === "kraepelin" && kraepelinConfig) {
+      duration = kraepelinConfig.columns * kraepelinConfig.duration_per_column;
+    }
+
     setState((prev) => ({
       ...prev,
       currentTest: testType,
-      timeRemaining: TEST_DURATION,
+      timeRemaining: duration,
       isStarted: true,
     }));
   };
+
+  const finalizeAllTests = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/submission/finalize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token }),
+      });
+      if (response.ok) {
+        console.log("Sesi tes telah ditutup.");
+      }
+    } catch (err) {
+      console.error("Gagal menutup sesi tes:", err);
+    }
+  };
+
+  // Effect untuk Finalize saat semua selesai
+  useEffect(() => {
+    if (completedTests.length === 3) {
+      finalizeAllTests();
+    }
+  }, [completedTests]);
 
   const handleCFITAnswer = (questionIndex: number, answer: number) => {
     setState((prev) => {
@@ -98,7 +192,11 @@ export default function TestExamPage() {
     if (!completedTests.includes(state.currentTest)) {
       setCompletedTests((prev) => [...prev, state.currentTest]);
     }
-    setState((prev) => ({ ...prev, isStarted: false }));
+    
+    setState((prev) => ({ 
+      ...prev, 
+      isStarted: false 
+    }));
   };
 
   const handleKraepelinComplete = (results: any) => {
@@ -110,18 +208,92 @@ export default function TestExamPage() {
     }));
   };
 
-  const submitCurrentTest = () => {
-    handleTestComplete();
+  const submitCurrentTest = async () => {
+    let answersData: any;
+    let endpoint = "";
+
+    if (state.currentTest === "cfit") {
+      endpoint = "cfit";
+      answersData = state.cfitAnswers;
+    } else if (state.currentTest === "papi") {
+      endpoint = "papi";
+      answersData = state.papiAnswers;
+    } else if (state.currentTest === "kraepelin") {
+      endpoint = "kraepelin";
+      answersData = state.kraepelinResults?.answers;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/submission/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: token, 
+          answers: answersData
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Data berhasil masuk ke BE:", result);
+        handleTestComplete();
+      } else {
+        const errorMsg = await response.json();
+        alert(`Gagal mengirim: ${errorMsg.error || 'Server Error'}`);
+      }
+    } catch (err) {
+      console.error("Koneksi ke Backend gagal:", err);
+      alert("Koneksi ke server terputus. Pastikan Flask Anda berjalan.");
+    }
   };
 
   const allTestsCompleted = completedTests.length === 3;
 
-  // Test Selection Screen
+  // --- TAMPILAN JIKA TOKEN TIDAK VALID ---
+  if (isTokenValid === false) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+                <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Akses Ditolak</h1>
+                <p className="text-gray-600">Token ujian tidak valid atau sudah kadaluarsa.</p>
+            </div>
+        </div>
+    );
+  }
+
+  // --- TAMPILAN LOADING CHECK TOKEN ---
+  if (isTokenValid === null) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="animate-pulse flex flex-col items-center">
+                <div className="h-8 w-8 bg-blue-600 rounded-full mb-4 animate-bounce"></div>
+                <p className="text-gray-500 font-medium">Memverifikasi sesi ujian...</p>
+            </div>
+        </div>
+      );
+  }
+
+  // --- SCREEN: SELESAI SEMUA TES ---
+  if (allTestsCompleted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white shadow p-8 max-w-lg text-center">
+          <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6 text-3xl">✓</div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Selesai!</h2>
+          <p className="text-gray-600 mb-6">Terima kasih, {realCandidateName}. Hasil Anda telah disimpan.</p>
+          <p className="text-sm text-gray-500">Anda dapat menutup halaman ini.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- SCREEN: MENU PILIH TEST ---
   if (!state.isStarted && !allTestsCompleted) {
     const testConfigs = [
-      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: cfitQuestions.length, time: "3 menit" },
+      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: "3 menit" },
       { type: "kraepelin" as TestType, name: "Kraepelin Test", icon: "📊", color: "green", questions: 50, time: "3 menit" },
-      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: papiQuestions.length, time: "3 menit" },
+      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: "3 menit" },
     ];
 
     return (
@@ -132,7 +304,7 @@ export default function TestExamPage() {
               <ClipboardCheck className="w-6 h-6 text-blue-600" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">HR Assessment Tests</h1>
-                <p className="text-sm text-gray-600">{candidateName}</p>
+                <p className="text-sm text-gray-600">{realCandidateName || "Memuat..."}</p>
               </div>
             </div>
           </div>
@@ -193,21 +365,7 @@ export default function TestExamPage() {
     );
   }
 
-  // Completed Screen
-  if (allTestsCompleted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white shadow p-8 max-w-lg text-center">
-          <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6 text-3xl">✓</div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Selesai!</h2>
-          <p className="text-gray-600 mb-6">Terima kasih, {candidateName}. Hasil Anda telah disimpan.</p>
-          <p className="text-sm text-gray-500">Anda dapat menutup halaman ini.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Active Test
+  // --- SCREEN: UJIAN AKTIF (SEDANG BERJALAN) ---
   return (
     <div className="min-h-screen bg-gray-100">
       {showWarning && (
@@ -235,7 +393,7 @@ export default function TestExamPage() {
               {state.currentTest === "kraepelin" && "Kraepelin Test"}
               {state.currentTest === "papi" && "PAPI Kostick Test"}
             </h2>
-            <p className="text-sm text-gray-500">{candidateName}</p>
+            <p className="text-sm text-gray-500">{realCandidateName}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -258,23 +416,29 @@ export default function TestExamPage() {
       <div className="py-6 px-4">
         {state.currentTest === "cfit" && (
           <CFITTest
-            questions={cfitQuestions}
+            questions={dbQuestions.cfit}
             answers={state.cfitAnswers}
             onAnswer={handleCFITAnswer}
             timeRemaining={state.timeRemaining}
           />
         )}
-
-        {state.currentTest === "kraepelin" && (
+        
+        {state.currentTest === "kraepelin" && kraepelinConfig ? (
           <KraepelinTest
             timeRemaining={state.timeRemaining}
             onComplete={handleKraepelinComplete}
+            dbConfig={kraepelinConfig}
           />
+        ) : state.currentTest === "kraepelin" && (
+          <div className="flex flex-col items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Memuat konfigurasi tes...</p>
+          </div>
         )}
 
-        {state.currentTest === "papi" && (
+        {state.currentTest === "papi" && dbQuestions.papi.length > 0 && (
           <PAPITest
-            questions={papiQuestions}
+            questions={dbQuestions.papi} 
             answers={state.papiAnswers}
             onAnswer={handlePAPIAnswer}
             timeRemaining={state.timeRemaining}

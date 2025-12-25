@@ -1,14 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 import {
-  Link,
   CheckCircle,
-  FileCheck,
-  Target,
   Plus,
   RefreshCw,
   Trash2,
@@ -17,16 +13,71 @@ import {
   HelpCircle,
   Upload,
   Image,
+  Link as LinkIcon,
+  Copy,
+  Clock,
+  FileCheck,
+  Eye,
+  Activity,
   Grid3X3,
   Layers,
   Settings,
-  Edit,
+  User,
+  Calendar,
+  BarChart2,
+  Zap,
+  Target,
+  AlertCircle
 } from "lucide-react";
-import { categories, allQuestions, testLinks, Category, Question, TestLink } from "@/lib/dummy-data";
 
-type TabType = "test-links" | "categories" | "submissions";
+// --- 0. CONFIG ---
+// Menggunakan Environment Variable agar mudah diganti saat production
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-// Interface untuk Tipe Soal CFIT
+// --- 1. INTERFACES ---
+
+export interface Candidate {
+  id: string;
+  name: string;
+  email: string;
+  top_position: string;
+}
+
+export interface JobPosition {
+  id: string;
+  title: string;
+}
+
+export interface TestLink {
+  id: number;
+  candidateName: string;
+  token: string;
+  status: string;
+  createdAt?: string;
+}
+
+export interface Submission {
+  id: number;
+  candidate_name: string;
+  test_type: 'cfit' | 'papi' | 'kraepelin';
+  scores: any; 
+  submitted_at: string;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  code: string;
+  question_count: number;
+}
+
+export interface Question {
+  id: number;
+  option_a?: string;
+  option_b?: string;
+  question_type?: string;
+}
+
 interface CfitSubtype {
   id: number;
   name: string;
@@ -43,83 +94,73 @@ interface CfitQuestion {
   correctAnswer: string;
 }
 
-// Data awal CFIT Sub-types (bisa di-extend)
-const initialCfitSubtypes: CfitSubtype[] = [
-  { 
-    id: 1, 
-    name: "Series Completion", 
-    code: "cfit_series", 
-    description: "Melengkapi pola urutan",
-    instruction: "Tentukan pola yang melengkapi urutan gambar berikut. Pilih salah satu jawaban yang paling tepat.",
-    optionCount: 6,
-    questions: []
-  },
-  { 
-    id: 2, 
-    name: "Classification", 
-    code: "cfit_classification", 
-    description: "Klasifikasi objek",
-    instruction: "Temukan gambar yang tidak termasuk dalam kelompok. Pilih gambar yang berbeda dari yang lainnya.",
-    optionCount: 5,
-    questions: []
-  },
-  { 
-    id: 3, 
-    name: "Matrices", 
-    code: "cfit_matrices", 
-    description: "Melengkapi matriks",
-    instruction: "Lengkapi matriks dengan memilih gambar yang tepat untuk mengisi kotak kosong.",
-    optionCount: 6,
-    questions: []
-  },
-  { 
-    id: 4, 
-    name: "Conditions", 
-    code: "cfit_conditions", 
-    description: "Kondisi dan aturan",
-    instruction: "Berdasarkan kondisi yang diberikan, tentukan jawaban yang paling tepat.",
-    optionCount: 5,
-    questions: []
-  },
+// --- 2. STATIC DATA ---
+
+const STATIC_CATEGORIES: Category[] = [
+  { id: 1, name: "CFIT (Culture Fair Intelligence Test)", code: "cfit", question_count: 0 },
+  { id: 2, name: "PAPI Kostick (Personality)", code: "papi", question_count: 0 },
+  { id: 3, name: "Kraepelin (Work Speed & Accuracy)", code: "kraepelin", question_count: 0 },
 ];
+
+const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
+  { id: 1, name: "Series Completion", code: "cfit_series", description: "Melengkapi pola urutan", instruction: "Tentukan pola yang melengkapi urutan gambar berikut.", optionCount: 6, questions: [] },
+  { id: 2, name: "Classification", code: "cfit_classification", description: "Klasifikasi objek", instruction: "Temukan gambar yang tidak termasuk dalam kelompok.", optionCount: 5, questions: [] },
+  { id: 3, name: "Matrices", code: "cfit_matrices", description: "Melengkapi matriks", instruction: "Lengkapi matriks dengan memilih gambar yang tepat.", optionCount: 6, questions: [] },
+  { id: 4, name: "Conditions", code: "cfit_conditions", description: "Kondisi dan aturan", instruction: "Berdasarkan kondisi yang diberikan, tentukan jawaban yang tepat.", optionCount: 5, questions: [] },
+];
+
+type TabType = "test-links" | "categories" | "submissions";
+
+// --- 3. MAIN COMPONENT ---
 
 export default function TestManagementPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string } | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("categories");
-  const [localCategories, setLocalCategories] = useState<Category[]>(categories);
-  const [localQuestions, setLocalQuestions] = useState<Record<number, Question[]>>(allQuestions);
-  const [localTestLinks, setLocalTestLinks] = useState<TestLink[]>(testLinks);
+  
+  // Data State
+  const [localCategories, setLocalCategories] = useState<Category[]>(STATIC_CATEGORIES);
+  const [localQuestions, setLocalQuestions] = useState<Record<number, Question[]>>({});
+  const [localTestLinks, setLocalTestLinks] = useState<TestLink[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]); 
+  
+  // Candidates & Jobs List for Dropdown
+  const [candidatesList, setCandidatesList] = useState<Candidate[]>([]);
+  const [jobsList, setJobsList] = useState<JobPosition[]>([]);
+  
+  // Form State
+  const [selectedCandidateId, setSelectedCandidateId] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState(""); 
+
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   
   // CFIT State
-  const [cfitSubtypes, setCfitSubtypes] = useState<CfitSubtype[]>(initialCfitSubtypes);
+  const [cfitSubtypes, setCfitSubtypes] = useState<CfitSubtype[]>(INITIAL_CFIT_SUBTYPES);
   const [selectedCfitSubtype, setSelectedCfitSubtype] = useState<CfitSubtype | null>(null);
   
   // Modals
   const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState<Submission | null>(null);
   const [showCreateSubtypeModal, setShowCreateSubtypeModal] = useState(false);
   const [showEditSubtypeModal, setShowEditSubtypeModal] = useState(false);
-  const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
-  
-  // Form state untuk Tipe Soal
-  const [subtypeName, setSubtypeName] = useState("");
-  const [subtypeInstruction, setSubtypeInstruction] = useState("");
-  const [subtypeOptionCount, setSubtypeOptionCount] = useState("6");
-  
-  // Form state untuk Pertanyaan
+
+  // Form Inputs
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [correctAnswer, setCorrectAnswer] = useState("");
-  
-  // PAPI State
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
-  const [questionText, setQuestionText] = useState("");
-  
-  // Kraepelin settings
+
   const [kraepelinColumns, setKraepelinColumns] = useState("50");
   const [kraepelinRows, setKraepelinRows] = useState("27");
   const [kraepelinTimePerColumn, setKraepelinTimePerColumn] = useState("15");
+
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- USE EFFECTS ---
 
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
@@ -128,789 +169,706 @@ export default function TestManagementPage() {
       return;
     }
     setUser(JSON.parse(userData));
+    fetchData(); 
   }, [router]);
 
-  // Stats
-  const stats = {
-    totalLinks: localTestLinks.length,
-    activeLinks: localTestLinks.filter((l) => l.status === "active").length,
-    totalSubmissions: 0,
-    completionRate: 0,
-  };
+  // --- API FETCH FUNCTIONS ---
 
-  const copyLink = (token: string) => {
-    const text = `${window.location.origin}/test/${token}`;
+  const fetchData = async () => {
+    try {
+      const resLinks = await fetch(`${API_BASE_URL}/management/links`);
+      if (resLinks.ok) setLocalTestLinks(await resLinks.json());
 
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(text)
-        .then(() => alert("Link copied!"))
-        .catch(err => console.error("Clipboard error:", err));
-    } else {
-      // fallback untuk browser lama
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      alert("Link copied (fallback)!");
+      const resSubs = await fetch(`${API_BASE_URL}/management/submissions`); 
+      if (resSubs.ok) setSubmissions(await resSubs.json());
+
+      const resCandidates = await fetch(`${API_BASE_URL}/candidates`);
+      if (resCandidates.ok) setCandidatesList(await resCandidates.json());
+
+      const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`);
+      if (resJobs.ok) setJobsList(await resJobs.json());
+
+      const resKraepelin = await fetch(`${API_BASE_URL}/management/config/kraepelin`);
+      if (resKraepelin.ok) {
+        const data = await resKraepelin.json();
+        setKraepelinColumns(String(data.columns || 50));
+        setKraepelinRows(String(data.rows || 27));
+        setKraepelinTimePerColumn(String(data.durationPerColumn || 15));
+      }
+
+      const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`);
+      if (resCfit.ok) {
+        const allCfitQuestionsFromBE = await resCfit.json();
+        setCfitSubtypes((prev) => prev.map((st) => ({
+            ...st,
+            questions: allCfitQuestionsFromBE
+              .filter((q: any) => q.subtest === st.id)
+              .map((q: any) => ({
+                id: q.id,
+                // Fix: Pastikan URL gambar lengkap dengan API_BASE_URL
+                imageUrl: q.question_image ? `${API_BASE_URL}${q.question_image}` : null,
+                correctAnswer: String.fromCharCode(65 + q.correctAnswer),
+              })),
+          }))
+        );
+        setLocalCategories(prev => prev.map(c => c.code === 'cfit' ? { ...c, question_count: allCfitQuestionsFromBE.length } : c));
+      }
+
+      const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`);
+      if (resPapi.ok) {
+        const papiQ = await resPapi.json();
+        const papiId = localCategories.find(c => c.code === 'papi')?.id || 2;
+        setLocalQuestions(prev => ({
+          ...prev,
+          [papiId]: papiQ.map((q: any) => ({ id: q.id, option_a: q.option_a, option_b: q.option_b, question_type: "PAPI" }))
+        }));
+        setLocalCategories(prev => prev.map(c => c.code === 'papi' ? { ...c, question_count: papiQ.length } : c));
+      }
+
+    } catch (err) {
+      console.error("Error fetching data:", err);
     }
   };
 
+  // --- HANDLERS ---
 
+  const handleGenerateLink = async () => { 
+    if (!selectedCandidateId) { alert("Pilih kandidat dari daftar!"); return; }
+    
+    setIsGeneratingLink(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/management/generate-link`, {
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ 
+            candidate_id: selectedCandidateId,
+            job_id: selectedJobId || null 
+        }), 
+      });
+      
+      const data = await response.json();
+
+      if (response.ok) {
+        const selectedCand = candidatesList.find(c => c.id === selectedCandidateId);
+        const candName = selectedCand ? selectedCand.name : "Unknown";
+
+        setLocalTestLinks([{ 
+            id: Date.now(), 
+            candidateName: candName, 
+            token: data.token, 
+            status: "active", 
+            createdAt: new Date().toISOString() 
+        }, ...localTestLinks]);
+        
+        alert(`Link dibuat!\nToken: ${data.token}`);
+        setShowCreateLinkModal(false);
+        setSelectedCandidateId(""); 
+        setSelectedJobId("");
+      } else {
+        alert(`Gagal: ${data.error || "Terjadi kesalahan"}`);
+      }
+    } catch(e) { 
+        alert("Gagal menghubungi server."); 
+    } finally { 
+        setIsGeneratingLink(false); 
+    }
+  };
+
+  const handleSaveKraepelin = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/management/config/kraepelin`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ columns: parseInt(kraepelinColumns), rows: parseInt(kraepelinRows), durationPerColumn: parseInt(kraepelinTimePerColumn) }),
+      });
+      if (response.ok) alert("Tersimpan!");
+    } catch (err) { console.error(err); }
+  };
+
+  const handleAddPapiQuestion = async () => {
+    if (!optionA || !optionB) { alert("Isi opsi!"); return; }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/management/questions/papi`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ option_a: optionA, option_b: optionB }),
+      });
+      if (res.ok) { alert("Disimpan!"); setShowQuestionModal(false); setOptionA(""); setOptionB(""); fetchData(); }
+    } catch (err) { console.error(err); } finally { setIsSubmitting(false); }
+  };
+
+  const handleAddCfitQuestion = async () => {
+      if (!imagePreview || !correctAnswer) return;
+      setIsSubmitting(true);
+      const formData = new FormData();
+      if (fileInputRef.current?.files?.[0]) formData.append("image", fileInputRef.current.files[0]);
+      formData.append("subtest", String(selectedCfitSubtype?.id));
+      formData.append("correctAnswer", String(labelToIndex(correctAnswer)));
+      formData.append("instruction", selectedCfitSubtype?.instruction || "");
+      try {
+        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { method: "POST", body: formData });
+        if (res.ok) { alert("Ditambahkan!"); setShowQuestionModal(false); setImagePreview(null); setCorrectAnswer(""); fetchData(); }
+      } catch (err) { alert("Error."); } finally { setIsSubmitting(false); }
+  };
+
+  const handleDeleteQuestion = async (endpoint: 'cfit' | 'papi', id: number) => {
+    if (!confirm("Hapus?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { method: "DELETE" });
+      if (res.ok) fetchData();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleCreateSubtype = () => { setShowCreateSubtypeModal(false); };
+  const handleUpdateSubtype = () => { setShowEditSubtypeModal(false); };
+
+  // --- UTILS ---
+  const copyLink = (token: string) => navigator.clipboard.writeText(`http://localhost:3000/test/${token}`).then(() => alert("Disalin!"));
+  const getOptionLabels = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
+  const labelToIndex = (label: string) => label.charCodeAt(0) - 65;
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
+      reader.onload = (e) => setImagePreview(e.target?.result as string);
       reader.readAsDataURL(file);
     }
   };
 
-  // Tambah Tipe Soal Baru
-  const handleCreateSubtype = () => {
-    if (!subtypeName.trim()) return;
-    
-    const newSubtype: CfitSubtype = {
-      id: cfitSubtypes.length + 1,
-      name: subtypeName,
-      code: `cfit_${subtypeName.toLowerCase().replace(/\s+/g, '_')}`,
-      description: subtypeInstruction.substring(0, 50) + "...",
-      instruction: subtypeInstruction,
-      optionCount: parseInt(subtypeOptionCount),
-      questions: []
-    };
-    
-    setCfitSubtypes([...cfitSubtypes, newSubtype]);
-    setSubtypeName("");
-    setSubtypeInstruction("");
-    setSubtypeOptionCount("6");
-    setShowCreateSubtypeModal(false);
+  const isCfitCategory = selectedCategory?.code === "cfit";
+  const isKraepelinCategory = selectedCategory?.code === "kraepelin";
+
+  // --- RENDER HELPERS FOR BEAUTIFUL SUBMISSIONS ---
+
+  const getTestBadgeColor = (type: string) => {
+    switch (type) {
+      case 'cfit': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'kraepelin': return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'papi': return 'bg-orange-100 text-orange-700 border-orange-200';
+      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
   };
 
-  // Update Tipe Soal
-  const handleUpdateSubtype = () => {
-    if (!selectedCfitSubtype) return;
+  const renderSubmissionTable = () => (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="p-6 border-b border-gray-200 bg-gray-50/50">
+        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <FileCheck className="w-5 h-5 text-gray-500" />
+          Riwayat Hasil Tes
+        </h3>
+      </div>
+      <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-gray-50 text-gray-500 font-semibold uppercase text-[11px] tracking-wider border-b">
+          <tr>
+            <th className="px-6 py-4">Kandidat</th>
+            <th className="px-6 py-4">Jenis Tes</th>
+            <th className="px-6 py-4">Hasil Ringkas</th>
+            <th className="px-6 py-4">Waktu Submit</th>
+            <th className="px-6 py-4 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {submissions.length > 0 ? submissions.map((sub) => {
+            let scoreBadge = <span className="text-gray-400 italic text-xs">Menunggu...</span>;
+            if (sub.scores && Object.keys(sub.scores).length > 0) {
+              if (sub.test_type === 'cfit') {
+                const iq = sub.scores.iq || 0;
+                const color = iq >= 110 ? 'text-green-600 bg-green-50 border-green-200' : (iq >= 90 ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-red-600 bg-red-50 border-red-200');
+                scoreBadge = (
+                  <div className={`inline-flex flex-col px-3 py-1 rounded-lg border ${color}`}>
+                    <span className="font-bold text-xs">IQ: {iq}</span>
+                    <span className="text-[9px] uppercase tracking-wide opacity-80">{sub.scores.classification}</span>
+                  </div>
+                );
+              } else if (sub.test_type === 'kraepelin') {
+                scoreBadge = (
+                  <div className="flex gap-2">
+                    <div className="px-2 py-1 bg-gray-50 border rounded text-xs">
+                      <span className="text-gray-400 mr-1">Speed:</span><span className="font-bold text-gray-700">{sub.scores.panker}</span>
+                    </div>
+                    <div className="px-2 py-1 bg-gray-50 border rounded text-xs">
+                      <span className="text-gray-400 mr-1">Acc:</span><span className="font-bold text-gray-700">{sub.scores.janker}</span>
+                    </div>
+                  </div>
+                );
+              } else if (sub.test_type === 'papi') {
+                scoreBadge = (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 text-orange-700 text-xs border border-orange-100 font-medium">
+                    <CheckCircle className="w-3 h-3"/> Profile Ready
+                  </span>
+                );
+              }
+            }
+
+            return (
+              <tr key={sub.id} className="hover:bg-gray-50/80 transition-colors">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 font-bold text-xs">
+                      {sub.candidate_name ? sub.candidate_name.charAt(0).toUpperCase() : "?"}
+                    </div>
+                    <span className="font-medium text-gray-900">{sub.candidate_name}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getTestBadgeColor(sub.test_type)}`}>
+                    {sub.test_type}
+                  </span>
+                </td>
+                <td className="px-6 py-4">{scoreBadge}</td>
+                <td className="px-6 py-4 text-gray-500 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3 h-3 text-gray-400"/>
+                    {new Date(sub.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    <span className="text-gray-300">|</span>
+                    {new Date(sub.submitted_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <button 
+                    onClick={() => setShowDetailModal(sub)}
+                    className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-end gap-1.5 ml-auto"
+                  >
+                    <Eye className="w-3.5 h-3.5"/> Detail
+                  </button>
+                </td>
+              </tr>
+            );
+          }) : (
+            <tr>
+              <td colSpan={5} className="px-6 py-12 text-center text-gray-400 bg-gray-50/30">
+                <div className="flex flex-col items-center justify-center">
+                  <FileCheck className="w-10 h-10 mb-3 text-gray-200" />
+                  <p className="text-sm font-medium">Belum ada data submission.</p>
+                </div>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  );
+
+  // --- RENDER MODAL CONTENT (DASHBOARD) ---
+  const renderDetailContent = (sub: Submission) => {
+    if (!sub.scores || Object.keys(sub.scores).length === 0) {
+        return <div className="p-8 text-center text-gray-400 italic">Data hasil belum diproses atau kosong.</div>;
+    }
+
+    if (sub.test_type === 'cfit') {
+        const iq = sub.scores.iq || 0;
+        const color = iq >= 110 ? 'text-green-600' : (iq >= 90 ? 'text-blue-600' : 'text-red-600');
+        return (
+            <div className="space-y-6">
+                <div className="flex flex-col items-center justify-center p-8 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="text-sm text-blue-600 font-bold uppercase tracking-widest mb-1">IQ Score</div>
+                    <div className={`text-6xl font-black ${color}`}>{iq}</div>
+                    <div className="mt-2 px-4 py-1 bg-white rounded-full text-sm font-bold shadow-sm text-gray-700 border">
+                        {sub.scores.classification || "Unclassified"}
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-xl bg-gray-50">
+                        <div className="text-xs text-gray-500 uppercase font-bold mb-1">Raw Score</div>
+                        <div className="text-2xl font-bold text-gray-900">{sub.scores.raw_score} <span className="text-sm text-gray-400 font-normal">/ 50</span></div>
+                    </div>
+                    <div className="p-4 border rounded-xl bg-gray-50">
+                        <div className="text-xs text-gray-500 uppercase font-bold mb-1">Detail Jawaban</div>
+                        <div className="text-sm text-gray-700">Lihat breakdown jawaban di database (JSON).</div>
+                    </div>
+                </div>
+            </div>
+        );
+    } 
     
-    setCfitSubtypes(cfitSubtypes.map(st => 
-      st.id === selectedCfitSubtype.id
-        ? { ...st, name: subtypeName, instruction: subtypeInstruction, optionCount: parseInt(subtypeOptionCount) }
-        : st
-    ));
-    setShowEditSubtypeModal(false);
+    if (sub.test_type === 'kraepelin') {
+        return (
+            <div className="space-y-6">
+                <div className="p-4 bg-purple-50 rounded-xl border border-purple-100 text-center">
+                    <h4 className="font-bold text-purple-900 mb-2">Interpretasi Umum</h4>
+                    <p className="text-sm text-purple-800 italic">"{sub.scores.interpretation || '-'}"</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-xl shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Zap className="w-4 h-4 text-yellow-500"/>
+                            <span className="text-xs font-bold uppercase text-gray-500">Kecepatan (Panker)</span>
+                        </div>
+                        <div className="text-2xl font-bold text-gray-900">{sub.scores.panker}</div>
+                        <div className="text-xs mt-1 text-gray-500 bg-gray-100 px-2 py-0.5 rounded w-fit">{sub.scores.gradeSpeed || '-'}</div>
+                    </div>
+                    <div className="p-4 border rounded-xl shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Target className="w-4 h-4 text-green-500"/>
+                            <span className="text-xs font-bold uppercase text-gray-500">Ketelitian (Janker)</span>
+                        </div>
+                        <div className="text-2xl font-bold text-gray-900">{sub.scores.janker}</div>
+                        <div className="text-xs mt-1 text-gray-500 bg-gray-100 px-2 py-0.5 rounded w-fit">{sub.scores.gradeStability || '-'}</div>
+                    </div>
+                    <div className="p-4 border rounded-xl shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Activity className="w-4 h-4 text-red-500"/>
+                            <span className="text-xs font-bold uppercase text-gray-500">Total Errors</span>
+                        </div>
+                        <div className="text-2xl font-bold text-gray-900">{sub.scores.totalErrors}</div>
+                        <div className="text-xs mt-1 text-gray-500 bg-gray-100 px-2 py-0.5 rounded w-fit">{sub.scores.gradeAccuracy || '-'}</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (sub.test_type === 'papi') {
+        const aspects = Object.entries(sub.scores).filter(([key]) => /^[A-Z]$/.test(key)); // Filter A-Z keys
+        return (
+            <div className="space-y-4">
+                <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl mb-4">
+                    <h4 className="font-bold text-orange-900 text-sm">PAPI Kostick Profile</h4>
+                    <p className="text-xs text-orange-700">Skor mentah per aspek (Range 0-9)</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2">
+                    {aspects.map(([key, value]: any) => (
+                        <div key={key} className="flex flex-col gap-1 p-2 border rounded-lg hover:shadow-sm">
+                            <div className="flex justify-between items-center">
+                                <span className="font-bold text-gray-700">{key}</span>
+                                <span className="text-xs font-mono text-gray-500">{value}/9</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div 
+                                    className={`h-full rounded-full ${value > 5 ? 'bg-green-500' : (value < 4 ? 'bg-red-400' : 'bg-yellow-400')}`} 
+                                    style={{ width: `${(value / 9) * 100}%` }}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    return <pre className="text-xs">{JSON.stringify(sub.scores, null, 2)}</pre>;
   };
 
-  // Tambah Pertanyaan
-  const handleAddQuestion = () => {
-    if (!selectedCfitSubtype || !imagePreview || !correctAnswer) return;
-    
-    const newQuestion: CfitQuestion = {
-      id: selectedCfitSubtype.questions.length + 1,
-      imageUrl: imagePreview,
-      correctAnswer: correctAnswer
-    };
-    
-    setCfitSubtypes(cfitSubtypes.map(st => 
-      st.id === selectedCfitSubtype.id
-        ? { ...st, questions: [...st.questions, newQuestion] }
-        : st
-    ));
-    
-    // Update selected subtype
-    setSelectedCfitSubtype({
-      ...selectedCfitSubtype,
-      questions: [...selectedCfitSubtype.questions, newQuestion]
-    });
-    
-    setImagePreview(null);
-    setCorrectAnswer("");
-    setShowQuestionModal(false);
-  };
-
-  // Delete Question
-  const handleDeleteQuestion = (questionId: number) => {
-    if (!selectedCfitSubtype) return;
-    
-    const updatedQuestions = selectedCfitSubtype.questions.filter(q => q.id !== questionId);
-    
-    setCfitSubtypes(cfitSubtypes.map(st => 
-      st.id === selectedCfitSubtype.id
-        ? { ...st, questions: updatedQuestions }
-        : st
-    ));
-    
-    setSelectedCfitSubtype({
-      ...selectedCfitSubtype,
-      questions: updatedQuestions
-    });
-  };
-
-  const isCfitCategory = selectedCategory?.code?.toLowerCase().includes("cfit");
-  const isKraepelinCategory = selectedCategory?.code?.toLowerCase().includes("kraepelin");
-
-  // Generate option labels based on count
-  const getOptionLabels = (count: number) => {
-    return Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
-  };
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      <div className="lg:pl-64 flex flex-col flex-1">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">Manajemen Test</h1>
-                <p className="text-sm text-gray-600">Kelola soal CFIT, PAPI, dan Kraepelin</p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setShowCreateLinkModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium flex items-center"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Buat Test Link
-                </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                  <RefreshCw className="w-5 h-5" />
-                </button>
-              </div>
+      <div className="lg:pl-64 flex flex-col flex-1 min-w-0">
+        
+        {/* HEADER */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+          <div className="px-6 h-16 flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Manajemen Test</h1>
+              <p className="text-xs text-gray-500">Dashboard & Submissions</p>
             </div>
+            <div className="flex gap-3">
+              <button onClick={fetchData} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><RefreshCw className="w-5 h-5" /></button>
+              <button onClick={() => setShowCreateLinkModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center shadow-sm"><Plus className="w-4 h-4 mr-2" /> Buat Link</button>
+            </div>
+          </div>
+          <div className="px-6 border-t border-gray-100 flex gap-8">
+            {[{ id: "categories", label: "Soal & Kategori" }, { id: "test-links", label: "Link Tes Aktif" }, { id: "submissions", label: "Hasil Submission" }].map((tab) => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as TabType)} className={`py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}>{tab.label}</button>
+            ))}
           </div>
         </header>
 
-        {/* Tab Navigation */}
-        <div className="bg-white border-b">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab("test-links")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "test-links" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500"
-                }`}
-              >
-                Test Links
-              </button>
-              <button
-                onClick={() => setActiveTab("categories")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "categories" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500"
-                }`}
-              >
-                Categories & Questions
-              </button>
-              <button
-                onClick={() => setActiveTab("submissions")}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "submissions" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500"
-                }`}
-              >
-                Submissions
-              </button>
-            </nav>
-          </div>
-        </div>
+        {/* MAIN CONTENT */}
+        <main className="flex-1 p-6 overflow-y-auto">
+          
+          {/* === TAB 1: CATEGORIES === */}
+          {activeTab === "categories" && (
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
+              <aside className="w-full lg:w-72 sticky top-28">
+               <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                 <div className="p-4 bg-gray-50 border-b text-xs font-bold text-gray-400 uppercase tracking-widest">Kategori Tes</div>
+                 <div className="divide-y divide-gray-100">
+                   {localCategories.map((cat) => (
+                     <button key={cat.id} onClick={() => { setSelectedCategory(cat); setSelectedCfitSubtype(null); }} className={`w-full flex items-center justify-between p-4 transition-all ${selectedCategory?.id === cat.id ? "bg-blue-50 text-blue-700 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50"}`}>
+                       <div className="flex items-center gap-3"><FolderOpen className={`w-4 h-4 ${selectedCategory?.id === cat.id ? "text-blue-600" : "text-gray-400"}`} /><span className="text-sm font-semibold">{cat.name}</span></div>
+                       <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-bold">{cat.question_count}</span>
+                     </button>
+                   ))}
+                 </div>
+               </div>
+              </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="px-4 sm:px-6 lg:px-8 py-8">
-            {/* Test Links Tab */}
-            {activeTab === "test-links" && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-white p-6 shadow border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                        <Link className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Links</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.totalLinks}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 shadow border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Active</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.activeLinks}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 shadow border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                        <FileCheck className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Submissions</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.totalSubmissions}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 shadow border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-                        <Target className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Completion</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.completionRate}%</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white shadow border border-gray-200 mb-8">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">Test Links</h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Token</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidate</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {localTestLinks.map((link) => (
-                          <tr key={link.id}>
-                            <td className="px-6 py-4"><code className="text-xs bg-gray-100 px-2 py-1">{link.token.substring(0, 20)}...</code></td>
-                            <td className="px-6 py-4 text-sm text-gray-900">{link.candidateName}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2 py-1 text-xs font-semibold ${
-                                link.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                              }`}>{link.status}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <button onClick={() => copyLink(link.token)} className="text-blue-600 hover:underline text-sm">Copy</button>
-                            </td>
-                          </tr>
+              <section className="flex-1 w-full min-w-0">
+                {!selectedCategory ? (
+                  <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-20 text-center"><FolderOpen className="w-16 h-16 text-gray-200 mx-auto mb-4" /><h3 className="text-gray-400 font-medium text-sm">Pilih kategori tes untuk mengelola soal</h3></div>
+                ) : isCfitCategory ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-4"><span className="hover:underline cursor-pointer" onClick={() => setSelectedCfitSubtype(null)}>CFIT</span>{selectedCfitSubtype && <><span className="text-gray-300">/</span><span className="font-bold text-gray-900">{selectedCfitSubtype.name}</span></>}</div>
+                    {!selectedCfitSubtype ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {cfitSubtypes.map((st) => (
+                          <div key={st.id} onClick={() => setSelectedCfitSubtype(st)} className="bg-white p-5 rounded-xl border border-gray-200 hover:border-blue-400 cursor-pointer group">
+                             <div className="flex justify-between items-start mb-4"><div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">{st.id}</div><span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded uppercase">{st.questions.length} SOAL</span></div>
+                             <h4 className="font-bold text-gray-900">{st.name}</h4><p className="text-xs text-gray-500 mt-1">{st.description}</p>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Categories Tab */}
-            {activeTab === "categories" && (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Categories List */}
-                <div className="bg-white shadow border border-gray-200">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900">Categories</h3>
-                  </div>
-                  <div className="divide-y divide-gray-200">
-                    {localCategories.map((cat) => (
-                      <div
-                        key={cat.id}
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setSelectedCfitSubtype(null);
-                        }}
-                        className={`px-4 py-3 cursor-pointer hover:bg-gray-50 ${
-                          selectedCategory?.id === cat.id ? "bg-blue-50 border-l-4 border-blue-600" : ""
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <FolderOpen className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium text-gray-900 text-sm">{cat.name}</span>
-                          </div>
-                          <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5">{cat.question_count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* CFIT: Show Subtypes when category selected */}
-                {isCfitCategory && !selectedCfitSubtype && (
-                  <div className="lg:col-span-3 bg-white shadow border border-gray-200">
-                    <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-900">Tipe Soal CFIT</h3>
-                      </div>
-                      <button
-                        onClick={() => setShowCreateSubtypeModal(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium flex items-center"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Buat Tipe Soal
-                      </button>
-                    </div>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {cfitSubtypes.map((subtype) => (
-                        <div
-                          key={subtype.id}
-                          onClick={() => setSelectedCfitSubtype(subtype)}
-                          className="border-2 border-gray-200 p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                                <span className="text-white font-bold">{subtype.id}</span>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-900">{subtype.name}</h4>
-                                <p className="text-sm text-gray-500">{subtype.optionCount} pilihan jawaban</p>
-                                <p className="text-xs text-gray-400 mt-1">{subtype.questions.length} soal</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* CFIT: Show Questions when subtype selected */}
-                {isCfitCategory && selectedCfitSubtype && (
-                  <div className="lg:col-span-3 space-y-6">
-                    {/* Subtype Header */}
-                    <div className="bg-white shadow border border-gray-200">
-                      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{selectedCfitSubtype.name}</h3>
-                          <button
-                            onClick={() => setSelectedCfitSubtype(null)}
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            ← Kembali ke daftar tipe soal
-                          </button>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setSubtypeName(selectedCfitSubtype.name);
-                              setSubtypeInstruction(selectedCfitSubtype.instruction);
-                              setSubtypeOptionCount(String(selectedCfitSubtype.optionCount));
-                              setShowEditSubtypeModal(true);
-                            }}
-                            className="border border-gray-300 px-3 py-2 hover:bg-gray-50 flex items-center"
-                          >
-                            <Settings className="w-4 h-4 mr-2" />
-                            Edit Pengaturan
-                          </button>
-                          <button
-                            onClick={() => setShowQuestionModal(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium flex items-center"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Tambah Soal
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Subtype Info */}
-                    <div className="bg-blue-50 border border-blue-200 p-4">
-                      <div className="flex items-start gap-3">
-                        <Layers className="w-5 h-5 text-blue-600 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-blue-900">Instruksi Pengerjaan:</p>
-                          <p className="text-sm text-blue-700 mt-1">{selectedCfitSubtype.instruction}</p>
-                          <p className="text-xs text-blue-600 mt-2">
-                            Pilihan jawaban: {getOptionLabels(selectedCfitSubtype.optionCount).join(", ")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Questions Grid */}
-                    <div className="bg-white shadow border border-gray-200">
-                      <div className="px-6 py-4 border-b border-gray-200">
-                        <h4 className="font-semibold text-gray-900">Daftar Soal ({selectedCfitSubtype.questions.length})</h4>
-                      </div>
-                      <div className="p-6">
-                        {selectedCfitSubtype.questions.length > 0 ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {selectedCfitSubtype.questions.map((q, idx) => (
-                              <div key={q.id} className="relative group border">
-                                <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
-                                  {q.imageUrl ? (
-                                    <img src={q.imageUrl} alt={`Soal ${idx + 1}`} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <Image className="w-8 h-8 text-gray-400" />
-                                  )}
-                                </div>
-                                <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 font-bold">
-                                  #{idx + 1}
-                                </div>
-                                <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1">
-                                  {q.correctAnswer}
-                                </div>
-                                <button 
-                                  onClick={() => handleDeleteQuestion(q.id)}
-                                  className="absolute bottom-2 right-2 bg-red-500 text-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-12 text-gray-500">
-                            <Image className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                            <p>Belum ada soal</p>
-                            <p className="text-sm">Klik "Tambah Soal" untuk menambahkan</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Non-CFIT Categories */}
-                {selectedCategory && !isCfitCategory && (
-                  <div className="lg:col-span-3 bg-white shadow border border-gray-200">
-                    <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                      <h3 className="text-lg font-semibold text-gray-900">{selectedCategory.name}</h3>
-                      <button
-                        onClick={() => setShowQuestionModal(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 font-medium flex items-center"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Question
-                      </button>
-                    </div>
-                    {isKraepelinCategory ? (
-                      <div className="p-6 space-y-4">
-                        <div className="bg-blue-50 border border-blue-200 p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Grid3X3 className="w-5 h-5 text-blue-600" />
-                            <span className="font-medium text-blue-900">Pengaturan Kraepelin</span>
-                          </div>
-                          <p className="text-sm text-blue-700">
-                            Kraepelin adalah tes konsentrasi dengan grid angka. Kandidat menjumlahkan dua angka berurutan.
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah Kolom</label>
-                            <input
-                              type="number"
-                              value={kraepelinColumns}
-                              onChange={(e) => setKraepelinColumns(e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah Baris</label>
-                            <input
-                              type="number"
-                              value={kraepelinRows}
-                              onChange={(e) => setKraepelinRows(e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Detik/Kolom</label>
-                            <input
-                              type="number"
-                              value={kraepelinTimePerColumn}
-                              onChange={(e) => setKraepelinTimePerColumn(e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                            />
-                          </div>
-                        </div>
-                        {/* Preview Grid */}
-                        <div className="bg-gray-100 p-4">
-                          <p className="font-medium text-gray-900 mb-3">Preview Grid:</p>
-                          <div className="bg-white p-3 border overflow-x-auto">
-                            <div className="flex gap-1">
-                              {Array.from({ length: Math.min(parseInt(kraepelinColumns) || 10, 20) }).map((_, colIdx) => (
-                                <div key={colIdx} className="flex flex-col gap-0.5">
-                                  {Array.from({ length: Math.min(parseInt(kraepelinRows) || 10, 10) }).map((_, rowIdx) => (
-                                    <div key={rowIdx} className="w-5 h-5 bg-gray-200 flex items-center justify-center text-xs font-mono">
-                                      {Math.floor(Math.random() * 10)}
-                                    </div>
-                                  ))}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="mt-3 text-sm text-gray-600">
-                            <p><strong>Konfigurasi:</strong> {kraepelinColumns} kolom × {kraepelinRows} baris</p>
-                            <p><strong>Total durasi:</strong> ~{Math.ceil(parseInt(kraepelinColumns) * parseInt(kraepelinTimePerColumn) / 60)} menit</p>
-                          </div>
-                        </div>
-                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 font-medium">
-                          Simpan Pengaturan Kraepelin
-                        </button>
                       </div>
                     ) : (
-                      <div className="divide-y divide-gray-200">
-                        {(localQuestions[selectedCategory.id] || []).slice(0, 5).map((q, idx) => (
-                          <div key={q.id} className="px-6 py-4 hover:bg-gray-50">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1">#{idx + 1}</span>
-                                  <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1">{q.question_type}</span>
-                                </div>
-                                <p className="text-gray-900">{q.question_text || q.instruction || "No text"}</p>
-                              </div>
-                              <button className="p-1 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+                        <div className="p-6 border-b flex justify-between items-center bg-gray-50/50"><div><h3 className="font-bold text-gray-900">{selectedCfitSubtype.name}</h3></div><button onClick={() => setShowQuestionModal(true)} className="bg-gray-900 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center"><Plus className="w-3 h-3 mr-2" /> Tambah Soal</button></div>
+                        <div className="p-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+                          {selectedCfitSubtype.questions.map((q, idx) => (
+                            <div key={q.id} className="relative group bg-white border border-gray-200 rounded-lg overflow-hidden">
+                              <div className="aspect-square bg-gray-50 flex items-center justify-center p-2">{q.imageUrl ? <img src={q.imageUrl} className="max-w-full max-h-full object-contain" /> : <Image className="w-8 h-8 text-gray-300" />}</div>
+                              <div className="absolute top-2 left-2 bg-gray-900/80 text-white text-[10px] px-2 py-0.5 font-bold rounded">#{idx + 1}</div>
+                              <div className="absolute top-2 right-2 bg-green-600 text-white text-[10px] px-2 py-0.5 font-bold rounded">{q.correctAnswer}</div>
+                              <button onClick={() => handleDeleteQuestion('cfit', q.id)} className="absolute inset-0 bg-red-600/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><div className="bg-red-600 text-white p-2 rounded-full"><Trash2 className="w-4 h-4" /></div></button>
                             </div>
-                          </div>
-                        ))}
-                        {(!localQuestions[selectedCategory.id] || localQuestions[selectedCategory.id].length === 0) && (
-                          <div className="px-6 py-12 text-center text-gray-500">
-                            <HelpCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                            <p>No questions in this category</p>
-                          </div>
-                        )}
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
-                )}
-
-                {/* No Category Selected */}
-                {!selectedCategory && (
-                  <div className="lg:col-span-3 bg-white shadow border border-gray-200 p-12 text-center text-gray-500">
-                    <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>Pilih kategori untuk melihat soal</p>
+                ) : isKraepelinCategory ? (
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+                    <div className="border-b pb-4 mb-4"><h3 className="font-bold text-gray-900 text-lg">Pengaturan Tes Kraepelin</h3><p className="text-gray-500 text-sm">Konfigurasi parameter grid angka dan durasi perpindahan.</p></div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">JUMLAH KOLOM</label><input type="number" value={kraepelinColumns} onChange={e => setKraepelinColumns(e.target.value)} className="w-full border border-gray-300 p-3 rounded-xl outline-none" /></div>
+                       <div><label className="block text-xs font-bold text-gray-500 uppercase mb-2">JUMLAH BARIS</label><input type="number" value={kraepelinRows} onChange={e => setKraepelinRows(e.target.value)} className="w-full border border-gray-300 p-3 rounded-xl outline-none" /></div>
+                       <div className="bg-blue-50 p-3 rounded-xl border border-blue-200"><label className="block text-xs font-bold text-blue-700 uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> DURASI PINDAH (DETIK)</label><input type="number" value={kraepelinTimePerColumn} onChange={e => setKraepelinTimePerColumn(e.target.value)} className="w-full border border-blue-300 p-3 rounded-lg outline-none font-bold text-blue-900" /></div>
+                    </div>
+                    {/* Live Preview Kraepelin Grid */}
+                    <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 mt-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Preview Grid Angka</p>
+                          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-mono font-bold tracking-tighter">EST: ~{Math.ceil((parseInt(kraepelinColumns) || 0) * (parseInt(kraepelinTimePerColumn) || 0) / 60)} MENIT</span>
+                        </div>
+                        <div className="bg-gray-800/50 p-4 border border-gray-700 overflow-x-auto shadow-inner rounded-lg scrollbar-hide">
+                          <div className="flex gap-1.5 justify-start">
+                            {Array.from({ length: Math.min(parseInt(kraepelinColumns) || 10, 20) }).map((_, colIdx) => (
+                              <div key={colIdx} className="flex flex-col gap-1">
+                                {Array.from({ length: Math.min(parseInt(kraepelinRows) || 10, 12) }).map((_, rowIdx) => (
+                                  <div key={rowIdx} className="w-6 h-6 bg-gray-900 border border-gray-700 flex items-center justify-center text-xs font-mono font-bold text-blue-400/80 shadow-sm">{Math.floor(Math.random() * 10)}</div>
+                                ))}
+                                <div className="text-[8px] text-center text-gray-500 font-bold mt-1 uppercase">C{colIdx + 1}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                    </div>
+                    <button onClick={handleSaveKraepelin} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition-all active:scale-95"><CheckCircle className="w-5 h-5" /> Simpan Konfigurasi</button>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="p-6 border-b flex justify-between items-center bg-gray-50/50"><h3 className="font-bold text-gray-900">{selectedCategory.name}</h3><button onClick={() => setShowQuestionModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center"><Plus className="w-3 h-3 mr-2" /> Tambah Soal</button></div>
+                      <div className="divide-y divide-gray-100">
+                        {localQuestions[selectedCategory.id]?.map((q, idx) => (
+                          <div key={q.id} className="p-6 hover:bg-gray-50 group flex justify-between">
+                             <div className="space-y-2 flex-1">
+                               <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Item #{idx + 1}</span>
+                               <div className="grid grid-cols-2 gap-4 text-sm"><div className="border p-3 rounded">A: {q.option_a}</div><div className="border p-3 rounded">B: {q.option_b}</div></div>
+                             </div>
+                             <button onClick={() => handleDeleteQuestion('papi', q.id)} className="text-gray-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-5 h-5" /></button>
+                          </div>
+                        )) || <div className="p-10 text-center text-gray-400">Belum ada soal.</div>}
+                      </div>
                   </div>
                 )}
-              </div>
-            )}
+              </section>
+            </div>
+          )}
 
-            {/* Submissions Tab */}
-            {activeTab === "submissions" && (
-              <div className="bg-white shadow border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Submissions</h3>
+          {/* === TAB 2: TEST LINKS === */}
+          {activeTab === "test-links" && (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center"><h3 className="text-lg font-semibold text-gray-900">Active Links</h3><div className="text-sm text-gray-500">{localTestLinks.length} Links Total</div></div>
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] tracking-widest border-b"><tr><th className="p-4">Kandidat</th><th className="p-4">Token</th><th className="p-4">Status</th><th className="p-4 text-right">Aksi</th></tr></thead>
+                <tbody className="divide-y divide-gray-100">
+                  {localTestLinks.map(link => (
+                    <tr key={link.id} className="hover:bg-gray-50">
+                      <td className="p-4 font-semibold text-gray-900">{link.candidateName}</td>
+                      <td className="p-4 font-mono text-gray-500 text-xs bg-gray-50 inline-block m-2 rounded">{link.token}</td>
+                      <td className="p-4"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${link.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{link.status}</span></td>
+                      <td className="p-4 text-right"><button onClick={() => copyLink(link.token)} className="text-blue-600 font-bold text-xs flex items-center justify-end gap-1 w-full hover:underline"><Copy className="w-3 h-3"/> Copy</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* === TAB 3: SUBMISSIONS (IMPROVED UI) === */}
+          {activeTab === "submissions" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4">
+                  <div className="bg-blue-100 p-3 rounded-full text-blue-600"><FileCheck className="w-6 h-6"/></div>
+                  <div><div className="text-2xl font-bold text-gray-900">{submissions.length}</div><div className="text-sm text-gray-500">Total Submissions</div></div>
                 </div>
-                <div className="px-6 py-12 text-center text-gray-500">
-                  <FileCheck className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p>No submissions yet</p>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4">
+                  <div className="bg-green-100 p-3 rounded-full text-green-600"><BarChart2 className="w-6 h-6"/></div>
+                  <div><div className="text-2xl font-bold text-gray-900">{submissions.filter(s => s.test_type === 'cfit').length}</div><div className="text-sm text-gray-500">CFIT Completed</div></div>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4">
+                  <div className="bg-purple-100 p-3 rounded-full text-purple-600"><Zap className="w-6 h-6"/></div>
+                  <div><div className="text-2xl font-bold text-gray-900">{submissions.filter(s => s.test_type === 'kraepelin').length}</div><div className="text-sm text-gray-500">Kraepelin Completed</div></div>
                 </div>
               </div>
-            )}
-          </div>
+              {renderSubmissionTable()}
+            </div>
+          )}
+
         </main>
       </div>
 
-      {/* Modal: Buat Tipe Soal */}
+      {/* --- CREATE LINK MODAL (UPDATED WITH DROPDOWN) --- */}
+      {showCreateLinkModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+             <div className="flex justify-between items-center border-b pb-4">
+                <h3 className="font-bold text-lg">Buat Link Baru</h3>
+                <button onClick={() => setShowCreateLinkModal(false)}><X className="w-5 h-5" /></button>
+             </div>
+             
+             <div className="space-y-3">
+               {/* DROPDOWN KANDIDAT */}
+               <div>
+                 <label className="text-sm font-semibold text-gray-700 mb-1 block">Pilih Kandidat</label>
+                 <select 
+                   value={selectedCandidateId} 
+                   onChange={(e) => setSelectedCandidateId(e.target.value)} 
+                   className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-700"
+                 >
+                   <option value="" disabled>-- Pilih dari Database --</option>
+                   {candidatesList.map((candidate) => (
+                     <option key={candidate.id} value={candidate.id}>
+                       {candidate.name} - {candidate.top_position}
+                     </option>
+                   ))}
+                 </select>
+                 {candidatesList.length === 0 && (
+                   <p className="text-xs text-red-500 mt-1">Belum ada kandidat. Upload CV dulu.</p>
+                 )}
+               </div>
+
+               {/* [NEW] DROPDOWN JOB POSITION */}
+               <div>
+                 <label className="text-sm font-semibold text-gray-700 mb-1 block">Pilih Posisi (Opsional)</label>
+                 <select 
+                   value={selectedJobId} 
+                   onChange={(e) => setSelectedJobId(e.target.value)} 
+                   className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-700"
+                 >
+                   <option value="" disabled>-- Pilih Posisi Pekerjaan --</option>
+                   <option value="">(Semua Posisi / Umum)</option>
+                   {jobsList.map((job) => (
+                     <option key={job.id} value={job.id}>
+                       {job.title}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+             </div>
+
+             <div className="flex gap-2 pt-4">
+                <button onClick={() => setShowCreateLinkModal(false)} className="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-lg">Batal</button>
+                <button 
+                  onClick={handleGenerateLink} 
+                  disabled={isGeneratingLink || !selectedCandidateId} 
+                  className="flex-[2] bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-300"
+                >
+                  {isGeneratingLink ? 'Memproses...' : 'Generate Link'}
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {showQuestionModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4">
+              <div className="flex justify-between items-center border-b pb-4"><h3 className="font-bold text-lg">{isCfitCategory ? `Tambah CFIT: ${selectedCfitSubtype?.name}` : `Tambah Soal: ${selectedCategory?.name}`}</h3><button onClick={() => setShowQuestionModal(false)}><X className="w-5 h-5" /></button></div>
+              {isCfitCategory ? (
+                <div className="space-y-4">
+                  <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer hover:bg-gray-50">
+                     <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleImageUpload} />
+                     {imagePreview ? <img src={imagePreview} className="max-h-40 mx-auto rounded" /> : <div className="text-gray-500 text-sm"><Upload className="w-8 h-8 mx-auto mb-2"/>Pilih Gambar</div>}
+                  </div>
+                  <div className="flex justify-center gap-2 flex-wrap">
+                     {getOptionLabels(selectedCfitSubtype?.optionCount || 6).map(lbl => (
+                       <button key={lbl} onClick={() => setCorrectAnswer(lbl)} className={`w-10 h-10 rounded font-bold border ${correctAnswer === lbl ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-400'}`}>{lbl}</button>
+                     ))}
+                  </div>
+                  <button onClick={handleAddCfitQuestion} disabled={isSubmitting} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">{isSubmitting ? "Uploading..." : "Simpan CFIT"}</button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <textarea placeholder="Pernyataan A" value={optionA} onChange={e => setOptionA(e.target.value)} className="w-full border p-3 rounded-lg" />
+                  <textarea placeholder="Pernyataan B" value={optionB} onChange={e => setOptionB(e.target.value)} className="w-full border p-3 rounded-lg" />
+                  <button onClick={handleAddPapiQuestion} disabled={isSubmitting} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">{isSubmitting ? "Menyimpan..." : "Simpan PAPI"}</button>
+                </div>
+              )}
+          </div>
+        </div>
+      )}
+
+      {showDetailModal && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm transition-all">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform transition-all scale-100">
+            {/* Header Modal */}
+            <div className="p-6 border-b flex justify-between items-start bg-gray-50 rounded-t-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-200">
+                    {showDetailModal.candidate_name ? showDetailModal.candidate_name.charAt(0).toUpperCase() : "U"}
+                </div>
+                <div>
+                    <h3 className="font-bold text-xl text-gray-900">{showDetailModal.candidate_name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            {showDetailModal.test_type} RESULT
+                        </span>
+                        <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                        <span className="text-xs text-gray-400">
+                            {new Date(showDetailModal.submitted_at).toLocaleString('id-ID')}
+                        </span>
+                    </div>
+                </div>
+              </div>
+              <button onClick={() => setShowDetailModal(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X className="w-5 h-5 text-gray-500" /></button>
+            </div>
+
+            {/* Content Body */}
+            <div className="p-8 overflow-y-auto bg-white">
+                {renderDetailContent(showDetailModal)}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t bg-gray-50 flex justify-end rounded-b-2xl">
+              <button onClick={() => setShowDetailModal(null)} className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-black shadow-lg shadow-gray-200 transition-transform active:scale-95">
+                Tutup Panel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showCreateSubtypeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Buat Tipe Soal Baru</h3>
-              <button onClick={() => setShowCreateSubtypeModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nama Tipe Soal</label>
-                <input
-                  type="text"
-                  value={subtypeName}
-                  onChange={(e) => setSubtypeName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                  placeholder="Contoh: Series Completion"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Instruksi Pengerjaan</label>
-                <textarea
-                  value={subtypeInstruction}
-                  onChange={(e) => setSubtypeInstruction(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                  rows={3}
-                  placeholder="Instruksi yang akan ditampilkan kepada kandidat..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah Pilihan Jawaban</label>
-                <select
-                  value={subtypeOptionCount}
-                  onChange={(e) => setSubtypeOptionCount(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="4">4 (A-D)</option>
-                  <option value="5">5 (A-E)</option>
-                  <option value="6">6 (A-F)</option>
-                </select>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t flex justify-end gap-3">
-              <button
-                onClick={() => setShowCreateSubtypeModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleCreateSubtype}
-                className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Buat Tipe Soal
-              </button>
-            </div>
+          <div className="bg-white w-full max-w-lg p-6 rounded-lg">
+             <h3 className="font-bold mb-4">Buat Tipe Soal Baru</h3>
+             <button onClick={() => setShowCreateSubtypeModal(false)} className="bg-gray-200 px-4 py-2 rounded">Tutup</button>
           </div>
         </div>
       )}
 
-      {/* Modal: Edit Tipe Soal */}
-      {showEditSubtypeModal && selectedCfitSubtype && (
+      {showEditSubtypeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Edit Tipe Soal</h3>
-              <button onClick={() => setShowEditSubtypeModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="px-6 py-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nama Tipe Soal</label>
-                <input
-                  type="text"
-                  value={subtypeName}
-                  onChange={(e) => setSubtypeName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Instruksi Pengerjaan</label>
-                <textarea
-                  value={subtypeInstruction}
-                  onChange={(e) => setSubtypeInstruction(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah Pilihan Jawaban</label>
-                <select
-                  value={subtypeOptionCount}
-                  onChange={(e) => setSubtypeOptionCount(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="4">4 (A-D)</option>
-                  <option value="5">5 (A-E)</option>
-                  <option value="6">6 (A-F)</option>
-                </select>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t flex justify-end gap-3">
-              <button
-                onClick={() => setShowEditSubtypeModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleUpdateSubtype}
-                className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Simpan Perubahan
-              </button>
-            </div>
+          <div className="bg-white w-full max-w-lg p-6 rounded-lg">
+             <h3 className="font-bold mb-4">Edit Tipe Soal</h3>
+             <button onClick={() => setShowEditSubtypeModal(false)} className="bg-gray-200 px-4 py-2 rounded">Tutup</button>
           </div>
         </div>
       )}
 
-      {/* Modal: Tambah Soal (Gambar + Jawaban saja) */}
-      {showQuestionModal && selectedCfitSubtype && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Tambah Soal - {selectedCfitSubtype.name}</h3>
-              <button onClick={() => setShowQuestionModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="px-6 py-4 space-y-4">
-              {/* Info */}
-              <div className="bg-gray-50 border p-3 text-sm text-gray-600">
-                Soal #{selectedCfitSubtype.questions.length + 1} • Pilihan: {getOptionLabels(selectedCfitSubtype.optionCount).join(", ")}
-              </div>
-
-              {/* Upload Gambar */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Image className="w-4 h-4 inline mr-1" />
-                  Gambar Soal
-                </label>
-                <div className="border-2 border-dashed border-gray-300 p-6 text-center">
-                  {imagePreview ? (
-                    <div>
-                      <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto mb-3" />
-                      <button onClick={() => setImagePreview(null)} className="text-red-600 text-sm hover:underline">
-                        Hapus Gambar
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-                      <p className="text-gray-600 mb-2">Upload gambar soal</p>
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm" />
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Kunci Jawaban */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kunci Jawaban</label>
-                <div className="flex gap-2">
-                  {getOptionLabels(selectedCfitSubtype.optionCount).map((label) => (
-                    <button
-                      key={label}
-                      onClick={() => setCorrectAnswer(label)}
-                      className={`flex-1 py-3 font-bold text-lg border-2 ${
-                        correctAnswer === label
-                          ? "border-green-500 bg-green-50 text-green-700"
-                          : "border-gray-300 hover:border-blue-500"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="px-6 py-4 border-t flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowQuestionModal(false);
-                  setImagePreview(null);
-                  setCorrectAnswer("");
-                }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleAddQuestion}
-                disabled={!imagePreview || !correctAnswer}
-                className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Simpan Soal
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

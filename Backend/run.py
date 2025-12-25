@@ -6,7 +6,6 @@ app = create_app()
 with app.app_context():
     db.create_all()
 
-print(app.url_map)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))

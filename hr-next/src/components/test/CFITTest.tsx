@@ -1,6 +1,15 @@
 "use client";
 
-import { CFITQuestion } from "@/lib/test-data";
+// 1. Sesuaikan import interface jika sudah didefinisikan secara global atau biarkan jika tetap ingin memakai any
+interface CFITQuestion {
+  id: number;
+  subtest: number;
+  subtestName: string;
+  instruction: string;
+  question_image: string | null;
+  options: string[] | string; // BE mengirim string "A,B,C..." atau array
+  correctAnswer: number | number[];
+}
 
 interface CFITTestProps {
   questions: CFITQuestion[];
@@ -15,6 +24,8 @@ export default function CFITTest({
   onAnswer,
   timeRemaining,
 }: CFITTestProps) {
+  const BE_URL = "http://localhost:5000";
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -40,78 +51,84 @@ export default function CFITTest({
         <div className="w-full bg-gray-200 h-2 mt-2">
           <div
             className="bg-blue-600 h-2 transition-all"
-            style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+            style={{ width: `${(answeredCount / (questions.length || 1)) * 100}%` }}
           ></div>
         </div>
       </div>
 
       {/* All Questions - Scrollable */}
       <div className="space-y-6">
-        {questions.map((question, index) => (
-          <div
-            key={question.id}
-            id={`question-${index}`}
-            className={`bg-white border shadow-sm p-6 ${
-              answers[index] !== null ? "border-green-300 bg-green-50/30" : "border-gray-200"
-            }`}
-          >
-            {/* Question Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <span className={`px-3 py-1 text-sm font-bold ${
-                answers[index] !== null ? "bg-green-600 text-white" : "bg-red-600 text-white"
-              }`}>
-                Soal {index + 1}
-              </span>
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 text-sm">
-                Subtest {question.subtest}: {question.subtestName}
-              </span>
-              {answers[index] !== null && (
-                <span className="text-green-600 text-sm">✓ Terjawab</span>
-              )}
-            </div>
+        {questions.map((question, index) => {
+          // 2. Karena di Backend 'options' disimpan sebagai string "A,B,C,D,E,F", 
+          // kita perlu mengubahnya kembali menjadi array jika ia datang sebagai string.
+          const optionsArray = typeof question.options === 'string' 
+            ? question.options.split(",") 
+            : question.options;
 
-            {/* Instruction */}
-            <h3 className="text-lg font-medium text-gray-800 mb-4">
-              {question.instruction}
-            </h3>
-
-            {/* Question Image */}
-            {question.question_image ? (
-              <img
-                src={question.question_image}
-                alt={`Soal ${index + 1}`}
-                className="max-w-full h-auto mb-4 border shadow-sm mx-auto"
-              />
-            ) : (
-              <div className="bg-gray-100 h-32 flex items-center justify-center mb-4 text-gray-400 border">
-                <div className="text-center">
-                  <p>📷 Gambar soal</p>
-                  <p className="text-xs">(placeholder)</p>
-                </div>
+          return (
+            <div
+              key={question.id}
+              id={`question-${index}`}
+              className={`bg-white border shadow-sm p-6 ${
+                answers[index] !== null ? "border-green-300 bg-green-50/30" : "border-gray-200"
+              }`}
+            >
+              {/* Question Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`px-3 py-1 text-sm font-bold ${
+                  answers[index] !== null ? "bg-green-600 text-white" : "bg-red-600 text-white"
+                }`}>
+                  Soal {index + 1}
+                </span>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 text-sm">
+                  Subtest {question.subtest}: {question.subtestName}
+                </span>
+                {answers[index] !== null && (
+                  <span className="text-green-600 text-sm">✓ Terjawab</span>
+                )}
               </div>
-            )}
 
-            {/* Options Grid - Horizontal for quick selection */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {question.options.map((option, optIndex) => (
-                <button
-                  key={optIndex}
-                  onClick={() => onAnswer(index, optIndex)}
-                  className={`w-14 h-14 border-2 text-center font-bold text-lg transition-all ${
-                    answers[index] === optIndex
-                      ? "border-green-500 bg-green-100 text-green-700 ring-2 ring-green-300"
-                      : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
+              {/* Instruction */}
+              <h3 className="text-lg font-medium text-gray-800 mb-4">
+                {question.instruction}
+              </h3>
+
+              {/* 3. Question Image - Disesuaikan dengan URL Backend */}
+              {question.question_image ? (
+                <img
+                  // Gabungkan Base URL Backend dengan path dari database
+                  src={`${BE_URL}${question.question_image}`}
+                  alt={`Soal ${index + 1}`}
+                  className="max-w-full h-auto mb-4 border shadow-sm mx-auto"
+                />
+              ) : (
+                <div className="bg-gray-100 h-32 flex items-center justify-center mb-4 text-gray-400 border text-center">
+                  <p>📷 Gambar tidak tersedia</p>
+                </div>
+              )}
+
+              {/* Options Grid */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                {optionsArray.map((option, optIndex) => (
+                  <button
+                    key={optIndex}
+                    onClick={() => onAnswer(index, optIndex)}
+                    className={`w-14 h-14 border-2 text-center font-bold text-lg transition-all ${
+                      answers[index] === optIndex
+                        ? "border-green-500 bg-green-100 text-green-700 ring-2 ring-green-300"
+                        : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Bottom Summary */}
+      {/* Bottom Summary tetap sama */}
       <div className="sticky bottom-0 bg-white border-t shadow-lg p-4 mt-6">
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">

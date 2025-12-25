@@ -9,9 +9,11 @@ from flask import Blueprint, request, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from openai import OpenAI
+from sqlalchemy.exc import IntegrityError
+import re 
 
 from app import db
-from app.models import Resume, Candidate, JobPosition
+from app.models import Resume, Candidate, JobPosition, JobApplication
 
 load_dotenv()
 
@@ -36,9 +38,7 @@ screening_bp = Blueprint("screening", __name__)
 
 
 def job_to_text(job: JobPosition) -> str:
-    """
-    Mengubah JobPosition menjadi teks untuk embedding & LLM
-    """
+    """Mengubah JobPosition menjadi teks untuk embedding & LLM"""
     requirements = ", ".join(job.requirements or [])
     skills = ", ".join(job.required_skills or [])
 
@@ -68,19 +68,15 @@ def job_to_text(job: JobPosition) -> str:
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
 
-
 def normalize_score(score):
     return int(round(max(0.0, min(1.0, score)) * 100))
-
 
 def extract_candidate_name(filename):
     return os.path.splitext(filename)[0].replace("_", " ").replace("-", " ").title()
 
-
 def extract_email(text):
     m = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
     return m.group(0) if m else None
-
 
 def extract_phone(text):
     m = re.search(r'(\+62|62|0)8[1-9][0-9]{6,10}', text)
@@ -88,58 +84,64 @@ def extract_phone(text):
 
 
 def generate_verdict(context, job_description):
+    """
+    Prompt LLM yang diperbarui untuk menghasilkan struktur JSONB 
+    yang sesuai dengan tabel Candidate.
+    """
     prompt = f"""
-Anda adalah sistem ATS profesional.
+    Anda adalah parser data CV otomatis. 
+    Tugas: Ekstrak data dari teks CV di bawah dan cocokkan dengan Job Description.
+    
+    Output WAJIB berupa JSON valid dengan format persis seperti ini:
+    {{
+        "education": [{{"institution": "Nama Univ", "degree": "Gelar", "major": "Jurusan", "year": "Tahun"}}],
+        "experience": [{{"company": "Nama Perusahaan", "role": "Posisi", "duration": "Lama kerja", "details": "Deskripsi singkat"}}],
+        "skills": ["Skill 1", "Skill 2"],
+        "verdict": "Alasan singkat (Bahasa Indonesia) mengapa kandidat ini cocok/tidak (maks 2 kalimat).",
+        "summary": "Ringkasan profil profesional 1 kalimat."
+    }}
 
-Tugas Anda adalah menganalisis CV kandidat dan deskripsi pekerjaan secara objektif.
+    Aturan:
+    1. Jika data tidak ada, isi dengan null atau [].
+    2. JANGAN ada teks pengantar. Langsung kurung kurawal {{...}}.
+    3. Pastikan JSON valid.
 
-Lakukan hal berikut:
-1. Identifikasi pendidikan formal tertinggi kandidat jika tersedia.
-   - Bisa berupa jenjang (misalnya SMA, Diploma, Sarjana, Magister, Doktor)
-   - Bisa berupa nama institusi/Universitas yang disebutkan yang biasanya dibaregi dengan nama jurusannya atau program studi jika relevan dan fokus pada kata kunci pendidikan formal tertinggi atau terbaru
-2. Identifikasi pengalaman kerja kandidat secara ringkas.
-   - Bisa berupa durasi (misalnya jumlah tahun/bulan)
-   - Atau status seperti Fresh Graduate jika belum memiliki pengalaman kerja
-3. Berikan verdict kecocokan kandidat terhadap pekerjaan.
-   - 2–3 kalimat singkat
-   - Fokus pada kesesuaian kompetensi, pengalaman, dan latar belakang dengan konsep 100 poin skala yang mana poin nya di jelaskan dalam daftar job desc
-   - Gunakan Bahasa Indonesia formal dan profesional
+    === CV TEXT ===
+    {context}
 
-WAJIB kembalikan dalam format JSON murni berikut (tanpa teks tambahan):
-
-{{
-  "education": string | null,
-  "experience": string | null,
-  "verdict": string
-}}
-
-Gunakan null jika informasi tidak tersedia secara eksplisit di CV.
-
-=== CV ===
-{context}
-
-=== DESKRIPSI PEKERJAAN ===
-{job_description}
-"""
+    === JOB DESCRIPTION ===
+    {job_description}
+    """
 
     try:
         res = client.chat.completions.create(
             model="meta-llama/llama-3.3-70b-instruct:free",
             messages=[
-                {"role": "system", "content": "Anda adalah AI ATS yang akurat, netral, dan berbasis data."},
+                {"role": "system", "content": "You are a strict JSON extractor. Output ONLY valid JSON. Do not use Markdown blocks."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.1,
-            max_tokens=300
+            max_tokens=1000
         )
 
-        return json.loads(res.choices[0].message.content.strip())
+        content = res.choices[0].message.content.strip()
 
-    except Exception:
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        
+        if json_match:
+            json_str = json_match.group(0)
+            return json.loads(json_str)
+        else:
+            # Jika regex gagal, coba parse langsung (mungkin raw json)
+            return json.loads(content)
+
+    except Exception as e:
         return {
-            "education": None,
-            "experience": None,
-            "verdict": "Kecocokan kandidat dievaluasi berdasarkan kesesuaian umum antara profil CV dan kebutuhan posisi."
+            "education": [{"institution": "Unknown", "degree": "-", "major": "-", "year": "-"}],
+            "experience": [{"company": "-", "role": "-", "duration": "-", "details": "-"}],
+            "skills": [],
+            "summary": "Gagal menganalisis profil secara otomatis.",
+            "verdict": "Terjadi kesalahan saat parsing respons AI."
         }
 
 
@@ -156,21 +158,71 @@ def load_resume_meta(resume_id):
     }
 
 
-def save_candidate_result(**data):
-    c = Candidate(
-        resume_id=data["resume_id"],
-        name=data["name"],
-        email=data["email"],
-        phone=data["phone"],
-        education=data["education"],
-        experience=data["experience"],
-        skills=json.dumps(data["skills"], ensure_ascii=False),
-        top_position=data["top_match"]["position"]["title"],
-        match_score=data["top_match"]["matchScore"],
-        verdict=data["verdict"]
-    )
-    db.session.add(c)
-    db.session.commit()
+def save_candidate_result_structured(resume_id, job_id, meta, extracted_data, match_score):
+    """
+    Menyimpan data ke tabel Candidate (Master) dan JobApplication (Relasi Job).
+    """
+    try:
+        # 1. Cek apakah Candidate sudah ada berdasarkan resume_id
+        candidate = Candidate.query.filter_by(resume_id=resume_id).first()
+
+        raw_text = meta["raw_text"]
+        
+        if not candidate:
+            candidate = Candidate(
+                resume_id=resume_id,
+                name=extract_candidate_name(meta["filename"]),
+                email=extract_email(raw_text) or "Not found",
+                phone=extract_phone(raw_text) or "Not found",
+                # Isi data terstruktur dari LLM
+                education=extracted_data.get("education", []),
+                experience=extracted_data.get("experience", []),
+                skills=extracted_data.get("skills", []),
+                summary=extracted_data.get("summary", ""),
+                # Default empty
+                certifications=[],
+                languages=[],
+                social_links={}
+            )
+            db.session.add(candidate)
+            db.session.flush() # Agar kita dapat ID candidate
+        else:
+            # Update data candidate jika sudah ada (opsional, tergantung kebutuhan)
+            candidate.education = extracted_data.get("education", [])
+            candidate.experience = extracted_data.get("experience", [])
+            candidate.skills = extracted_data.get("skills", [])
+            candidate.summary = extracted_data.get("summary", "")
+
+        # 2. Simpan/Update JobApplication (Many-to-Many)
+        # Cek apakah sudah pernah apply ke job ini
+        application = JobApplication.query.filter_by(
+            candidate_id=candidate.id, 
+            job_id=job_id
+        ).first()
+
+        if not application:
+            application = JobApplication(
+                candidate_id=candidate.id,
+                job_id=job_id,
+                match_score=match_score,
+                ai_verdict=extracted_data.get("verdict", ""),
+                status="Screening",
+                applied_at=datetime.utcnow()
+            )
+            db.session.add(application)
+        else:
+            # Jika sudah apply, update score dan verdict terbaru
+            application.match_score = match_score
+            application.ai_verdict = extracted_data.get("verdict", "")
+            application.applied_at = datetime.utcnow()
+
+        db.session.commit()
+        return candidate, application
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database Error: {e}")
+        raise e
 
 
 @screening_bp.route("/upload_resume", methods=["POST"])
@@ -201,6 +253,8 @@ def upload_resume():
 
     faiss.write_index(index, index_path)
     json.dump(chunks, open(chunks_path, "w", encoding="utf-8"), ensure_ascii=False)
+    
+    # Simpan Resume saja dulu
     r = Resume(
         id=resume_id,
         filename=filename,
@@ -209,26 +263,10 @@ def upload_resume():
         raw_text=text
     )
     db.session.add(r)
-
-    candidate = Candidate(
-        resume_id=resume_id,
-        name=extract_candidate_name(filename),
-        email=extract_email(text) or "Not found",
-        phone=extract_phone(text) or "Not found",
-        education="Not matched yet",
-        experience="Not matched yet",
-        skills=json.dumps([]),
-        top_position="Not matched yet",
-        match_score=0,
-        verdict="Resume uploaded. Awaiting job matching."
-    )
-
-    db.session.add(candidate)
     db.session.commit()
 
     return jsonify({
         "id": resume_id,
-        "candidate_id": candidate.id,
         "status": "uploaded"
     })
 
@@ -237,25 +275,33 @@ def upload_resume():
 def match_resume():
     data = request.get_json(force=True)
     resume_id = data.get("resume_id")
-    job_description = data.get("job_description")
+    job_id = data.get("job_id")  # <-- Prioritas
+    job_description = data.get("job_description") # <-- Fallback
 
-    if not resume_id or not job_description:
-        return jsonify({"error": "resume_id & job_description required"}), 400
+    if not resume_id:
+        return jsonify({"error": "resume_id required"}), 400
 
     meta = load_resume_meta(resume_id)
     if not meta:
         return jsonify({"error": "resume not found"}), 404
 
-    job_title = job_description.split("-")[0].strip()
+    job = None
 
-    job = JobPosition.query.filter(
-        JobPosition.title.ilike(f"%{job_title}%"),
-        JobPosition.available.is_(True),
-        JobPosition.status == "active"
-    ).first()
+    # 1. Cari Job by ID
+    if job_id:
+        job = JobPosition.query.get(job_id)
+    
+    # 2. Fallback by Title (hanya jika ID tidak ada)
+    if not job and job_description:
+        job_title = job_description.split("-")[0].strip()
+        job = JobPosition.query.filter(
+            JobPosition.title.ilike(f"%{job_title}%"),
+            JobPosition.available.is_(True),
+            JobPosition.status == "active"
+        ).first()
 
     if not job:
-        return jsonify({"error": "job not found"}), 404
+        return jsonify({"error": "Job position not found"}), 404
 
     from extractor import embed_query
 
@@ -271,77 +317,87 @@ def match_resume():
 
     context = "\n\n".join(chunks[i] for i in I[0][:3])
 
-    llm = generate_verdict(context, job_text)
+    # Extract Structured Data via LLM
+    extracted_data = generate_verdict(context, job_text)
 
-    match = build_position_match(
-        job=job,
-        base_score=score,
-        verdict=llm["verdict"]
-    )
-
-    raw_text = meta["raw_text"]
-
-    save_candidate_result(
+    # Simpan ke Database (Candidate & JobApplication)
+    candidate, application = save_candidate_result_structured(
         resume_id=meta["id"],
-        name=extract_candidate_name(meta["filename"]),
-        email=extract_email(raw_text) or "Not found",
-        phone=extract_phone(raw_text) or "Not found",
-        education=llm["education"] or "Not found",
-        experience=llm["experience"] or "Not found",
-        skills=(job.required_skills or [])[:8],
-        top_match=match,
-        verdict=llm["verdict"]
+        job_id=job.id,
+        meta=meta,
+        extracted_data=extracted_data,
+        match_score=score
     )
+    
+    # Format Skills untuk response (flat list)
+    skills_list = extracted_data.get("skills", [])
+    
+    # Format Education string untuk response cepat di tabel UI
+    edu_list = extracted_data.get("education", [])
+    edu_str = f"{edu_list[0]['degree']} {edu_list[0]['major']}" if edu_list else "Not found"
+    
+    # Format Experience string
+    exp_list = extracted_data.get("experience", [])
+    exp_str = f"{exp_list[0]['role']} at {exp_list[0]['company']}" if exp_list else "Not found"
 
+    # Response JSON
     return jsonify({
-        "id": meta["id"],
-        "name": extract_candidate_name(meta["filename"]),
-        "email": extract_email(raw_text) or "Not found",
-        "phone": extract_phone(raw_text) or "Not found",
-        "education": llm["education"] or "Not found",
-        "experience": llm["experience"] or "Not found",
-        "skills": (job.required_skills or [])[:8],
-        "matches": [match],          
-        "topMatch": match
+        "id": candidate.id,
+        "name": candidate.name,
+        "email": candidate.email,
+        "phone": candidate.phone,
+        "education": edu_str, # String ringkas untuk tabel UI
+        "experience": exp_str, # String ringkas untuk tabel UI
+        "skills": skills_list,
+        "verdict": application.ai_verdict,
+        "match_score": application.match_score,
+        "top_position": job.title, # Helper frontend
+        "application_status": application.status
     })
 
 
 @screening_bp.route("/candidates", methods=["GET"])
 def list_candidates():
-    rows = Candidate.query.order_by(Candidate.created_at.desc()).all()
-    return jsonify([
-        {
-            "id": c.id,
-            "resume_id": c.resume_id,  
-            "name": c.name,
-            "email": c.email,
-            "phone": c.phone,
-            "education": c.education,
-            "experience": c.experience,
-            "skills": json.loads(c.skills),
-            "top_position": c.top_position,
-            "match_score": c.match_score,
-            "verdict": c.verdict,
-            "created_at": c.created_at.isoformat()
-        } for c in rows
-    ])
-
-
-def build_position_match(job: JobPosition, base_score: int, verdict: str):
     """
-    Bangun struktur match per JobPosition
+    Mengambil daftar kandidat. 
+    Karena relasi sekarang Many-to-Many, kita idealnya perlu filter by job_id.
+    Namun untuk tampilan 'Semua Kandidat', kita bisa join tabel.
     """
-    return {
-        "position": {
-            "id": job.id,
-            "title": job.title,
-            "department": job.department,
-            "level": job.level,
-            "employment_type": job.employment_type,
-            "location": job.location
-        },
-        "matchScore": base_score,
-        "skillMatch": min(100, base_score + 5),
-        "experienceMatch": max(40, base_score - 10),
-        "reasons": [verdict]
-    }
+    # Opsional: Filter by job_id jika dikirim param
+    job_id = request.args.get('job_id')
+    
+    query = db.session.query(Candidate, JobApplication, JobPosition)\
+        .join(JobApplication, Candidate.id == JobApplication.candidate_id)\
+        .join(JobPosition, JobApplication.job_id == JobPosition.id)
+        
+    if job_id:
+        query = query.filter(JobApplication.job_id == job_id)
+        
+    results = query.order_by(JobApplication.match_score.desc()).all()
+
+    output = []
+    for cand, app, job in results:
+        # Helper string formatting
+        edu = cand.education[0] if cand.education else {}
+        edu_str = f"{edu.get('degree', '')} {edu.get('major', '')}" if edu else "-"
+        
+        exp = cand.experience[0] if cand.experience else {}
+        exp_str = f"{exp.get('role', '')}" if exp else "-"
+
+        output.append({
+            "id": cand.id,
+            "resume_id": cand.resume_id,
+            "name": cand.name,
+            "email": cand.email,
+            "phone": cand.phone,
+            "education": edu_str,
+            "experience": exp_str,
+            "skills": cand.skills, # JSONB List
+            "top_position": job.title,
+            "match_score": app.match_score,
+            "verdict": app.ai_verdict,
+            "application_status": app.status,
+            "created_at": app.applied_at.isoformat()
+        })
+        
+    return jsonify(output)
