@@ -14,27 +14,80 @@ import {
   Menu,
   X,
   Briefcase,
+  Shield,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const menuItems = [
+interface MenuItem {
+  name: string;
+  href: string;
+  icon: any;
+  roles?: string[]; // If undefined, visible to all
+}
+
+const menuItems: MenuItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Job Positions", href: "/job-positions", icon: Briefcase },
   { name: "Kandidat", href: "/candidates", icon: Users },
   { name: "Test Management", href: "/test-management", icon: ClipboardList },
   { name: "CV Scanner", href: "/cv-scanner", icon: FileText },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Laporan", href: "/reports", icon: FileBarChart },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPER_USER"] },
 ];
+
+interface UserData {
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const userData = localStorage.getItem("hr_user");
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("hr_user");
+    localStorage.removeItem("hr_token");
     router.push("/");
+  };
+
+  // Filter menus based on user role
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (!item.roles) return true; // No role restriction
+    if (!user) return false;
+    return item.roles.includes(user.role);
+  });
+
+  // Get user initials
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Get role display name and color
+  const getRoleInfo = (role: string) => {
+    switch (role) {
+      case "SUPER_USER":
+        return { name: "Administrator", color: "bg-purple-100 text-purple-700" };
+      case "HR":
+        return { name: "HR Staff", color: "bg-blue-100 text-blue-700" };
+      default:
+        return { name: role, color: "bg-gray-100 text-gray-700" };
+    }
   };
 
   const NavContent = () => (
@@ -42,7 +95,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-6">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center rounded-lg">
             <Briefcase className="w-5 h-5 text-white" />
           </div>
           <div className="ml-3">
@@ -53,7 +106,7 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="mt-8 flex-1 px-4 space-y-1">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
             return (
@@ -61,9 +114,9 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`group flex items-center px-3 py-3 text-sm font-medium transition-colors ${
+                className={`group flex items-center px-3 py-3 text-sm font-medium transition-colors rounded-lg ${
                   isActive
-                    ? "bg-blue-50 border-r-2 border-blue-600 text-blue-700"
+                    ? "bg-blue-50 border-l-4 border-blue-600 text-blue-700"
                     : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
                 }`}
               >
@@ -84,12 +137,21 @@ export default function Sidebar() {
       {/* User Profile */}
       <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
         <div className="flex items-center w-full">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center">
-            <span className="text-white text-sm font-semibold">H</span>
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center rounded-full">
+            <span className="text-white text-sm font-semibold">
+              {user ? getInitials(user.name) : "?"}
+            </span>
           </div>
           <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-gray-700">HR Manager</p>
-            <p className="text-xs text-gray-500">hr@company.com</p>
+            <p className="text-sm font-medium text-gray-700">{user?.name || "Loading..."}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500 truncate max-w-[100px]">{user?.email}</p>
+              {user && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${getRoleInfo(user.role).color}`}>
+                  {getRoleInfo(user.role).name}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -98,7 +160,7 @@ export default function Sidebar() {
       <div className="border-t border-gray-200 p-4">
         <button
           onClick={handleLogout}
-          className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors"
+          className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors rounded-lg"
         >
           <LogOut className="mr-3 h-5 w-5" />
           <span className="text-sm font-medium">Logout</span>

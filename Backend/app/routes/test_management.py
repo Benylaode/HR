@@ -31,19 +31,24 @@ def allowed_file(filename):
 
 @mgmt_bp.route("/submissions", methods=["GET"])
 def get_all_submissions():
-    # Ambil data submission digabung dengan nama kandidat dari TestLink
-    results = db.session.query(TestSubmission, TestLink).join(TestLink).order_by(TestSubmission.submitted_at.desc()).all()
+    # Ambil data submission digabung dengan nama kandidat dari TestLink dan Candidate
+    results = db.session.query(TestSubmission, TestLink, Candidate).join(
+        TestLink, TestSubmission.link_id == TestLink.id
+    ).join(
+        Candidate, TestLink.candidate_id == Candidate.id
+    ).order_by(TestSubmission.submitted_at.desc()).all()
     
     output = []
-    for sub, link in results:
+    for sub, link, candidate in results:
         # Safety check: Pastikan scores bukan None
         scores_data = sub.scores if sub.scores else {}
         
         output.append({
             "id": sub.id,
             "candidate_id": link.candidate_id,
+            "candidate_name": candidate.name,  # Nama kandidat dari tabel Candidate
             "test_type": sub.test_type,
-            "scores": scores_data,  # Pastikan ini dikirim
+            "scores": scores_data,
             "submitted_at": sub.submitted_at.isoformat()
         })
     
@@ -63,9 +68,9 @@ def generate_link():
     if not candidate:
         return jsonify({"error": "Kandidat tidak ditemukan"}), 404
 
+    # Hapus link lama jika ada (desain: 1 kandidat = 1 kali test)
     existing_link = TestLink.query.filter_by(candidate_id=candidate_id).first()
     if existing_link:
-
         db.session.delete(existing_link)
         db.session.commit()
 
@@ -103,26 +108,33 @@ def check_token(token):
     if link.status != 'active':
         return jsonify({"error": "Link sudah tidak aktif"}), 403
         
+    # Ambil list tes yang sudah dikerjakan
+    submissions = TestSubmission.query.filter_by(link_id=link.id).all()
+    completed_tests = [sub.test_type for sub in submissions] # ['cfit', 'kraepelin', etc]
+
     return jsonify({
         "candidate_id": link.candidate_id,
-        "status": link.status
+        "candidate_name": link.candidate.name,
+        "status": link.status, 
+        "completed_tests": completed_tests
     })
     
 # Tambahkan di test_management.py
 
 @mgmt_bp.route("/links", methods=["GET"])
 def get_all_links():
-    # Ambil semua link, urutkan dari yang terbaru
-    links = TestLink.query.order_by(TestLink.created_at.desc()).all()
+    # Ambil semua link dengan join ke Candidate untuk nama
+    results = db.session.query(TestLink, Candidate).join(
+        Candidate, TestLink.candidate_id == Candidate.id
+    ).order_by(TestLink.created_at.desc()).all()
     
     return jsonify([{
         "id": link.id,
-        "candidateName": link.candidate_id,
+        "candidateName": candidate.name,  # Nama kandidat actual
         "token": link.token,
         "status": link.status,
         "createdAt": link.created_at.isoformat() if link.created_at else None
-        # URL tidak perlu disimpan di DB, frontend bisa merakitnya sendiri
-    } for link in links])
+    } for link, candidate in results])
 
 
 # Tambahkan ini di backend Anda (di dalam mgmt_bp)

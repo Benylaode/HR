@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { generateKraepelinGrid } from "@/lib/test-data"; 
-// 1. IMPORT FUNGSI DARI FILE UTILS
 import { calculateKraepelinScore } from "@/utils/kraepelinScoring"; 
+import { Play, SkipForward, Clock } from "lucide-react"; 
 
 interface KraepelinTestProps {
   timeRemaining: number;
@@ -130,8 +130,15 @@ export default function KraepelinTest({
 
   useEffect(() => {
     inputRef.current?.focus();
-    const el = document.getElementById(`col-container-${currentColumn}`);
-    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    // Scroll Active Input ke tengah layar (Vertikal)
+    const activeInputEl = document.getElementById(`input-row-${currentColumn}-${activeInputIndex}`);
+    if (activeInputEl) {
+       activeInputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+       // Fallback ke kolom jika input belum ada (awal load)
+       const colEl = document.getElementById(`col-container-${currentColumn}`);
+       colEl?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
   }, [activeInputIndex, currentColumn]);
 
   const formatTime = (sec: number) => {
@@ -144,54 +151,66 @@ export default function KraepelinTest({
 
   const progressPercent = ((dbConfig.durationPerColumn - columnTimeLeft) / dbConfig.durationPerColumn) * 100;
 
+  // Gunakan h-screen minus header/footer agar fit di layar tanpa scroll window utama
   return (
-    // ... Copy paste bagian Return JSX Anda yang lama di sini ...
-    // ... (Tidak ada perubahan pada tampilan) ...
-    <div className="max-w-7xl mx-auto px-4 h-screen flex flex-col">
-       {/* ... Isi JSX sama persis seperti file Anda ... */}
-       {/* HEADER FIXED */}
-      <div className="flex-none bg-white pt-4 pb-2 z-20">
-        <div className="flex justify-between items-end mb-4 border-b pb-2">
+    <div className="max-w-[95vw] mx-auto h-[calc(100vh-100px)] flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+       {/* HEADER */}
+      <div className="flex-none bg-white p-4 z-20 border-b border-gray-100">
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Tes Kraepelin</h1>
-            <p className="text-sm text-gray-500">
-              Jumlahkan dua angka, ketik digit terakhirnya saja.
+            <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <Play className="text-blue-600 fill-blue-600" size={20} /> Tes Kraepelin
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Jumlahkan dua angka vertikal, ketik digit terakhirnya.
             </p>
           </div>
-          <div className="text-right">
-             <div className="text-xs text-gray-500 uppercase tracking-wide">Total Waktu</div>
-             <div className={`text-3xl font-mono font-bold ${timeRemaining < 60 ? 'text-red-500 animate-pulse' : 'text-gray-800'}`}>
-                {formatTime(timeRemaining)}
+          
+          <div className="flex items-center gap-4">
+             <div className="flex flex-col items-end">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Waktu Kolom</span>
+                <div className="text-2xl font-mono font-bold text-blue-600 tabular-nums">
+                  {columnTimeLeft}s
+                </div>
              </div>
           </div>
         </div>
 
-        {/* PROGRESS BAR KOLOM */}
-        <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden shadow-inner mb-2">
-            <div 
-                className="h-full bg-blue-600 transition-all duration-1000 ease-linear"
-                style={{ width: `${progressPercent}%` }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700 drop-shadow-md">
-                Pindah kolom dalam: {columnTimeLeft} detik
+        {/* PROGRESS BAR & CONTROLS */}
+        <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+            <div className="flex-1">
+                <div className="flex justify-between text-xs mb-1.5 font-medium">
+                   <span className="text-gray-600">Progress Kolom {columnTimeLeft}s</span>
+                   <span className="text-blue-600">{Math.round(progressPercent)}%</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-blue-500 transition-all duration-1000 ease-linear rounded-full"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
             </div>
-        </div>
 
-        <div className="flex justify-between items-center text-sm font-medium text-gray-600 bg-gray-50 px-3 py-1 rounded border">
-            <span>Kolom: <span className="text-blue-600">{currentColumn + 1}</span> / {dbConfig.columns}</span>
-            <button 
-                onClick={manualSkip}
-                className="text-xs bg-gray-800 hover:bg-black text-white px-3 py-1 rounded transition-colors"
-            >
-                Lewati Kolom (Enter) &rarr;
-            </button>
+            <div className="h-8 w-px bg-gray-300 mx-2"></div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                Kolom <strong className="text-gray-900">{currentColumn + 1}</strong> <span className="text-gray-400">/ {dbConfig.columns}</span>
+              </span>
+              <button 
+                  onClick={manualSkip}
+                  className="text-xs bg-gray-900 hover:bg-black text-white px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+              >
+                  Skip <SkipForward size={12} />
+              </button>
+            </div>
         </div>
       </div>
 
-      {/* MAIN GRID AREA */}
-      <div className="flex-1 overflow-y-hidden overflow-x-auto py-4">
-        {/* Container Flex Row untuk Kolom-kolom */}
-        <div className="flex gap-4 min-w-max px-4 h-full items-start justify-center">
+      {/* MAIN GRID AREA - Flex Fit & Scroll */}
+      <div className="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 relative custom-scrollbar">
+        {/* Added py overflow-visible to ensure no cutoff */}
+        <div className="flex gap-2 min-w-max h-full px-4 py-8 items-start">
             {grid.map((colData, colIndex) => {
                 const isCurrentCol = colIndex === currentColumn;
                 
@@ -200,46 +219,47 @@ export default function KraepelinTest({
                         key={colIndex} 
                         id={`col-container-${colIndex}`}
                         className={`
-                            flex flex-col items-center flex-shrink-0 w-16 transition-all duration-300
-                            ${isCurrentCol ? 'scale-105 opacity-100' : 'opacity-40 blur-[1px]'}
+                            flex flex-col items-center flex-shrink-0 transition-all duration-300 pb-10
+                            ${isCurrentCol ? 'opacity-100 scale-100 z-10' : 'opacity-40 scale-95 grayscale'}
                         `}
+                        style={{ width: '64px' }}
                     >
                         {/* HEADER KOLOM */}
                         <div className={`
-                            mb-2 font-bold text-xs px-2 py-1 rounded 
-                            ${isCurrentCol ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}
+                            mb-3 font-bold text-[10px] px-2 py-1 rounded-full border
+                            ${isCurrentCol ? 'bg-blue-600 text-white border-blue-600 shadow-md transform -translate-y-1' : 'bg-white text-gray-400 border-gray-200'}
                         `}>
-                            C-{colIndex + 1}
+                            #{colIndex + 1}
                         </div>
 
                         {/* ANGKAS & INPUTS LOOP */}
                         <div className={`
-                            flex flex-col items-center py-2 px-1 rounded-lg border
-                            ${isCurrentCol ? 'bg-blue-50 border-blue-300 shadow-lg' : 'bg-gray-50 border-gray-200'}
+                            flex flex-col items-center py-3 px-1 rounded-xl border transition-all duration-300
+                            ${isCurrentCol ? 'bg-white border-blue-200 shadow-xl ring-4 ring-blue-50/50' : 'bg-gray-100/50 border-transparent'}
                         `}>
                             {colData.map((number, rowIndex) => {
-                                // Kita merender Angka dulu
-                                // Jika ini BUKAN angka terakhir, kita render Input di bawahnya
                                 const isLastNumber = rowIndex === colData.length - 1;
-                                
-                                // Input slot index sesuai dengan rowIndex
-                                // (Input ke-0 ada di antara Angka 0 dan Angka 1)
-                                const inputIndex = rowIndex; 
-                                const isActiveInput = isCurrentCol && inputIndex === activeInputIndex;
+                                const isActiveInput = isCurrentCol && rowIndex === activeInputIndex;
                                 const answerValue = answers[colIndex] ? answers[colIndex][rowIndex] : null;
 
                                 return (
-                                    <div key={rowIndex} className="flex flex-col items-center">
+                                    <div 
+                                        key={rowIndex} 
+                                        id={isCurrentCol && isActiveInput ? `input-row-${colIndex}-${rowIndex}` : undefined}
+                                        className="flex flex-col items-center relative"
+                                    >
                                         {/* 1. ANGKA */}
-                                        <div className="text-xl font-mono font-bold text-gray-800 my-1 h-8 flex items-center">
+                                        <div className={`
+                                          text-2xl font-mono font-bold h-10 flex items-center justify-center w-10 rounded
+                                          ${isCurrentCol ? 'text-gray-800' : 'text-gray-400'}
+                                        `}>
                                             {number}
                                         </div>
 
-                                        {/* 2. INPUT SLOT (Jika bukan angka terakhir) */}
+                                        {/* 2. INPUT SLOT */}
                                         {!isLastNumber && (
-                                            <div className="my-1 h-10 w-10 flex items-center justify-center relative">
-                                                {/* Garis penghubung tipis visual */}
-                                                <div className="absolute h-full w-[1px] bg-gray-200 -z-10"></div>
+                                            <div className="h-10 w-10 flex items-center justify-center my-1.5 relative">
+                                                {isCurrentCol && <div className="absolute h-full w-[2px] bg-blue-100 -z-10 rounded-full"></div>}
 
                                                 {isActiveInput ? (
                                                     <input
@@ -251,15 +271,19 @@ export default function KraepelinTest({
                                                         value={currentInputValue}
                                                         onChange={(e) => handleInput(e.target.value)}
                                                         onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') handleInput(currentInputValue || '0'); // Safety enter
+                                                            if (e.key === 'Enter') handleInput(currentInputValue || '0'); 
                                                         }}
-                                                        className="w-full h-full text-center text-xl font-bold border-2 border-blue-500 rounded bg-white shadow-sm focus:outline-none ring-2 ring-blue-200"
+                                                        className="w-full h-full text-center text-2xl font-bold border-2 border-blue-500 rounded-lg bg-white shadow-lg focus:outline-none ring-4 ring-blue-100 z-20 transition-all transform scale-110"
                                                     />
                                                 ) : (
-                                                    // Menampilkan jawaban yang sudah diisi (atau kosong jika belum sampai)
                                                     <div className={`
-                                                        w-8 h-8 flex items-center justify-center rounded text-sm font-bold
-                                                        ${answerValue !== null ? 'text-green-600 bg-green-50 border border-green-200' : 'text-transparent bg-gray-100/50 rounded-full w-2 h-2'}
+                                                        w-8 h-8 flex items-center justify-center rounded-md text-sm font-bold transition-all
+                                                        ${answerValue !== null 
+                                                          ? 'text-white bg-green-500 shadow-sm scale-100' 
+                                                          : isCurrentCol 
+                                                            ? 'bg-gray-100 text-gray-300 scale-75'
+                                                            : 'bg-transparent text-transparent'
+                                                        }
                                                     `}>
                                                         {answerValue}
                                                     </div>

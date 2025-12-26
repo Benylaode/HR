@@ -198,7 +198,7 @@ class TestSubmission(db.Model):
     raw_answers = db.Column(JSONB)       
     scores = db.Column(JSONB)            
     
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    submitted_at = db.Column(db.DateTime, default=datetime.now)
 
 
 # --- DATA REFERENSI PSIKOTES (Tetap sama) ---

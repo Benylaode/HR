@@ -8,6 +8,7 @@ import CFITTest from "@/components/test/CFITTest";
 import PAPITest from "@/components/test/PAPITest";
 import KraepelinTest from "@/components/test/KraepelinTest";
 import { cfitQuestions, papiQuestions, TEST_DURATION } from "@/lib/test-data";
+import TestIntroModal from "@/components/test/TestIntroModal"; // Impor modal baru
 
 type TestType = "cfit" | "kraepelin" | "papi";
 
@@ -35,7 +36,7 @@ export default function TestExamPage() {
 
   const [realCandidateName, setRealCandidateName] = useState<string>("");
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
-  // ---------------------------------------------------------------
+  const [isMobile, setIsMobile] = useState(false); // New state for mobile check
 
   const [state, setState] = useState<TestState>({
     currentTest: "cfit",
@@ -51,9 +52,34 @@ export default function TestExamPage() {
   const [warningMessage, setWarningMessage] = useState("");
   const [completedTests, setCompletedTests] = useState<TestType[]>([]);
   
-  // State data dari DB
+  // Security States
+  const [violationCount, setViolationCount] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+  const MAX_VIOLATIONS = 3;
+  
   const [dbQuestions, setDbQuestions] = useState<{cfit: any[], papi: any[]}>({ cfit: [], papi: [] });
   const [kraepelinConfig, setKraepelinConfig] = useState<any>(null);
+
+  // Modal State
+  const [showIntroModal, setShowIntroModal] = useState(false);
+  const [selectedTestToStart, setSelectedTestToStart] = useState<TestType | null>(null);
+
+  // Mobile Check Effect
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    if (/android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent) || window.innerWidth < 768) {
+        setIsMobile(true);
+    }
+    
+    // Resize listener for desktop resize
+    const handleResize = () => {
+        if (window.innerWidth < 768) setIsMobile(true);
+        else setIsMobile(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch Data dari Database & Validasi Token
   useEffect(() => {
@@ -68,6 +94,11 @@ export default function TestExamPage() {
           const data = await res.json();
           setRealCandidateName(data.candidate_name);
           setIsTokenValid(true);
+          
+          // Load completed tests from backend
+          if (data.completed_tests && Array.isArray(data.completed_tests)) {
+             setCompletedTests(data.completed_tests);
+          }
         } else {
           setIsTokenValid(false);
           // Jika token tidak valid, stop fetch lainnya
@@ -75,18 +106,18 @@ export default function TestExamPage() {
         }
 
         // 2. Ambil Config Kraepelin
-        const resKrae = await fetch("${API_BASE_URL}/management/config/kraepelin");
+        const resKrae = await fetch(`${API_BASE_URL}/management/config/kraepelin`);
         if (resKrae.ok) {
            const dataKrae = await resKrae.json();
            setKraepelinConfig(dataKrae);
         }
 
         // 3. Ambil Soal CFIT
-        const resCfit = await fetch("${API_BASE_URL}/management/questions/cfit");
+        const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`);
         const dataCfit = await resCfit.json();
         
         // 4. Ambil Soal PAPI
-        const resPapi = await fetch("${API_BASE_URL}/management/questions/papi");
+        const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`);
         const dataPapi = await resPapi.json();
 
         setDbQuestions({ cfit: dataCfit, papi: dataPapi });
@@ -134,20 +165,161 @@ export default function TestExamPage() {
   }, [state.timeRemaining, state.isStarted]);
 
 
-  const startTest = (testType: TestType) => {
-    let duration = TEST_DURATION;
-
-    // Override durasi jika tes Kraepelin dan config tersedia
-    if (testType === "kraepelin" && kraepelinConfig) {
-      duration = kraepelinConfig.columns * kraepelinConfig.duration_per_column;
+  // Request Fullscreen
+  const requestFullscreen = async () => {
+    try {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+      } else if ((elem as any).webkitRequestFullscreen) {
+        await (elem as any).webkitRequestFullscreen();
+      } else if ((elem as any).msRequestFullscreen) {
+        await (elem as any).msRequestFullscreen();
+      }
+      setIsFullscreen(true);
+    } catch (err) {
+      console.log("Fullscreen not supported");
     }
+  };
 
-    setState((prev) => ({
-      ...prev,
-      currentTest: testType,
-      timeRemaining: duration,
-      isStarted: true,
-    }));
+  // Handle Security Violation
+  const handleViolation = (reason: string) => {
+    if (!state.isStarted) return;
+    
+    const newCount = violationCount + 1;
+    setViolationCount(newCount);
+    setWarningMessage(`⚠️ Peringatan ${newCount}/${MAX_VIOLATIONS}: ${reason}`);
+    setShowSecurityWarning(true);
+    
+    if (newCount >= MAX_VIOLATIONS) {
+      setTimeout(() => {
+        submitCurrentTest();
+        setWarningMessage("Tes otomatis disubmit karena terlalu banyak pelanggaran!");
+      }, 1500);
+    }
+  };
+
+  // Anti-Cheat: Visibility Change Detection
+  useEffect(() => {
+    if (!state.isStarted) return;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        handleViolation("Terdeteksi berpindah tab atau minimize browser!");
+      }
+    };
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [state.isStarted, violationCount]);
+
+  // Anti-Cheat: Window Blur Detection  
+  useEffect(() => {
+    if (!state.isStarted) return;
+    
+    const handleBlur = () => {
+      handleViolation("Terdeteksi keluar dari jendela tes!");
+    };
+    
+    window.addEventListener("blur", handleBlur);
+    return () => window.removeEventListener("blur", handleBlur);
+  }, [state.isStarted, violationCount]);
+
+  // Anti-Cheat: Right-click Prevention
+  useEffect(() => {
+    if (!state.isStarted) return;
+    
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      handleViolation("Klik kanan tidak diperbolehkan!");
+    };
+    
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => document.removeEventListener("contextmenu", handleContextMenu);
+  }, [state.isStarted, violationCount]);
+
+  // Anti-Cheat: Keyboard Shortcuts Prevention
+  useEffect(() => {
+    if (!state.isStarted) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Block: Ctrl+C, Ctrl+V, Ctrl+P, F12, Ctrl+Shift+I
+      if (
+        (e.ctrlKey && ["c", "v", "p", "u"].includes(e.key.toLowerCase())) ||
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i")
+      ) {
+        e.preventDefault();
+        handleViolation("Shortcut keyboard terlarang terdeteksi!");
+      }
+    };
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [state.isStarted, violationCount]);
+
+  // Anti-Cheat: Prevent Browser Back/Close
+  useEffect(() => {
+    if (!state.isStarted) return;
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "Tes sedang berlangsung. Yakin ingin meninggalkan halaman?";
+      return e.returnValue;
+    };
+    
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [state.isStarted]);
+
+  // Track Fullscreen Exit
+  useEffect(() => {
+    if (!state.isStarted) return;
+    
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFullscreen) {
+        setIsFullscreen(false);
+        handleViolation("Keluar dari mode fullscreen!");
+      }
+    };
+    
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, [state.isStarted, isFullscreen]);
+
+  const handleTestSelection = (testType: TestType) => {
+    if (completedTests.includes(testType)) return;
+    setSelectedTestToStart(testType);
+    setShowIntroModal(true);
+  };
+
+  const confirmStartTest = () => {
+      if (!selectedTestToStart) return;
+      
+      const testType = selectedTestToStart;
+      let duration = TEST_DURATION;
+
+      // Override durasi jika tes Kraepelin dan config tersedia
+      if (testType === "kraepelin" && kraepelinConfig) {
+        duration = kraepelinConfig.columns * kraepelinConfig.duration_per_column;
+      }
+
+      // Request fullscreen when starting test
+      requestFullscreen();
+      
+      // Reset violation count
+      setViolationCount(0);
+
+      setState((prev) => ({
+        ...prev,
+        currentTest: testType,
+        timeRemaining: duration,
+        isStarted: true,
+      }));
+      
+      // Close modal
+      setShowIntroModal(false);
+      setSelectedTestToStart(null);
   };
 
   const finalizeAllTests = async () => {
@@ -209,45 +381,65 @@ export default function TestExamPage() {
   };
 
   const submitCurrentTest = async () => {
-    let answersData: any;
     let endpoint = "";
+    let payload: any = { token: token };
 
     if (state.currentTest === "cfit") {
       endpoint = "cfit";
-      answersData = state.cfitAnswers;
+      payload.answers = state.cfitAnswers;
     } else if (state.currentTest === "papi") {
       endpoint = "papi";
-      answersData = state.papiAnswers;
+      payload.answers = state.papiAnswers;
     } else if (state.currentTest === "kraepelin") {
       endpoint = "kraepelin";
-      answersData = state.kraepelinResults?.answers;
+      // Backend expects 'results' for calculated data and 'answers' for raw data
+      payload.results = state.kraepelinResults;
+      payload.answers = state.kraepelinResults?.answers;
     }
 
     try {
       const response = await fetch(`${API_BASE_URL}/submission/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: token, 
-          answers: answersData
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Data berhasil masuk ke BE:", result);
+        console.log(`[${endpoint}] Data berhasil masuk ke BE:`, result);
         handleTestComplete();
       } else {
         const errorMsg = await response.json();
-        alert(`Gagal mengirim: ${errorMsg.error || 'Server Error'}`);
+        alert(`Gagal mengirim ${endpoint}: ${errorMsg.error || 'Server Error'}`);
       }
     } catch (err) {
-      console.error("Koneksi ke Backend gagal:", err);
+      console.error(`Koneksi ke Backend gagal (${endpoint}):`, err);
       alert("Koneksi ke server terputus. Pastikan Flask Anda berjalan.");
     }
   };
 
   const allTestsCompleted = completedTests.length === 3;
+
+  // --- TAMPILAN JIKA MOBILE ---
+  if (isMobile) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-red-50 p-6 text-center">
+            <div className="bg-white p-8 rounded-xl shadow-xl max-w-sm border-t-4 border-red-600">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertTriangle className="w-8 h-8 text-red-600" />
+                </div>
+                <h1 className="text-xl font-bold text-gray-900 mb-2">Perangkat Tidak Didukung</h1>
+                <p className="text-gray-600 mb-6 text-sm">
+                    Ujian ini memerlukan konsentrasi dan tampilan layar penuh. 
+                    Silakan akses menggunakan <b>Laptop</b> atau <b>PC Desktop</b>.
+                </p>
+                <div className="bg-gray-100 p-3 rounded text-xs text-gray-500">
+                    Sistem mendeteksi layar mobile/tablet.
+                </div>
+            </div>
+        </div>
+      );
+  }
 
   // --- TAMPILAN JIKA TOKEN TIDAK VALID ---
   if (isTokenValid === false) {
@@ -292,7 +484,7 @@ export default function TestExamPage() {
   if (!state.isStarted && !allTestsCompleted) {
     const testConfigs = [
       { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: "3 menit" },
-      { type: "kraepelin" as TestType, name: "Kraepelin Test", icon: "📊", color: "green", questions: 50, time: "3 menit" },
+      { type: "kraepelin" as TestType, name: "Kraepelin Test", icon: "📊", color: "green", questions: 50, time: "Per Kolom" },
       { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: "3 menit" },
     ];
 
@@ -309,6 +501,16 @@ export default function TestExamPage() {
             </div>
           </div>
         </nav>
+
+        {/* TEST INTRO MODAL */}
+        {showIntroModal && selectedTestToStart && (
+            <TestIntroModal 
+                testType={selectedTestToStart}
+                candidateName={realCandidateName}
+                onStart={confirmStartTest}
+                onCancel={() => setShowIntroModal(false)}
+            />
+        )}
 
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="mb-8">
@@ -338,7 +540,7 @@ export default function TestExamPage() {
                     <p>⏱️ {config.time}</p>
                   </div>
                   <button
-                    onClick={() => !isCompleted && startTest(config.type)}
+                    onClick={() => !isCompleted && handleTestSelection(config.type)}
                     disabled={isCompleted}
                     className={`w-full py-3 font-medium ${
                       isCompleted ? "bg-green-100 text-green-800" : "bg-blue-600 text-white hover:bg-blue-700"
@@ -385,6 +587,40 @@ export default function TestExamPage() {
         </div>
       )}
 
+      {/* Security Violation Warning Modal */}
+      {showSecurityWarning && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-xl p-8 max-w-md shadow-2xl animate-pulse">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-10 h-10 text-red-600" />
+              </div>
+              <h3 className="font-bold text-xl text-red-600 mb-2">⚠️ Pelanggaran Keamanan!</h3>
+              <p className="text-gray-700 mb-2">{warningMessage}</p>
+              <p className="text-sm text-gray-500 mb-4">
+                Pelanggaran: <span className={`font-bold ${violationCount >= MAX_VIOLATIONS ? 'text-red-600' : 'text-orange-500'}`}>{violationCount}/{MAX_VIOLATIONS}</span>
+              </p>
+              {violationCount >= MAX_VIOLATIONS ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 w-full">
+                  <p className="text-red-700 font-medium">Batas pelanggaran tercapai!</p>
+                  <p className="text-red-600 text-sm">Tes akan otomatis disubmit...</p>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => {
+                    setShowSecurityWarning(false);
+                    requestFullscreen();
+                  }} 
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                >
+                  Saya Mengerti, Lanjutkan Tes
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className="bg-white border-b sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
           <div>
@@ -396,6 +632,19 @@ export default function TestExamPage() {
             <p className="text-sm text-gray-500">{realCandidateName}</p>
           </div>
           <div className="flex items-center gap-4">
+            {/* Violation Counter */}
+            {violationCount > 0 && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                violationCount >= MAX_VIOLATIONS 
+                  ? 'bg-red-100 text-red-700' 
+                  : violationCount >= 2 
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-orange-100 text-orange-700'
+              }`}>
+                <AlertTriangle size={16} />
+                <span>{violationCount}/{MAX_VIOLATIONS}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-gray-500" />
               <span className={`font-mono text-lg ${state.timeRemaining < 60 ? "text-red-600 font-bold" : ""}`}>
