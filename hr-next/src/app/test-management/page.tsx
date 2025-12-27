@@ -322,13 +322,14 @@ export default function TestManagementPage() {
 
   // --- UTILS ---
   const copyLink = async (token: string) => {
-    try {
-      const url = `${window.location.origin}/test/${token}`;
-      await navigator.clipboard.writeText(url);
-    } catch (err) {
-      console.error("Gagal menyalin");
-    }
-  };
+  try {
+    const url = `${window.location.origin}/test/${token}`;
+    await navigator.clipboard.writeText(url).then(() => alert("Disalin!"));
+    console.log("Link berhasil disalin!");
+  } catch (err) {
+    console.error("Gagal menyalin");
+  }
+};
 
   const getOptionLabels = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
   const labelToIndex = (label: string) => label.charCodeAt(0) - 65;
