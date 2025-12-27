@@ -24,7 +24,7 @@ export default function CFITTest({
   onAnswer,
   timeRemaining,
 }: CFITTestProps) {
-  const BE_URL = "http://localhost:5000";
+  const BE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

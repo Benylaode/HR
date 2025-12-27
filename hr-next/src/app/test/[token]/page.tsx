@@ -37,6 +37,7 @@ export default function TestExamPage() {
   const [realCandidateName, setRealCandidateName] = useState<string>("");
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
   const [isMobile, setIsMobile] = useState(false); // New state for mobile check
+  const [triggerKraepelinSubmit, setTriggerKraepelinSubmit] = useState(false);
 
   const [state, setState] = useState<TestState>({
     currentTest: "cfit",
@@ -178,7 +179,6 @@ export default function TestExamPage() {
       }
       setIsFullscreen(true);
     } catch (err) {
-      console.log("Fullscreen not supported");
     }
   };
 
@@ -330,10 +330,8 @@ export default function TestExamPage() {
         body: JSON.stringify({ token: token }),
       });
       if (response.ok) {
-        console.log("Sesi tes telah ditutup.");
       }
     } catch (err) {
-      console.error("Gagal menutup sesi tes:", err);
     }
   };
 
@@ -380,7 +378,18 @@ export default function TestExamPage() {
     }));
   };
 
-  const submitCurrentTest = async () => {
+// Di dalam TestExamPage.tsx
+
+const submitCurrentTest = async () => {
+    // 1. CEGAH KRAEPELIN DISUBMIT DARI SINI
+    // Kraepelin punya tombol submit sendiri di komponen anaknya (KraepelinTest.tsx).
+    // Jadi kita hentikan proses di sini agar tidak double submit atau error.
+    if (state.currentTest === "kraepelin") {
+        setTriggerKraepelinSubmit(true); 
+        return; 
+    }
+
+    // 2. TENTUKAN ENDPOINT
     let endpoint = "";
     let payload: any = { token: token };
 
@@ -390,13 +399,16 @@ export default function TestExamPage() {
     } else if (state.currentTest === "papi") {
       endpoint = "papi";
       payload.answers = state.papiAnswers;
-    } else if (state.currentTest === "kraepelin") {
-      endpoint = "kraepelin";
-      // Backend expects 'results' for calculated data and 'answers' for raw data
-      payload.results = state.kraepelinResults;
-      payload.answers = state.kraepelinResults?.answers;
+    } 
+
+    // 3. VALIDASI ENDPOINT (PENTING!)
+    // Jika endpoint masih kosong (misal ada error logika), jangan lakukan fetch.
+    if (!endpoint) {
+        console.error("Error: Endpoint tidak terdefinisi untuk tes ini.");
+        return;
     }
 
+    // 4. EKSEKUSI FETCH
     try {
       const response = await fetch(`${API_BASE_URL}/submission/${endpoint}`, {
         method: "POST",
@@ -406,7 +418,6 @@ export default function TestExamPage() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(`[${endpoint}] Data berhasil masuk ke BE:`, result);
         handleTestComplete();
       } else {
         const errorMsg = await response.json();
@@ -414,7 +425,7 @@ export default function TestExamPage() {
       }
     } catch (err) {
       console.error(`Koneksi ke Backend gagal (${endpoint}):`, err);
-      alert("Koneksi ke server terputus. Pastikan Flask Anda berjalan.");
+      // alert("Koneksi ke server terputus."); // Opsional: matikan alert jika mengganggu
     }
   };
 
@@ -677,6 +688,8 @@ export default function TestExamPage() {
             timeRemaining={state.timeRemaining}
             onComplete={handleKraepelinComplete}
             dbConfig={kraepelinConfig}
+            forceSubmit={violationCount >= MAX_VIOLATIONS} 
+            manualSubmit={triggerKraepelinSubmit}
           />
         ) : state.currentTest === "kraepelin" && (
           <div className="flex flex-col items-center justify-center p-12">

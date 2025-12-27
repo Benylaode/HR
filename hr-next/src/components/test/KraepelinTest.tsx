@@ -12,12 +12,17 @@ interface KraepelinTestProps {
     rows: number;
     durationPerColumn: number;
   };
+  forceSubmit: boolean; // <--- 1. TAMBAHKAN INI
+  manualSubmit: boolean;
 }
+  const BE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function KraepelinTest({
   timeRemaining,
   onComplete,
   dbConfig,
+  forceSubmit,
+  manualSubmit,
 }: KraepelinTestProps) {
   const [grid, setGrid] = useState<number[][]>([]);
   const [answers, setAnswers] = useState<(number | null)[][]>([]); 
@@ -27,6 +32,9 @@ export default function KraepelinTest({
   const [columnTimeLeft, setColumnTimeLeft] = useState(dbConfig.durationPerColumn);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const answersRef = useRef<any>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+
 
   useEffect(() => {
     const newGrid = generateKraepelinGrid(dbConfig.columns, dbConfig.rows);
@@ -45,6 +53,14 @@ export default function KraepelinTest({
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
+
+  useEffect(() => {
+    if (manualSubmit && !isSubmitting) {
+        console.log("Manual Submit Triggered!");
+        submitTest();
+    }
+  }, [manualSubmit]);
+
 
   useEffect(() => {
     if (!grid.length) return;
@@ -66,31 +82,67 @@ export default function KraepelinTest({
 
   // --- NAVIGATION & INPUT ---
 
-  const handleMoveToNextColumn = async () => {
-    if (currentColumn < dbConfig.columns - 1) {
-      setCurrentColumn((prev) => prev + 1);
-      setActiveInputIndex(dbConfig.rows - 2); 
-      setCurrentInputValue("");
-    } else {
-      // === TES SELESAI ===
+// ... (kode di atas tetap sama)
+  const submitTest = async () => {
+      // Cegah submit ganda
+      if (isSubmitting) return; 
+      setIsSubmitting(true);
+
       const finalAnswers = answersRef.current;
-      
-      // 2. Gunakan fungsi calculateKraepelinScore yang di-import
-      const results = calculateKraepelinScore(finalAnswers, grid);
+      const finalGrid = grid; 
 
-      console.log("Hasil Perhitungan Norma Sarjana:", results);
-
+      // Hitung skor di Client (Frontend)
+      const analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
       try {
+        // Ambil token dari URL
         const pathSegments = window.location.pathname.split('/'); 
         const token = pathSegments[pathSegments.length - 1]; 
 
-        const response = await fetch('http://localhost:5000/submission/kraepelin', {
+        const response = await fetch(`${BE_URL}/submission/kraepelin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             token: token,
             answers: finalAnswers, 
-            results: results 
+            results: analysisResults 
+          })
+        });
+
+        if (response.ok) {
+           const data = await response.json();
+           onComplete(data); // Lapor ke Parent bahwa selesai
+        } else {
+           alert("Gagal menyimpan. Coba lagi.");
+           setIsSubmitting(false); // Reset agar bisa coba lagi
+        }
+      } catch (error) {
+        console.error("Error submitting:", error);
+        setIsSubmitting(false);
+      }
+  };
+
+  const submitDataToBackend = async () => {
+      if (isSubmitting) return; // Cegah double submit
+      setIsSubmitting(true);
+
+      const finalAnswers = answersRef.current;
+      const finalGrid = grid; // pastikan state grid diambil
+
+      // Hitung skor apa adanya
+      const analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
+
+
+      try {
+        const pathSegments = window.location.pathname.split('/'); 
+        const token = pathSegments[pathSegments.length - 1]; 
+
+        const response = await fetch(`${BE_URL}/submission/kraepelin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: token,
+            answers: finalAnswers, 
+            results: analysisResults 
           })
         });
 
@@ -98,11 +150,30 @@ export default function KraepelinTest({
            const data = await response.json();
            onComplete(data);
         } else {
-           alert("Gagal menyimpan hasil tes.");
+           alert("Gagal menyimpan hasil.");
+           setIsSubmitting(false); // Reset jika gagal agar bisa coba lagi (opsional)
         }
       } catch (error) {
-        console.error("Error submitting logic:", error);
+        console.error("Error submitting:", error);
+        setIsSubmitting(false);
       }
+  };
+
+useEffect(() => {
+    if (forceSubmit && !isSubmitting) {
+        submitDataToBackend();
+    }
+  }, [forceSubmit]); // Akan jalan otomatis jika forceSubmit berubah jadi true
+
+  // --- 5. UPDATE handleMoveToNextColumn ---
+  const handleMoveToNextColumn = async () => {
+    if (currentColumn < dbConfig.columns - 1) {
+      setCurrentColumn((prev) => prev + 1);
+      setActiveInputIndex(dbConfig.rows - 2); 
+      setCurrentInputValue("");
+    } else {
+      // Jika sudah kolom terakhir selesai, panggil fungsi submit yang baru
+      submitDataToBackend(); 
     }
   };
 
@@ -162,7 +233,7 @@ export default function KraepelinTest({
               <Play className="text-blue-600 fill-blue-600" size={20} /> Tes Kraepelin
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              Jumlahkan dua angka vertikal, ketik digit terakhirnya.
+              Jumlahkan dua angka vertikal bla bala bla, ketik digit terakhirnya.
             </p>
           </div>
           
@@ -206,10 +277,8 @@ export default function KraepelinTest({
             </div>
         </div>
       </div>
-
-      {/* MAIN GRID AREA - Flex Fit & Scroll */}
       <div className="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 relative custom-scrollbar">
-        {/* Added py overflow-visible to ensure no cutoff */}
+
         <div className="flex gap-2 min-w-max h-full px-4 py-8 items-start">
             {grid.map((colData, colIndex) => {
                 const isCurrentCol = colIndex === currentColumn;
