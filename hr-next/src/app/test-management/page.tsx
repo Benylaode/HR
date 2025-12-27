@@ -321,7 +321,15 @@ export default function TestManagementPage() {
   const handleUpdateSubtype = () => { setShowEditSubtypeModal(false); };
 
   // --- UTILS ---
-  const copyLink = (token: string) => navigator.clipboard.writeText(`http://localhost:3000/test/${token}`).then(() => alert("Disalin!"));
+  const copyLink = async (token: string) => {
+    try {
+      const url = `${window.location.origin}/test/${token}`;
+      await navigator.clipboard.writeText(url);
+    } catch (err) {
+      console.error("Gagal menyalin");
+    }
+  };
+
   const getOptionLabels = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
   const labelToIndex = (label: string) => label.charCodeAt(0) - 65;
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
