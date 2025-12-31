@@ -4,25 +4,25 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import {
   Users,
   Briefcase,
   Brain,
   Target,
   ClipboardList,
-  TrendingUp,
   BarChart3,
   Trophy,
   Medal,
-  Star,
   ChevronDown,
-  Loader2
+  Loader2,
+  ArrowUpRight,
+  TrendingUp,
+  FileText
 } from "lucide-react";
 
 // URL Backend
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-// const API_BASE_URL = "http://localhost:5000";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -99,90 +99,97 @@ export default function DashboardPage() {
 
   // Helper UI
   const getRankIcon = (index: number) => {
-    if (index === 0) return <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-100" />;
-    if (index === 1) return <Medal className="w-6 h-6 text-gray-400 fill-gray-100" />;
-    if (index === 2) return <Medal className="w-6 h-6 text-orange-400 fill-orange-100" />;
-    return <span className="font-bold text-gray-500 text-lg">#{index + 1}</span>;
+    if (index === 0) return <Trophy className="w-5 h-5 text-yellow-500 fill-yellow-100" />;
+    if (index === 1) return <Medal className="w-5 h-5 text-gray-400 fill-gray-100" />;
+    if (index === 2) return <Medal className="w-5 h-5 text-orange-400 fill-orange-100" />;
+    return <span className="font-bold text-[var(--secondary)] text-lg">#{index + 1}</span>;
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Offer": return "bg-green-100 text-green-700 border-green-200";
-      case "Interview": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Psychotest": return "bg-purple-100 text-purple-700 border-purple-200";
-      case "Screening": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Rejected": return "bg-red-50 text-red-600 border-red-100";
-      default: return "bg-gray-50 text-gray-600 border-gray-200";
+      case "Offer": return "badge badge-success";
+      case "Interview": return "badge badge-primary"; 
+      case "Psychotest": return "badge badge-secondary"; 
+      case "Screening": return "badge badge-warning";
+      case "Rejected": return "badge badge-danger";
+      default: return "badge badge-secondary";
     }
   };
 
+  // Helper for Stats Card using Global classes
+  const StatsCard = ({ title, value, icon: Icon, colorClass, delay }: any) => (
+    <div className={`card-static bg-white p-6 rounded-2xl border border-[var(--secondary-200)] hover:border-[var(--primary-200)] transition-colors relative overflow-hidden group animate-in fade-in slide-in-from-bottom-4 duration-500`} style={{ animationDelay: `${delay}ms` }}>
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colorClass}`}>
+          <Icon className="w-6 h-6" />
+        </div>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-[var(--secondary)] uppercase tracking-wide">{title}</p>
+        <h3 className="text-3xl font-bold text-[var(--primary-900)] mt-1">{value}</h3>
+      </div>
+      {/* Decorative gradient overlay */}
+      <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-br from-[var(--primary-50)] to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:ml-64">
+      <div className="lg:ml-64 min-h-screen flex flex-col">
         <Header
-          title="Dashboard HR"
-          subtitle="Overview rekrutmen, hasil tes, dan ranking kandidat"
-          userName={user.name}
-          userEmail={user.email}
+          title="Dashboard Overview"
+          subtitle="Pantau performa rekrutmen dan hasil seleksi kandidat"
         />
         
-        <main className="p-6">
-          {/* STATS CARDS */}
+        <main className="p-4 md:p-8 flex-1 w-full">
+          {/* STATS CARDS - Using Global Vars */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-               <div>
-                  <p className="text-sm text-gray-500 font-medium">Total Kandidat</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total_candidates}</p>
-               </div>
-               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
-                  <Users size={24} />
-               </div>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-               <div>
-                  <p className="text-sm text-gray-500 font-medium">Posisi Aktif</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.active_jobs}</p>
-               </div>
-               <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center text-green-600">
-                  <Briefcase size={24} />
-               </div>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-               <div>
-                  <p className="text-sm text-gray-500 font-medium">Test Diambil</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.test_taken}</p>
-               </div>
-               <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600">
-                  <Brain size={24} />
-               </div>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
-               <div>
-                  <p className="text-sm text-gray-500 font-medium">Completion Rate</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.completion_rate}</p>
-               </div>
-               <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600">
-                  <Target size={24} />
-               </div>
-            </div>
+            <StatsCard 
+              title="Total Kandidat" 
+              value={stats.total_candidates} 
+              icon={Users} 
+              colorClass="bg-[var(--primary-50)] text-[var(--primary)]"
+              delay={0}
+            />
+            <StatsCard 
+              title="Posisi Aktif" 
+              value={stats.active_jobs} 
+              icon={Briefcase} 
+              colorClass="bg-[var(--secondary-50)] text-[var(--secondary)]" 
+              delay={100}
+            />
+            <StatsCard 
+              title="Tes Selesai" 
+              value={stats.test_taken} 
+              icon={ClipboardList} 
+              colorClass="bg-[var(--primary-50)] text-[var(--primary)]" 
+              delay={200}
+            />
+            <StatsCard 
+              title="Completion Rate" 
+              value={stats.completion_rate} 
+              icon={TrendingUp} 
+              colorClass="bg-[var(--secondary-50)] text-[var(--secondary)]" 
+              delay={300}
+            />
           </div>
 
           {/* LEADERBOARD SECTION */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-8 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="card rounded-3xl mb-8 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="p-6 border-b border-[var(--secondary-100)] flex flex-col md:flex-row justify-between items-center gap-4 bg-gradient-to-r from-[var(--background)] to-white">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Trophy className="text-yellow-500" />
+                <h3 className="text-xl font-bold text-[var(--primary-900)] flex items-center gap-2">
+                  <Trophy className="text-[var(--primary)]" size={24} />
                   Top Talent Leaderboard
                 </h3>
-                <p className="text-sm text-gray-500">Ranking kombinasi skor CV (40%) & Psikotes (60%)</p>
+                <p className="text-sm text-[var(--secondary)] mt-1">Ranking berdasarkan bobot: 40% CV + 60% Psikotes</p>
               </div>
               
               {/* Filter Job */}
-              <div className="relative">
+              <div className="relative z-10">
                 <select 
-                  className="appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2.5 px-4 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium"
+                  className="appearance-none bg-white border border-[var(--secondary-200)] text-[var(--secondary-700)] py-2.5 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm font-medium shadow-sm cursor-pointer hover:bg-[var(--secondary-50)] transition-colors"
                   value={selectedJob}
                   onChange={handleFilterChange}
                   disabled={loading}
@@ -191,41 +198,47 @@ export default function DashboardPage() {
                     <option key={job.id} value={job.id}>{job.title}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--secondary-400)] pointer-events-none" size={16} />
               </div>
             </div>
 
             <div className="overflow-x-auto">
               {loading ? (
-                 <div className="p-12 text-center text-gray-500">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
-                    Memuat data leaderboard...
+                 <div className="p-20 text-center">
+                    <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-[var(--primary)]" />
+                    <p className="text-[var(--secondary)] font-medium">Memproses data kandidat...</p>
                  </div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50/50">
+                <table className="min-w-full divide-y divide-[var(--secondary-100)]">
+                  <thead className="bg-[var(--secondary-50)]">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Rank</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Kandidat</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Posisi</th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">CV Score</th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Test Score</th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Final Score</th>
-                      <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Rank</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Kandidat</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Posisi Dilamar</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Skor CV</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Skor Tes</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Total</th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-[var(--secondary-50)]">
                     {leaderboard.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                          Belum ada kandidat atau data tes untuk posisi ini.
+                        <td colSpan={7} className="px-6 py-16 text-center text-[var(--secondary)]">
+                          <div className="flex flex-col items-center justify-center">
+                            <div className="w-16 h-16 bg-[var(--secondary-100)] rounded-full flex items-center justify-center mb-4">
+                              <Users className="w-8 h-8 text-[var(--secondary-400)]" />
+                            </div>
+                            <p className="text-lg font-medium text-[var(--primary-900)]">Belum ada data</p>
+                            <p className="text-sm text-[var(--secondary)]">Tidak ada kandidat untuk posisi ini.</p>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       leaderboard.map((candidate, index) => (
                         <tr 
                           key={candidate.id} 
-                          className={`hover:bg-blue-50/50 transition-colors ${index < 3 ? 'bg-gradient-to-r from-white to-gray-50' : ''}`}
+                          className="hover:bg-[var(--primary-50)]/30 transition-all duration-200 group"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center justify-center w-8">
@@ -234,38 +247,34 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm
-                                ${index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : 'bg-blue-500'}`}>
+                              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white
+                                ${index < 3 ? 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-700)]' : 'bg-[var(--secondary-400)]'}`}>
                                 {candidate.avatar}
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-bold text-gray-900">{candidate.name}</div>
-                                <div className="text-xs text-gray-500">ID: {candidate.id.substring(0,6)}...</div>
+                                <div className="text-sm font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name}</div>
+                                <div className="text-xs text-[var(--secondary)]">{candidate.email}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--secondary)] font-medium">
                             {candidate.position}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-semibold border border-gray-200">
-                              {candidate.cvScore}%
+                            <span className="badge badge-secondary">
+                               {candidate.cvScore}%
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border
-                              ${candidate.testScore > 0 ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                            <span className={`badge ${candidate.testScore > 0 ? 'badge-primary' : 'badge-secondary'}`}>
                               {candidate.testScore > 0 ? `${candidate.testScore}%` : '-'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <Star size={16} className={`${index < 3 ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
-                              <span className="text-lg font-bold text-gray-900">{candidate.finalScore}</span>
-                            </div>
+                            <span className="text-lg font-bold text-[var(--primary)]">{candidate.finalScore}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(candidate.status)}`}>
+                            <span className={getStatusBadge(candidate.status) + " rounded-full px-3 py-1"}>
                               {candidate.status}
                             </span>
                           </td>
@@ -277,49 +286,61 @@ export default function DashboardPage() {
               )}
             </div>
             
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 text-right">
-              <button onClick={() => router.push("/candidates")} className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                Lihat Detail Semua Kandidat &rarr;
+            <div className="bg-[var(--background)] px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end backdrop-blur-sm">
+              <button 
+                onClick={() => router.push("/candidates")} 
+                className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-700)] transition-colors flex items-center gap-1 hover:gap-2 duration-300"
+              >
+                Lihat Semua Kandidat <ArrowUpRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Quick Actions (Bawah) */}
+          {/* Quick Actions - Using Global Colors */}
+          <h3 className="text-lg font-bold text-[var(--primary-900)] mb-4 px-1">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <button 
-              onClick={() => router.push("/test-management")}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all group text-left"
-            >
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
-                <ClipboardList size={20} />
-              </div>
-              <h4 className="font-semibold text-gray-900">Kelola Soal Tes</h4>
-              <p className="text-sm text-gray-500 mt-1">Atur bank soal CFIT, PAPI, & Kraepelin.</p>
-            </button>
-            
-            <button 
-              onClick={() => router.push("/cv-scanner")}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all group text-left"
-            >
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
-                <Brain size={20} />
-              </div>
-              <h4 className="font-semibold text-gray-900">AI CV Scanner</h4>
-              <p className="text-sm text-gray-500 mt-1">Upload dan screening CV otomatis.</p>
-            </button>
-
-            <button 
-              onClick={() => router.push("/candidates")}
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all group text-left"
-            >
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mb-4 group-hover:scale-110 transition-transform">
-                <Users size={20} />
-              </div>
-              <h4 className="font-semibold text-gray-900">Database Kandidat</h4>
-              <p className="text-sm text-gray-500 mt-1">Lihat profil lengkap dan riwayat tes.</p>
-            </button>
+            {[
+              { 
+                title: "Kelola Soal Tes", 
+                desc: "Atur bank soal CFIT, PAPI, & Kraepelin", 
+                icon: ClipboardList, 
+                href: "/test-management",
+                color: "bg-[var(--primary-50)] text-[var(--primary)]"
+              },
+              { 
+                title: "AI CV Scanner", 
+                desc: "Upload dan screening CV otomatis dengan AI", 
+                icon: Brain, 
+                href: "/cv-scanner",
+                color: "bg-[var(--secondary-50)] text-[var(--secondary)]" // Monochrome
+              },
+              { 
+                title: "Database Kandidat", 
+                desc: "Lihat profil lengkap dan riwayat hasil tes", 
+                icon: Users, 
+                href: "/candidates",
+                color: "bg-[var(--secondary-50)] text-[var(--secondary)]" // Monochrome
+              }
+            ].map((action, i) => (
+              <button 
+                key={i}
+                onClick={() => router.push(action.href)}
+                className="card bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg hover:border-[var(--primary-100)] hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden"
+              >
+                <div className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <action.icon size={24} />
+                </div>
+                <h4 className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{action.title}</h4>
+                <p className="text-sm text-[var(--secondary)] mt-2 leading-relaxed">{action.desc}</p>
+                
+                <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0 duration-300">
+                   <ArrowUpRight className="text-[var(--secondary-300)]" />
+                </div>
+              </button>
+            ))}
           </div>
         </main>
+        <Footer />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import {
   Plus,
   Search,
@@ -71,7 +72,7 @@ const initialFormData: JobFormData = {
   available: true,
 };
 
-// Extracted Modal Component with memo to prevent re-renders
+// Extracted Modal Component
 interface FieldErrors {
   title?: string;
   department?: string;
@@ -118,47 +119,44 @@ const JobFormModal = memo(function JobFormModal({
 }: JobFormModalProps) {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-[var(--secondary-100)]">
+        <div className="sticky top-0 bg-white border-b border-[var(--secondary-100)] px-6 py-4 flex justify-between items-center z-10">
+          <h2 className="text-xl font-bold text-[var(--primary-900)]">{title}</h2>
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-50)] rounded-full transition-colors text-[var(--secondary-400)]">
             <X size={20} />
           </button>
         </div>
         <div className="p-6 space-y-4">
-
-          {/* Basic Info */}
+          {/* Form fields using updated styling */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Judul Posisi *</label>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Judul Posisi *</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.title ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors ${fieldErrors.title ? 'border-red-500 bg-red-50' : 'border-[var(--secondary-200)]'}`}
                 placeholder="Software Engineer"
               />
               {fieldErrors.title && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <AlertTriangle size={14} />
-                  {fieldErrors.title}
+                  <AlertTriangle size={14} /> {fieldErrors.title}
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Departemen *</label>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Departemen *</label>
               <input
                 type="text"
                 value={formData.department}
                 onChange={(e) => setFormData((prev) => ({ ...prev, department: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.department ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors ${fieldErrors.department ? 'border-red-500 bg-red-50' : 'border-[var(--secondary-200)]'}`}
                 placeholder="Engineering"
               />
               {fieldErrors.department && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <AlertTriangle size={14} />
-                  {fieldErrors.department}
+                  <AlertTriangle size={14} /> {fieldErrors.department}
                 </p>
               )}
             </div>
@@ -166,194 +164,109 @@ const JobFormModal = memo(function JobFormModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Level</label>
               <select
                 value={formData.level}
                 onChange={(e) => setFormData((prev) => ({ ...prev, level: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none bg-white"
               >
-                <option value="Intern">Intern</option>
-                <option value="Junior">Junior</option>
-                <option value="Mid">Mid</option>
-                <option value="Senior">Senior</option>
-                <option value="Lead">Lead</option>
-                <option value="Manager">Manager</option>
+                 {["Intern", "Junior", "Mid", "Senior", "Lead", "Manager"].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi *</label>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Lokasi *</label>
               <input
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.location ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors ${fieldErrors.location ? 'border-red-500 bg-red-50' : 'border-[var(--secondary-200)]'}`}
                 placeholder="Jakarta"
               />
               {fieldErrors.location && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <AlertTriangle size={14} />
-                  {fieldErrors.location}
-                </p>
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1"><AlertTriangle size={14} /> {fieldErrors.location}</p>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Kerja</label>
-              <select
-                value={formData.employment_type}
-                onChange={(e) => setFormData((prev) => ({ ...prev, employment_type: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Contract">Contract</option>
-                <option value="Internship">Internship</option>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Tipe Kerja</label>
+              <select value={formData.employment_type} onChange={(e) => setFormData((prev) => ({ ...prev, employment_type: e.target.value }))} className="w-full px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none bg-white">
+                {["Full-time", "Part-time", "Contract", "Internship"].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Priority</label>
+              <select value={formData.priority} onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))} className="w-full px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none bg-white">
+                {["low", "medium", "high"].map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="closed">Closed</option>
+              <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Status</label>
+              <select value={formData.status} onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))} className="w-full px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none bg-white">
+                {["draft", "active", "closed"].map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
               </select>
             </div>
           </div>
 
           {/* Salary */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Range Gaji</label>
-            <div className={`grid grid-cols-3 gap-2 p-2 rounded-lg ${fieldErrors.salary ? 'bg-red-50 border border-red-300' : ''}`}>
-              <input
-                type="number"
-                min="0"
-                value={formData.salary.min || ""}
-                onChange={(e) => setFormData((prev) => ({ ...prev, salary: { ...prev.salary, min: parseInt(e.target.value) || 0 } }))}
-                className={`px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.salary ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Min"
-              />
-              <input
-                type="number"
-                min="0"
-                value={formData.salary.max || ""}
-                onChange={(e) => setFormData((prev) => ({ ...prev, salary: { ...prev.salary, max: parseInt(e.target.value) || 0 } }))}
-                className={`px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${fieldErrors.salary ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Max"
-              />
-              <select
-                value={formData.salary.currency}
-                onChange={(e) => setFormData((prev) => ({ ...prev, salary: { ...prev.salary, currency: e.target.value } }))}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
+            <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Range Gaji</label>
+            <div className={`grid grid-cols-3 gap-2 p-1 rounded-lg ${fieldErrors.salary ? 'bg-red-50 border border-red-300' : ''}`}>
+              <input type="number" min="0" value={formData.salary.min || ""} onChange={(e) => setFormData((prev) => ({ ...prev, salary: { ...prev.salary, min: parseInt(e.target.value) || 0 } }))} className="px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none" placeholder="Min" />
+              <input type="number" min="0" value={formData.salary.max || ""} onChange={(e) => setFormData((prev) => ({ ...prev, salary: { ...prev.salary, max: parseInt(e.target.value) || 0 } }))} className="px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none" placeholder="Max" />
+              <select value={formData.salary.currency} onChange={(e) => setFormData((prev) => ({ ...prev, salary: { ...prev.salary, currency: e.target.value } }))} className="px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none bg-white">
                 <option value="IDR">IDR</option>
                 <option value="USD">USD</option>
               </select>
             </div>
-            {fieldErrors.salary && (
-              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <AlertTriangle size={14} />
-                {fieldErrors.salary}
-              </p>
-            )}
+            {fieldErrors.salary && <p className="mt-1 text-sm text-red-600 flex items-center gap-1"><AlertTriangle size={14} /> {fieldErrors.salary}</p>}
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi Pekerjaan</label>
-            <textarea
-              value={formData.job_description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, job_description: e.target.value }))}
-              rows={4}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              placeholder="Jelaskan tanggung jawab dan tugas posisi ini..."
-            />
+            <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Deskripsi Pekerjaan</label>
+            <textarea value={formData.job_description} onChange={(e) => setFormData((prev) => ({ ...prev, job_description: e.target.value }))} rows={4} className="w-full px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none resize-none" placeholder="Jelaskan tanggung jawab dan tugas posisi ini..." />
           </div>
 
-          {/* Requirements */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={requirementInput}
-                onChange={(e) => setRequirementInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Tambah requirement, tekan Enter"
-              />
-              <button onClick={addRequirement} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <Plus size={18} />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.requirements.map((req, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full text-sm">
-                  {req}
-                  <button onClick={() => removeRequirement(i)} className="hover:text-red-500">
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Required Skills</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Tambah skill, tekan Enter"
-              />
-              <button onClick={addSkill} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <Plus size={18} />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {formData.required_skills.map((skill, i) => (
-                <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                  {skill}
-                  <button onClick={() => removeSkill(i)} className="hover:text-red-500">
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
+          {/* Requirements & Skills */}
+          <div className="space-y-4">
+             <div>
+                <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Requirements</label>
+                <div className="flex gap-2 mb-2">
+                  <input type="text" value={requirementInput} onChange={(e) => setRequirementInput(e.target.value)} onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())} className="flex-1 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:border-[var(--primary)]" placeholder="Tambah requirement..." />
+                  <button onClick={addRequirement} className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-700)]"><Plus size={18} /></button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.requirements.map((req, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-[var(--secondary-50)] text-[var(--secondary-700)] rounded-full text-sm border border-[var(--secondary-200)]">
+                      {req} <button onClick={() => removeRequirement(i)} className="hover:text-red-500"><X size={14} /></button>
+                    </span>
+                  ))}
+                </div>
+             </div>
+             <div>
+                <label className="block text-sm font-semibold text-[var(--secondary-600)] mb-1">Required Skills</label>
+                <div className="flex gap-2 mb-2">
+                  <input type="text" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())} className="flex-1 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:border-[var(--primary)]" placeholder="Tambah skill..." />
+                  <button onClick={addSkill} className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-700)]"><Plus size={18} /></button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.required_skills.map((skill, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-[var(--primary-50)] text-[var(--primary-700)] rounded-full text-sm border border-[var(--primary-100)]">
+                      {skill} <button onClick={() => removeSkill(i)} className="hover:text-red-500"><X size={14} /></button>
+                    </span>
+                  ))}
+                </div>
+             </div>
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4">
+        <div className="sticky bottom-0 bg-[var(--background)] border-t border-[var(--secondary-200)] px-6 py-4">
           <div className="flex justify-end gap-3">
-            <button onClick={onClose} className="px-5 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium">
+            <button onClick={onClose} className="px-5 py-2.5 border border-[var(--secondary-200)] rounded-xl hover:bg-[var(--secondary-50)] font-semibold text-[var(--secondary-600)] transition-colors">
               Batal
             </button>
-            <button
-              onClick={onSubmit}
-              disabled={formLoading}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 disabled:opacity-50"
-            >
+            <button onClick={onSubmit} disabled={formLoading} className="px-5 py-2.5 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-700)] font-bold flex items-center gap-2 disabled:opacity-50 transition-all shadow-sm">
               {formLoading ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle size={18} />}
               Simpan
             </button>
@@ -401,8 +314,7 @@ export default function JobPositionsPage() {
       setLoading(true);
       const res = await fetch(`${API_BASE_URL}/job-positions`);
       if (res.ok) {
-        const data = await res.json();
-        setJobs(data);
+        setJobs(await res.json());
       }
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -413,52 +325,34 @@ export default function JobPositionsPage() {
 
   // Filter jobs
   const filteredJobs = jobs.filter((job) => {
-    const matchesSearch =
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.department.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) || job.department.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === "all" || job.status === filterStatus;
     const matchesDepartment = filterDepartment === "all" || job.department === filterDepartment;
     return matchesSearch && matchesStatus && matchesDepartment;
   });
 
-  // Get unique departments for filter
   const departments = [...new Set(jobs.map((j) => j.department))];
 
-  // Validation function - returns field errors object
   const validateForm = (): FieldErrors => {
     const errors: FieldErrors = {};
+    if (!formData.title.trim()) errors.title = "Wajib diisi";
+    if (!formData.department.trim()) errors.department = "Wajib diisi";
+    if (!formData.location.trim()) errors.location = "Wajib diisi";
     
-    if (!formData.title.trim()) {
-      errors.title = "Wajib diisi";
-    }
-    if (!formData.department.trim()) {
-      errors.department = "Wajib diisi";
-    }
-    if (!formData.location.trim()) {
-      errors.location = "Wajib diisi";
-    }
-    
-    // Salary validation
     const minSalary = formData.salary.min || 0;
     const maxSalary = formData.salary.max || 0;
-    
-    if (minSalary < 0 || maxSalary < 0) {
-      errors.salary = "Tidak boleh negatif";
-    } else if (minSalary > 0 && maxSalary > 0 && minSalary > maxSalary) {
-      errors.salary = "Min tidak boleh lebih besar dari Max";
-    }
+    if (minSalary < 0 || maxSalary < 0) errors.salary = "Tidak boleh negatif";
+    else if (minSalary > 0 && maxSalary > 0 && minSalary > maxSalary) errors.salary = "Min > Max";
     
     return errors;
   };
 
-  // Create Job
   const handleCreate = async () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
     }
-    
     setFormLoading(true);
     setFieldErrors({});
     try {
@@ -473,7 +367,6 @@ export default function JobPositionsPage() {
         fetchJobs();
       } else {
         const err = await res.json();
-        // Show general error on title field if server error
         setFieldErrors({ title: err.error || "Gagal membuat posisi" });
       }
     } catch (error) {
@@ -483,10 +376,8 @@ export default function JobPositionsPage() {
     }
   };
 
-  // Update Job
   const handleUpdate = async () => {
     if (!selectedJob) return;
-    
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -517,14 +408,11 @@ export default function JobPositionsPage() {
     }
   };
 
-  // Delete Job
   const handleDelete = async () => {
     if (!selectedJob) return;
     setFormLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/job-positions/${selectedJob.id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`${API_BASE_URL}/job-positions/${selectedJob.id}`, { method: "DELETE" });
       if (res.ok) {
         setIsDeleteModalOpen(false);
         setSelectedJob(null);
@@ -537,7 +425,6 @@ export default function JobPositionsPage() {
     }
   };
 
-  // Open Edit Modal
   const openEditModal = (job: JobPosition) => {
     setSelectedJob(job);
     setFormData({
@@ -557,50 +444,32 @@ export default function JobPositionsPage() {
     setIsEditModalOpen(true);
   };
 
-  // Add requirement
   const addRequirement = () => {
     if (requirementInput.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        requirements: [...prev.requirements, requirementInput.trim()],
-      }));
+      setFormData((prev) => ({ ...prev, requirements: [...prev.requirements, requirementInput.trim()] }));
       setRequirementInput("");
     }
   };
-
-  // Remove requirement
   const removeRequirement = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      requirements: prev.requirements.filter((_, i) => i !== index),
-    }));
+    setFormData((prev) => ({ ...prev, requirements: prev.requirements.filter((_, i) => i !== index) }));
   };
 
-  // Add skill
   const addSkill = () => {
     if (skillInput.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        required_skills: [...prev.required_skills, skillInput.trim()],
-      }));
+      setFormData((prev) => ({ ...prev, required_skills: [...prev.required_skills, skillInput.trim()] }));
       setSkillInput("");
     }
   };
-
-  // Remove skill
   const removeSkill = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      required_skills: prev.required_skills.filter((_, i) => i !== index),
-    }));
+    setFormData((prev) => ({ ...prev, required_skills: prev.required_skills.filter((_, i) => i !== index) }));
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active": return "bg-green-100 text-green-700 border-green-200";
-      case "draft": return "bg-gray-100 text-gray-600 border-gray-200";
-      case "closed": return "bg-red-100 text-red-600 border-red-200";
-      default: return "bg-gray-100 text-gray-600 border-gray-200";
+      case "active": return "badge badge-success";
+      case "draft": return "badge badge-primary";
+      case "closed": return "badge badge-danger";
+      default: return "badge badge-secondary";
     }
   };
 
@@ -622,61 +491,46 @@ export default function JobPositionsPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:ml-64">
+      <div className="lg:ml-64 min-h-screen flex flex-col">
         <Header
           title="Job Positions"
           subtitle="Kelola lowongan pekerjaan yang tersedia"
-          userName={user.name}
-          userEmail={user.email}
         />
 
-        <main className="p-6">
+        <main className="p-4 md:p-8 flex-1">
           {/* Toolbar */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="card-static bg-white p-4 rounded-xl border border-[var(--secondary-200)] mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex flex-1 gap-3 w-full md:w-auto">
-                {/* Search */}
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--secondary-400)]" size={18} />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors text-sm"
                     placeholder="Cari posisi..."
                   />
                 </div>
 
-                {/* Filters */}
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
+                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm focus:outline-none bg-white">
                   <option value="all">Semua Status</option>
                   <option value="active">Active</option>
                   <option value="draft">Draft</option>
                   <option value="closed">Closed</option>
                 </select>
 
-                <select
-                  value={filterDepartment}
-                  onChange={(e) => setFilterDepartment(e.target.value)}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
+                <select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} className="px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm focus:outline-none bg-white">
                   <option value="all">Semua Departemen</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
+                  {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
                 </select>
               </div>
 
-              {/* Create Button */}
               <button
                 onClick={() => { setFormData(initialFormData); setFieldErrors({}); setIsCreateModalOpen(true); }}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-700)] font-bold shadow-sm transition-all hover:translate-y-[-1px]"
               >
                 <Plus size={18} />
                 Tambah Posisi
@@ -687,71 +541,76 @@ export default function JobPositionsPage() {
           {/* Job Cards Grid */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="animate-spin text-blue-600" size={40} />
+              <Loader2 className="animate-spin text-[var(--primary)]" size={40} />
             </div>
           ) : filteredJobs.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-              <Briefcase className="mx-auto text-gray-300 mb-4" size={48} />
-              <p className="text-gray-500">Tidak ada posisi ditemukan</p>
+            <div className="bg-white rounded-xl shadow-sm border border-[var(--secondary-200)] p-16 text-center">
+              <div className="w-16 h-16 bg-[var(--secondary-50)] rounded-full flex items-center justify-center mx-auto mb-4">
+                 <Briefcase className="text-[var(--secondary-400)]" size={32} />
+              </div>
+              <h3 className="font-bold text-[var(--primary-900)] text-lg">Tidak ada posisi ditemukan</h3>
+              <p className="text-[var(--secondary)]">Coba sesuaikan filter pencarian.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredJobs.map((job) => (
-                <div key={job.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="p-5">
-                    <div className="flex justify-between items-start mb-3">
+                <div key={job.id} className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] overflow-hidden hover:border-[var(--primary-200)] hover:shadow-lg transition-all group">
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="font-bold text-gray-900 text-lg">{job.title}</h3>
-                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                          <Building size={14} />
+                        <h3 className="font-bold text-[var(--primary-900)] text-lg group-hover:text-[var(--primary)] transition-colors">{job.title}</h3>
+                        <p className="text-sm text-[var(--secondary)] flex items-center gap-1.5 mt-1 font-medium">
+                          <Building size={14} className="text-[var(--secondary-400)]" />
                           {job.department}
                         </p>
                       </div>
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getStatusColor(job.status)}`}>
+                      <span className={`${getStatusColor(job.status)} px-2.5 py-1 text-xs font-bold rounded-full`}>
                         {job.status}
                       </span>
                     </div>
 
-                    <div className="space-y-2 mb-4">
-                      <p className="text-sm text-gray-600 flex items-center gap-2">
-                        <MapPin size={14} className="text-gray-400" />
+                    <div className="space-y-2.5 mb-5 pt-3 border-t border-dashed border-[var(--secondary-100)]">
+                      <p className="text-sm text-[var(--secondary-700)] flex items-center gap-2">
+                        <MapPin size={16} className="text-[var(--secondary-400)]" />
                         {job.location}
                       </p>
-                      <p className="text-sm text-gray-600 flex items-center gap-2">
-                        <Clock size={14} className="text-gray-400" />
+                      <p className="text-sm text-[var(--secondary-700)] flex items-center gap-2">
+                        <Clock size={16} className="text-[var(--secondary-400)]" />
                         {job.employment_type} • {job.level}
                       </p>
-                      <p className="text-sm text-gray-600 flex items-center gap-2">
-                        <DollarSign size={14} className="text-gray-400" />
+                      <p className="text-sm text-[var(--secondary-700)] flex items-center gap-2">
+                        <DollarSign size={16} className="text-[var(--secondary-400)]" />
                         {formatSalary(job.salary)}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="flex flex-wrap gap-1.5 mb-5">
                       {job.required_skills?.slice(0, 3).map((skill, i) => (
-                        <span key={i} className="px-2 py-0.5 text-xs bg-blue-50 text-blue-600 rounded">{skill}</span>
+                        <span key={i} className="px-2 py-1 text-xs bg-[var(--secondary-50)] text-[var(--secondary-600)] border border-[var(--secondary-100)] rounded-md font-medium">{skill}</span>
                       ))}
                       {job.required_skills?.length > 3 && (
-                        <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-500 rounded">+{job.required_skills.length - 3}</span>
+                        <span className="px-2 py-1 text-xs bg-[var(--secondary-50)] text-[var(--secondary-400)] border border-[var(--secondary-100)] rounded-md font-medium">+{job.required_skills.length - 3}</span>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${getPriorityColor(job.priority)}`}>
+                    <div className="flex items-center justify-between pt-4 border-t border-[var(--secondary-100)]">
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-lg uppercase tracking-wide ${getPriorityColor(job.priority)}`}>
                         {job.priority} priority
                       </span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => openEditModal(job)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-[var(--secondary-400)] hover:text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg transition-colors border border-transparent hover:border-[var(--primary-100)]"
+                          title="Edit"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={18} />
                         </button>
                         <button
                           onClick={() => { setSelectedJob(job); setIsDeleteModalOpen(true); }}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-[var(--secondary-400)] hover:text-[var(--danger)] hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                          title="Hapus"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </div>
@@ -761,6 +620,7 @@ export default function JobPositionsPage() {
             </div>
           )}
         </main>
+        <Footer />
       </div>
 
       {/* Modals */}
@@ -800,37 +660,21 @@ export default function JobPositionsPage() {
         addSkill={addSkill}
         removeSkill={removeSkill}
       />
-
+      
       {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && selectedJob && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <Trash2 className="text-red-600" size={24} />
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+           <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-xl border border-[var(--secondary-100)]">
+              <h3 className="text-lg font-bold text-[var(--primary-900)] mb-2">Hapus Posisi?</h3>
+              <p className="text-[var(--secondary)] mb-6 text-sm">Apakah Anda yakin ingin menghapus posisi <strong className="text-[var(--primary-900)]">{selectedJob?.title}</strong>? Tindakan ini tidak dapat dibatalkan.</p>
+              <div className="flex justify-end gap-3">
+                 <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-[var(--secondary-600)] hover:bg-[var(--secondary-50)] rounded-lg transition-colors">Batal</button>
+                 <button onClick={handleDelete} disabled={formLoading} className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm flex items-center gap-2">
+                    {formLoading && <Loader2 className="animate-spin" size={14} />}
+                    Hapus
+                 </button>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Hapus Posisi?</h3>
-                <p className="text-sm text-gray-500">Posisi "{selectedJob.title}" akan dihapus permanen.</p>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => { setIsDeleteModalOpen(false); setSelectedJob(null); }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 font-medium"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={formLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center gap-2 disabled:opacity-50"
-              >
-                {formLoading && <Loader2 className="animate-spin" size={16} />}
-                Hapus
-              </button>
-            </div>
-          </div>
+           </div>
         </div>
       )}
     </div>

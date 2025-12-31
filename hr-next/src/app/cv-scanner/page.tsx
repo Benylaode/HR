@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import {
   CloudUpload,
   FileText,
@@ -26,11 +27,12 @@ import {
   Loader2,
   AlertCircle,
   Eye,
-  RefreshCw
+  RefreshCw,
+  Zap,
+  Check
 } from "lucide-react";
 
 // Backend API URL
-// const API_BASE_URL = "http://localhost:5000";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const MAX_FILES_BATCH = 5; // Batas upload bersamaan
@@ -270,25 +272,23 @@ export default function CVScannerPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:ml-64">
+      <div className="lg:ml-64 min-h-screen flex flex-col">
         <Header 
           title="CV Scanner" 
-          subtitle="Upload CV dan temukan kandidat terbaik dengan AI"
-          userName={user.name}
-          userEmail={user.email}
+          subtitle="AI-powered resume screening and matching"
           onRefresh={() => { loadJobPositions(); loadCandidatesFromDB(); }}
         />
-        <main className="p-6">
+        <main className="p-4 md:p-8 flex-1">
           {/* Backend Status */}
           {backendStatus === "offline" && (
-            <div className="bg-red-50 border border-red-200 p-4 mb-6 flex items-center gap-3">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
               <AlertCircle className="text-red-600" />
               <div>
-                <p className="text-red-800 font-medium">Backend Tidak Tersedia</p>
+                <p className="text-red-800 font-bold">Backend Tidak Tersedia</p>
                 <p className="text-red-600 text-sm">
-                  Pastikan Flask server berjalan: <code className="bg-red-100 px-2 py-0.5">cd Backend && python run.py</code>
+                  Pastikan Flask server berjalan: <code className="bg-red-100 px-2 py-0.5 rounded">cd Backend && python run.py</code>
                 </p>
               </div>
             </div>
@@ -296,10 +296,10 @@ export default function CVScannerPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 p-4 mb-6 flex items-center justify-between">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <AlertCircle className="text-red-600" />
-                <p className="text-red-700">{error}</p>
+                <p className="text-red-700 font-medium">{error}</p>
               </div>
               <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
                 <X size={20} />
@@ -308,79 +308,82 @@ export default function CVScannerPage() {
           )}
 
           {/* Header & Steps */}
-          <div className="bg-white shadow border border-gray-200 p-6 mb-6">
-            <div className="flex justify-between items-center">
+          <div className="card-static bg-white border border-[var(--secondary-200)] p-6 mb-8 rounded-2xl">
+            <div className="flex justify-between items-center flex-wrap gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">CV Scanner</h2>
-                <p className="text-gray-600">Upload CV pelamar dan sistem AI akan menemukan kandidat terbaik</p>
+                <h2 className="text-xl font-bold text-[var(--primary-900)] flex items-center gap-2">
+                   <Zap className="text-[var(--primary)]" size={24}/> AI CV Scanner
+                </h2>
+                <p className="text-[var(--secondary)] mt-1">Upload CV pelamar dan biarkan AI menemukan kandidat terbaik.</p>
               </div>
               <button
                 onClick={() => { setCurrentStep("select-job"); setSelectedPosition(null); }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center"
+                className="px-4 py-2 border border-[var(--secondary-200)] text-[var(--secondary-600)] hover:bg-[var(--secondary-50)] rounded-lg flex items-center transition-colors text-sm font-medium"
               >
-                <Trash2 size={18} className="mr-2" /> Reset
+                <Trash2 size={16} className="mr-2" /> Reset Process
               </button>
             </div>
 
-            <div className="flex items-center gap-4 mt-6">
-              <div className={`flex items-center gap-2 ${currentStep === "select-job" ? "text-blue-600 font-medium" : "text-gray-400"}`}>
-                <div className={`w-8 h-8 flex items-center justify-center ${currentStep === "select-job" ? "bg-blue-600 text-white" : "bg-gray-200"}`}>1</div>
-                <span>Pilih Posisi</span>
+            <div className="flex items-center gap-2 md:gap-4 mt-8 overflow-x-auto pb-2">
+              <div className={`flex items-center gap-3 ${currentStep === "select-job" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
+                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "select-job" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>1</div>
+                <span className="whitespace-nowrap">Pilih Posisi</span>
               </div>
-              <ChevronRight className="text-gray-300" />
-              <div className={`flex items-center gap-2 ${currentStep === "upload" ? "text-blue-600 font-medium" : "text-gray-400"}`}>
-                <div className={`w-8 h-8 flex items-center justify-center ${currentStep === "upload" ? "bg-blue-600 text-white" : "bg-gray-200"}`}>2</div>
-                <span>Upload CV</span>
+              <ChevronRight className="text-[var(--secondary-200)]" size={16} />
+              <div className={`flex items-center gap-3 ${currentStep === "upload" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
+                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "upload" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>2</div>
+                <span className="whitespace-nowrap">Upload CV</span>
               </div>
-              <ChevronRight className="text-gray-300" />
-              <div className={`flex items-center gap-2 ${currentStep === "results" ? "text-blue-600 font-medium" : "text-gray-400"}`}>
-                <div className={`w-8 h-8 flex items-center justify-center ${currentStep === "results" ? "bg-blue-600 text-white" : "bg-gray-200"}`}>3</div>
-                <span>Hasil</span>
+              <ChevronRight className="text-[var(--secondary-200)]" size={16} />
+              <div className={`flex items-center gap-3 ${currentStep === "results" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
+                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "results" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>3</div>
+                <span className="whitespace-nowrap">Hasil Analisis</span>
               </div>
             </div>
           </div>
 
           {/* Step 1: Select Job Position */}
           {currentStep === "select-job" && (
-            <div className="bg-white shadow border border-gray-200 p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Pilih Posisi yang Dicari</h3>
-                <button onClick={loadJobPositions} className="text-blue-600 hover:bg-blue-50 p-2 rounded-full">
+            <div className="card-static bg-white border border-[var(--secondary-200)] p-6 rounded-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[var(--primary-900)]">Pilih Posisi yang Dicari</h3>
+                <button onClick={loadJobPositions} className="text-[var(--primary)] hover:bg-[var(--primary-50)] p-2 rounded-full transition-colors">
                   <RefreshCw size={20} className={loadingJobs ? "animate-spin" : ""} />
                 </button>
               </div>
 
               {loadingJobs ? (
-                 <div className="text-center py-10 text-gray-500">
-                    <Loader2 className="w-8 h-8 mx-auto animate-spin mb-2" />
+                 <div className="text-center py-16 text-[var(--secondary)]">
+                    <Loader2 className="w-8 h-8 mx-auto animate-spin mb-3 text-[var(--primary)]" />
                     Memuat daftar pekerjaan...
                  </div>
               ) : availablePositions.length === 0 ? (
-                <div className="text-center py-10 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
-                  <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">Belum ada posisi pekerjaan yang aktif.</p>
-                  <p className="text-sm text-gray-500 mt-1">Buat posisi baru di menu Job Positions.</p>
+                <div className="text-center py-16 bg-[var(--secondary-50)] border border-dashed border-[var(--secondary-200)] rounded-xl">
+                  <Briefcase className="w-12 h-12 text-[var(--secondary-300)] mx-auto mb-3" />
+                  <p className="text-[var(--primary-900)] font-bold">Belum ada posisi pekerjaan yang aktif.</p>
+                  <p className="text-sm text-[var(--secondary)] mt-1">Buat posisi baru di menu Job Positions.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {availablePositions.map((pos) => (
                     <div
                       key={pos.id}
                       onClick={() => { setSelectedPosition(pos); setCurrentStep("upload"); }}
-                      className={`p-4 border-2 cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-50 ${
-                        selectedPosition?.id === pos.id ? "border-blue-600 bg-blue-50" : "border-gray-200"
+                      className={`p-5 border rounded-xl cursor-pointer transition-all hover:shadow-md group ${
+                        selectedPosition?.id === pos.id 
+                        ? "border-[var(--primary)] bg-[var(--primary-50)] ring-1 ring-[var(--primary)]" 
+                        : "border-[var(--secondary-200)] hover:border-[var(--primary-300)] hover:bg-white"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                          <Briefcase className="w-5 h-5 text-white" />
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-[var(--primary-100)] rounded-lg flex items-center justify-center flex-shrink-0 text-[var(--primary)]">
+                          <Briefcase className="w-5 h-5" />
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900 line-clamp-1">{pos.title}</h4>
-                          <p className="text-sm text-gray-500">{pos.department}</p>
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            <span className="text-xs bg-gray-100 px-2 py-0.5">{pos.level}</span>
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5">{pos.formattedSalary}</span>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-[var(--primary-900)] truncate pr-2 group-hover:text-[var(--primary)] transition-colors">{pos.title}</h4>
+                          <p className="text-xs text-[var(--secondary)] mt-0.5">{pos.department}</p>
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            <span className="text-[10px] uppercase font-bold bg-white border border-[var(--secondary-200)] text-[var(--secondary-600)] px-2 py-0.5 rounded">{pos.level}</span>
                           </div>
                         </div>
                       </div>
@@ -394,40 +397,42 @@ export default function CVScannerPage() {
           {/* Step 2: Upload CV */}
           {currentStep === "upload" && selectedPosition && (
             <>
-              <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="text-blue-600" />
-                    <div>
-                      <p className="text-sm text-blue-600">Mencari kandidat untuk:</p>
-                      <p className="font-semibold text-blue-900">{selectedPosition.title}</p>
-                    </div>
+              <div className="bg-[var(--primary-50)] border border-[var(--primary-100)] p-5 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-[var(--primary)] rounded-lg flex items-center justify-center text-white shadow-sm">
+                     <Briefcase size={20} />
                   </div>
-                  <button onClick={() => setCurrentStep("select-job")} className="text-blue-600 hover:underline text-sm">
-                    Ganti Posisi
-                  </button>
+                  <div>
+                    <p className="text-xs font-bold text-[var(--primary-600)] uppercase tracking-wide">Selected Position</p>
+                    <p className="font-bold text-[var(--primary-900)] text-lg">{selectedPosition.title}</p>
+                  </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(selectedPosition.requirements || []).slice(0, 5).map((req, i) => (
-                    <span key={i} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5">{req}</span>
-                  ))}
-                </div>
+                <button onClick={() => setCurrentStep("select-job")} className="text-[var(--primary)] hover:text-[var(--primary-800)] text-sm font-medium hover:underline">
+                  Ganti Posisi
+                </button>
               </div>
 
-              <div className="bg-white shadow border border-gray-200 p-8">
+              <div className="card-static bg-white border border-[var(--secondary-200)] p-8 rounded-2xl">
                 <div
-                  className={`border-2 border-dashed p-12 text-center cursor-pointer transition-colors ${
-                    dragOver ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:bg-gray-50"
+                  className={`border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-all ${
+                    dragOver 
+                    ? "border-[var(--primary)] bg-[var(--primary-50)] scale-[0.99]" 
+                    : "border-[var(--secondary-200)] hover:border-[var(--primary-300)] hover:bg-[var(--secondary-50)]"
                   }`}
                   onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => document.getElementById("fileInput")?.click()}
                 >
-                  <CloudUpload className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">Upload CV Pelamar</h3>
-                  <p className="text-gray-500 mb-4">Drag & drop hingga 5 PDF files sekaligus</p>
-                  <p className="text-sm text-gray-400">Support: PDF (Max {MAX_FILES_BATCH} files concurrent)</p>
+                  <div className="w-20 h-20 bg-[var(--primary-50)] rounded-full flex items-center justify-center mx-auto mb-6 text-[var(--primary)]">
+                    <CloudUpload className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-[var(--primary-900)] mb-3">Upload CV Pelamar</h3>
+                  <p className="text-[var(--secondary)] mb-6 max-w-md mx-auto">Drag & drop files here or click to browse. Supported format: PDF.</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-[var(--secondary-100)] rounded-full text-xs font-medium text-[var(--secondary-600)]">
+                    <CheckCircle size={12} /> Max {MAX_FILES_BATCH} files concurrent
+                  </div>
+                  
                   <input
                     type="file"
                     id="fileInput"
@@ -442,20 +447,14 @@ export default function CVScannerPage() {
               </div>
 
               {processing && (
-                <div className="bg-blue-50 border border-blue-200 p-4 mt-6 flex items-center gap-3">
-                  <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                  <div>
-                    <p className="text-blue-800 font-medium">Sedang Menganalisis...</p>
-                    <p className="text-blue-600 text-sm">{processingText}</p>
+                <div className="bg-white border border-[var(--primary-200)] p-6 mt-6 rounded-xl shadow-lg flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="relative">
+                    <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
                   </div>
-                </div>
-              )}
-
-              {candidates.filter((c) => c.top_position === selectedPosition.title).length > 0 && (
-                <div className="mt-6 text-center">
-                  <button onClick={() => setCurrentStep("results")} className="text-blue-600 hover:underline">
-                    Lihat hasil yang sudah ada →
-                  </button>
+                  <div>
+                    <p className="text-[var(--primary-900)] font-bold mb-1">Sedang Menganalisis...</p>
+                    <p className="text-[var(--secondary)] text-sm">{processingText}</p>
+                  </div>
                 </div>
               )}
             </>
@@ -465,107 +464,160 @@ export default function CVScannerPage() {
           {currentStep === "results" && selectedPosition && (
             <>
               {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div className="bg-white shadow border border-gray-200 p-6 flex items-center justify-between">
-                  <div><p className="text-gray-500 text-sm">Total Kandidat</p><p className="text-2xl font-bold">{stats.total}</p></div>
-                  <Users className="w-8 h-8 text-blue-600" />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white border border-[var(--secondary-200)] p-5 rounded-xl shadow-sm">
+                   <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[var(--secondary)] text-xs font-bold uppercase tracking-wide mb-1">Total Kandidat</p>
+                        <p className="text-3xl font-bold text-[var(--primary-900)]">{stats.total}</p>
+                      </div>
+                      <Users className="w-8 h-8 text-[var(--primary-200)]" />
+                   </div>
                 </div>
-                <div className="bg-white shadow border border-gray-200 p-6 flex items-center justify-between">
-                  <div><p className="text-gray-500 text-sm">High Match</p><p className="text-2xl font-bold text-green-600">{stats.highMatch}</p></div>
-                  <Star className="w-8 h-8 text-green-600" />
+                <div className="bg-white border border-[var(--secondary-200)] p-5 rounded-xl shadow-sm">
+                   <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[var(--secondary)] text-xs font-bold uppercase tracking-wide mb-1">High Match (&gt;80%)</p>
+                        <p className="text-3xl font-bold text-green-600">{stats.highMatch}</p>
+                      </div>
+                      <Star className="w-8 h-8 text-green-100 text-green-600" />
+                   </div>
                 </div>
-                <div className="bg-white shadow border border-gray-200 p-6 flex items-center justify-between">
-                   <div><p className="text-gray-500 text-sm">Avg Score</p><p className="text-2xl font-bold text-purple-600">{stats.avgScore}%</p></div>
-                   <Target className="w-8 h-8 text-purple-600" />
+                <div className="bg-white border border-[var(--secondary-200)] p-5 rounded-xl shadow-sm">
+                   <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[var(--secondary)] text-xs font-bold uppercase tracking-wide mb-1">Rata-rata Skor</p>
+                        <p className="text-3xl font-bold text-[var(--primary)]">{stats.avgScore}%</p>
+                      </div>
+                      <Target className="w-8 h-8 text-[var(--primary-200)]" />
+                   </div>
                 </div>
-                <div className="bg-white shadow border border-gray-200 p-6 flex items-center justify-between">
-                   <div><p className="text-gray-500 text-sm">Posisi</p><p className="text-lg font-bold text-orange-600 line-clamp-1">{selectedPosition.title}</p></div>
-                   <Briefcase className="w-8 h-8 text-orange-600" />
+                <div className="bg-[var(--primary-900)] text-white p-5 rounded-xl shadow-sm relative overflow-hidden">
+                   <div className="flex justify-between items-start relative z-10">
+                      <div>
+                        <p className="text-[var(--primary-200)] text-xs font-bold uppercase tracking-wide mb-1">Posisi Aktif</p>
+                        <p className="text-xl font-bold text-white line-clamp-1">{selectedPosition.title}</p>
+                      </div>
+                      <Briefcase className="w-8 h-8 text-[var(--primary-400)]" />
+                   </div>
+                   <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-[var(--primary-700)] rounded-full opacity-50 blur-xl"></div>
                 </div>
               </div>
 
               {/* Leaderboard */}
-              <div className="bg-white shadow border border-gray-200 p-6 mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Trophy className="w-6 h-6 text-yellow-500" />
-                  <h3 className="text-lg font-semibold text-gray-900">🏆 Leaderboard - Top 5</h3>
+              <div className="bg-white border border-[var(--secondary-200)] rounded-2xl p-6 mb-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--secondary-100)]">
+                  <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[var(--primary-900)]">Top 5 Candidates Leaderboard</h3>
                 </div>
+                
                 <div className="space-y-3">
                   {leaderboard.map((candidate, index) => (
                     <div
                       key={candidate.id}
-                      className={`flex items-center justify-between p-4 cursor-pointer hover:shadow-md transition-shadow ${
-                        index === 0 ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50 border border-gray-100"
+                      className={`flex items-center justify-between p-4 rounded-xl cursor-pointer transition-all border ${
+                        index === 0 
+                        ? "bg-gradient-to-r from-yellow-50 to-white border-yellow-200 shadow-sm" 
+                        : "bg-white border-[var(--secondary-200)] hover:border-[var(--primary-200)] hover:shadow-md"
                       }`}
                       onClick={() => setSelectedCandidate(candidate)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 flex items-center justify-center font-bold text-lg ${
-                          index === 0 ? "bg-yellow-400 text-yellow-900" : "bg-gray-200 text-gray-600"
+                        <div className={`w-10 h-10 flex items-center justify-center font-bold text-sm rounded-full ${
+                          index === 0 ? "bg-yellow-400 text-yellow-900 shadow-yellow-200" : 
+                          index === 1 ? "bg-gray-300 text-gray-800" :
+                          index === 2 ? "bg-orange-300 text-orange-900" :
+                          "bg-[var(--secondary-100)] text-[var(--secondary-600)]"
                         }`}>
-                          {index + 1}
+                          #{index + 1}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{candidate.name}</p>
-                          <p className="text-sm text-gray-500">{candidate.education} • {candidate.experience}</p>
+                          <p className="font-bold text-[var(--primary-900)] text-lg">{candidate.name}</p>
+                          <p className="text-sm text-[var(--secondary)] flex gap-2">
+                             <span className="flex items-center gap-1"><GraduationCap size={12}/> {candidate.education || "-"}</span>
+                             <span className="text-[var(--secondary-300)]">•</span>
+                             <span className="flex items-center gap-1"><Clock size={12}/> {candidate.experience || "-"}</span>
+                          </p>
                         </div>
                       </div>
-                      <span className={`text-2xl font-bold ${candidate.match_score >= 80 ? "text-green-600" : "text-gray-600"}`}>
-                        {candidate.match_score}%
-                      </span>
+                      <div className="text-right">
+                         <span className={`text-2xl font-bold ${candidate.match_score >= 80 ? "text-green-600" : "text-[var(--primary)]"}`}>
+                           {candidate.match_score}%
+                         </span>
+                         <p className="text-[10px] uppercase font-bold text-[var(--secondary-400)]">Match Score</p>
+                      </div>
                     </div>
                   ))}
                   {leaderboard.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">Belum ada kandidat.</div>
+                    <div className="text-center py-8 text-[var(--secondary)]">Belum ada kandidat yang dianalisis.</div>
                   )}
                 </div>
               </div>
 
               {/* All Candidates Table */}
-              <div className="bg-white shadow border border-gray-200 p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Semua Kandidat</h3>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="text"
-                      placeholder="Cari nama..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-4 pr-4 py-2 border border-gray-300 w-64 focus:outline-none focus:border-blue-500"
-                    />
+              <div className="bg-white border border-[var(--secondary-200)] rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+                  <h3 className="text-lg font-bold text-[var(--primary-900)]">Semua Kandidat</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--secondary-400)]" size={16} />
+                       <input
+                         type="text"
+                         placeholder="Cari nama..."
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="pl-9 pr-4 py-2 border border-[var(--secondary-200)] rounded-lg text-sm focus:outline-none focus:border-[var(--primary)] w-56 transition-all"
+                       />
+                    </div>
                     <button
                       onClick={() => setCurrentStep("upload")}
-                      className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 flex items-center"
+                      className="px-4 py-2 bg-[var(--primary)] text-white hover:bg-[var(--primary-700)] rounded-lg text-sm font-bold flex items-center shadow-sm"
                     >
-                      <CloudUpload size={18} className="mr-2" /> Upload Lagi
+                      <CloudUpload size={16} className="mr-2" /> Upload Lagi
                     </button>
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="w-full">
+                    <thead className="bg-[var(--secondary-50)] border-b border-[var(--secondary-100)]">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kandidat</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide">Kandidat</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide">Match Score</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide">Status AI</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-[var(--secondary-50)]">
                       {filteredCandidates.map((candidate) => (
-                        <tr key={candidate.id} className="hover:bg-gray-50">
+                        <tr key={candidate.id} className="hover:bg-[var(--primary-50)]/30 transition-colors group">
                           <td className="px-6 py-4">
-                            <div className="font-medium text-gray-900">{candidate.name}</div>
-                            <div className="text-sm text-gray-500">{candidate.email}</div>
+                            <div className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name}</div>
+                            <div className="text-xs text-[var(--secondary)] flex items-center gap-1 mt-0.5"><Mail size={12}/> {candidate.email}</div>
                           </td>
-                          <td className="px-6 py-4 font-bold text-gray-700">{candidate.match_score}%</td>
                           <td className="px-6 py-4">
-                            <button onClick={() => setSelectedCandidate(candidate)} className="text-blue-600 hover:underline mr-3">Detail</button>
-                            <button onClick={() => deleteCandidate(candidate.id)} className="text-red-600 hover:underline">Hapus</button>
+                             <div className="flex items-center gap-2">
+                                <div className="w-full max-w-[80px] h-2 bg-[var(--secondary-100)] rounded-full overflow-hidden">
+                                   <div className={`h-full rounded-full ${candidate.match_score >= 80 ? 'bg-green-500' : 'bg-[var(--primary)]'}`} style={{ width: `${candidate.match_score}%` }}></div>
+                                </div>
+                                <span className={`text-sm font-bold ${candidate.match_score >= 80 ? "text-green-600" : "text-[var(--primary-700)]"}`}>{candidate.match_score}%</span>
+                             </div>
+                          </td>
+                           <td className="px-6 py-4">
+                              <span className="text-xs text-[var(--secondary)] line-clamp-1 max-w-[200px]">{candidate.verdict?.substring(0, 50)}...</span>
+                           </td>
+                          <td className="px-6 py-4 text-right">
+                            <button onClick={() => setSelectedCandidate(candidate)} className="text-[var(--primary)] hover:text-[var(--primary-700)] text-sm font-medium mr-4 hover:underline">Detail</button>
+                            <button onClick={() => deleteCandidate(candidate.id)} className="text-[var(--secondary-400)] hover:text-red-600 text-sm font-medium hover:underline">Hapus</button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  {filteredCandidates.length === 0 && (
+                     <div className="p-8 text-center text-[var(--secondary)]">Tidak ada kandidat ditemukan dengan filter ini.</div>
+                  )}
                 </div>
               </div>
             </>
@@ -573,35 +625,80 @@ export default function CVScannerPage() {
 
           {/* Candidate Detail Modal */}
           {selectedCandidate && (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-              <div className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl rounded-lg">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-700 p-6 text-white flex justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">{selectedCandidate.name}</h2>
-                    <p className="text-blue-100">{selectedCandidate.top_position} • {selectedCandidate.match_score}% Match</p>
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedCandidate(null)}>
+              <div className="bg-white max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl rounded-2xl border border-[var(--secondary-200)] relative animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                
+                {/* Modal Header */}
+                <div className="bg-[var(--primary-900)] p-6 text-white relative overflow-hidden">
+                  <div className="relative z-10 flex justify-between items-start">
+                    <div className="flex gap-4">
+                      <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center text-2xl font-bold border border-white/20">
+                         {selectedCandidate.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold">{selectedCandidate.name}</h2>
+                        <div className="flex items-center gap-3 mt-1 text-[var(--primary-100)] text-sm">
+                           <span className="flex items-center gap-1"><Briefcase size={14}/> {selectedCandidate.top_position}</span>
+                           <span>•</span>
+                           <span className="px-2 py-0.5 bg-white/20 rounded text-white font-bold">{selectedCandidate.match_score}% Match</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => setSelectedCandidate(null)} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white">
+                       <X size={20} />
+                    </button>
                   </div>
-                  <button onClick={() => setSelectedCandidate(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-600)] rounded-full mix-blend-multiply filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
                 </div>
+
                 <div className="p-6 space-y-6">
-                  <div className="p-4 bg-blue-50 border border-blue-100 rounded">
-                     <h4 className="font-bold text-blue-900 mb-2">Analisis AI</h4>
-                     <p className="text-gray-700">{selectedCandidate.verdict}</p>
+                  {/* AI Verdict */}
+                  <div className="p-5 bg-[var(--primary-50)] border border-[var(--primary-100)] rounded-xl relative">
+                     <div className="absolute top-4 right-4 text-[var(--primary-300)] opacity-20"><Zap size={48} /></div>
+                     <h4 className="font-bold text-[var(--primary-900)] mb-2 flex items-center gap-2">
+                        <Zap size={18} className="text-[var(--primary)]" /> Analisis AI
+                     </h4>
+                     <p className="text-[var(--secondary-700)] text-sm leading-relaxed">{selectedCandidate.verdict}</p>
                   </div>
+
+                  {/* Contact Info */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 border rounded"><p className="text-xs text-gray-500">Email</p><p>{selectedCandidate.email}</p></div>
-                    <div className="p-3 border rounded"><p className="text-xs text-gray-500">Phone</p><p>{selectedCandidate.phone}</p></div>
-                  </div>
-                  <div>
-                    <h4 className="font-bold mb-2">Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                       {(selectedCandidate.skills || []).map((s, i) => <span key={i} className="bg-gray-100 px-3 py-1 text-sm rounded">{s}</span>)}
+                    <div className="p-4 border border-[var(--secondary-200)] rounded-xl bg-gray-50/50">
+                       <p className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1 flex items-center gap-1"><Mail size={12}/> Email</p>
+                       <p className="font-medium text-[var(--primary-900)] text-sm break-all">{selectedCandidate.email}</p>
+                    </div>
+                    <div className="p-4 border border-[var(--secondary-200)] rounded-xl bg-gray-50/50">
+                       <p className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1 flex items-center gap-1"><Phone size={12}/> Phone</p>
+                       <p className="font-medium text-[var(--primary-900)] text-sm">{selectedCandidate.phone || "-"}</p>
                     </div>
                   </div>
+
+                  {/* Skills */}
+                  <div>
+                    <h4 className="font-bold text-[var(--primary-900)] mb-3 text-sm uppercase tracking-wide">Detected Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                       {(selectedCandidate.skills || []).map((s, i) => (
+                          <span key={i} className="bg-white border border-[var(--secondary-200)] px-3 py-1.5 text-sm rounded-lg text-[var(--secondary-700)] font-medium shadow-sm">
+                             {s}
+                          </span>
+                       ))}
+                       {(!selectedCandidate.skills || selectedCandidate.skills.length === 0) && (
+                          <p className="text-[var(--secondary-400)] text-sm italic">Tidak ada skill khusus terdeteksi.</p>
+                       )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 border-t border-[var(--secondary-100)] bg-gray-50 rounded-b-2xl flex justify-end">
+                   <button onClick={() => setSelectedCandidate(null)} className="px-5 py-2 bg-white border border-[var(--secondary-200)] hover:bg-[var(--secondary-50)] text-[var(--secondary-700)] font-medium rounded-lg shadow-sm transition-colors">
+                      Tutup Detail
+                   </button>
                 </div>
               </div>
             </div>
           )}
         </main>
+        <Footer />
       </div>
     </div>
   );

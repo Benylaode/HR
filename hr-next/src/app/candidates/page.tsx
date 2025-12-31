@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { 
   Plus, 
   Search, 
@@ -17,15 +18,9 @@ import {
   Briefcase,
   Filter,
   X,
-  GraduationCap,
-  Building,
-  Calendar,
   MapPin,
-  Award,
-  Globe,
   Save,
   User,
-  FileText
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -65,7 +60,7 @@ interface JobPosition {
   title: string;
 }
 
-// Detail Modal Component - Modern Minimalist Corporate Design
+// Detail Modal Component - Clean Design
 const DetailModal = memo(({ 
   candidate, 
   onClose 
@@ -76,129 +71,119 @@ const DetailModal = memo(({
   if (!candidate) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl border border-gray-200"
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-lg font-semibold text-slate-600">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
               {candidate.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{candidate.name}</h2>
-              <p className="text-sm text-gray-500">{candidate.current_role || candidate.top_position || "Kandidat"}</p>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.name}</h2>
+              <p className="text-sm text-[var(--secondary)]">{candidate.current_role || candidate.top_position || "Kandidat"}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X size={20} className="text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-5">
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-6">
           {/* Contact Grid */}
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Mail size={16} className="text-gray-400" />
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <Mail size={16} className="text-[var(--secondary-400)]" />
               <span>{candidate.email}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Phone size={16} className="text-gray-400" />
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <Phone size={16} className="text-[var(--secondary-400)]" />
               <span>{candidate.phone || "-"}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <MapPin size={16} className="text-gray-400" />
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <MapPin size={16} className="text-[var(--secondary-400)]" />
               <span>{candidate.city || candidate.address || "-"}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Briefcase size={16} className="text-gray-400" />
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <Briefcase size={16} className="text-[var(--secondary-400)]" />
               <span>{candidate.total_experience_years || 0} tahun pengalaman</span>
             </div>
           </div>
 
           {/* Summary */}
           {candidate.summary && (
-            <div className="border-l-2 border-blue-400 pl-4">
-              <p className="text-sm text-gray-600 leading-relaxed">{candidate.summary}</p>
-            </div>
-          )}
-
-          {/* Education */}
-          {candidate.education && candidate.education.length > 0 && (
-            <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Pendidikan</h3>
-              <div className="space-y-2">
-                {candidate.education.map((edu, idx) => (
-                  <div key={idx} className="flex justify-between items-baseline">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{edu.degree}</p>
-                      <p className="text-xs text-gray-500">{edu.institution}</p>
-                    </div>
-                    {edu.year && <span className="text-xs text-gray-400">{edu.year}</span>}
-                  </div>
-                ))}
-              </div>
+            <div className="bg-[var(--primary-50)]/50 p-4 rounded-xl border border-[var(--primary-100)]">
+              <h3 className="text-xs font-bold text-[var(--primary)] uppercase tracking-wide mb-2">Summary</h3>
+              <p className="text-sm text-[var(--secondary-700)] leading-relaxed">{candidate.summary}</p>
             </div>
           )}
 
           {/* Experience */}
           {candidate.experience && candidate.experience.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Pengalaman</h3>
-              <div className="space-y-2">
+              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 pl-1 border-l-2 border-[var(--primary)]">Pengalaman Kerja</h3>
+              <div className="space-y-3">
                 {candidate.experience.map((exp, idx) => (
-                  <div key={idx} className="flex justify-between items-baseline">
+                  <div key={idx} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{exp.title}</p>
-                      <p className="text-xs text-gray-500">{exp.company}</p>
+                      <p className="text-sm font-bold text-[var(--primary-900)]">{exp.title}</p>
+                      <p className="text-xs text-[var(--secondary)]">{exp.company}</p>
                     </div>
-                    {exp.duration && <span className="text-xs text-gray-400">{exp.duration}</span>}
+                    {exp.duration && <span className="text-xs font-medium text-[var(--secondary-400)] bg-white px-2 py-1 rounded border border-gray-100">{exp.duration}</span>}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Skills */}
-          {candidate.skills && candidate.skills.length > 0 && (
-            <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Skills</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {candidate.skills.map((skill, idx) => (
-                  <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Skills & Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             {/* Education */}
+             {candidate.education && candidate.education.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3">Pendidikan</h3>
+                  <div className="space-y-2">
+                    {candidate.education.map((edu, idx) => (
+                      <div key={idx} className="text-sm">
+                        <p className="font-semibold text-[var(--primary-900)]">{edu.degree}</p>
+                        <p className="text-xs text-[var(--secondary)]">{edu.institution} {edu.year && `(${edu.year})`}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Languages */}
-          {candidate.languages && candidate.languages.length > 0 && (
-            <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Bahasa</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {candidate.languages.map((lang, idx) => (
-                  <span key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+             {/* Skills */}
+             {candidate.skills && candidate.skills.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3">Keahlian</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {candidate.skills.slice(0, 8).map((skill, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-white border border-[var(--secondary-200)] text-[var(--secondary-600)] rounded-md text-xs font-medium">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <div className="flex gap-4 text-xs text-gray-500">
-            <span>Status: <strong className="text-gray-700">{candidate.status}</strong></span>
-            <span>Test: <strong className="text-gray-700">{candidate.test_status}</strong></span>
-            <span>Match: <strong className="text-blue-600">{candidate.match_score}%</strong></span>
-          </div>
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+           <div className="flex gap-4">
+               <div className="flex items-center gap-2">
+                 <span className="text-xs text-[var(--secondary-500)]">Match Score</span>
+                 <span className={`text-sm font-bold px-2 py-0.5 rounded ${candidate.match_score >= 80 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                   {candidate.match_score}%
+                 </span>
+               </div>
+           </div>
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
             Tutup
           </button>
         </div>
@@ -208,7 +193,7 @@ const DetailModal = memo(({
 });
 DetailModal.displayName = 'DetailModal';
 
-// Edit Modal Component - Modern Minimalist Corporate Design
+// Edit Modal Component
 const EditModal = memo(({ 
   candidate, 
   onClose,
@@ -252,35 +237,34 @@ const EditModal = memo(({
     setSaving(false);
   };
 
-  const inputClass = "w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-colors";
+  const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--secondary-200)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors text-[var(--primary-900)] placeholder-[var(--secondary-300)]";
+  const labelClass = "text-xs font-semibold text-[var(--secondary-500)] uppercase tracking-wide mb-1.5 block";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-xl w-full max-w-lg max-h-[85vh] overflow-hidden shadow-xl border border-gray-200"
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Edit size={18} className="text-blue-600" />
+            <div className="w-10 h-10 rounded-lg bg-[var(--primary-50)] flex items-center justify-center">
+              <Edit size={18} className="text-[var(--primary)]" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Edit Kandidat</h2>
-              <p className="text-xs text-gray-500">{candidate.name}</p>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Kandidat</h2>
+              <p className="text-xs text-[var(--secondary)]">{candidate.name}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <X size={20} className="text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Nama</label>
+              <label className={labelClass}>Nama</label>
               <input
                 type="text"
                 value={formData.name}
@@ -290,7 +274,7 @@ const EditModal = memo(({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Email</label>
+              <label className={labelClass}>Email</label>
               <input
                 type="email"
                 value={formData.email}
@@ -300,7 +284,7 @@ const EditModal = memo(({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Telepon</label>
+              <label className={labelClass}>Telepon</label>
               <input
                 type="text"
                 value={formData.phone}
@@ -309,7 +293,7 @@ const EditModal = memo(({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Kota</label>
+              <label className={labelClass}>Kota</label>
               <input
                 type="text"
                 value={formData.city}
@@ -318,7 +302,7 @@ const EditModal = memo(({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Posisi</label>
+              <label className={labelClass}>Posisi</label>
               <input
                 type="text"
                 value={formData.current_role}
@@ -327,7 +311,7 @@ const EditModal = memo(({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Pengalaman</label>
+              <label className={labelClass}>Pengalaman (Tahun)</label>
               <input
                 type="number"
                 value={formData.total_experience_years}
@@ -339,7 +323,7 @@ const EditModal = memo(({
           </div>
           
           <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5 block">Ringkasan</label>
+            <label className={labelClass}>Ringkasan</label>
             <textarea
               value={formData.summary}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
@@ -350,19 +334,18 @@ const EditModal = memo(({
           </div>
         </form>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)]">
           <button 
             type="button"
             onClick={onClose} 
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors"
           >
             Batal
           </button>
           <button 
             onClick={handleSubmit}
             disabled={saving}
-            className="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm"
           >
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             {saving ? "Menyimpan..." : "Simpan"}
@@ -503,69 +486,67 @@ export default function CandidatesPage() {
   // Badge Helpers
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Pending": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "Screening": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Interview": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Hired": return "bg-green-100 text-green-800 border-green-200";
-      case "Rejected": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "Pending": return "badge badge-warning";
+      case "Screening": return "badge badge-primary";
+      case "Interview": return "badge badge-primary";
+      case "Hired": return "badge badge-success";
+      case "Rejected": return "badge badge-danger";
+      default: return "badge badge-secondary";
     }
   };
 
   const getTestBadge = (status: string) => {
-    if (status === "Completed") return "text-green-600 bg-green-50 border-green-100";
-    if (status === "Active") return "text-blue-600 bg-blue-50 border-blue-100";
-    return "text-gray-500 bg-gray-50 border-gray-100";
+    if (status === "Completed") return "badge badge-success";
+    if (status === "Active") return "badge badge-primary";
+    return "badge badge-secondary text-[var(--secondary-400)]";
   };
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:ml-64">
+      <div className="lg:ml-64 min-h-screen flex flex-col">
         <Header 
           title="Candidates" 
           subtitle="Manage job applicants and their test results"
-          userName={user.name} 
-          userEmail={user.email}
         />
-        <main className="p-6">
+        <main className="p-4 md:p-8 flex-1">
           
           {/* Header Actions */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Database Kandidat</h2>
-              <p className="text-sm text-gray-600">Total {candidates.length} kandidat terdaftar</p>
+              <h2 className="text-2xl font-bold text-[var(--primary-900)]">Database Kandidat</h2>
+              <p className="text-sm text-[var(--secondary)] mt-1">Total {candidates.length} kandidat terdaftar</p>
             </div>
             <button 
               onClick={() => router.push('/cv-scanner')} 
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
+              className="bg-[var(--primary)] text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-[var(--primary-700)] hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95"
             >
-              <Plus size={18} /> Add Candidate (CV Scanner)
+              <Plus size={18} /> Add Candidate
             </button>
           </div>
 
           {/* Filters Section */}
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+          <div className="card-static bg-white p-4 rounded-xl border border-[var(--secondary-200)] mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="relative flex-1 w-full">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--secondary-400)]" />
                 <input
                   type="text"
                   placeholder="Cari nama atau email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm"
                 />
               </div>
 
               <div className="w-full md:w-auto flex items-center gap-2">
-                <Briefcase size={18} className="text-gray-400 hidden md:block" />
+                <Briefcase size={18} className="text-[var(--secondary-400)] hidden md:block" />
                 <select
                   value={jobFilter}
                   onChange={(e) => setJobFilter(e.target.value)}
-                  className="w-full md:w-56 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                  className="w-full md:w-56 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-white cursor-pointer text-sm text-[var(--secondary-700)]"
                 >
                   <option value="all">Semua Posisi Pekerjaan</option>
                   {jobs.map((job) => (
@@ -575,11 +556,11 @@ export default function CandidatesPage() {
               </div>
 
               <div className="w-full md:w-auto flex items-center gap-2">
-                <Filter size={18} className="text-gray-400 hidden md:block" />
+                <Filter size={18} className="text-[var(--secondary-400)] hidden md:block" />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                  className="w-full md:w-48 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-white cursor-pointer text-sm text-[var(--secondary-700)]"
                 >
                   <option value="all">Semua Status</option>
                   <option value="Pending">Pending</option>
@@ -594,7 +575,7 @@ export default function CandidatesPage() {
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-50 border border-red-200 p-4 rounded-lg flex items-center gap-3 mb-6 text-red-700">
+            <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 mb-6 text-red-700">
               <AlertCircle size={20} />
               <p>{error}</p>
             </div>
@@ -602,42 +583,42 @@ export default function CandidatesPage() {
 
           {/* Loading Indicator for Detail */}
           {loadingDetail && (
-            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
               <Loader2 className="w-10 h-10 animate-spin text-white" />
             </div>
           )}
 
           {/* Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] overflow-hidden shadow-sm">
             {loading ? (
-              <div className="p-12 text-center text-gray-500">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
-                Memuat data kandidat...
+              <div className="p-20 text-center text-[var(--secondary)]">
+                <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-[var(--primary)]" />
+                <p className="font-medium">Memuat data kandidat...</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-[var(--secondary-50)] border-b border-[var(--secondary-100)]">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Kandidat</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Posisi / Skor</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Test Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal Apply</th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Kandidat</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Posisi / Skor</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Test Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Tanggal Apply</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-[var(--secondary-50)]">
                     {filteredCandidates.map((candidate) => (
-                      <tr key={candidate.id} className="hover:bg-blue-50/50 transition-colors">
+                      <tr key={candidate.id} className="hover:bg-[var(--primary-50)]/30 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                            <div className="w-10 h-10 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-sm">
                               {candidate.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">{candidate.name}</p>
-                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-[var(--secondary)]">
                                 <Mail size={12} />
                                 <span className="truncate max-w-[150px]">{candidate.email}</span>
                               </div>
@@ -646,25 +627,25 @@ export default function CandidatesPage() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                              <Briefcase size={14} className="text-gray-400"/> {candidate.top_position || "Unassigned"}
+                            <span className="text-sm font-medium text-[var(--primary-900)] flex items-center gap-1">
+                              <Briefcase size={14} className="text-[var(--secondary-400)]"/> {candidate.top_position || "Unassigned"}
                             </span>
-                            <span className={`text-xs mt-1 ${candidate.match_score >= 80 ? 'text-green-600 font-bold' : 'text-gray-500'}`}>
+                            <span className={`text-xs mt-1 ${candidate.match_score >= 80 ? 'text-[var(--primary)] font-bold' : 'text-[var(--secondary)]'}`}>
                               Match: {candidate.match_score}%
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(candidate.status)}`}>
+                          <span className={`${getStatusBadge(candidate.status)} rounded-full px-2.5 py-1 text-xs font-semibold`}>
                             {candidate.status}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getTestBadge(candidate.test_status)}`}>
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getTestBadge(candidate.test_status)}`}>
                             {candidate.test_status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-[var(--secondary)]">
                           {new Date(candidate.created_at).toLocaleDateString("id-ID", {
                             day: 'numeric', month: 'short', year: 'numeric'
                           })}
@@ -673,21 +654,21 @@ export default function CandidatesPage() {
                           <div className="flex justify-end gap-2">
                             <button 
                               onClick={() => handleViewDetail(candidate.id)}
-                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" 
+                              className="p-2 text-[var(--secondary-400)] hover:text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg transition-colors" 
                               title="Lihat Detail"
                             >
                               <Eye size={18} />
                             </button>
                             <button 
                               onClick={() => handleEdit(candidate.id)}
-                              className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors" 
+                              className="p-2 text-[var(--secondary-400)] hover:text-[var(--success)] hover:bg-green-50 rounded-lg transition-colors" 
                               title="Edit"
                             >
                               <Edit size={18} />
                             </button>
                             <button 
                               onClick={() => handleDelete(candidate.id)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors" 
+                              className="p-2 text-[var(--secondary-400)] hover:text-[var(--danger)] hover:bg-red-50 rounded-lg transition-colors" 
                               title="Hapus"
                             >
                               <Trash2 size={18} />
@@ -700,16 +681,19 @@ export default function CandidatesPage() {
                 </table>
 
                 {filteredCandidates.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                    <Search size={48} className="text-gray-300 mb-4" />
-                    <p className="font-medium">Tidak ada kandidat yang ditemukan.</p>
-                    <p className="text-sm">Coba ubah filter pencarian Anda.</p>
+                  <div className="flex flex-col items-center justify-center py-16 text-[var(--secondary)]">
+                    <div className="w-16 h-16 bg-[var(--secondary-50)] rounded-full flex items-center justify-center mb-4">
+                       <Search size={32} className="text-[var(--secondary-400)]" />
+                    </div>
+                    <p className="font-bold text-[var(--primary-900)]">Tidak ada kandidat yang ditemukan</p>
+                    <p className="text-sm">Coba ubah filter pencarian Anda atau tambahkan kandidat baru.</p>
                   </div>
                 )}
               </div>
             )}
           </div>
         </main>
+        <Footer />
       </div>
 
       {/* Modals */}
