@@ -750,25 +750,68 @@ export default function TestManagementPage() {
           )}
 
           {/* === TAB 2: TEST LINKS === */}
+{/* === TAB 2: TEST LINKS === */}
           {activeTab === "test-links" && (
             <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
               <div className="p-6 border-b border-[var(--secondary-200)] flex justify-between items-center bg-[var(--background)]">
-                <h3 className="text-lg font-bold text-[var(--primary-900)]">Active Links</h3>
-                <div className="text-xs font-bold bg-white border border-[var(--secondary-200)] px-3 py-1 rounded-full text-[var(--secondary-600)]">{localTestLinks.length} Links Total</div>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-bold text-[var(--primary-900)]">Active Links</h3>
+                  <div className="text-xs font-bold bg-white border border-[var(--secondary-200)] px-3 py-1 rounded-full text-[var(--secondary-600)]">
+                    {localTestLinks.length} Links Total
+                  </div>
+                </div>
+
+                {/* --- [FIX] TOMBOL PEMICU MODAL DITAMBAHKAN DI SINI --- */}
+                <button 
+                  onClick={() => setShowCreateLinkModal(true)} 
+                  className="bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-colors shadow-sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Buat Link Baru
+                </button>
+                {/* ----------------------------------------------------- */}
+
               </div>
               <table className="w-full text-left text-sm">
-                <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]"><tr><th className="p-4">Kandidat</th><th className="p-4">Token</th><th className="p-4">Status</th><th className="p-4 text-right">Aksi</th></tr></thead>
+                <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
+                  <tr>
+                    <th className="p-4">Kandidat</th>
+                    <th className="p-4">Token</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-[var(--secondary-50)]">
                   {localTestLinks.map(link => (
                     <tr key={link.id} className="hover:bg-[var(--primary-50)]/30 transition-colors">
                       <td className="p-4 font-bold text-[var(--primary-900)]">{link.candidateName}</td>
-                      <td className="p-4"><span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-1 rounded ">{link.token}</span></td>
-                      <td className="p-4"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>{link.status}</span></td>
-                      <td className="p-4 text-right"><button onClick={() => copyLink(link.token)} className="text-[var(--primary)] hover:text-[var(--primary-700)] font-bold text-xs flex items-center justify-end gap-1 w-full hover:underline transition-colors"><Copy className="w-3 h-3"/> Copy Link</button></td>
+                      <td className="p-4">
+                        <span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-1 rounded ">
+                          {link.token}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          {link.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => copyLink(link.token)} className="text-[var(--primary)] hover:text-[var(--primary-700)] font-bold text-xs flex items-center justify-end gap-1 w-full hover:underline transition-colors">
+                          <Copy className="w-3 h-3"/> Copy Link
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {localTestLinks.length === 0 && (
-                     <tr><td colSpan={4} className="p-8 text-center text-[var(--secondary)] italic">Belum ada link tes dibuat. Buat baru dengan tombol "+ Buat Link".</td></tr>
+                     <tr>
+                       <td colSpan={4} className="p-12 text-center text-[var(--secondary)] italic bg-[var(--secondary-50)]">
+                         <div className="flex flex-col items-center justify-center gap-2">
+                            <LinkIcon className="w-8 h-8 text-[var(--secondary-300)]" />
+                            <p>Belum ada link tes dibuat.</p>
+                            <p className="text-xs text-[var(--secondary-500)]">Klik tombol "+ Buat Link Baru" di pojok kanan atas.</p>
+                         </div>
+                       </td>
+                     </tr>
                   )}
                 </tbody>
               </table>
