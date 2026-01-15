@@ -9,12 +9,19 @@ db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
 
-def create_app():
+def create_app(testing=False):
     app = Flask(__name__)
+
+    if testing:
+        app.config.update({
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "WTF_CSRF_ENABLED": False
+        })
 
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL",
-        "postgresql://postgres:password@localhost:5432/hrrs"
+        "postgresql://postgres:123@localhost:5432/hrrs"
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -37,6 +44,8 @@ def create_app():
     from .routes.test_management import mgmt_bp
     from .routes.test_management import submit_bp
     from .routes.dashboard import dashboard_bp
+    from .routes.tracking import tracing_bp
+    from .routes.ata import ata_bp
 
     app.register_blueprint(mgmt_bp, url_prefix="/management")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
@@ -45,5 +54,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(screening_bp, url_prefix="/screening")
     app.register_blueprint(jobposition_bp, url_prefix="/job-positions")
+    app.register_blueprint(tracing_bp, url_prefix="/tracing")
+    app.register_blueprint(ata_bp, url_prefix="/ata")
 
     return app

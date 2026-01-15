@@ -31,7 +31,6 @@ def allowed_file(filename):
 
 @mgmt_bp.route("/submissions", methods=["GET"])
 def get_all_submissions():
-    # Ambil data submission digabung dengan nama kandidat dari TestLink dan Candidate
     results = db.session.query(TestSubmission, TestLink, Candidate).join(
         TestLink, TestSubmission.link_id == TestLink.id
     ).join(
@@ -173,10 +172,9 @@ def delete_papi_question(question_id):
 @submit_bp.route("/papi", methods=["POST"])
 def submit_papi():
     data = request.get_json()
-    token = data.get('token') # <--- Ambil token
+    token = data.get('token') 
     answers = data.get('answers') 
 
-    # --- [TAMBAHAN] Validasi Token & Ambil Link ID ---
     link = TestLink.query.filter_by(token=token).first()
     if not link: 
         return jsonify({"error": "Token tidak valid atau tidak ditemukan"}), 404
@@ -198,7 +196,7 @@ def submit_papi():
                 papi_scores[mapping.aspect] += 1
 
     submission = TestSubmission(
-        link_id=link.id, # <--- [PENTING] Masukkan ID link di sini
+        link_id=link.id, 
         test_type='papi',
         raw_answers=answers,
         scores=papi_scores 

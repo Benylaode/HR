@@ -102,7 +102,6 @@ def create_candidate():
             total_experience_years=data.get("total_experience_years", 0),
             current_role=data.get("current_role"),
 
-            # JSONB Fields
             education=data.get("education", []),
             experience=data.get("experience", []),
             skills=data.get("skills", []),
