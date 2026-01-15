@@ -15,7 +15,8 @@ import {
   X,
   Briefcase,
   User,
-  Power
+  Power,
+  ClipboardCheck
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -30,6 +31,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Job Positions", href: "/job-positions", icon: Briefcase },
+  { name: "ATA Tracking", href: "/ata-tracking", icon: ClipboardCheck },
   { name: "Kandidat", href: "/candidates", icon: Users },
   { name: "Test Management", href: "/test-management", icon: ClipboardList },
   { name: "CV Scanner", href: "/cv-scanner", icon: FileText },

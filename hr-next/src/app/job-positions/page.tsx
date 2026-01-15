@@ -279,7 +279,7 @@ const JobFormModal = memo(function JobFormModal({
 
 export default function JobPositionsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; role?: string } | null>(null);
   const [jobs, setJobs] = useState<JobPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -355,15 +355,19 @@ export default function JobPositionsPage() {
     }
     setFormLoading(true);
     setFieldErrors({});
+    
     try {
+      // DIRECT CREATE: Job position without approval
       const res = await fetch(`${API_BASE_URL}/job-positions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+      
       if (res.ok) {
         setIsCreateModalOpen(false);
         setFormData(initialFormData);
+        alert('✅ Job Position berhasil dibuat!');
         fetchJobs();
       } else {
         const err = await res.json();
