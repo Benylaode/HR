@@ -87,6 +87,18 @@ def get_or_create_journey(application_id):
             stage_data={}
         )
         db.session.add(journey)
+        db.session.flush()  # Get journey ID before creating log
+        
+        # Create initial log entry for CV_SCREENING
+        initial_log = JourneyLog(
+            journey_id=journey.id,
+            previous_stage=None,
+            new_stage=RecruitmentStage.CV_SCREENING.value,
+            action="Journey started - CV Screening",
+            notes="Candidate application received and CV screening initiated",
+            actor_name="System"
+        )
+        db.session.add(initial_log)
         db.session.commit()
     return journey
 
@@ -104,12 +116,46 @@ def get_timeline(application_id):
     journey = get_or_create_journey(app.id)
 
     return jsonify({
+        "application_id": app.id,
         "candidate_name": app.candidate.name,
         "job_title": app.job.title,
-        "current_stage": journey.current_stage.value,
+        "current_stage": journey.current_stage.name,  # Use .name instead of .value
         "metadata": journey.stage_data,
         "history": [log.to_dict() for log in journey.logs]
     })
+
+
+@tracing_bp.route("/candidate/<candidate_id>", methods=["GET"])
+def get_timeline_by_candidate(candidate_id):
+    """Alternative endpoint: Get journey using candidate_id instead of application_id"""
+    from app.models import Candidate
+    
+    # Get candidate
+    candidate = db.session.get(Candidate, candidate_id)
+    if not candidate:
+        return jsonify({"error": "Kandidat tidak ditemukan"}), 404
+    
+    # Find the first (or most recent) job application for this candidate
+    if not candidate.applications or len(candidate.applications) == 0:
+        return jsonify({
+            "error": "No job application found",
+            "message": "Kandidat belum melamar pekerjaan apapun"
+        }), 404
+    
+    # Use the most recent application
+    app = candidate.applications[0]
+    
+    journey = get_or_create_journey(app.id)
+
+    return jsonify({
+        "application_id": app.id,
+        "candidate_name": app.candidate.name,
+        "job_title": app.job.title,
+        "current_stage": journey.current_stage.name,  # Use .name instead of .value
+        "metadata": journey.stage_data,
+        "history": [log.to_dict() for log in journey.logs]
+    })
+
 
 
 @tracing_bp.route("/update-stage", methods=["POST"])
@@ -134,12 +180,17 @@ def update_stage():
 
     journey = get_or_create_journey(app_id)
 
-    # 2. Validasi Format Enum
+    # 2. Validasi Format Enum - Accept both name and value
     try:
-        # Mencari Enum member berdasarkan value string-nya (Case Insensitive opsional)
-        new_stage_enum = next(
-            (s for s in RecruitmentStage if s.value == new_stage_str), None
-        )
+        # Try to get enum by name first (e.g., "AI_SCREENING")
+        try:
+            new_stage_enum = RecruitmentStage[new_stage_str]
+        except KeyError:
+            # If not found, try by value (e.g., "AI Screening")
+            new_stage_enum = next(
+                (s for s in RecruitmentStage if s.value == new_stage_str), None
+            )
+        
         if not new_stage_enum:
              return jsonify({"error": f"Status '{new_stage_str}' tidak valid dalam sistem"}), 400
     except ValueError:

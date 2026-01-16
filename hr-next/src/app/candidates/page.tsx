@@ -21,6 +21,7 @@ import {
   MapPin,
   Save,
   User,
+  TrendingUp,
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -652,6 +653,13 @@ export default function CandidatesPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-2">
+                            <button 
+                              onClick={() => router.push(`/candidates/${candidate.id}/journey`)}
+                              className="p-2 text-[var(--secondary-400)] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                              title="View Journey"
+                            >
+                              <TrendingUp size={18} />
+                            </button>
                             <button 
                               onClick={() => handleViewDetail(candidate.id)}
                               className="p-2 text-[var(--secondary-400)] hover:text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg transition-colors" 

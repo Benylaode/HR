@@ -70,6 +70,18 @@ def candidate_to_dict(candidate: Candidate):
         "certifications": candidate.certifications or [],
         "languages": candidate.languages or [],
         "social_links": candidate.social_links or {},
+        
+        # Applications list (for journey tracking)
+        "applications": [
+            {
+                "id": app.id,
+                "job_id": app.job_id,
+                "job_title": app.job.title if app.job else None,
+                "match_score": app.match_score,
+                "status": app.status
+            } 
+            for app in candidate.applications
+        ] if candidate.applications else [],
 
         "created_at": candidate.created_at.isoformat()
     }

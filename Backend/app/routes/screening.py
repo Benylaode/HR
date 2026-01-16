@@ -206,10 +206,31 @@ def save_candidate_result_structured(resume_id, job_id, meta, extracted_data, ma
                 job_id=job_id,
                 match_score=match_score,
                 ai_verdict=extracted_data.get("verdict", ""),
-                status="Screening",
+                status="Applied",  # Changed from 'Screening' to 'Applied' for consistency
                 applied_at=datetime.utcnow()
             )
             db.session.add(application)
+            db.session.flush()  # Get application ID
+            
+            # 3. Auto-progress journey to AI_SCREENING (since AI analysis is done)
+            from app.routes.tracking import get_or_create_journey
+            from app.models import RecruitmentStage, JourneyLog
+            
+            journey = get_or_create_journey(application.id)
+            
+            # Move to AI_SCREENING stage (AI analysis completed)
+            journey.current_stage = RecruitmentStage.AI_SCREENING
+            
+            # Create log for AI_SCREENING completion
+            ai_log = JourneyLog(
+                journey_id=journey.id,
+                previous_stage=RecruitmentStage.CV_SCREENING.value,
+                new_stage=RecruitmentStage.AI_SCREENING.value,
+                action="AI Screening completed",
+                notes=f"AI Match Score: {match_score}%. {extracted_data.get('verdict', '')}",
+                actor_name="AI System"
+            )
+            db.session.add(ai_log)
         else:
             # Jika sudah apply, update score dan verdict terbaru
             application.match_score = match_score
