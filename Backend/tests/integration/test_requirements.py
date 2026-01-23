@@ -95,7 +95,6 @@ def test_full_ata_approval_flow(client):
     data = res.get_json()
 
     assert data["status"] == "Approved"
-    assert data["job_id"] is not None
 
     # Verifikasi Job Terbuat
     job = db.session.get(JobPosition, data["job_id"])

@@ -1,11 +1,22 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import get_jwt, verify_jwt_in_request
+from flask_jwt_extended import verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from app import db
 from app.models import JobPosition
 from datetime import datetime
 
 jobposition_bp = Blueprint("jobposition", __name__, url_prefix="/job-positions")
+@jobposition_bp.before_request
+def restrict_to_super_user():
+    verify_jwt_in_request()
+    claims = get_jwt()
 
+    if claims.get("role") != "SUPER_USER":
+        return jsonify({
+            "status": 403,
+            "message": "SUPER_USER only"
+        }), 403
 
 def job_to_dict(job: JobPosition):
     return {
