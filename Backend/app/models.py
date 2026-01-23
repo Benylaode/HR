@@ -16,9 +16,6 @@ def format_date(dt):
 def now_utc():
     return datetime.now(timezone.utc)
 
-# ==========================================
-# 0. ENUMS (Untuk mencegah Typo status)
-# ==========================================
 class RecruitmentStage(enum.Enum):
     CV_SCREENING    = "CV Screening"
     AI_SCREENING    = "AI Screening"

@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, url_for
+from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from app import db
 from app.models import (
     PapiQuestion, CfitQuestion, KraepelinConfig, 
@@ -17,6 +18,28 @@ mgmt_bp = Blueprint("management", __name__)
 
 # Blueprint untuk Submission (Kandidat)
 submit_bp = Blueprint("submit", __name__)
+
+@submit_bp.before_request
+def restrict_to_super_user():
+    verify_jwt_in_request()
+    claims = get_jwt()
+
+    if claims.get("role") != "SUPER_USER":
+        return jsonify({
+            "status": 403,
+            "message": "SUPER_USER only"
+        }), 403
+
+@mgmt_bp.before_request
+def restrict_to_super_user():
+    verify_jwt_in_request()
+    claims = get_jwt()
+
+    if claims.get("role") != "SUPER_USER":
+        return jsonify({
+            "status": 403,
+            "message": "SUPER_USER only"
+        }), 403
 
 UPLOAD_FOLDER = 'app/static/uploads/cfit'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}

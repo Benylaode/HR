@@ -8,7 +8,22 @@ from passlib.hash import bcrypt
 from app import db
 from app.models import User
 
+from flask import jsonify
+from flask_jwt_extended import verify_jwt_in_request, get_jwt
+
+
 auth_bp = Blueprint("auth", __name__)
+
+@auth_bp.before_request
+def restrict_to_super_user():
+    verify_jwt_in_request()
+    claims = get_jwt()
+
+    if claims.get("role") != "SUPER_USER":
+        return jsonify({
+            "status": 403,
+            "message": "SUPER_USER only"
+        }), 403
 
 @auth_bp.route("/register", methods=["POST"])
 def register():

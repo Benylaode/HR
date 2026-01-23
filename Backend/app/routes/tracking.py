@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, url_for
+from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from app import db
 from app.models import (
     JobApplication, RecruitmentJourney, JourneyLog, RecruitmentStage, User
@@ -10,6 +11,17 @@ from app.utils.whatsapp_helper import generate_wa_link
 
 # Inisialisasi Blueprint
 tracing_bp = Blueprint("tracing", __name__, url_prefix="/tracing")
+
+@tracing_bp.before_request
+def restrict_to_super_user():
+    verify_jwt_in_request()
+    claims = get_jwt()
+
+    if claims.get("role") != "SUPER_USER":
+        return jsonify({
+            "status": 403,
+            "message": "SUPER_USER only"
+        }), 403
 
 # Konfigurasi Upload
 UPLOAD_DOCS_FOLDER = 'app/static/uploads/documents'
