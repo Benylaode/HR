@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import get_jwt, verify_jwt_in_request
+from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 from flask_jwt_extended import verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from app import db
@@ -9,9 +9,16 @@ from datetime import datetime
 jobposition_bp = Blueprint("jobposition", __name__, url_prefix="/job-positions")
 @jobposition_bp.before_request
 def restrict_to_super_user():
-    verify_jwt_in_request()
-    claims = get_jwt()
+    if request.method == "OPTIONS":
+        return
 
+    endpoint = request.endpoint or ""
+    if endpoint in {"auth.login", "auth.seed_admin"}:
+        return
+
+    verify_jwt_in_request()
+
+    claims = get_jwt()
     if claims.get("role") != "SUPER_USER":
         return jsonify({
             "status": 403,

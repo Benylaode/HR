@@ -21,37 +21,41 @@ submit_bp = Blueprint("submit", __name__)
 
 @submit_bp.before_request
 def restrict_to_super_user():
-    if request.endpoint in ["auth.login", "auth.seed_admin"]:
-        return
-
     if request.method == "OPTIONS":
         return
 
-    verify_jwt_in_request()
-    user = get_jwt_identity()
+    endpoint = request.endpoint or ""
+    if endpoint in {"auth.login", "auth.seed_admin"}:
+        return
 
-    if user.get("role") != "SUPER_USER":
+    verify_jwt_in_request()
+
+    claims = get_jwt()
+    if claims.get("role") != "SUPER_USER":
         return jsonify({
             "status": 403,
             "message": "SUPER_USER only"
         }), 403
+
 
 @mgmt_bp.before_request
 def restrict_to_super_user():
-    if request.endpoint in ["auth.login", "auth.seed_admin"]:
-        return
-
     if request.method == "OPTIONS":
         return
 
-    verify_jwt_in_request()
-    user = get_jwt_identity()
+    endpoint = request.endpoint or ""
+    if endpoint in {"auth.login", "auth.seed_admin"}:
+        return
 
-    if user.get("role") != "SUPER_USER":
+    verify_jwt_in_request()
+
+    claims = get_jwt()
+    if claims.get("role") != "SUPER_USER":
         return jsonify({
             "status": 403,
             "message": "SUPER_USER only"
         }), 403
+
 
 UPLOAD_FOLDER = 'app/static/uploads/cfit'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}

@@ -3,7 +3,7 @@ import uuid
 import json
 import re
 from datetime import datetime
-from flask_jwt_extended import get_jwt, verify_jwt_in_request
+from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 import numpy as np
 import faiss
 from flask import Blueprint, request, jsonify
@@ -37,21 +37,24 @@ client = OpenAI(
 
 screening_bp = Blueprint("screening", __name__)
 @screening_bp.before_request
+@screening_bp.before_request
 def restrict_to_super_user():
-    if request.endpoint in ["auth.login", "auth.seed_admin"]:
-        return
-
     if request.method == "OPTIONS":
         return
 
-    verify_jwt_in_request()
-    user = get_jwt_identity()
+    endpoint = request.endpoint or ""
+    if endpoint in {"auth.login", "auth.seed_admin"}:
+        return
 
-    if user.get("role") != "SUPER_USER":
+    verify_jwt_in_request()
+
+    claims = get_jwt()
+    if claims.get("role") != "SUPER_USER":
         return jsonify({
             "status": 403,
             "message": "SUPER_USER only"
         }), 403
+
 
 
 
