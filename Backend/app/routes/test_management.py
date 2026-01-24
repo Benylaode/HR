@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, url_for
-from flask_jwt_extended import get_jwt, verify_jwt_in_request
+from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 from app import db
 from app.models import (
     PapiQuestion, CfitQuestion, KraepelinConfig, 
@@ -21,10 +21,16 @@ submit_bp = Blueprint("submit", __name__)
 
 @submit_bp.before_request
 def restrict_to_super_user():
-    verify_jwt_in_request()
-    claims = get_jwt()
+    if request.endpoint in ["auth.login", "auth.seed_admin"]:
+        return
 
-    if claims.get("role") != "SUPER_USER":
+    if request.method == "OPTIONS":
+        return
+
+    verify_jwt_in_request()
+    user = get_jwt_identity()
+
+    if user.get("role") != "SUPER_USER":
         return jsonify({
             "status": 403,
             "message": "SUPER_USER only"
@@ -32,10 +38,16 @@ def restrict_to_super_user():
 
 @mgmt_bp.before_request
 def restrict_to_super_user():
-    verify_jwt_in_request()
-    claims = get_jwt()
+    if request.endpoint in ["auth.login", "auth.seed_admin"]:
+        return
 
-    if claims.get("role") != "SUPER_USER":
+    if request.method == "OPTIONS":
+        return
+
+    verify_jwt_in_request()
+    user = get_jwt_identity()
+
+    if user.get("role") != "SUPER_USER":
         return jsonify({
             "status": 403,
             "message": "SUPER_USER only"
