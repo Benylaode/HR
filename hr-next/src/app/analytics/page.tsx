@@ -54,12 +54,20 @@ export default function AnalyticsPage() {
     fetchData();
   }, [router]);
 
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
   const fetchData = async () => {
     setLoading(true);
     try {
       const [statsRes, leaderboardRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/dashboard/stats`),
-        fetch(`${API_BASE_URL}/dashboard/leaderboard`),
+        fetch(`${API_BASE_URL}/dashboard/stats`, { headers: getAuthHeaders() }),
+        fetch(`${API_BASE_URL}/dashboard/leaderboard`, { headers: getAuthHeaders() }),
       ]);
 
       if (statsRes.ok) {

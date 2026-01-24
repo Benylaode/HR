@@ -45,6 +45,14 @@ export default function CandidateJourneyPage() {
   useEffect(() => {
     fetchJourney()
   }, [candidateId])
+
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
   
   const fetchJourney = async () => {
     try {

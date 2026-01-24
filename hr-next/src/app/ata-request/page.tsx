@@ -23,6 +23,14 @@ export default function ATARequestPage() {
     e.preventDefault()
     setLoading(true)
 
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
     try {
       const formDataToSend = new FormData()
       
@@ -38,6 +46,7 @@ export default function ATARequestPage() {
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ata`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         body: formDataToSend,
       })
 

@@ -91,10 +91,16 @@ export default function CVScannerPage() {
   const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking");
   const [loadingJobs, setLoadingJobs] = useState(false);
 
-  // Check backend status
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
   const checkBackendStatus = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/screening/candidates`);
+      const res = await fetch(`${API_BASE_URL}/screening/candidates`, { headers: getAuthHeaders() });
       if (res.ok) {
         setBackendStatus("online");
         return true;
@@ -109,7 +115,7 @@ export default function CVScannerPage() {
   const loadJobPositions = useCallback(async () => {
     setLoadingJobs(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/job-positions?status=active&available=true`);
+      const res = await fetch(`${API_BASE_URL}/job-positions?status=active&available=true`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Gagal mengambil data posisi pekerjaan");
       
       const data = await res.json();
@@ -144,7 +150,7 @@ export default function CVScannerPage() {
   // Load candidates
   const loadCandidatesFromDB = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/screening/candidates`);
+      const res = await fetch(`${API_BASE_URL}/screening/candidates`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed to fetch candidates");
       const data = await res.json();
       setCandidates(data);
@@ -166,6 +172,7 @@ export default function CVScannerPage() {
       const uploadRes = await fetch(`${API_BASE_URL}/screening/upload_resume`, {
         method: "POST",
         body: formData,
+        headers: getAuthHeaders(),
       });
 
       if (!uploadRes.ok) throw new Error(`Gagal upload: ${file.name}`);
@@ -175,7 +182,7 @@ export default function CVScannerPage() {
       // 2. Match
       const matchRes = await fetch(`${API_BASE_URL}/screening/match_resume`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           resume_id: resumeId,
           job_id: selectedPosition?.id,

@@ -14,24 +14,6 @@ from flask_jwt_extended import verify_jwt_in_request, get_jwt
 
 auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.before_request
-def restrict_to_super_user():
-    if request.method == "OPTIONS":
-        return
-
-    endpoint = request.endpoint or ""
-    if endpoint in {"auth.login", "auth.seed_admin"}:
-        return
-
-    verify_jwt_in_request()
-
-    claims = get_jwt()
-    if claims.get("role") != "SUPER_USER":
-        return jsonify({
-            "status": 403,
-            "message": "SUPER_USER only"
-        }), 403
-
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json(force=True)
@@ -63,13 +45,16 @@ def login():
     if not user or not bcrypt.verify(data["password"], user.password_hash):
         return jsonify({"error": "invalid credentials"}), 401
 
+    # --- PERBAIKAN DI SINI ---
+    # Identity harus String (ID User), data lain masuk additional_claims
     token = create_access_token(
-        identity={
-            "id": user.id,
+        identity=str(user.id),  
+        additional_claims={
             "email": user.email,
             "role": user.role
         }
     )
+    # -------------------------
 
     return jsonify({
         "access_token": token,
@@ -85,7 +70,14 @@ def login():
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
 def me():
-    return jsonify(get_jwt_identity())
+    # Ambil claims tambahan (email & role) dari token
+    claims = get_jwt()
+    
+    return jsonify({
+        "id": get_jwt_identity(), # Ini sekarang string ID
+        "email": claims.get("email"),
+        "role": claims.get("role")
+    })
 
 
 @auth_bp.route("/seed-admin", methods=["POST"])

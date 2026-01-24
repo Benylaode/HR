@@ -66,7 +66,13 @@ export default function TestExamPage() {
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [selectedTestToStart, setSelectedTestToStart] = useState<TestType | null>(null);
 
-  // Mobile Check Effect
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("access_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     if (/android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent) || window.innerWidth < 768) {
@@ -89,7 +95,7 @@ export default function TestExamPage() {
     const fetchAllData = async () => {
       try {
         // 1. Cek Token
-        const res = await fetch(`${API_BASE_URL}/submission/check-token/${token}`);
+        const res = await fetch(`${API_BASE_URL}/submission/check-token/${token}`, { headers: getAuthHeaders() });
         
         if (res.ok) {
           const data = await res.json();
@@ -107,18 +113,18 @@ export default function TestExamPage() {
         }
 
         // 2. Ambil Config Kraepelin
-        const resKrae = await fetch(`${API_BASE_URL}/management/config/kraepelin`);
+        const resKrae = await fetch(`${API_BASE_URL}/management/config/kraepelin`, { headers: getAuthHeaders() });
         if (resKrae.ok) {
            const dataKrae = await resKrae.json();
            setKraepelinConfig(dataKrae);
         }
 
         // 3. Ambil Soal CFIT
-        const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`);
+        const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`, { headers: getAuthHeaders() });
         const dataCfit = await resCfit.json();
         
         // 4. Ambil Soal PAPI
-        const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`);
+        const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`, { headers: getAuthHeaders() });
         const dataPapi = await resPapi.json();
 
         setDbQuestions({ cfit: dataCfit, papi: dataPapi });
@@ -326,7 +332,7 @@ export default function TestExamPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/submission/finalize`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ token: token }),
       });
       if (response.ok) {
@@ -412,7 +418,7 @@ const submitCurrentTest = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/submission/${endpoint}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
 

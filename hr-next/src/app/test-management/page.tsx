@@ -161,7 +161,13 @@ export default function TestManagementPage() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- USE EFFECTS ---
+  const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
@@ -177,19 +183,19 @@ export default function TestManagementPage() {
 
   const fetchData = async () => {
     try {
-      const resLinks = await fetch(`${API_BASE_URL}/management/links`);
+      const resLinks = await fetch(`${API_BASE_URL}/management/links`, { headers: getAuthHeaders() });
       if (resLinks.ok) setLocalTestLinks(await resLinks.json());
 
-      const resSubs = await fetch(`${API_BASE_URL}/management/submissions`); 
+      const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() }); 
       if (resSubs.ok) setSubmissions(await resSubs.json());
 
-      const resCandidates = await fetch(`${API_BASE_URL}/candidates`);
+      const resCandidates = await fetch(`${API_BASE_URL}/candidates`, { headers: getAuthHeaders() });
       if (resCandidates.ok) setCandidatesList(await resCandidates.json());
 
-      const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`);
+      const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
       if (resJobs.ok) setJobsList(await resJobs.json());
 
-      const resKraepelin = await fetch(`${API_BASE_URL}/management/config/kraepelin`);
+      const resKraepelin = await fetch(`${API_BASE_URL}/management/config/kraepelin`, { headers: getAuthHeaders() });
       if (resKraepelin.ok) {
         const data = await resKraepelin.json();
         setKraepelinColumns(String(data.columns || 50));
@@ -197,7 +203,7 @@ export default function TestManagementPage() {
         setKraepelinTimePerColumn(String(data.durationPerColumn || 15));
       }
 
-      const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`);
+      const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`, { headers: getAuthHeaders() });
       if (resCfit.ok) {
         const allCfitQuestionsFromBE = await resCfit.json();
         setCfitSubtypes((prev) => prev.map((st) => ({
@@ -215,7 +221,7 @@ export default function TestManagementPage() {
         setLocalCategories(prev => prev.map(c => c.code === 'cfit' ? { ...c, question_count: allCfitQuestionsFromBE.length } : c));
       }
 
-      const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`);
+      const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`, { headers: getAuthHeaders() });
       if (resPapi.ok) {
         const papiQ = await resPapi.json();
         const papiId = localCategories.find(c => c.code === 'papi')?.id || 2;
@@ -240,7 +246,7 @@ export default function TestManagementPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/management/generate-link`, {
         method: "POST", 
-        headers: { "Content-Type": "application/json" }, 
+        headers: getAuthHeaders(), 
         body: JSON.stringify({ 
             candidate_id: selectedCandidateId,
             job_id: selectedJobId || null 
@@ -278,7 +284,7 @@ export default function TestManagementPage() {
   const handleSaveKraepelin = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/management/config/kraepelin`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
+        method: "PUT", headers: getAuthHeaders(),
         body: JSON.stringify({ columns: parseInt(kraepelinColumns), rows: parseInt(kraepelinRows), durationPerColumn: parseInt(kraepelinTimePerColumn) }),
       });
       if (response.ok) alert("Tersimpan!");
@@ -290,7 +296,7 @@ export default function TestManagementPage() {
     setIsSubmitting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/management/questions/papi`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ option_a: optionA, option_b: optionB }),
+        method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ option_a: optionA, option_b: optionB }),
       });
       if (res.ok) { alert("Disimpan!"); setShowQuestionModal(false); setOptionA(""); setOptionB(""); fetchData(); }
     } catch (err) { console.error(err); } finally { setIsSubmitting(false); }
@@ -305,7 +311,7 @@ export default function TestManagementPage() {
       formData.append("correctAnswer", String(labelToIndex(correctAnswer)));
       formData.append("instruction", selectedCfitSubtype?.instruction || "");
       try {
-        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { method: "POST", body: formData });
+        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { method: "POST", body: formData, headers: getAuthHeaders() });
         if (res.ok) { alert("Ditambahkan!"); setShowQuestionModal(false); setImagePreview(null); setCorrectAnswer(""); fetchData(); }
       } catch (err) { alert("Error."); } finally { setIsSubmitting(false); }
   };
@@ -313,7 +319,7 @@ export default function TestManagementPage() {
   const handleDeleteQuestion = async (endpoint: 'cfit' | 'papi', id: number) => {
     if (!confirm("Hapus?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { method: "DELETE", headers: getAuthHeaders() });
       if (res.ok) fetchData();
     } catch (err) { console.error(err); }
   };

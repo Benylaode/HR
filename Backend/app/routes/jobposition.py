@@ -8,22 +8,27 @@ from datetime import datetime
 
 jobposition_bp = Blueprint("jobposition", __name__, url_prefix="/job-positions")
 @jobposition_bp.before_request
-def restrict_to_super_user():
+def restrict_access_by_role():
     if request.method == "OPTIONS":
-        return
-
-    endpoint = request.endpoint or ""
-    if endpoint in {"auth.login", "auth.seed_admin"}:
         return
 
     verify_jwt_in_request()
 
     claims = get_jwt()
-    if claims.get("role") != "SUPER_USER":
+    role = claims.get("role")
+
+    # GET boleh HR & SUPER_USER
+    if request.method == "GET":
+        if role in ["HR", "SUPER_USER"]:
+            return
+
+    # Selain GET hanya SUPER_USER
+    if role != "SUPER_USER":
         return jsonify({
             "status": 403,
-            "message": "SUPER_USER only"
+            "message": "Access denied"
         }), 403
+
 
 def job_to_dict(job: JobPosition):
     return {

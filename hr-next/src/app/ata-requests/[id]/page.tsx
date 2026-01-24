@@ -55,9 +55,17 @@ export default function ATARequestDetailPage() {
     fetchRequest()
   }, [params.id])
 
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
   const fetchRequest = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/ata/${params.id}`)
+      const response = await fetch(`${API_BASE_URL}/ata/${params.id}`, { headers: getAuthHeaders() })
       const data = await response.json()
       setRequest(data)
     } catch (error) {
@@ -80,7 +88,7 @@ export default function ATARequestDetailPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/ata/${request.id}/approve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           role,
           decision,

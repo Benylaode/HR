@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -31,13 +31,20 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("hr_user", JSON.stringify(data.user));
-        localStorage.setItem("hr_token", data.access_token);
-        router.push("/dashboard");
+        // PERBAIKAN: Cek apakah token benar-benar ada sebelum disimpan
+        if (data.access_token) {
+            localStorage.setItem("hr_user", JSON.stringify(data.user));
+            localStorage.setItem("hr_token", data.access_token);
+            console.log("Login Success, Token Saved:", data.access_token); // Debugging
+            router.push("/dashboard");
+        } else {
+            setError("Token tidak diterima dari server.");
+        }
       } else {
         setError(data.error || "Login gagal. Periksa email dan password.");
       }
     } catch (err) {
+      console.error(err); // Log error asli
       setError("Tidak dapat terhubung ke server.");
     } finally {
       setLoading(false);

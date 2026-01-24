@@ -57,9 +57,17 @@ export default function ATATrackingPage() {
     fetchRequests()
   }, [])
 
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
   const fetchRequests = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/ata`)
+      const response = await fetch(`${API_BASE_URL}/ata`, { headers: getAuthHeaders() })
       const data = await response.json()
       setRequests(data)
     } catch (error) {
@@ -94,6 +102,7 @@ export default function ATATrackingPage() {
 
       const response = await fetch(`${API_BASE_URL}/ata`, {
         method: 'POST',
+        headers: getAuthHeaders(),
         body: formDataToSend,
       })
 
@@ -117,7 +126,7 @@ export default function ATATrackingPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/ata/${reqId}/approve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ role, decision: 'Approved', notes: notes || `Approved by ${role}` }),
       })
       if (response.ok) fetchRequests()
@@ -133,7 +142,7 @@ export default function ATATrackingPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/ata/${reqId}/approve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ role, decision: 'Rejected', notes }),
       })
       if (response.ok) fetchRequests()

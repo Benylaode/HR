@@ -37,9 +37,20 @@ export interface UpdateStageResponse {
 
 /**
  * Fetch candidate data to get application_id
+ * 
+
  */
+
+  const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("access_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
 export async function getCandidateApplications(candidateId: string): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}`)
+  const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}`, { headers: getAuthHeaders() })
   
   if (!response.ok) {
     throw new Error('Failed to fetch candidate data')
@@ -55,7 +66,7 @@ export async function getJourneyTimeline(applicationId: string): Promise<Journey
   const url = `${API_BASE_URL}/tracing/${applicationId}`
   console.log('Fetching journey from:', url)
   
-  const response = await fetch(url)
+  const response = await fetch(url, { headers: getAuthHeaders() })
   console.log('Journey response status:', response.status)
   
   if (!response.ok) {
@@ -75,9 +86,7 @@ export async function getJourneyTimeline(applicationId: string): Promise<Journey
 export async function updateStage(data: UpdateStageRequest): Promise<UpdateStageResponse> {
   const response = await fetch(`${API_BASE_URL}/tracing/update-stage`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   })
   
@@ -109,6 +118,7 @@ export async function uploadDocument(
   
   const response = await fetch(`${API_BASE_URL}/tracing/upload-doc`, {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: formData,
   })
   

@@ -25,10 +25,16 @@ export default function ATARequestsPage() {
   useEffect(() => {
     fetchRequests()
   }, [])
-
+  const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
   const fetchRequests = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ata`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ata`, { headers: getAuthHeaders() })
       const data = await response.json()
       setRequests(data)
     } catch (error) {

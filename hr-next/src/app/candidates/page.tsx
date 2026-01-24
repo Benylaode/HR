@@ -389,10 +389,18 @@ export default function CandidatesPage() {
     fetchJobs();
   }, [router]);
 
+    const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("hr_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
   const fetchCandidates = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/candidates`);
+      const res = await fetch(`${API_BASE_URL}/candidates`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Gagal mengambil data kandidat");
       setCandidates(await res.json());
     } catch (err) {
@@ -404,7 +412,7 @@ export default function CandidatesPage() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/job-positions?status=active`);
+      const res = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
       if (res.ok) setJobs(await res.json());
     } catch (err) {
       console.error("Gagal mengambil data pekerjaan:", err);
@@ -415,7 +423,7 @@ export default function CandidatesPage() {
   const fetchCandidateDetail = async (id: string) => {
     setLoadingDetail(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/candidates/${id}`);
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { headers: getAuthHeaders() });
       if (res.ok) {
         return await res.json();
       }
@@ -444,7 +452,7 @@ export default function CandidatesPage() {
     try {
       const res = await fetch(`${API_BASE_URL}/candidates/${editModal.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
 
@@ -464,7 +472,7 @@ export default function CandidatesPage() {
     if (!confirm("Apakah Anda yakin ingin menghapus kandidat ini?")) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { method: "DELETE", headers: getAuthHeaders() });
       if (res.ok) {
         setCandidates(prev => prev.filter(c => c.id !== id));
       } else {
