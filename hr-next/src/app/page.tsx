@@ -77,10 +77,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       </div>
 
       {/* LOGIN CARD */}
-      <div className="relative w-full max-w-5xl flex flex-col lg:flex-row bg-white/10 backdrop-blur-2xl rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 z-10 animate-in fade-in zoom-in duration-700">
+      <div className="relative w-full max-w-4xl flex flex-col lg:flex-row bg-white/10 backdrop-blur-2xl rounded-[30px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 z-10 animate-in fade-in zoom-in duration-700">
         
         {/* Left Side - Branding (Glass Effect) */}
-        <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between relative overflow-hidden bg-black/20">
+        <div className="hidden lg:flex lg:w-5/12 p-8 lg:p-10 flex-col justify-between relative overflow-hidden bg-black/20">
           <div className="relative z-10">
             <Image
               src="/images/logos/ptLogoText.png"
@@ -93,67 +93,67 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           <div className="relative z-10">
-            <h1 className="text-5xl font-black text-white mb-6 leading-[1.1]">
+            <h1 className="text-3xl lg:text-4xl xl:text-5xl font-black text-white mb-4 lg:mb-6 leading-[1.1]">
               Powering the future, <br/>
               <span className="text-teal-400">sustainably.</span>
             </h1>
-            <div className="h-1 w-20 bg-teal-500 mb-6"></div>
-            <p className="text-blue-100/70 text-lg font-light max-w-sm">
+            <div className="h-1 w-16 bg-teal-500 mb-4 lg:mb-6"></div>
+            <p className="text-blue-100/70 text-base lg:text-lg font-light max-w-sm">
               Sistem Manajemen Rekrutmen Terpadu dengan integrasi kecerdasan buatan.
             </p>
           </div>
 
           <div className="relative z-10 flex items-center gap-6 grayscale opacity-40">
-             <Image src="/images/logos/MBMlogo.png" alt="Partner" width={100} height={40} className="invert" unoptimized />
+             <Image src="/images/logos/MBMlogo.png" alt="Partner" width={90} height={36} className="invert" unoptimized />
              <div className="w-px h-6 bg-white/20"></div>
-             <Image src="/images/logos/greatness.png" alt="Partner" width={100} height={40} className="invert" unoptimized />
+             <Image src="/images/logos/greatness.png" alt="Partner" width={90} height={36} className="invert" unoptimized />
           </div>
         </div>
 
         {/* Right Side - Login Form (Solid White) */}
-        <div className="lg:w-1/2 p-10 lg:p-16 bg-white flex flex-col justify-center">
-          <div className="mb-10">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Selamat Datang</h2>
-            <p className="text-slate-500 font-medium mt-1">Gunakan kredensial Anda untuk masuk</p>
+        <div className="lg:w-7/12 p-6 md:p-8 lg:p-12 bg-white flex flex-col justify-center">
+          <div className="mb-6 lg:mb-8">
+            <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Selamat Datang</h2>
+            <p className="text-slate-500 font-medium mt-1 text-sm lg:text-base">Gunakan kredensial Anda untuk masuk</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 p-4 mb-6 rounded-2xl flex items-center gap-3 text-sm font-bold animate-shake">
-              <AlertCircle size={20} />
+            <div className="bg-red-50 border border-red-100 text-red-600 p-3 mb-4 rounded-xl flex items-center gap-3 text-sm font-bold animate-shake">
+              <AlertCircle size={18} />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Email Address</label>
+          <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all text-slate-900 font-medium"
+                className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all text-slate-900 font-medium text-sm lg:text-base"
                 placeholder="email@company.com"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] lg:text-[11px] font-black text-slate-400 uppercase tracking-widest">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all text-slate-900 font-medium pr-14"
+                  className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all text-slate-900 font-medium pr-12 text-sm lg:text-base"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -161,42 +161,42 @@ const handleSubmit = async (e: React.FormEvent) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-slate-900 hover:bg-teal-600 text-white py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-900/20 uppercase tracking-widest text-xs disabled:opacity-50"
+              className="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-xl font-black transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-900/20 uppercase tracking-widest text-xs disabled:opacity-50 mt-2"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : <>Masuk Sekarang <ArrowRight size={18} /></>}
             </button>
           </form>
 
           {/* DEMO ACCOUNTS SECTION */}
-          <div className="mt-12 pt-8 border-t border-slate-100">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-5">Demo Quick Access</p>
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-4">Demo Quick Access</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Akun HR (user123) */}
               <button 
                 onClick={() => fillDemo("user@gmail.com", "password123")}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-teal-100 bg-teal-50/50 hover:bg-teal-50 transition-all text-left group"
+                className="flex items-center gap-3 p-3 rounded-xl border border-teal-100 bg-teal-50/50 hover:bg-teal-50 transition-all text-left group"
               >
-                <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/20 group-hover:rotate-12 transition-transform">
-                  <UserIcon size={18} />
+                <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/20 group-hover:rotate-12 transition-transform">
+                  <UserIcon size={16} />
                 </div>
                 <div>
-                  <p className="text-[13px] font-black text-slate-900 leading-tight">user123</p>
-                  <p className="text-[10px] font-bold text-teal-600 uppercase tracking-tight">HR Staff</p>
+                  <p className="text-xs font-black text-slate-900 leading-tight">user123</p>
+                  <p className="text-[9px] font-bold text-teal-600 uppercase tracking-tight">HR Staff</p>
                 </div>
               </button>
 
               {/* Akun Super User */}
               <button 
                 onClick={() => fillDemo("admin@hrrs.com", "admin123")}
-                className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group"
+                className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group"
               >
-                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 group-hover:rotate-12 transition-transform">
-                  <ShieldCheck size={18} />
+                <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 group-hover:rotate-12 transition-transform">
+                  <ShieldCheck size={16} />
                 </div>
                 <div>
-                  <p className="text-[13px] font-black text-slate-900 leading-tight">Administrator</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Super User</p>
+                  <p className="text-xs font-black text-slate-900 leading-tight">Administrator</p>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Super User</p>
                 </div>
               </button>
             </div>

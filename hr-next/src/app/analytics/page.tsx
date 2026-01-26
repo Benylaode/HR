@@ -263,9 +263,11 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Score Breakdown */}
-          <div className="card-static bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)]">
+          <div className="card-static bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)]">
             <h3 className="text-lg font-bold text-[var(--primary-900)] mb-6">Breakdown Skor per Kandidat</h3>
-            <div className="overflow-x-auto rounded-xl border border-[var(--secondary-100)]">
+            
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-[var(--secondary-100)]">
               <table className="w-full text-sm">
                 <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] uppercase text-xs font-bold border-b border-[var(--secondary-100)]">
                   <tr>
@@ -329,6 +331,49 @@ export default function AnalyticsPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {leaderboard.length > 0 ? (
+                    leaderboard.map((entry) => (
+                        <div key={entry.id} className="p-4 border border-[var(--secondary-200)] rounded-xl bg-[var(--background)]">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                                    {entry.avatar}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-[var(--primary-900)]">{entry.name}</div>
+                                    <div className="text-xs text-[var(--secondary)]">{entry.position}</div>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-2 mb-3">
+                                <div className="p-2 bg-white border border-[var(--secondary-100)] rounded-lg text-center">
+                                    <div className="text-[10px] text-[var(--secondary)] uppercase font-bold">CV</div>
+                                    <div className="font-bold text-[var(--secondary-700)]">{entry.cvScore}</div>
+                                </div>
+                                <div className="p-2 bg-white border border-[var(--secondary-100)] rounded-lg text-center">
+                                    <div className="text-[10px] text-[var(--secondary)] uppercase font-bold">Test</div>
+                                    <div className="font-bold text-[var(--secondary-700)]">{entry.testScore}</div>
+                                </div>
+                                <div className="p-2 bg-white border border-[var(--secondary-100)] rounded-lg text-center">
+                                    <div className="text-[10px] text-[var(--secondary)] uppercase font-bold">Final</div>
+                                    <div className={`font-bold ${entry.finalScore >= 80 ? 'text-green-600' : 'text-[var(--primary)]'}`}>{entry.finalScore}</div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex justify-between items-center bg-[var(--secondary-50)] p-2 rounded-lg text-xs">
+                                <span className="text-[var(--secondary-600)] font-medium">Status</span>
+                                <span className="font-bold text-[var(--primary-700)] uppercase">{entry.status}</span>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="p-8 text-center text-[var(--secondary)] italic bg-[var(--secondary-50)] rounded-xl border border-dashed border-[var(--secondary-200)]">
+                        Belum ada data untuk ditampilkan
+                    </div>
+                )}
             </div>
           </div>
         </main>

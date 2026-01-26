@@ -177,7 +177,7 @@ export default function DashboardPage() {
 
           {/* LEADERBOARD SECTION */}
           <div className="card rounded-3xl mb-8 overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="p-6 border-b border-[var(--secondary-100)] flex flex-col md:flex-row justify-between items-center gap-4 bg-gradient-to-r from-[var(--background)] to-white">
+            <div className="p-6 border-b border-[var(--secondary-100)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-[var(--background)] to-white">
               <div>
                 <h3 className="text-xl font-bold text-[var(--primary-900)] flex items-center gap-2">
                   <Trophy className="text-[var(--primary)]" size={24} />
@@ -187,9 +187,9 @@ export default function DashboardPage() {
               </div>
               
               {/* Filter Job */}
-              <div className="relative z-10">
+              <div className="relative z-10 w-full md:w-64">
                 <select 
-                  className="appearance-none bg-white border border-[var(--secondary-200)] text-[var(--secondary-700)] py-2.5 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm font-medium shadow-sm cursor-pointer hover:bg-[var(--secondary-50)] transition-colors"
+                  className="appearance-none w-full bg-white border border-[var(--secondary-200)] text-[var(--secondary-700)] py-2.5 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm font-medium shadow-sm cursor-pointer hover:bg-[var(--secondary-50)] transition-colors"
                   value={selectedJob}
                   onChange={handleFilterChange}
                   disabled={loading}
@@ -202,87 +202,144 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="bg-white">
               {loading ? (
                  <div className="p-20 text-center">
                     <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-[var(--primary)]" />
                     <p className="text-[var(--secondary)] font-medium">Memproses data kandidat...</p>
                  </div>
               ) : (
-                <table className="min-w-full divide-y divide-[var(--secondary-100)]">
-                  <thead className="bg-[var(--secondary-50)]">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Rank</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Kandidat</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Posisi Dilamar</th>
-                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Skor CV</th>
-                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Skor Tes</th>
-                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Total</th>
-                      <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-[var(--secondary-50)]">
-                    {leaderboard.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="px-6 py-16 text-center text-[var(--secondary)]">
-                          <div className="flex flex-col items-center justify-center">
-                            <div className="w-16 h-16 bg-[var(--secondary-100)] rounded-full flex items-center justify-center mb-4">
-                              <Users className="w-8 h-8 text-[var(--secondary-400)]" />
-                            </div>
-                            <p className="text-lg font-medium text-[var(--primary-900)]">Belum ada data</p>
-                            <p className="text-sm text-[var(--secondary)]">Tidak ada kandidat untuk posisi ini.</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      leaderboard.map((candidate, index) => (
-                        <tr 
-                          key={candidate.id} 
-                          className="hover:bg-[var(--primary-50)]/30 transition-all duration-200 group"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center justify-center w-8">
-                               {getRankIcon(index)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white
-                                ${index < 3 ? 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-700)]' : 'bg-[var(--secondary-400)]'}`}>
-                                {candidate.avatar}
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name}</div>
-                                <div className="text-xs text-[var(--secondary)]">{candidate.email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--secondary)] font-medium">
-                            {candidate.position}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className="badge badge-secondary">
-                               {candidate.cvScore}%
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={`badge ${candidate.testScore > 0 ? 'badge-primary' : 'badge-secondary'}`}>
-                              {candidate.testScore > 0 ? `${candidate.testScore}%` : '-'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className="text-lg font-bold text-[var(--primary)]">{candidate.finalScore}</span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={getStatusBadge(candidate.status) + " rounded-full px-3 py-1"}>
-                              {candidate.status}
-                            </span>
-                          </td>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-[var(--secondary-100)]">
+                      <thead className="bg-[var(--secondary-50)]">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Rank</th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Kandidat</th>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Posisi Dilamar</th>
+                          <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Skor CV</th>
+                          <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Skor Tes</th>
+                          <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Total</th>
+                          <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
                         </tr>
-                      ))
+                      </thead>
+                      <tbody className="bg-white divide-y divide-[var(--secondary-50)]">
+                        {leaderboard.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-16 text-center text-[var(--secondary)]">
+                              <div className="flex flex-col items-center justify-center">
+                                <div className="w-16 h-16 bg-[var(--secondary-100)] rounded-full flex items-center justify-center mb-4">
+                                  <Users className="w-8 h-8 text-[var(--secondary-400)]" />
+                                </div>
+                                <p className="text-lg font-medium text-[var(--primary-900)]">Belum ada data</p>
+                                <p className="text-sm text-[var(--secondary)]">Tidak ada kandidat untuk posisi ini.</p>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          leaderboard.map((candidate, index) => (
+                            <tr 
+                              key={candidate.id} 
+                              className="hover:bg-[var(--primary-50)]/30 transition-all duration-200 group"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center justify-center w-8">
+                                   {getRankIcon(index)}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white
+                                    ${index < 3 ? 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-700)]' : 'bg-[var(--secondary-400)]'}`}>
+                                    {candidate.avatar}
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name}</div>
+                                    <div className="text-xs text-[var(--secondary)]">{candidate.email}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--secondary)] font-medium">
+                                {candidate.position}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <span className="badge badge-secondary">
+                                   {candidate.cvScore}%
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <span className={`badge ${candidate.testScore > 0 ? 'badge-primary' : 'badge-secondary'}`}>
+                                  {candidate.testScore > 0 ? `${candidate.testScore}%` : '-'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <span className="text-lg font-bold text-[var(--primary)]">{candidate.finalScore}</span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <span className={getStatusBadge(candidate.status) + " rounded-full px-3 py-1"}>
+                                  {candidate.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden">
+                    {leaderboard.length === 0 ? (
+                       <div className="px-6 py-16 text-center text-[var(--secondary)]">
+                          <div className="w-16 h-16 bg-[var(--secondary-100)] rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <Users className="w-8 h-8 text-[var(--secondary-400)]" />
+                          </div>
+                          <p className="text-lg font-medium text-[var(--primary-900)]">Belum ada data</p>
+                          <p className="text-sm text-[var(--secondary)]">Tidak ada kandidat untuk posisi ini.</p>
+                        </div>
+                    ) : (
+                      <div className="divide-y divide-[var(--secondary-100)]">
+                        {leaderboard.map((candidate, index) => (
+                          <div key={candidate.id} className="p-4 flex items-start gap-3 hover:bg-[var(--secondary-50)] transition-colors">
+                            {/* Rank Column */}
+                            <div className="flex-shrink-0 w-8 flex justify-center pt-1">
+                                {getRankIcon(index)}
+                            </div>
+                            
+                            {/* Info Column */}
+                            <div className="flex-1 min-w-0 pr-2">
+                               <div className="flex items-start gap-3 mb-2">
+                                  <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ring-1 ring-white
+                                      ${index < 3 ? 'bg-gradient-to-br from-[var(--primary)] to-[var(--primary-700)]' : 'bg-[var(--secondary-400)]'}`}>
+                                      {candidate.avatar}
+                                  </div>
+                                  <div className="min-w-0">
+                                     <p className="text-sm font-bold text-[var(--primary-900)] truncate pr-1">{candidate.name}</p>
+                                     <p className="text-xs text-[var(--secondary)] truncate">{candidate.position}</p>
+                                  </div>
+                               </div>
+                               <div className="flex flex-wrap items-center gap-2">
+                                  <span className={getStatusBadge(candidate.status) + " text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap"}>
+                                    {candidate.status}
+                                  </span>
+                                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200 whitespace-nowrap">
+                                    CV: {candidate.cvScore}%
+                                  </span>
+                               </div>
+                            </div>
+
+                            {/* Score Column */}
+                            <div className="flex-shrink-0 text-right">
+                               <span className="text-xl font-bold text-[var(--primary)] block leading-none">{candidate.finalScore}</span>
+                               <span className="text-[10px] text-[var(--secondary-400)] font-medium uppercase mt-1 block">Score</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )}
             </div>
             
@@ -296,9 +353,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick Actions - Using Global Colors */}
+          {/* Quick Actions - Optimized for Mobile */}
           <h3 className="text-lg font-bold text-[var(--primary-900)] mb-4 px-1">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[
               { 
                 title: "Kelola Soal Tes", 
@@ -312,26 +369,26 @@ export default function DashboardPage() {
                 desc: "Upload dan screening CV otomatis dengan AI", 
                 icon: Brain, 
                 href: "/cv-scanner",
-                color: "bg-[var(--secondary-50)] text-[var(--secondary)]" // Monochrome
+                color: "bg-[var(--secondary-50)] text-[var(--secondary)]"
               },
               { 
                 title: "Database Kandidat", 
                 desc: "Lihat profil lengkap dan riwayat hasil tes", 
                 icon: Users, 
                 href: "/candidates",
-                color: "bg-[var(--secondary-50)] text-[var(--secondary)]" // Monochrome
+                color: "bg-[var(--secondary-50)] text-[var(--secondary)]"
               }
             ].map((action, i) => (
               <button 
                 key={i}
                 onClick={() => router.push(action.href)}
-                className="card bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg hover:border-[var(--primary-100)] hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden"
+                className="card bg-white p-5 md:p-6 rounded-2xl shadow-sm hover:shadow-lg hover:border-[var(--primary-100)] hover:-translate-y-1 transition-all duration-300 group text-left relative overflow-hidden"
               >
-                <div className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <action.icon size={24} />
+                <div className={`w-12 h-12 md:w-14 md:h-14 ${action.color} rounded-2xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <action.icon size={22} className="md:w-6 md:h-6" />
                 </div>
-                <h4 className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{action.title}</h4>
-                <p className="text-sm text-[var(--secondary)] mt-2 leading-relaxed">{action.desc}</p>
+                <h4 className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors text-base md:text-lg">{action.title}</h4>
+                <p className="text-xs md:text-sm text-[var(--secondary)] mt-1 md:mt-2 leading-relaxed">{action.desc}</p>
                 
                 <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0 duration-300">
                    <ArrowUpRight className="text-[var(--secondary-300)]" />

@@ -582,7 +582,7 @@ export default function TestManagementPage() {
            />
            {/* Tab Navigation - Modern Pill Style */}
            <div className="px-4 md:px-8 pb-4 pt-1 flex overflow-x-auto scrollbar-hide">
-             <div className="flex p-1 bg-[var(--secondary-100)] rounded-xl">
+             <div className="flex p-1 bg-[var(--secondary-100)] rounded-xl whitespace-nowrap">
                {[
                  { id: "categories", label: "Soal & Kategori" },
                  { id: "test-links", label: "Link Tes Aktif" },
@@ -591,7 +591,7 @@ export default function TestManagementPage() {
                  <button
                    key={tab.id}
                    onClick={() => setActiveTab(tab.id as TabType)}
-                   className={`py-2 px-4 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
+                   className={`py-2 px-4 text-xs font-bold rounded-lg transition-all ${
                      activeTab === tab.id
                        ? "bg-white text-[var(--primary)] shadow-sm"
                        : "text-[var(--secondary-500)] hover:text-[var(--secondary-800)]"
@@ -610,7 +610,7 @@ export default function TestManagementPage() {
           {/* === TAB 1: CATEGORIES === */}
           {activeTab === "categories" && (
             <div className="flex flex-col lg:flex-row gap-6 items-start">
-              <aside className="w-full lg:w-72 sticky top-28">
+              <aside className="w-full lg:w-72 lg:sticky lg:top-28 flex-shrink-0">
                <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
                  <div className="p-4 bg-[var(--secondary-50)] border-b border-[var(--secondary-100)] text-xs font-bold text-[var(--secondary-500)] uppercase tracking-widest">Kategori Tes</div>
                  <div className="divide-y divide-[var(--secondary-50)]">
@@ -756,10 +756,9 @@ export default function TestManagementPage() {
           )}
 
           {/* === TAB 2: TEST LINKS === */}
-{/* === TAB 2: TEST LINKS === */}
           {activeTab === "test-links" && (
             <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-[var(--secondary-200)] flex justify-between items-center bg-[var(--background)]">
+              <div className="p-4 md:p-6 border-b border-[var(--secondary-100)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[var(--background)]">
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-bold text-[var(--primary-900)]">Active Links</h3>
                   <div className="text-xs font-bold bg-white border border-[var(--secondary-200)] px-3 py-1 rounded-full text-[var(--secondary-600)]">
@@ -767,60 +766,85 @@ export default function TestManagementPage() {
                   </div>
                 </div>
 
-                {/* --- [FIX] TOMBOL PEMICU MODAL DITAMBAHKAN DI SINI --- */}
                 <button 
                   onClick={() => setShowCreateLinkModal(true)} 
-                  className="bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-colors shadow-sm"
+                  className="w-full md:w-auto bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center transition-colors shadow-sm"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Buat Link Baru
                 </button>
-                {/* ----------------------------------------------------- */}
-
               </div>
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
-                  <tr>
-                    <th className="p-4">Kandidat</th>
-                    <th className="p-4">Token</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--secondary-50)]">
-                  {localTestLinks.map(link => (
-                    <tr key={link.id} className="hover:bg-[var(--primary-50)]/30 transition-colors">
-                      <td className="p-4 font-bold text-[var(--primary-900)]">{link.candidateName}</td>
-                      <td className="p-4">
-                        <span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-1 rounded ">
-                          {link.token}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                          {link.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <button onClick={() => copyLink(link.token)} className="text-[var(--primary)] hover:text-[var(--primary-700)] font-bold text-xs flex items-center justify-end gap-1 w-full hover:underline transition-colors">
-                          <Copy className="w-3 h-3"/> Copy Link
-                        </button>
-                      </td>
+
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
+                    <tr>
+                      <th className="p-4">Kandidat</th>
+                      <th className="p-4">Token</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Aksi</th>
                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--secondary-50)]">
+                    {localTestLinks.map(link => (
+                      <tr key={link.id} className="hover:bg-[var(--primary-50)]/30 transition-colors">
+                        <td className="p-4 font-bold text-[var(--primary-900)]">{link.candidateName}</td>
+                        <td className="p-4">
+                          <span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-1 rounded ">
+                            {link.token}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                            {link.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex justify-end gap-2">
+                             <button onClick={() => copyLink(link.token)} className="text-[var(--secondary-400)] hover:text-[var(--primary)] p-2 hover:bg-[var(--primary-50)] rounded-lg transition-colors" title="Copy Link"><Copy className="w-4 h-4"/></button>
+                             <button className="text-[var(--secondary-400)] hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Revoke"><X className="w-4 h-4"/></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {localTestLinks.length === 0 && (
+                      <tr><td colSpan={4} className="p-8 text-center text-[var(--secondary)] italic">Belum ada link aktif.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden divide-y divide-[var(--secondary-100)]">
+                  {localTestLinks.map(link => (
+                    <div key={link.id} className="p-4 hover:bg-[var(--secondary-50)] transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                         <div className="font-bold text-[var(--primary-900)]">{link.candidateName}</div>
+                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                            {link.status}
+                         </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-3">
+                         <span className="text-xs text-[var(--secondary)]">Token:</span>
+                         <span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-0.5 rounded ">
+                            {link.token}
+                         </span>
+                      </div>
+                      <div className="flex gap-2">
+                         <button onClick={() => copyLink(link.token)} className="flex-1 py-2 bg-[var(--primary-50)] text-[var(--primary)] text-xs font-bold rounded-lg flex items-center justify-center gap-1 active:scale-95 transition-transform">
+                            <Copy className="w-3 h-3"/> Salin Link
+                         </button>
+                         <button className="flex-1 py-2 bg-red-50 text-red-600 text-xs font-bold rounded-lg flex items-center justify-center gap-1 active:scale-95 transition-transform">
+                            <X className="w-3 h-3"/> Revoke
+                         </button>
+                      </div>
+                    </div>
                   ))}
                   {localTestLinks.length === 0 && (
-                     <tr>
-                       <td colSpan={4} className="p-12 text-center text-[var(--secondary)] italic bg-[var(--secondary-50)]">
-                         <div className="flex flex-col items-center justify-center gap-2">
-                            <LinkIcon className="w-8 h-8 text-[var(--secondary-300)]" />
-                            <p>Belum ada link tes dibuat.</p>
-                            <p className="text-xs text-[var(--secondary-500)]">Klik tombol "+ Buat Link Baru" di pojok kanan atas.</p>
-                         </div>
-                       </td>
-                     </tr>
+                    <div className="p-8 text-center text-[var(--secondary)] italic">Belum ada link aktif.</div>
                   )}
-                </tbody>
-              </table>
+              </div>
             </div>
           )}
           
@@ -841,7 +865,78 @@ export default function TestManagementPage() {
                   <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.filter(s => s.test_type === 'kraepelin').length}</div><div className="text-sm text-[var(--secondary)]">Kraepelin Completed</div></div>
                 </div>
               </div>
-              {renderSubmissionTable()}
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                 {renderSubmissionTable()}
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                 {submissions.map((sub) => {
+                    let scoreBadge = <span className="text-[var(--secondary)] italic text-xs">Menunggu...</span>;
+                    if (sub.scores && Object.keys(sub.scores).length > 0) {
+                      if (sub.test_type === 'cfit') {
+                        const iq = sub.scores.iq || 0;
+                        const color = iq >= 110 ? 'text-green-600 bg-green-50 border-green-200' : (iq >= 90 ? 'text-[var(--primary)] bg-[var(--primary-50)] border-[var(--primary-200)]' : 'text-red-600 bg-red-50 border-red-200');
+                        scoreBadge = (
+                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border ${color}`}>
+                            <span className="font-bold text-xs">IQ: {iq}</span>
+                            <span className="text-[10px] uppercase opacity-80 border-l border-current pl-2">{sub.scores.classification}</span>
+                          </div>
+                        );
+                      } else if (sub.test_type === 'kraepelin') {
+                           scoreBadge = (
+                              <div className="flex flex-wrap gap-2 text-xs">
+                                <span className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200">Speed: <b>{sub.scores.panker}</b></span>
+                                <span className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200">Acc: <b>{sub.scores.janker}</b></span>
+                              </div>
+                           );
+                      } else if (sub.test_type === 'papi') {
+                        scoreBadge = (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 text-orange-700 text-xs border border-orange-100 font-medium">
+                            <CheckCircle className="w-3 h-3"/> Ready
+                          </span>
+                        );
+                      }
+                    }
+
+                    return (
+                        <div key={sub.id} className="card-static bg-white border border-[var(--secondary-200)] rounded-xl p-4 shadow-sm">
+                           <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-[var(--secondary-100)] flex items-center justify-center text-[var(--secondary-600)] font-bold text-sm">
+                                  {sub.candidate_name ? sub.candidate_name.charAt(0).toUpperCase() : "?"}
+                                </div>
+                                <div>
+                                   <div className="font-bold text-[var(--primary-900)] text-sm">{sub.candidate_name}</div>
+                                   <div className="text-[10px] text-[var(--secondary)] flex items-center gap-1">
+                                      <Calendar size={10}/> {new Date(sub.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} • {new Date(sub.submitted_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                   </div>
+                                </div>
+                              </div>
+                              <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border ${getTestBadgeColor(sub.test_type)}`}>
+                                {sub.test_type}
+                              </span>
+                           </div>
+                           
+                           <div className="mb-4 bg-[var(--secondary-50)] p-3 rounded-lg border border-[var(--secondary-100)]">
+                              <span className="text-[10px] font-bold text-[var(--secondary-500)] uppercase block mb-1">Result Summary</span>
+                              {scoreBadge}
+                           </div>
+
+                           <button 
+                             onClick={() => setShowDetailModal(sub)}
+                             className="w-full py-2.5 bg-white border border-[var(--secondary-200)] text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
+                           >
+                             <Eye className="w-3.5 h-3.5"/> Lihat Detail Lengkap
+                           </button>
+                        </div>
+                    );
+                 })}
+                 {submissions.length === 0 && (
+                     <div className="p-8 text-center text-[var(--secondary)] bg-[var(--secondary-50)] rounded-xl border border-dashed border-[var(--secondary-200)]">Belum ada data submission.</div>
+                 )}
+              </div>
             </div>
           )}
 
@@ -851,167 +946,118 @@ export default function TestManagementPage() {
 
       {/* --- CREATE LINK MODAL --- */}
       {showCreateLinkModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowCreateLinkModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 border border-[var(--secondary-200)] animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-             <div className="flex justify-between items-center border-b border-[var(--secondary-100)] pb-4">
-                <h3 className="font-bold text-lg text-[var(--primary-900)]">Buat Link Baru</h3>
-                <button onClick={() => setShowCreateLinkModal(false)} className="text-[var(--secondary-400)] hover:text-[var(--secondary-700)]"><X className="w-5 h-5" /></button>
-             </div>
-             
-             <div className="space-y-4">
-               {/* DROPDOWN KANDIDAT */}
-               <div>
-                 <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-1 block">Pilih Kandidat</label>
-                 <select 
-                   value={selectedCandidateId} 
-                   onChange={(e) => setSelectedCandidateId(e.target.value)} 
-                   className="w-full border border-[var(--secondary-200)] p-3 rounded-xl focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)] outline-none bg-white text-[var(--primary-900)]"
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+                <h3 className="text-lg font-bold text-[var(--primary-900)]">Buat Link Tes Baru</h3>
+                <button onClick={() => setShowCreateLinkModal(false)}><X className="text-[var(--secondary-400)] hover:text-red-500 transition-colors" /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                   <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Pilih Kandidat</label>
+                   <select 
+                     value={selectedCandidateId} 
+                     onChange={(e) => setSelectedCandidateId(e.target.value)}
+                     className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
+                   >
+                     <option value="">-- Pilih Kandidat --</option>
+                     {candidatesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                   </select>
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Posisi (Opsional)</label>
+                   <select 
+                     value={selectedJobId} 
+                     onChange={(e) => setSelectedJobId(e.target.value)}
+                     className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
+                   >
+                     <option value="">-- Tidak Spesifik --</option>
+                     {jobsList.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
+                   </select>
+                </div>
+                <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)] flex gap-3">
+                   <AlertCircle className="w-5 h-5 text-[var(--primary)] flex-shrink-0" />
+                   <p className="text-xs text-[var(--primary-800)] leading-relaxed">
+                      Link akan otomatis berisi 3 paket tes (CFIT, PAPI, Kraepelin). Token unik akan di-generate untuk akses kandidat.
+                   </p>
+                </div>
+              </div>
+              <div className="p-6 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-gray-50">
+                 <button onClick={() => setShowCreateLinkModal(false)} className="px-5 py-2.5 text-[var(--secondary-600)] font-bold text-sm hover:bg-gray-100 rounded-xl transition-colors">Batal</button>
+                 <button 
+                   onClick={handleGenerateLink} 
+                   disabled={isGeneratingLink}
+                   className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white font-bold text-sm rounded-xl transition-colors flex items-center shadow-lg shadow-teal-500/20 disabled:opacity-50"
                  >
-                   <option value="" disabled>-- Pilih dari Database --</option>
-                   {candidatesList.map((candidate) => (
-                     <option key={candidate.id} value={candidate.id}>
-                       {candidate.name} - {candidate.top_position}
-                     </option>
-                   ))}
-                 </select>
-                 {candidatesList.length === 0 && (
-                   <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12}/> Belum ada kandidat. Upload CV dulu.</p>
-                 )}
-               </div>
-
-               {/* DROPDOWN JOB POSITION */}
-               <div>
-                 <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-1 block">Pilih Posisi (Opsional)</label>
-                 <select 
-                   value={selectedJobId} 
-                   onChange={(e) => setSelectedJobId(e.target.value)} 
-                   className="w-full border border-[var(--secondary-200)] p-3 rounded-xl focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)] outline-none bg-white text-[var(--primary-900)]"
-                 >
-                   <option value="" disabled>-- Pilih Posisi Pekerjaan --</option>
-                   <option value="">(Semua Posisi / Umum)</option>
-                   {jobsList.map((job) => (
-                     <option key={job.id} value={job.id}>
-                       {job.title}
-                     </option>
-                   ))}
-                 </select>
-               </div>
-             </div>
-
-             <div className="flex gap-2 pt-4">
-                <button onClick={() => setShowCreateLinkModal(false)} className="flex-1 py-3 text-[var(--secondary-600)] font-bold hover:bg-[var(--secondary-50)] rounded-xl border border-[var(--secondary-200)] transition-colors">Batal</button>
-                <button 
-                  onClick={handleGenerateLink} 
-                  disabled={isGeneratingLink || !selectedCandidateId} 
-                  className="flex-[2] bg-[var(--primary)] text-white py-3 rounded-xl font-bold hover:bg-[var(--primary-700)] disabled:bg-[var(--secondary-200)] disabled:text-[var(--secondary-400)] transition-colors shadow-sm"
-                >
-                  {isGeneratingLink ? 'Memproses...' : 'Generate Link'}
-                </button>
-             </div>
+                   {isGeneratingLink ? <RefreshCw className="animate-spin w-4 h-4 mr-2"/> : <Zap className="w-4 h-4 mr-2"/>}
+                   Generate Link
+                 </button>
+              </div>
+            </div>
           </div>
-        </div>
       )}
 
       {showQuestionModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowQuestionModal(false)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4 border border-[var(--secondary-200)] animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center border-b border-[var(--secondary-100)] pb-4">
-                <h3 className="font-bold text-lg text-[var(--primary-900)]">{isCfitCategory ? `Tambah CFIT: ${selectedCfitSubtype?.name}` : `Tambah Soal: ${selectedCategory?.name}`}</h3>
-                <button onClick={() => setShowQuestionModal(false)} className="text-[var(--secondary-400)] hover:text-[var(--secondary-700)]"><X className="w-5 h-5" /></button>
-              </div>
-              
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
+            <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+              <h3 className="text-lg font-bold text-[var(--primary-900)]">Tambah Soal {isCfitCategory ? 'CFIT' : 'PAPI'}</h3>
+              <button onClick={() => setShowQuestionModal(false)}><X className="text-[var(--secondary-400)] hover:text-red-500 transition-colors" /></button>
+            </div>
+            <div className="p-6 space-y-4">
               {isCfitCategory ? (
                 <div className="space-y-4">
-                  <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-[var(--secondary-200)] rounded-2xl p-8 text-center cursor-pointer hover:bg-[var(--secondary-50)] hover:border-[var(--primary-300)] transition-all">
-                     <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleImageUpload} />
-                     {imagePreview ? <img src={imagePreview} className="max-h-48 mx-auto rounded shadow-sm" /> : <div className="text-[var(--secondary-400)] text-sm"><Upload className="w-8 h-8 mx-auto mb-2 text-[var(--secondary-300)]"/>Klik untuk Upload Gambar Soal</div>}
+                  <div>
+                    <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-1 block">Gambar Soal</label>
+                    <input type="file" onChange={handleImageUpload} className="w-full text-sm text-[var(--secondary-700)] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[var(--primary-50)] file:text-[var(--primary)] hover:file:bg-[var(--primary-100)]" />
+                    {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 max-h-48 object-contain mx-auto rounded-lg border border-[var(--secondary-200)]" />}
                   </div>
                   <div>
                     <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-2 block">Kunci Jawaban</label>
-                    <div className="flex justify-center gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap">
                       {getOptionLabels(selectedCfitSubtype?.optionCount || 6).map(lbl => (
                         <button key={lbl} onClick={() => setCorrectAnswer(lbl)} className={`w-10 h-10 rounded-lg font-bold border transition-all ${correctAnswer === lbl ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md' : 'text-[var(--secondary-400)] border-[var(--secondary-200)] hover:bg-[var(--secondary-50)]'}`}>{lbl}</button>
                       ))}
                     </div>
                   </div>
-                  <button onClick={handleAddCfitQuestion} disabled={isSubmitting} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3 rounded-xl font-bold shadow-sm transition-colors">{isSubmitting ? "Uploading..." : "Simpan Soal CFIT"}</button>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-1 block">Opsi A</label>
-                    <textarea placeholder="Pernyataan A" value={optionA} onChange={e => setOptionA(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)]" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-1 block">Opsi B</label>
-                    <textarea placeholder="Pernyataan B" value={optionB} onChange={e => setOptionB(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)]" />
-                  </div>
-                  <button onClick={handleAddPapiQuestion} disabled={isSubmitting} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3 rounded-xl font-bold shadow-sm transition-colors">{isSubmitting ? "Menyimpan..." : "Simpan Soal PAPI"}</button>
+                   <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Opsi A (Pernyataan 1)</label><textarea value={optionA} onChange={e => setOptionA(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)]/20 outline-none" rows={2} placeholder="Saya suka bekerja keras..." /></div>
+                   <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Opsi B (Pernyataan 2)</label><textarea value={optionB} onChange={e => setOptionB(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)]/20 outline-none" rows={2} placeholder="Saya suka menjadi pemimpin..." /></div>
                 </div>
               )}
+              
+              <div className="flex gap-2 pt-4">
+                 <button onClick={() => setShowQuestionModal(false)} className="flex-1 py-3 text-[var(--secondary-600)] font-bold hover:bg-[var(--secondary-50)] rounded-xl border border-[var(--secondary-200)] transition-colors">Batal</button>
+                 <button onClick={isCfitCategory ? handleAddCfitQuestion : handleAddPapiQuestion} disabled={isSubmitting} className="flex-[2] bg-[var(--primary)] text-white py-3 rounded-xl font-bold hover:bg-[var(--primary-700)] disabled:bg-[var(--secondary-200)] disabled:text-[var(--secondary-400)] transition-colors shadow-sm text-sm">
+                   {isSubmitting ? 'Menyimpan...' : 'Simpan Soal'}
+                 </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {showDetailModal && (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm transition-all" onClick={() => setShowDetailModal(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform transition-all scale-100 border border-[var(--secondary-200)] overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            {/* Header Modal */}
-            <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-start bg-white z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--primary)] text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg shadow-[var(--primary-200)]">
-                    {showDetailModal.candidate_name ? showDetailModal.candidate_name.charAt(0).toUpperCase() : "U"}
-                </div>
-                <div>
-                    <h3 className="font-bold text-xl text-[var(--primary-900)]">{showDetailModal.candidate_name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--secondary-500)] border border-[var(--secondary-200)] px-2 py-0.5 rounded-md">
-                            {showDetailModal.test_type} RESULT
-                        </span>
-                        <span className="w-1.5 h-1.5 bg-[var(--secondary-300)] rounded-full"></span>
-                        <span className="text-xs text-[var(--secondary-400)] flex items-center gap-1">
-                            <Clock size={10} />
-                            {new Date(showDetailModal.submitted_at).toLocaleString('id-ID')}
-                        </span>
-                    </div>
-                </div>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+              <div className="p-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] shrink-0">
+                 <div>
+                    <h3 className="text-lg font-bold text-[var(--primary-900)]">Detail Hasil Tes</h3>
+                    <p className="text-xs text-[var(--secondary)]">Kandidat: {showDetailModal.candidate_name}</p>
+                 </div>
+                 <button onClick={() => setShowDetailModal(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X className="text-[var(--secondary-400)]" /></button>
               </div>
-              <button onClick={() => setShowDetailModal(null)} className="p-2 hover:bg-[var(--secondary-50)] text-[var(--secondary-400)] rounded-full transition-colors"><X className="w-5 h-5" /></button>
-            </div>
-
-            {/* Content Body */}
-            <div className="p-8 overflow-y-auto bg-white flex-1">
-                {renderDetailContent(showDetailModal)}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-[var(--secondary-100)] bg-[var(--background)] flex justify-end">
-              <button onClick={() => setShowDetailModal(null)} className="px-6 py-2.5 bg-white border border-[var(--secondary-200)] text-[var(--secondary-700)] rounded-xl font-bold text-sm hover:bg-[var(--secondary-50)] shadow-sm transition-all active:scale-95">
-                Tutup Panel
-              </button>
-            </div>
-          </div>
+              <div className="p-6 overflow-y-auto flex-1">
+                 {renderDetailContent(showDetailModal)}
+              </div>
+              <div className="p-4 border-t border-[var(--secondary-100)] bg-gray-50 flex justify-end">
+                 <button onClick={() => setShowDetailModal(null)} className="px-5 py-2 bg-white border border-[var(--secondary-200)] text-[var(--secondary-700)] font-bold text-sm rounded-xl hover:bg-[var(--secondary-50)]">Tutup</button>
+              </div>
+           </div>
         </div>
       )}
-
-      {showCreateSubtypeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-[var(--secondary-200)]">
-             <h3 className="font-bold mb-4 text-[var(--primary-900)]">Buat Tipe Soal Baru</h3>
-             <button onClick={() => setShowCreateSubtypeModal(false)} className="bg-[var(--secondary-100)] px-4 py-2 rounded-xl text-[var(--secondary-700)] font-bold">Tutup</button>
-          </div>
-        </div>
-      )}
-
-      {showEditSubtypeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg p-6 rounded-2xl shadow-xl border border-[var(--secondary-200)]">
-             <h3 className="font-bold mb-4 text-[var(--primary-900)]">Edit Tipe Soal</h3>
-             <button onClick={() => setShowEditSubtypeModal(false)} className="bg-[var(--secondary-100)] px-4 py-2 rounded-xl text-[var(--secondary-700)] font-bold">Tutup</button>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

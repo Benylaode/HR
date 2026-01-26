@@ -118,6 +118,8 @@ def generate_verdict(context, job_description):
     
     Output WAJIB berupa JSON valid dengan format persis seperti ini:
     {{
+        "city": "Kota domisili kandidat (contoh: Jakarta, Surabaya)",
+        "current_role": "Posisi pekerjaan saat ini atau terakhir",
         "education": [{{"institution": "Nama Univ", "degree": "Gelar", "major": "Jurusan", "year": "Tahun"}}],
         "experience": [{{"company": "Nama Perusahaan", "role": "Posisi", "duration": "Lama kerja", "details": "Deskripsi singkat"}}],
         "skills": ["Skill 1", "Skill 2"],
@@ -161,6 +163,8 @@ def generate_verdict(context, job_description):
 
     except Exception as e:
         return {
+            "city": None,
+            "current_role": None,
             "education": [{"institution": "Unknown", "degree": "-", "major": "-", "year": "-"}],
             "experience": [{"company": "-", "role": "-", "duration": "-", "details": "-"}],
             "skills": [],
@@ -199,6 +203,8 @@ def save_candidate_result_structured(resume_id, job_id, meta, extracted_data, ma
                 email=extract_email(raw_text) or "Not found",
                 phone=extract_phone(raw_text) or "Not found",
                 # Isi data terstruktur dari LLM
+                city=extracted_data.get("city"),
+                current_role=extracted_data.get("current_role"),
                 education=extracted_data.get("education", []),
                 experience=extracted_data.get("experience", []),
                 skills=extracted_data.get("skills", []),
@@ -212,6 +218,8 @@ def save_candidate_result_structured(resume_id, job_id, meta, extracted_data, ma
             db.session.flush() # Agar kita dapat ID candidate
         else:
             # Update data candidate jika sudah ada (opsional, tergantung kebutuhan)
+            candidate.city = extracted_data.get("city", candidate.city)
+            candidate.current_role = extracted_data.get("current_role", candidate.current_role)
             candidate.education = extracted_data.get("education", [])
             candidate.experience = extracted_data.get("experience", [])
             candidate.skills = extracted_data.get("skills", [])
