@@ -214,14 +214,14 @@ export default function CVScannerPage() {
       const uploadData = await uploadRes.json();
       const resumeId = uploadData.id;
 
-      const headers = {
-        ...getAuthHeaders(), // Token Authorization Anda
-        "Content-Type": "application/json", // <--- WAJIB ADA untuk method POST dengan body JSON
-      };
+      // const headers = {
+      //   ...getAuthHeaders(), // Token Authorization Anda
+      //   "Content-Type": "application/json", // <--- WAJIB ADA untuk method POST dengan body JSON
+      // };
       // 2. Match
       const matchRes = await fetch(`${API_BASE_URL}/screening/match_resume`, {
         method: "POST",
-        headers: headers, 
+        headers: getAuthHeaders(), 
         body: JSON.stringify({
           resume_id: resumeId,
           job_id: selectedPosition?.id,
