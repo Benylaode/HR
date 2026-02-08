@@ -7,13 +7,9 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import {
   CloudUpload,
-  FileText,
-  CheckCircle,
-  Star,
   Briefcase,
   Search,
   Trash2,
-  Download,
   Trophy,
   Users,
   Target,
@@ -23,13 +19,12 @@ import {
   Phone,
   GraduationCap,
   Clock,
-  Award,
   Loader2,
   AlertCircle,
-  Eye,
   RefreshCw,
   Zap,
-  Check
+  Star,
+  CheckCircle
 } from "lucide-react";
 
 // Backend API URL
@@ -67,6 +62,7 @@ interface CVCandidate {
   verdict: string;
   created_at: string;
   fileName?: string;
+  application_status?: string; // Ditambahkan sesuai backend
 }
 
 type Step = "select-job" | "upload" | "results";
@@ -91,13 +87,15 @@ export default function CVScannerPage() {
   const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking");
   const [loadingJobs, setLoadingJobs] = useState(false);
 
-    const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  // Helper Headers untuk request JSON standard (GET data, Match resume, dll)
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
+
   const checkBackendStatus = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/screening/candidates`, { headers: getAuthHeaders() });
@@ -165,24 +163,35 @@ export default function CVScannerPage() {
   // --- LOGIKA UTAMA: PROSES PARALEL UNTUK 5 FILE ---
   const processSingleFile = async (file: File, index: number, total: number) => {
     try {
-      // 1. Upload
+      // 1. Upload (FormData)
       const formData = new FormData();
       formData.append("file", file);
+
+      // PENTING: Ambil token manual. 
+      // JANGAN set Content-Type: application/json untuk FormData!
+      const token = localStorage.getItem("hr_token");
 
       const uploadRes = await fetch(`${API_BASE_URL}/screening/upload_resume`, {
         method: "POST",
         body: formData,
-        headers: getAuthHeaders(),
+        headers: {
+            // Browser otomatis set Content-Type: multipart/form-data; boundary=...
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
-      if (!uploadRes.ok) throw new Error(`Gagal upload: ${file.name}`);
+      if (!uploadRes.ok) {
+        const errJson = await uploadRes.json();
+        throw new Error(errJson.error || `Gagal upload: ${file.name}`);
+      }
+      
       const uploadData = await uploadRes.json();
       const resumeId = uploadData.id;
 
-      // 2. Match
+      // 2. Match (JSON Body) -> Pakai getAuthHeaders() aman disini
       const matchRes = await fetch(`${API_BASE_URL}/screening/match_resume`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: getAuthHeaders(), 
         body: JSON.stringify({
           resume_id: resumeId,
           job_id: selectedPosition?.id,
@@ -273,6 +282,8 @@ export default function CVScannerPage() {
   };
 
   const deleteCandidate = async (id: string) => {
+    // Note: Anda mungkin perlu menambahkan endpoint delete di backend nanti
+    // Untuk sekarang hanya update UI
     setCandidates((prev) => prev.filter((c) => c.id !== id));
   };
 
@@ -407,7 +418,7 @@ export default function CVScannerPage() {
               <div className="bg-[var(--primary-50)] border border-[var(--primary-100)] p-5 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-[var(--primary)] rounded-lg flex items-center justify-center text-white shadow-sm flex-shrink-0">
-                     <Briefcase size={20} />
+                      <Briefcase size={20} />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-[var(--primary-600)] uppercase tracking-wide">Selected Position</p>
@@ -550,13 +561,13 @@ export default function CVScannerPage() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between sm:block sm:text-right border-t sm:border-0 border-[var(--secondary-100)] pt-3 sm:pt-0">
-                         <span className="text-sm font-bold text-[var(--secondary-500)] sm:hidden">Score:</span>
-                         <div>
+                          <span className="text-sm font-bold text-[var(--secondary-500)] sm:hidden">Score:</span>
+                          <div>
                             <span className={`text-2xl font-bold ${candidate.match_score >= 80 ? "text-green-600" : "text-[var(--primary)]"}`}>
                               {candidate.match_score}%
                             </span>
                             <p className="hidden sm:block text-[10px] uppercase font-bold text-[var(--secondary-400)]">Match Score</p>
-                         </div>
+                          </div>
                       </div>
                     </div>
                   ))}
