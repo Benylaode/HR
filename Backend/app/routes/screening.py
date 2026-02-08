@@ -225,7 +225,8 @@ def generate_verdict(context: str, job_description: str) -> Dict[str, Any]:
 
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-3.3-70b-instruct:free", 
+        # model="meta-llama/llama-3.3-70b-instruct:free", 
+            model = "deepseek/deepseek-r1-0528:free",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
