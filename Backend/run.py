@@ -1,7 +1,20 @@
 from app import create_app, db
 import os
+from flask_cors import CORS
 
 app = create_app()
+
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",           # Untuk test lokal
+            "https://caturcomputer.com",       # Domain Frontend Utama
+            "https://www.caturcomputer.com"    # Domain dengan www
+        ],
+        "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Title", "X-Requested-With"]
+    }
+})
 
 with app.app_context():
     db.create_all()
