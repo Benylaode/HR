@@ -198,7 +198,8 @@ def generate_verdict(context: str, job_description: str) -> Dict[str, Any]:
         # Panggil API LLM (Sesuaikan client Anda)
         # Contoh menggunakan format OpenAI / DeepSeek
         response = client.chat.completions.create(
-            model="tngtech/deepseek-r1t-chimera:free", # Atau model pilihan Anda
+            # model="tngtech/deepseek-r1t-chimera:free", # Atau model pilihan Anda
+            model="meta-llama/llama-3.3-70b-instruct:free",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
