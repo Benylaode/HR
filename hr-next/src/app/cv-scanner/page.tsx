@@ -24,13 +24,19 @@ import {
   RefreshCw,
   Zap,
   Star,
-  CheckCircle
+  CheckCircle,
+  MapPin,
+  Building,
+  Calendar,
+  FileText
 } from "lucide-react";
 
 // Backend API URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const MAX_FILES_BATCH = 5; // Batas upload bersamaan
+
+// --- TYPE DEFINITIONS ---
 
 interface JobPosition {
   id: string;
@@ -48,21 +54,45 @@ interface JobPosition {
   formattedSalary?: string; 
 }
 
+// Struktur Data Detail untuk Education & Experience
+interface EducationDetail {
+  institution: string;
+  degree: string;
+  major: string;
+  year: string;
+}
+
+interface ExperienceDetail {
+  company: string;
+  role: string;
+  duration: string;
+  details: string;
+}
+
 interface CVCandidate {
   id: string;
   resume_id: string;
   name: string;
   email: string;
   phone: string;
-  education: string;
-  experience: string;
+  
+  // Update: Support String (Legacy) atau Array Object (New Deterministic)
+  education: EducationDetail[] | string;
+  experience: ExperienceDetail[] | string;
+  
   skills: string[];
+  
+  // New Fields dari Deterministic Parser
+  city?: string;
+  current_role?: string;
+  summary?: string;
+  
   top_position: string;
   match_score: number;
   verdict: string;
   created_at: string;
   fileName?: string;
-  application_status?: string; // Ditambahkan sesuai backend
+  application_status?: string; 
 }
 
 type Step = "select-job" | "upload" | "results";
@@ -87,7 +117,7 @@ export default function CVScannerPage() {
   const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline">("checking");
   const [loadingJobs, setLoadingJobs] = useState(false);
 
-  // Helper Headers untuk request JSON standard (GET data, Match resume, dll)
+  // Helper Headers
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
     return {
@@ -163,19 +193,15 @@ export default function CVScannerPage() {
   // --- LOGIKA UTAMA: PROSES PARALEL UNTUK 5 FILE ---
   const processSingleFile = async (file: File, index: number, total: number) => {
     try {
-      // 1. Upload (FormData)
+      // 1. Upload
       const formData = new FormData();
       formData.append("file", file);
-
-      // PENTING: Ambil token manual. 
-      // JANGAN set Content-Type: application/json untuk FormData!
       const token = localStorage.getItem("hr_token");
 
       const uploadRes = await fetch(`${API_BASE_URL}/screening/upload_resume`, {
         method: "POST",
         body: formData,
         headers: {
-            // Browser otomatis set Content-Type: multipart/form-data; boundary=...
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
@@ -188,14 +214,14 @@ export default function CVScannerPage() {
       const uploadData = await uploadRes.json();
       const resumeId = uploadData.id;
 
-      // 2. Match (JSON Body) -> Pakai getAuthHeaders() aman disini
+      // 2. Match
       const matchRes = await fetch(`${API_BASE_URL}/screening/match_resume`, {
         method: "POST",
         headers: getAuthHeaders(), 
         body: JSON.stringify({
           resume_id: resumeId,
           job_id: selectedPosition?.id,
-          job_description: selectedPosition?.job_description, // Fallback context
+          job_description: selectedPosition?.job_description,
         }),
       });
 
@@ -210,13 +236,10 @@ export default function CVScannerPage() {
 
   const handleFileUpload = async (files: File[]) => {
     if (!selectedPosition) return;
-
     if (backendStatus === "offline") {
       setError("Backend tidak tersedia. Pastikan Flask server berjalan di port 5000.");
       return;
     }
-
-    // Validasi maksimal 5 file
     if (files.length > MAX_FILES_BATCH) {
       setError(`Maksimal ${MAX_FILES_BATCH} file yang dapat diupload sekaligus.`);
       return;
@@ -227,26 +250,18 @@ export default function CVScannerPage() {
     setProcessingText(`Memproses ${files.length} CV secara bersamaan...`);
 
     try {
-      // Jalankan semua proses upload & match secara PARALEL (Bersamaan)
       const results = await Promise.all(files.map((file, i) => processSingleFile(file, i, files.length)));
-
-      // Cek hasil
       const failed = results.filter(r => !r.success);
-      const succeeded = results.filter(r => r.success);
 
-      await loadCandidatesFromDB(); // Refresh data
+      await loadCandidatesFromDB(); 
 
       if (failed.length > 0) {
-        setError(`Selesai dengan catatan: ${failed.length} file gagal diproses (${failed.map(f => f.file).join(", ")}).`);
+        setError(`Selesai dengan catatan: ${failed.length} file gagal diproses.`);
       } else {
-        setProcessingText(`Sukses! ${succeeded.length} CV berhasil diproses.`);
-        // Beri jeda sedikit agar user bisa membaca status sukses sebelum pindah halaman
-        setTimeout(() => {
-            setCurrentStep("results");
-        }, 1000);
-        return; // Jangan langsung setProcessing false agar loading state tetap ada sebentar
+        setProcessingText("Analisis Selesai!");
+        setTimeout(() => { setCurrentStep("results"); }, 1000);
+        return; 
       }
-
     } catch (err) {
       console.error("Batch processing error:", err);
       setError("Terjadi kesalahan saat memproses batch file.");
@@ -281,9 +296,39 @@ export default function CVScannerPage() {
       : 0,
   };
 
+  // Helper render untuk Education/Experience yang bisa berupa String atau Array
+  const renderListOrString = (data: any[] | string, type: 'edu' | 'exp') => {
+    if (Array.isArray(data)) {
+      if (data.length === 0) return <p className="text-gray-400 italic text-sm">Data tidak ditemukan</p>;
+      return (
+        <div className="space-y-4">
+          {data.map((item, idx) => (
+            <div key={idx} className="relative pl-4 border-l-2 border-gray-200">
+               <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+               {type === 'edu' ? (
+                 <>
+                    <p className="font-bold text-gray-800">{(item as EducationDetail).institution}</p>
+                    <p className="text-sm text-gray-600">{(item as EducationDetail).degree} - {(item as EducationDetail).major}</p>
+                    <p className="text-xs text-gray-400">{(item as EducationDetail).year}</p>
+                 </>
+               ) : (
+                 <>
+                    <p className="font-bold text-gray-800">{(item as ExperienceDetail).role}</p>
+                    <p className="text-sm font-semibold text-primary">{(item as ExperienceDetail).company}</p>
+                    <p className="text-xs text-gray-500 mb-1">{(item as ExperienceDetail).duration}</p>
+                    <p className="text-xs text-gray-600 leading-relaxed">{(item as ExperienceDetail).details}</p>
+                 </>
+               )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    // Fallback jika data masih string (format lama)
+    return <p className="text-sm text-gray-600 whitespace-pre-line">{data || "-"}</p>;
+  };
+
   const deleteCandidate = async (id: string) => {
-    // Note: Anda mungkin perlu menambahkan endpoint delete di backend nanti
-    // Untuk sekarang hanya update UI
     setCandidates((prev) => prev.filter((c) => c.id !== id));
   };
 
@@ -299,35 +344,31 @@ export default function CVScannerPage() {
           onRefresh={() => { loadJobPositions(); loadCandidatesFromDB(); }}
         />
         <main className="p-4 md:p-8 flex-1">
-          {/* Backend Status */}
+          {/* Backend Status & Error UI (Sama seperti sebelumnya) */}
           {backendStatus === "offline" && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
               <AlertCircle className="text-red-600" />
               <div>
                 <p className="text-red-800 font-bold">Backend Tidak Tersedia</p>
-                <p className="text-red-600 text-sm">
-                  Pastikan Flask server berjalan: <code className="bg-red-100 px-2 py-0.5 rounded">cd Backend && python run.py</code>
-                </p>
+                <p className="text-red-600 text-sm">Pastikan Flask server berjalan.</p>
               </div>
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="text-red-600" />
-                <p className="text-red-700 font-medium">{error}</p>
-              </div>
-              <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
-                <X size={20} />
-              </button>
-            </div>
+             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                 <AlertCircle className="text-red-600" />
+                 <p className="text-red-700 font-medium">{error}</p>
+               </div>
+               <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800"><X size={20}/></button>
+             </div>
           )}
 
-          {/* Header & Steps */}
+          {/* Stepper Header (Sama seperti sebelumnya) */}
           <div className="card-static bg-white border border-[var(--secondary-200)] p-6 mb-8 rounded-2xl">
-            <div className="flex justify-between items-center flex-wrap gap-4">
+             {/* ... (Kode Stepper sama, tidak diubah) ... */}
+             <div className="flex justify-between items-center flex-wrap gap-4">
               <div>
                 <h2 className="text-xl font-bold text-[var(--primary-900)] flex items-center gap-2">
                    <Zap className="text-[var(--primary)]" size={24}/> AI CV Scanner
@@ -341,29 +382,30 @@ export default function CVScannerPage() {
                 <Trash2 size={16} className="mr-2" /> Reset Process
               </button>
             </div>
-
-            <div className="flex items-center gap-2 md:gap-4 mt-8 overflow-x-auto pb-2">
-              <div className={`flex items-center gap-3 ${currentStep === "select-job" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
-                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "select-job" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>1</div>
-                <span className="whitespace-nowrap">Pilih Posisi</span>
-              </div>
-              <ChevronRight className="text-[var(--secondary-200)]" size={16} />
-              <div className={`flex items-center gap-3 ${currentStep === "upload" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
-                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "upload" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>2</div>
-                <span className="whitespace-nowrap">Upload CV</span>
-              </div>
-              <ChevronRight className="text-[var(--secondary-200)]" size={16} />
-              <div className={`flex items-center gap-3 ${currentStep === "results" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
-                <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "results" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>3</div>
-                <span className="whitespace-nowrap">Hasil Analisis</span>
-              </div>
-            </div>
+             <div className="flex items-center gap-2 md:gap-4 mt-8 overflow-x-auto pb-2">
+                {/* Stepper UI ... */}
+                <div className={`flex items-center gap-3 ${currentStep === "select-job" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
+                    <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "select-job" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>1</div>
+                    <span className="whitespace-nowrap">Pilih Posisi</span>
+                </div>
+                <ChevronRight className="text-[var(--secondary-200)]" size={16} />
+                <div className={`flex items-center gap-3 ${currentStep === "upload" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
+                    <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "upload" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>2</div>
+                    <span className="whitespace-nowrap">Upload CV</span>
+                </div>
+                <ChevronRight className="text-[var(--secondary-200)]" size={16} />
+                <div className={`flex items-center gap-3 ${currentStep === "results" ? "text-[var(--primary)] font-bold" : "text-[var(--secondary)]"}`}>
+                    <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm ${currentStep === "results" ? "bg-[var(--primary)] text-white" : "bg-[var(--secondary-100)] text-[var(--secondary-500)]"}`}>3</div>
+                    <span className="whitespace-nowrap">Hasil Analisis</span>
+                </div>
+             </div>
           </div>
 
-          {/* Step 1: Select Job Position */}
+          {/* Step 1: Select Job (Sama seperti sebelumnya) */}
           {currentStep === "select-job" && (
             <div className="card-static bg-white border border-[var(--secondary-200)] p-4 md:p-6 rounded-2xl">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+               {/* ... (Logic pemilihan job sama) ... */}
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <h3 className="text-lg font-bold text-[var(--primary-900)]">Pilih Posisi yang Dicari</h3>
                 <button onClick={loadJobPositions} className="text-[var(--primary)] hover:bg-[var(--primary-50)] p-2 rounded-full transition-colors self-end md:self-auto">
                   <RefreshCw size={20} className={loadingJobs ? "animate-spin" : ""} />
@@ -379,7 +421,6 @@ export default function CVScannerPage() {
                 <div className="text-center py-16 bg-[var(--secondary-50)] border border-dashed border-[var(--secondary-200)] rounded-xl">
                   <Briefcase className="w-12 h-12 text-[var(--secondary-300)] mx-auto mb-3" />
                   <p className="text-[var(--primary-900)] font-bold">Belum ada posisi pekerjaan yang aktif.</p>
-                  <p className="text-sm text-[var(--secondary)] mt-1">Buat posisi baru di menu Job Positions.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -412,10 +453,10 @@ export default function CVScannerPage() {
             </div>
           )}
 
-          {/* Step 2: Upload CV */}
+          {/* Step 2: Upload (Sama seperti sebelumnya) */}
           {currentStep === "upload" && selectedPosition && (
-            <>
-              <div className="bg-[var(--primary-50)] border border-[var(--primary-100)] p-5 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+             <>
+             <div className="bg-[var(--primary-50)] border border-[var(--primary-100)] p-5 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-[var(--primary)] rounded-lg flex items-center justify-center text-white shadow-sm flex-shrink-0">
                       <Briefcase size={20} />
@@ -478,12 +519,13 @@ export default function CVScannerPage() {
             </>
           )}
 
-          {/* Step 3: Results & Leaderboard */}
+          {/* Step 3: Results (Sama tapi Updated) */}
           {currentStep === "results" && selectedPosition && (
             <>
-              {/* Stats - Responsive Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white border border-[var(--secondary-200)] p-5 rounded-xl shadow-sm">
+               {/* Stats & Leaderboard (Kode sama) */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  {/* ... (Stat boxes yang sama) ... */}
+                  <div className="bg-white border border-[var(--secondary-200)] p-5 rounded-xl shadow-sm">
                    <div className="flex justify-between items-start">
                       <div>
                         <p className="text-[var(--secondary)] text-xs font-bold uppercase tracking-wide mb-1">Total Kandidat</p>
@@ -520,11 +562,12 @@ export default function CVScannerPage() {
                    </div>
                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-[var(--primary-700)] rounded-full opacity-50 blur-xl"></div>
                 </div>
-              </div>
-
-              {/* Leaderboard - Responsive List */}
-              <div className="bg-white border border-[var(--secondary-200)] rounded-2xl p-4 md:p-6 mb-8 shadow-sm">
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--secondary-100)]">
+               </div>
+               
+               {/* Leaderboard */}
+               <div className="bg-white border border-[var(--secondary-200)] rounded-2xl p-4 md:p-6 mb-8 shadow-sm">
+                   {/* ... (Kode Leaderboard sama) ... */}
+                   <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--secondary-100)]">
                   <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600">
                     <Trophy className="w-5 h-5" />
                   </div>
@@ -553,10 +596,11 @@ export default function CVScannerPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-[var(--primary-900)] text-lg truncate">{candidate.name}</p>
+                          {/* Modifikasi kecil untuk fallback education string/array */}
                           <p className="text-sm text-[var(--secondary)] flex flex-wrap gap-2">
-                             <span className="flex items-center gap-1"><GraduationCap size={12}/> {candidate.education || "-"}</span>
+                             <span className="flex items-center gap-1"><GraduationCap size={12}/> {Array.isArray(candidate.education) ? candidate.education[0]?.institution || "Univ Unknown" : candidate.education || "-"}</span>
                              <span className="hidden sm:inline text-[var(--secondary-300)]">•</span>
-                             <span className="flex items-center gap-1"><Clock size={12}/> {candidate.experience || "-"}</span>
+                             <span className="flex items-center gap-1"><Clock size={12}/> {Array.isArray(candidate.experience) ? candidate.experience[0]?.duration || "-" : candidate.experience || "-"}</span>
                           </p>
                         </div>
                       </div>
@@ -575,10 +619,11 @@ export default function CVScannerPage() {
                     <div className="text-center py-8 text-[var(--secondary)]">Belum ada kandidat yang dianalisis.</div>
                   )}
                 </div>
-              </div>
+               </div>
 
-              {/* All Candidates Table / Card View */}
+              {/* Table Kandidat (Sama) */}
               <div className="bg-white border border-[var(--secondary-200)] rounded-2xl overflow-hidden shadow-sm">
+                {/* ... (Header table sama) ... */}
                 <div className="p-4 md:p-6 border-b border-[var(--secondary-100)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[var(--background)]">
                   <h3 className="text-lg font-bold text-[var(--primary-900)]">Semua Kandidat</h3>
                   <div className="w-full md:w-auto flex flex-col md:flex-row items-stretch md:items-center gap-3">
@@ -600,10 +645,11 @@ export default function CVScannerPage() {
                     </button>
                   </div>
                 </div>
-                
-                {/* Desktop View (Table) */}
+
+                {/* Table Logic ... */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full">
+                   {/* Table content serupa, hanya render list candidate */}
+                   <table className="w-full">
                     <thead className="bg-[var(--secondary-50)] border-b border-[var(--secondary-100)]">
                       <tr>
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide">Kandidat</th>
@@ -639,8 +685,7 @@ export default function CVScannerPage() {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Mobile View (Cards) */}
+                {/* Mobile Card view (sama) */}
                 <div className="md:hidden divide-y divide-[var(--secondary-100)]">
                     {filteredCandidates.map(candidate => (
                         <div key={candidate.id} className="p-4" onClick={() => setSelectedCandidate(candidate)}>
@@ -661,7 +706,6 @@ export default function CVScannerPage() {
                         </div>
                     ))}
                 </div>
-
                 {filteredCandidates.length === 0 && (
                    <div className="p-8 text-center text-[var(--secondary)]">Tidak ada kandidat ditemukan dengan filter ini.</div>
                 )}
@@ -669,24 +713,37 @@ export default function CVScannerPage() {
             </>
           )}
 
-          {/* Candidate Detail Modal */}
+          {/* === UPGRADED CANDIDATE DETAIL MODAL === */}
           {selectedCandidate && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setSelectedCandidate(null)}>
-              <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl border border-[var(--secondary-200)] relative animate-in zoom-in-95 duration-200 flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="bg-white w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl border border-[var(--secondary-200)] relative animate-in zoom-in-95 duration-200 flex flex-col" onClick={e => e.stopPropagation()}>
                 
                 {/* Modal Header */}
-                <div className="bg-[var(--primary-900)] p-4 md:p-6 text-white relative overflow-hidden flex-shrink-0">
+                <div className="bg-[var(--primary-900)] p-6 text-white relative overflow-hidden flex-shrink-0">
                   <div className="relative z-10 flex justify-between items-start">
-                    <div className="flex gap-4">
-                      <div className="w-12 h-12 md:w-16 md:h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center text-xl md:text-2xl font-bold border border-white/20">
+                    <div className="flex gap-5">
+                      <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center text-3xl font-bold border border-white/20 shadow-inner">
                          {selectedCandidate.name.charAt(0)}
                       </div>
                       <div>
-                        <h2 className="text-xl md:text-2xl font-bold line-clamp-1">{selectedCandidate.name}</h2>
-                        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-1 text-[var(--primary-100)] text-xs md:text-sm">
-                           <span className="flex items-center gap-1"><Briefcase size={14}/> {selectedCandidate.top_position}</span>
-                           <span className="hidden md:inline">•</span>
-                           <span className="px-2 py-0.5 bg-white/20 rounded text-white font-bold w-fit">{selectedCandidate.match_score}% Match</span>
+                        <h2 className="text-2xl font-bold line-clamp-1">{selectedCandidate.name}</h2>
+                        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[var(--primary-100)] text-sm">
+                           {/* Current Role */}
+                           {selectedCandidate.current_role && (
+                             <span className="flex items-center gap-1.5 font-medium"><Briefcase size={14}/> {selectedCandidate.current_role}</span>
+                           )}
+                           {/* City */}
+                           {selectedCandidate.city && (
+                             <>
+                                <span className="opacity-50">•</span>
+                                <span className="flex items-center gap-1.5"><MapPin size={14}/> {selectedCandidate.city}</span>
+                             </>
+                           )}
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                             <span className="px-2.5 py-1 bg-white/20 rounded-md text-white text-xs font-bold flex items-center gap-1">
+                                <Zap size={12}/> {selectedCandidate.match_score}% Match
+                             </span>
                         </div>
                       </div>
                     </div>
@@ -694,50 +751,88 @@ export default function CVScannerPage() {
                        <X size={20} />
                     </button>
                   </div>
+                  {/* Background decoration */}
                   <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-600)] rounded-full mix-blend-multiply filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
                 </div>
 
-                <div className="p-4 md:p-6 space-y-6 flex-1 overflow-y-auto">
-                  {/* AI Verdict */}
-                  <div className="p-5 bg-[var(--primary-50)] border border-[var(--primary-100)] rounded-xl relative">
-                     <div className="absolute top-4 right-4 text-[var(--primary-300)] opacity-20"><Zap size={48} /></div>
-                     <h4 className="font-bold text-[var(--primary-900)] mb-2 flex items-center gap-2">
-                        <Zap size={18} className="text-[var(--primary)]" /> Analisis AI
+                {/* Content Body */}
+                <div className="p-6 space-y-8 flex-1 overflow-y-auto">
+                  
+                  {/* Section: AI Verdict */}
+                  <div className="p-5 bg-[var(--primary-50)] border border-[var(--primary-100)] rounded-xl relative overflow-hidden">
+                     <div className="absolute -right-4 -top-4 text-[var(--primary-200)] opacity-30"><Zap size={80} /></div>
+                     <h4 className="font-bold text-[var(--primary-900)] mb-2 flex items-center gap-2 relative z-10">
+                        <Zap size={18} className="text-[var(--primary)]" /> AI Verdict
                      </h4>
-                     <p className="text-[var(--secondary-700)] text-sm leading-relaxed">{selectedCandidate.verdict}</p>
+                     <p className="text-[var(--secondary-700)] text-sm leading-relaxed relative z-10 italic">"{selectedCandidate.verdict}"</p>
                   </div>
 
-                  {/* Contact Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-[var(--secondary-200)] rounded-xl bg-gray-50/50">
-                       <p className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1 flex items-center gap-1"><Mail size={12}/> Email</p>
-                       <p className="font-medium text-[var(--primary-900)] text-sm break-all">{selectedCandidate.email}</p>
+                  {/* Section: Professional Summary */}
+                  {selectedCandidate.summary && (
+                    <div>
+                      <h4 className="text-sm font-bold text-[var(--secondary-400)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                        <FileText size={16} /> Professional Summary
+                      </h4>
+                      <p className="text-gray-700 text-sm leading-relaxed text-justify">
+                        {selectedCandidate.summary}
+                      </p>
                     </div>
-                    <div className="p-4 border border-[var(--secondary-200)] rounded-xl bg-gray-50/50">
-                       <p className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1 flex items-center gap-1"><Phone size={12}/> Phone</p>
-                       <p className="font-medium text-[var(--primary-900)] text-sm">{selectedCandidate.phone || "-"}</p>
-                    </div>
+                  )}
+
+                  {/* Two Columns for Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     
+                     {/* Left Col: Experience */}
+                     <div>
+                        <h4 className="text-sm font-bold text-[var(--secondary-400)] uppercase tracking-wide mb-4 flex items-center gap-2">
+                          <Building size={16} /> Experience
+                        </h4>
+                        {renderListOrString(selectedCandidate.experience, 'exp')}
+                     </div>
+
+                     {/* Right Col: Education & Contact */}
+                     <div className="space-y-8">
+                        <div>
+                            <h4 className="text-sm font-bold text-[var(--secondary-400)] uppercase tracking-wide mb-4 flex items-center gap-2">
+                              <GraduationCap size={16} /> Education
+                            </h4>
+                            {renderListOrString(selectedCandidate.education, 'edu')}
+                        </div>
+
+                        {/* Contact Box */}
+                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                           <h4 className="font-bold text-gray-800 mb-3 text-sm">Contact Details</h4>
+                           <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border text-gray-500"><Mail size={14}/></div>
+                                 <span className="text-sm text-gray-700 break-all">{selectedCandidate.email}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border text-gray-500"><Phone size={14}/></div>
+                                 <span className="text-sm text-gray-700">{selectedCandidate.phone || "-"}</span>
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* Skills */}
+                        <div>
+                          <h4 className="text-sm font-bold text-[var(--secondary-400)] uppercase tracking-wide mb-3">Skills</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {(selectedCandidate.skills || []).map((s, i) => (
+                                <span key={i} className="bg-white border border-[var(--secondary-200)] px-3 py-1 text-xs rounded-full text-[var(--secondary-700)] font-medium shadow-sm">
+                                  {s}
+                                </span>
+                            ))}
+                          </div>
+                        </div>
+                     </div>
                   </div>
 
-                  {/* Skills */}
-                  <div>
-                    <h4 className="font-bold text-[var(--primary-900)] mb-3 text-sm uppercase tracking-wide">Detected Skills</h4>
-                    <div className="flex flex-wrap gap-2">
-                       {(selectedCandidate.skills || []).map((s, i) => (
-                          <span key={i} className="bg-white border border-[var(--secondary-200)] px-3 py-1.5 text-sm rounded-lg text-[var(--secondary-700)] font-medium shadow-sm">
-                             {s}
-                          </span>
-                       ))}
-                       {(!selectedCandidate.skills || selectedCandidate.skills.length === 0) && (
-                          <p className="text-[var(--secondary-400)] text-sm italic">Tidak ada skill khusus terdeteksi.</p>
-                       )}
-                    </div>
-                  </div>
                 </div>
                 
                 <div className="p-4 border-t border-[var(--secondary-100)] bg-gray-50 rounded-b-2xl flex justify-end flex-shrink-0">
-                   <button onClick={() => setSelectedCandidate(null)} className="w-full md:w-auto px-5 py-2.5 bg-white border border-[var(--secondary-200)] hover:bg-[var(--secondary-50)] text-[var(--secondary-700)] font-medium rounded-xl shadow-sm transition-colors">
-                      Tutup Detail
+                   <button onClick={() => setSelectedCandidate(null)} className="w-full md:w-auto px-6 py-2 bg-white border border-[var(--secondary-200)] hover:bg-[var(--secondary-50)] text-[var(--secondary-700)] font-medium rounded-xl shadow-sm transition-colors">
+                      Tutup
                    </button>
                 </div>
               </div>

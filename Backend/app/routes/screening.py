@@ -141,7 +141,7 @@ def generate_verdict(context, job_description):
 
     try:
         res = client.chat.completions.create(
-            model="meta-llama/llama-3.3-70b-instruct:free",
+            model="tngtech/deepseek-r1t-chimera:free",
             messages=[
                 {"role": "system", "content": "You are a strict JSON extractor. Output ONLY valid JSON. Do not use Markdown blocks."},
                 {"role": "user", "content": prompt}

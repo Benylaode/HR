@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation'
 import Sidebar from "@/components/layout/Sidebar"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
-import { Loader2, Search, CheckCircle, XCircle, Clock, FileText, User, Plus, AlertCircle } from 'lucide-react'
+import { Loader2, Search, CheckCircle, XCircle, Clock, FileText, User, Plus, AlertCircle, UploadCloud } from 'lucide-react'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001"
 
+// Update Interface agar sesuai mapping data
 interface ATARequest {
   id: string
   title: string
-  requester: string
+  requester: string // Mapped dari requester_name
   department: string
   status: string
   approvals: {
@@ -53,23 +54,41 @@ export default function ATATrackingPage() {
     if (userData) {
       const parsedUser = JSON.parse(userData)
       setUserRole(parsedUser.role)
+      // Auto-fill requester name jika user bukan HR (opsional)
+      if (parsedUser.role !== 'HR') {
+        setFormData(prev => ({ ...prev, requester_name: parsedUser.name || 'User' }))
+      }
     }
     fetchRequests()
   }, [])
 
-    const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
 
   const fetchRequests = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/ata`, { headers: getAuthHeaders() })
-      const data = await response.json()
-      setRequests(data)
+      const rawData = await response.json()
+      
+      // PERBAIKAN: Mapping data backend (flat) ke format frontend (nested approvals)
+      // Backend mengirim: hr_status, ktt_status. Frontend butuh: approvals.HR, approvals.KTT
+      if (Array.isArray(rawData)) {
+        const formattedData = rawData.map((item: any) => ({
+          ...item,
+          requester: item.requester_name, 
+          approvals: {
+            HR: item.hr_status || 'Pending',
+            KTT: item.ktt_status || 'Pending',
+            HO: item.ho_status || 'Pending'
+          }
+        }))
+        setRequests(formattedData)
+      }
     } catch (error) {
       console.error('Error fetching ATA requests:', error)
     } finally {
@@ -85,6 +104,10 @@ export default function ATATrackingPage() {
 
     setSubmitLoading(true)
     try {
+      // Perhatikan: Kita tidak set Content-Type header karena FormData akan mengaturnya otomatis (multipart/form-data)
+      const token = localStorage.getItem("hr_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
       const formDataToSend = new FormData()
       formDataToSend.append('requester_name', formData.requester_name || 'User')
       formDataToSend.append('title', formData.title)
@@ -102,18 +125,24 @@ export default function ATATrackingPage() {
 
       const response = await fetch(`${API_BASE_URL}/ata`, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers: headers as HeadersInit, // Casting types
         body: formDataToSend,
       })
 
       if (response.ok) {
         setIsCreateModalOpen(false)
+        // Reset Form
         setFormData({ requester_name: '', title: '', department: '', level: '', location: '', employment_type: '', salary_min: '', salary_max: '', justification: '' })
         setFile(null)
         fetchRequests()
+        alert("Request berhasil dikirim!")
+      } else {
+        const err = await response.json()
+        alert(`Gagal: ${err.error}`)
       }
     } catch (error) {
       console.error('Error submitting ATA:', error)
+      alert("Terjadi kesalahan koneksi.")
     } finally {
       setSubmitLoading(false)
     }
@@ -130,6 +159,7 @@ export default function ATATrackingPage() {
         body: JSON.stringify({ role, decision: 'Approved', notes: notes || `Approved by ${role}` }),
       })
       if (response.ok) fetchRequests()
+      else alert("Gagal melakukan approval. Cek urutan approval.")
     } catch (error) {
       console.error('Error approving:', error)
     }
@@ -233,6 +263,8 @@ export default function ATATrackingPage() {
                 <Loader2 className="animate-spin text-teal-600 mb-4" size={40} />
                 <p className="text-slate-500 animate-pulse">Mengambil data terbaru...</p>
               </div>
+            ) : filteredRequests.length === 0 ? (
+                <div className="text-center py-20 text-slate-400">Belum ada data request.</div>
             ) : filteredRequests.map((req) => {
               const nextApprover = getNextApprover(req)
               return (
@@ -277,18 +309,19 @@ export default function ATATrackingPage() {
                         {req.status}
                       </span>
 
-                      {/* Tombol Aksi - Hanya muncul jika BUKAN HR */}
+                      {/* Tombol Aksi - Hanya muncul jika BUKAN HR dan ada Next Approver */}
                       {nextApprover && (
                         <div className="w-full mt-4">
-                          {userRole === "HR" ? (
+                          {userRole === "HR" && nextApprover !== "HR" ? (
                             <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
                                <AlertCircle size={14} />
                                <p className="text-[11px] font-medium">Menunggu approval {nextApprover}</p>
                             </div>
                           ) : (
-                            <div className="flex gap-2">
+                            // Logic sederhana: Tampilkan tombol jika rolenya sesuai, atau untuk demo tampilkan ke semua
+                             <div className="flex gap-2">
                               <button onClick={() => handleReject(req.id, nextApprover)} className="flex-1 py-2 bg-white border border-rose-200 text-rose-600 rounded-lg font-bold text-xs hover:bg-rose-50 transition-colors">Reject</button>
-                              <button onClick={() => handleApprove(req.id, nextApprover)} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20">Approve</button>
+                              <button onClick={() => handleApprove(req.id, nextApprover)} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20">Approve ({nextApprover})</button>
                             </div>
                           )}
                         </div>
@@ -307,21 +340,155 @@ export default function ATATrackingPage() {
         <Footer />
       </div>
 
-      {/* MODAL CREATE ATA (Hanya Header & Actions untuk hemat ruang) */}
+      {/* MODAL CREATE ATA (FULL FORM PERBAIKAN) */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-teal-600 text-white">
-               <h2 className="text-xl font-bold">Request Posisi Baru</h2>
-               <button onClick={() => setIsCreateModalOpen(false)}><XCircle size={24}/></button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 my-8">
+            {/* Header Modal */}
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-teal-600 text-white rounded-t-3xl">
+              <h2 className="text-xl font-bold">Request Posisi Baru</h2>
+              <button onClick={() => setIsCreateModalOpen(false)} className="hover:bg-teal-700 p-1 rounded-full"><XCircle size={24}/></button>
             </div>
-            <div className="p-8 text-center text-slate-500">
-               {/* Form asli Anda diletakkan di sini */}
-               Isi form pengajuan posisi baru sesuai kebutuhan...
-               <div className="mt-8 flex gap-3">
-                  <button onClick={() => setIsCreateModalOpen(false)} className="flex-1 py-3 border border-slate-200 rounded-xl font-bold">Batal</button>
-                  <button onClick={handleSubmitATA} className="flex-1 py-3 bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-600/20">Kirim Request</button>
-               </div>
+
+            {/* Body Form */}
+            <div className="p-6 md:p-8 space-y-4">
+              
+              {/* Row 1 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Judul Posisi</label>
+                  <input 
+                    type="text" 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    placeholder="Contoh: Senior Engineer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Departemen</label>
+                  <input 
+                    type="text" 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.department}
+                    onChange={(e) => setFormData({...formData, department: e.target.value})}
+                    placeholder="Contoh: IT"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Level</label>
+                  <select 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.level}
+                    onChange={(e) => setFormData({...formData, level: e.target.value})}
+                  >
+                    <option value="">Pilih Level</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Manager">Manager</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Lokasi</label>
+                  <input 
+                    type="text" 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.location}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    placeholder="Contoh: Jakarta"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3 - Salary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Gaji Min</label>
+                  <input 
+                    type="number" 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.salary_min}
+                    onChange={(e) => setFormData({...formData, salary_min: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Gaji Max</label>
+                  <input 
+                    type="number" 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.salary_max}
+                    onChange={(e) => setFormData({...formData, salary_max: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              {/* Employment Type */}
+              <div>
+                 <label className="block text-sm font-medium text-slate-700 mb-1">Tipe Pekerjaan</label>
+                 <select 
+                    className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    value={formData.employment_type}
+                    onChange={(e) => setFormData({...formData, employment_type: e.target.value})}
+                  >
+                    <option value="">Pilih Tipe</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                  </select>
+              </div>
+
+              {/* Justification Text Area */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Justifikasi / Alasan</label>
+                <textarea 
+                  className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none h-24"
+                  value={formData.justification}
+                  onChange={(e) => setFormData({...formData, justification: e.target.value})}
+                  placeholder="Jelaskan mengapa posisi ini dibutuhkan..."
+                ></textarea>
+              </div>
+
+              {/* File Upload */}
+              <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center">
+                 <UploadCloud className="mx-auto text-slate-400 mb-2" />
+                 <label className="block text-sm font-medium text-slate-700 mb-1 cursor-pointer">
+                    <span className="text-teal-600 hover:text-teal-700">Upload Lampiran</span> (Opsional)
+                    <input 
+                      type="file" 
+                      onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                      className="hidden"
+                    />
+                 </label>
+                 <p className="text-xs text-slate-400">PDF, JPG, PNG (Max 5MB)</p>
+                 {file && <p className="text-sm text-teal-600 font-bold mt-2">File: {file.name}</p>}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 flex gap-3">
+                <button 
+                  onClick={() => setIsCreateModalOpen(false)} 
+                  className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50"
+                  disabled={submitLoading}
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleSubmitATA} 
+                  disabled={submitLoading}
+                  className="flex-1 py-3 bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-600/20 hover:bg-teal-700 disabled:opacity-50 flex justify-center items-center gap-2"
+                >
+                  {submitLoading ? (
+                    <><Loader2 className="animate-spin" size={20} /> Memproses...</>
+                  ) : (
+                    "Kirim Request"
+                  )}
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
