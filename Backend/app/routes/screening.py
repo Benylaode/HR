@@ -14,7 +14,6 @@ from sqlalchemy.exc import IntegrityError
 
 from app import db
 from app.models import Resume, Candidate, JobPosition, JobApplication
-# Pastikan Anda mengimpor extractor helper Anda
 # from extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
 
 load_dotenv()
@@ -29,43 +28,55 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(INDEX_FOLDER, exist_ok=True)
 os.makedirs(CHUNKS_FOLDER, exist_ok=True)
 
-# Konfigurasi Client (DeepSeek via OpenRouter / Local)
+# Konfigurasi Client
 client = OpenAI(
-    base_url="https://openrouter.ai/api/v1", # Atau URL lokal Anda
-    api_key=os.getenv("OPENAI_API_KEY")
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.getenv("OPENAI_API_KEY"),
+    default_headers={
+        "HTTP-Referer": "https://caturcomputer.com/",
+        "X-Title": "CV Scanner App",
+    }
 )
 
 screening_bp = Blueprint("screening", __name__)
 
+# --- AUTH DECORATOR ---
 @screening_bp.before_request
 def restrict_access_by_role():
     if request.method == "OPTIONS":
         return
-
     try:
         verify_jwt_in_request()
         claims = get_jwt()
         role = claims.get("role")
-
         if request.method == "GET":
             if role in ["HR", "SUPER_USER"]:
                 return
-
-        if role != "SUPER_USER" and role != "HR": # Asumsi HR boleh POST screening
-             return jsonify({"status": 403, "message": "Access denied"}), 403
+        if role != "SUPER_USER" and role != "HR":
+            return jsonify({"status": 403, "message": "Access denied"}), 403
     except:
         return jsonify({"status": 401, "message": "Unauthorized"}), 401
 
 # --- HELPER FUNCTIONS ---
 
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
+
+def normalize_score(score):
+    return int(round(max(0.0, min(1.0, score)) * 100))
+
+def extract_candidate_name(filename):
+    base = os.path.splitext(filename)[0]
+    if "_" in base:
+        parts = base.split("_", 1)
+        if len(parts) > 1 and len(parts[0]) > 20: 
+            base = parts[1]
+    return base.replace("-", " ").title()
+
 def job_to_text(job: JobPosition) -> str:
-    """Mengubah JobPosition menjadi teks string untuk konteks LLM"""
     requirements = ", ".join(job.requirements or [])
     skills = ", ".join(job.required_skills or [])
-    
-    salary = ""
-    if job.salary_min and job.salary_max:
-        salary = f"Range Gaji: {job.salary_min} - {job.salary_max} {job.salary_currency}"
+    salary = f"Range Gaji: {job.salary_min} - {job.salary_max} {job.salary_currency}" if job.salary_min else ""
 
     return f"""
     Judul Posisi: {job.title}
@@ -76,158 +87,138 @@ def job_to_text(job: JobPosition) -> str:
     {salary}
     """
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
-
-def normalize_score(score):
-    """Normalisasi cosine similarity (-1 ke 1) menjadi persentase (0-100)"""
-    # FAISS Inner Product biasanya tidak ternormalisasi sempurna jika vektor tidak ternormalisasi
-    # Asumsi range aman 0.0 - 1.0
-    return int(round(max(0.0, min(1.0, score)) * 100))
-
-def extract_candidate_name(filename):
-    # Fallback jika LLM gagal ambil nama, ambil dari nama file
-    base = os.path.splitext(filename)[0]
-    # Hapus UUID di depan jika ada format (uuid_filename)
-    if "_" in base:
-        parts = base.split("_", 1)
-        if len(parts) > 1 and len(parts[0]) > 20: # Asumsi UUID panjang
-            base = parts[1]
-    return base.replace("-", " ").title()
-
-# --- CORE AI LOGIC ---
+# --- CORE AI LOGIC (DIPERBAIKI) ---
 
 def generate_verdict(cv_text, job_description):
     """
-    System Prompt yang disesuaikan agar output JSON valid untuk Frontend React.
-    Menggunakan teknik 'Few-Shot' implisit dalam instruksi JSON.
+    Prompt diperbaiki untuk fokus ekstraksi entitas Education & Experience.
     """
     
-    # SYSTEM PROMPT YANG DIPERBAIKI
     system_instruction = """
-    Anda adalah HR AI Specialist. Tugas Anda adalah mengekstrak informasi terstruktur dari teks Resume (CV) 
-    dan mencocokkannya dengan Job Description.
+    You are an expert HR Resume Parser. Your GOAL is to extract structured data from the resume text with extreme accuracy, especially for EDUCATION and WORK EXPERIENCE.
 
-    OUTPUT WAJIB: Hanya format JSON valid. Jangan berikan teks pembuka/penutup atau markdown ```json.
+    ### INSTRUCTIONS:
+    1. **EDUCATION IS CRITICAL**: You MUST search for keywords: "Education", "Pendidikan", "Academic", "University", "Universitas", "School", "Sekolah", "Degree", "Gelar", "GPA", "IPK".
+       - Even if the section is at the very bottom or poorly formatted, extract it.
+       - If multiple degrees exist, list them all (e.g., Bachelor, Master).
     
-    STRUCTURE JSON TARGET:
+    2. **WORK EXPERIENCE**: Look for sections with dates (e.g., "Jan 2020 - Present") and Company names.
+    
+    3. **OUTPUT FORMAT**: Return ONLY valid JSON. No conversational text.
+    
+    ### JSON STRUCTURE:
     {
-        "name": "Nama Lengkap Kandidat (Title Case)",
-        "email": "Email kandidat (jika ada, else null)",
-        "phone": "Nomor HP (jika ada, else null)",
-        "city": "Kota domisili saat ini (jika ada, else null)",
-        "current_role": "Jabatan/Posisi pekerjaan terakhir (jika ada, else null)",
+        "name": "Candidate Name (Title Case)",
+        "email": "email@address.com (or null)",
+        "phone": "Phone number (or null)",
+        "city": "Current City/Domicile (or null)",
+        "current_role": "Most recent job title (or null)",
         "education": [
-            { "institution": "Nama Universitas/Sekolah", "degree": "Gelar (S1/D3/SMA)", "major": "Jurusan", "year": "Tahun Lulus/Periode" }
+            { 
+                "institution": "University/School Name", 
+                "degree": "Degree (e.g., S1 Computer Science, SMA IPA)", 
+                "major": "Major/Field of Study", 
+                "year": "Graduation Year/Period (e.g., 2018 - 2022)" 
+            }
         ],
         "experience": [
-            { "company": "Nama Perusahaan", "role": "Posisi", "duration": "Durasi (cth: Jan 2020 - Present)", "details": "Ringkasan tugas utama (maks 15 kata)" }
+            { 
+                "company": "Company Name", 
+                "role": "Job Title", 
+                "duration": "Start - End Date", 
+                "details": "Key responsibility summary (max 20 words)" 
+            }
         ],
-        "skills": ["Skill 1", "Skill 2", "Skill 3 (ambil top 5-7 skill teknis relevan)"],
-        "summary": "Ringkasan profil profesional kandidat dalam 1 kalimat padat.",
-        "verdict": "Analisis singkat (Bahasa Indonesia) mengapa kandidat ini cocok/tidak dengan Job Description (maks 2-3 kalimat)."
+        "skills": ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5"],
+        "summary": "Professional summary (1 sentence).",
+        "verdict": "Evaluation in INDONESIAN (Bahasa Indonesia). Explain why they match/mismatch the job. Be objective."
     }
 
-    ATURAN:
-    1. Jika informasi (seperti education/experience) tidak ada di teks, kembalikan array kosong [].
-    2. Jangan halusinasi data. Jika tidak tertulis, isi null.
-    3. Verdict harus kritis namun sopan.
+    ### RULES:
+    - If a field is missing in the text, use null (or empty array [] for lists).
+    - Do NOT hallucinatory data.
+    - For 'verdict', compare the candidate strictly against the provided Job Description.
     """
 
     user_prompt = f"""
     === JOB DESCRIPTION ===
     {job_description}
 
-    === CANDIDATE RESUME TEXT ===
+    === FULL CANDIDATE RESUME ===
     {cv_text}
     """
 
     try:
         response = client.chat.completions.create(
-            model="deepseek/deepseek-r1-0528:free", # Atau model yang Anda gunakan
+            model="tngtech/deepseek-r1t-chimera:free", # Pastikan model ID benar
             messages=[
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.1, # Rendah agar deterministik
-            max_tokens=2000
+            temperature=0.1, # Keep strict
+            max_tokens=3000  # Cukup besar untuk JSON output
         )
 
         content = response.choices[0].message.content.strip()
+        print("LLM RAW RESPONSE:", content)
         
-        # DeepSeek sering memberikan <think>...</think>. Kita harus membersihkannya.
-        # Dan mengambil JSON object pertama yang ditemukan.
-        
-        # 1. Hapus tag <think> jika ada
+        # --- JSON CLEANUP & PARSING ---
+        # 1. Remove <think> tags (Common in DeepSeek R1)
         content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
         
-        # 2. Cari kurung kurawal terluar
+        # 2. Remove Markdown code blocks if present
+        content = content.replace("```json", "").replace("```", "")
+        
+        # 3. Find the JSON object
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         
         if json_match:
             json_str = json_match.group(0)
             return json.loads(json_str)
         else:
-            # Fallback jika format rusak
-            print("Failed to regex JSON from LLM output:", content)
+            print("RAW CONTENT ERROR:", content)
             return {}
 
     except Exception as e:
         print(f"LLM Error: {e}")
         return {}
 
-
 def save_candidate_result_structured(resume_id, job_id, meta, extracted_data, match_score):
-    """
-    Menyimpan hasil ke database. Memetakan JSON LLM ke Model Database.
-    """
     try:
-        # 1. Cek atau Buat Candidate
         candidate = Candidate.query.filter_by(resume_id=resume_id).first()
         
-        # Ambil data dari LLM, dengan fallback aman
+        # Fallback values
         name = extracted_data.get("name") or extract_candidate_name(meta["filename"])
         email = extracted_data.get("email") or "Not provided"
-        phone = extracted_data.get("phone") or "Not provided"
-        city = extracted_data.get("city") # Field baru
-        current_role = extracted_data.get("current_role") # Field baru
         
         if not candidate:
             candidate = Candidate(
                 resume_id=resume_id,
                 name=name,
                 email=email,
-                phone=phone,
-                # Pastikan Model Candidate Anda mendukung kolom ini, atau simpan di json field
+                phone=extracted_data.get("phone"),
                 education=extracted_data.get("education", []),
                 experience=extracted_data.get("experience", []),
                 skills=extracted_data.get("skills", []),
                 summary=extracted_data.get("summary", ""),
-                
-                # Mapping field baru (jika DB mendukung, jika tidak hapus baris ini)
-                city=city,
-                current_role=current_role,
+                city=extracted_data.get("city"),
+                current_role=extracted_data.get("current_role"),
             )
             db.session.add(candidate)
             db.session.flush()
         else:
-            # Update data jika parsing baru lebih baik
             candidate.name = name
             candidate.email = email
+            candidate.phone = extracted_data.get("phone")
             candidate.education = extracted_data.get("education", [])
             candidate.experience = extracted_data.get("experience", [])
             candidate.skills = extracted_data.get("skills", [])
             candidate.summary = extracted_data.get("summary", "")
-            candidate.city = city
-            candidate.current_role = current_role
+            candidate.city = extracted_data.get("city")
+            candidate.current_role = extracted_data.get("current_role")
 
-        # 2. Simpan JobApplication
-        application = JobApplication.query.filter_by(
-            candidate_id=candidate.id, 
-            job_id=job_id
-        ).first()
-
-        verdict = extracted_data.get("verdict", "Evaluasi otomatis selesai.")
+        application = JobApplication.query.filter_by(candidate_id=candidate.id, job_id=job_id).first()
+        verdict = extracted_data.get("verdict", "Evaluasi selesai.")
 
         if not application:
             application = JobApplication(
@@ -240,7 +231,6 @@ def save_candidate_result_structured(resume_id, job_id, meta, extracted_data, ma
             )
             db.session.add(application)
         else:
-            # Update score & verdict jika re-analyze
             application.match_score = match_score
             application.ai_verdict = verdict
             application.applied_at = datetime.utcnow()
@@ -264,27 +254,24 @@ def upload_resume():
     if not allowed_file(f.filename):
         return jsonify({"error": "invalid file type"}), 400
 
-    # Gunakan UUID untuk nama file unik
     unique_id = str(uuid.uuid4())
     secure_name = secure_filename(f.filename)
-    # Simpan ID di depan nama file agar bisa diparsing balik jika perlu, tapi simpan original name di DB
     saved_filename = f"{unique_id}_{secure_name}"
     
     pdf_path = os.path.join(UPLOAD_FOLDER, saved_filename)
     f.save(pdf_path)
 
-    # Lakukan Ekstraksi Teks dan Embedding (Asumsi fungsi ini ada di project Anda)
     try:
         from extractor import extract_text_from_pdf, chunk_text, embed_chunks
         
         text = extract_text_from_pdf(pdf_path)
-        # Bersihkan teks sedikit agar tidak terlalu kotor
+        # Clean text basic
+        text = re.sub(r'[^\x00-\x7F]+', ' ', text) # Remove non-ascii noise
         text = re.sub(r'\s+', ' ', text).strip()
         
         chunks = chunk_text(text, chunk_size=800, overlap=100)
         embeddings = embed_chunks(chunks)
 
-        # Buat Index FAISS
         dimension = embeddings.shape[1]
         index = faiss.IndexFlatIP(dimension)
         index.add(embeddings)
@@ -296,26 +283,20 @@ def upload_resume():
         with open(chunks_path, "w", encoding="utf-8") as json_file:
             json.dump(chunks, json_file, ensure_ascii=False)
         
-        # Simpan ke DB Resume
         resume = Resume(
             id=unique_id,
-            filename=secure_name, # Simpan nama asli agar cantik di UI
+            filename=secure_name,
             index_path=index_path,
             chunks_path=chunks_path,
-            raw_text=text
+            raw_text=text # PENTING: Kita menyimpan full text di sini
         )
         db.session.add(resume)
         db.session.commit()
 
-        return jsonify({
-            "id": unique_id,
-            "filename": secure_name,
-            "status": "uploaded"
-        })
+        return jsonify({"id": unique_id, "filename": secure_name, "status": "uploaded"})
     except Exception as e:
         print(f"Upload processing error: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @screening_bp.route("/match_resume", methods=["POST"])
 def match_resume():
@@ -328,7 +309,7 @@ def match_resume():
         if not resume_id:
             return jsonify({"error": "resume_id required"}), 400
 
-        # 1. Load Resume Data
+        # 1. Load Resume
         resume = db.session.get(Resume, resume_id)
         if not resume:
             return jsonify({"error": "resume not found"}), 404
@@ -336,53 +317,44 @@ def match_resume():
         meta = {
             "id": resume.id,
             "filename": resume.filename,
-            "index_path": resume.index_path,
-            "chunks_path": resume.chunks_path,
-            "raw_text": resume.raw_text
+            "raw_text": resume.raw_text # Kita butuh ini
         }
 
-        # 2. Load Job Data
+        # 2. Load Job Context
         job = None
         if job_id:
             job = JobPosition.query.get(job_id)
         
-        # Gunakan fallback text jika Job ID tidak valid/tidak ditemukan
         if job:
             job_context = job_to_text(job)
             job_title = job.title
         elif job_desc_fallback:
             job_context = job_desc_fallback
             job_title = "Custom Position"
-            # Perlu dummy ID atau handle logic tanpa DB relation (disini kita skip logic kompleks itu)
             return jsonify({"error": "Job ID required for persistence"}), 400
         else:
             return jsonify({"error": "Job context missing"}), 400
 
-        # 3. Vector Search (FAISS)
-        from extractor import embed_query # Pastikan import ini ada
+        # 3. Hitung Skor (Tetap menggunakan Vector Search untuk Skor)
+        # Kita pisahkan logic: Skor pakai FAISS, Ekstraksi Data pakai Full Text
+        from extractor import embed_query
         
-        index = faiss.read_index(meta["index_path"])
-        with open(meta["chunks_path"], "r", encoding="utf-8") as f:
-            chunks = json.load(f)
-
+        index = faiss.read_index(resume.index_path)
         q_emb = embed_query(job_context)
         
-        # Ambil top 3-5 chunks paling relevan untuk dikirim ke LLM
-        k = min(5, len(chunks))
-        D, I = index.search(q_emb, k)
-        
-        # Hitung Score
+        # Ambil chunks untuk scoring saja
+        D, I = index.search(q_emb, 5) 
         avg_score = float(np.mean(D[0])) if len(D[0]) > 0 else 0.0
         score_percent = normalize_score(avg_score)
 
-        # Context untuk LLM (Gabungkan chunks relevan + sedikit raw text awal untuk header info)
-        relevant_context = "\n...\n".join([chunks[i] for i in I[0] if i >= 0])
-        full_context = f"{meta['raw_text'][:1000]}\n\n--- RELEVANT SECTIONS ---\n{relevant_context}"
+        # 4. LLM Extraction (PERBAIKAN UTAMA DISINI)
+        # Daripada mengirim 'relevant_context' yang mungkin memotong bagian Education,
+        # kita kirim 'meta["raw_text"]' (Full Resume).
+        # Context window DeepSeek cukup besar untuk menampung seluruh teks CV (rata-rata CV < 2000 tokens).
+        
+        extracted_data = generate_verdict(meta["raw_text"], job_context)
 
-        # 4. LLM Extraction
-        extracted_data = generate_verdict(full_context, job_context)
-
-        # 5. Save to DB
+        # 5. Save & Return
         candidate, application = save_candidate_result_structured(
             resume_id=meta["id"],
             job_id=job.id,
@@ -391,18 +363,17 @@ def match_resume():
             match_score=score_percent
         )
 
-        # 6. Response Format (Sesuai Frontend CVCandidate Interface)
         return jsonify({
             "id": candidate.id,
             "resume_id": candidate.resume_id,
             "name": candidate.name,
             "email": candidate.email,
             "phone": candidate.phone,
-            "city": candidate.city,                 # New Field
-            "current_role": candidate.current_role, # New Field
-            "education": candidate.education,       # JSON Array
-            "experience": candidate.experience,     # JSON Array
-            "skills": candidate.skills,             # String Array
+            "city": candidate.city,
+            "current_role": candidate.current_role,
+            "education": candidate.education,
+            "experience": candidate.experience,
+            "skills": candidate.skills,
             "summary": candidate.summary,
             "top_position": job_title,
             "match_score": application.match_score,
@@ -414,7 +385,6 @@ def match_resume():
     except Exception as e:
         print(f"Match error: {e}")
         return jsonify({"error": "Internal Server Error during matching"}), 500
-
 
 @screening_bp.route("/candidates", methods=["GET"])
 def list_candidates():
@@ -437,10 +407,10 @@ def list_candidates():
             "name": cand.name,
             "email": cand.email,
             "phone": cand.phone,
-            "city": getattr(cand, 'city', None),                 # Safely get if column exists
-            "current_role": getattr(cand, 'current_role', None), # Safely get if column exists
-            "education": cand.education,   # Pastikan DB menyimpan JSON, bukan string
-            "experience": cand.experience, # Pastikan DB menyimpan JSON, bukan string
+            "city": getattr(cand, 'city', None),
+            "current_role": getattr(cand, 'current_role', None),
+            "education": cand.education,
+            "experience": cand.experience,
             "skills": cand.skills,
             "summary": cand.summary,
             "top_position": job.title,
