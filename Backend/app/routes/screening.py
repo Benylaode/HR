@@ -236,6 +236,7 @@ def generate_verdict(context: str, job_description: str) -> Dict[str, Any]:
         )
         
         raw_content = response.choices[0].message.content
+        print(raw_content)
         json_str = clean_llm_response(raw_content)
 
         try:
