@@ -11,6 +11,8 @@ from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from openai import OpenAI
 from sqlalchemy.exc import IntegrityError
+from pydantic import BaseModel, Field, ValidationError
+from typing import List, Dict, Any
 import re 
 
 from app import db
@@ -107,70 +109,142 @@ def extract_phone(text):
     return m.group(0) if m else None
 
 
-def generate_verdict(context, job_description):
+class EducationItem(BaseModel):
+    institution: str = Field(default="Unknown Institution")
+    degree: str = Field(default="-")
+    major: str = Field(default="-")
+    year: str = Field(default="-")
+
+class ExperienceItem(BaseModel):
+    company: str = Field(default="Unknown Company")
+    role: str = Field(default="Unknown Role")
+    duration: str = Field(default="-")
+    details: str = Field(default="-")
+
+class CandidateAnalysis(BaseModel):
+    city: str = Field(default=None)
+    current_role: str = Field(default=None)
+    education: List[EducationItem] = Field(default_factory=list)
+    experience: List[ExperienceItem] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
+    verdict: str = Field(default="Analisis tidak tersedia.")
+    summary: str = Field(default="Ringkasan tidak tersedia.")
+    # Match score biasanya dihitung via Vector DB, tapi jika LLM diminta estimasi:
+    match_score_estimate: int = Field(default=0) 
+
+# --- 2. FUNGSI PEMBERSIH OUTPUT LLM (CRITICAL) ---
+def clean_llm_response(raw_content: str) -> str:
     """
-    Prompt LLM yang diperbarui untuk menghasilkan struktur JSONB 
-    yang sesuai dengan tabel Candidate.
+    Membersihkan output dari DeepSeek/LLM agar menjadi JSON murni.
     """
-    prompt = f"""
-    Anda adalah parser data CV otomatis. 
-    Tugas: Ekstrak data dari teks CV di bawah dan cocokkan dengan Job Description.
+    # 1. Hapus tag <think>...</think> (Khusus DeepSeek R1)
+    cleaned = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL)
     
-    Output WAJIB berupa JSON valid dengan format persis seperti ini:
-    {{
-        "city": "Kota domisili kandidat (contoh: Jakarta, Surabaya)",
-        "current_role": "Posisi pekerjaan saat ini atau terakhir",
-        "education": [{{"institution": "Nama Univ", "degree": "Gelar", "major": "Jurusan", "year": "Tahun"}}],
-        "experience": [{{"company": "Nama Perusahaan", "role": "Posisi", "duration": "Lama kerja", "details": "Deskripsi singkat"}}],
-        "skills": ["Skill 1", "Skill 2"],
-        "verdict": "Alasan singkat (Bahasa Indonesia) mengapa kandidat ini cocok/tidak (maks 2 kalimat).",
-        "summary": "Ringkasan profil profesional 1 kalimat."
-    }}
+    # 2. Hapus Markdown code blocks (```json ... ```)
+    cleaned = re.sub(r'```json', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'```', '', cleaned)
+    
+    # 3. Trim whitespace
+    cleaned = cleaned.strip()
+    
+    # 4. Ambil hanya bagian yang diawali '{' dan diakhiri '}'
+    # Ini menjaga jika ada teks intro/outro yang lolos
+    json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+    if json_match:
+        return json_match.group(0)
+    
+    return cleaned
 
-    Aturan:
-    1. Jika data tidak ada, isi dengan null atau [].
-    2. JANGAN ada teks pengantar. Langsung kurung kurawal {{...}}.
-    3. Pastikan JSON valid.
+# --- 3. GENERATOR UTAMA ---
+def generate_verdict(context: str, job_description: str) -> Dict[str, Any]:
+    
+    # Prompt yang memaksa struktur JSON
+    system_prompt = """
+    You are a strict JSON Resume Parser. 
+    Extract data from the Candidate CV based on the Job Description.
+    
+    RULES:
+    1. Output ONLY valid JSON.
+    2. NO introductory text, NO markdown, NO <think> tags.
+    3. If education/experience is missing, return empty arrays [].
+    4. Use "Bahasa Indonesia" for 'verdict' and 'summary'.
+    """
+    
+    user_prompt = f"""
+    ### JOB DESCRIPTION:
+    {job_description}
 
-    === CV TEXT ===
+    ### CANDIDATE CV:
     {context}
 
-    === JOB DESCRIPTION ===
-    {job_description}
+    ### REQUIRED JSON STRUCTURE:
+    {{
+        "city": "City name or null",
+        "current_role": "Current job title or null",
+        "education": [
+            {{"institution": "Univ Name", "degree": "Bachelor/Master", "major": "Major", "year": "2020-2024"}}
+        ],
+        "experience": [
+            {{"company": "Company Name", "role": "Role Name", "duration": "2 Years", "details": "Key achievement..."}}
+        ],
+        "skills": ["Skill1", "Skill2"],
+        "verdict": "Reasoning why candidate fits/fails (Bahasa Indonesia, max 2 sentences).",
+        "summary": "Professional summary (Bahasa Indonesia, max 1 sentence).",
+        "match_score_estimate": 85 (Integer 0-100 based on fit)
+    }}
     """
 
     try:
-        res = client.chat.completions.create(
-            model="tngtech/deepseek-r1t-chimera:free",
+        # Panggil API LLM (Sesuaikan client Anda)
+        # Contoh menggunakan format OpenAI / DeepSeek
+        response = client.chat.completions.create(
+            model="tngtech/deepseek-r1t-chimera:free", # Atau model pilihan Anda
             messages=[
-                {"role": "system", "content": "You are a strict JSON extractor. Output ONLY valid JSON. Do not use Markdown blocks."},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
             ],
-            temperature=0.1,
-            max_tokens=1000
+            temperature=0.1, # Rendah agar deterministik
+            max_tokens=2000
         )
-
-        content = res.choices[0].message.content.strip()
-
-        json_match = re.search(r'\{.*\}', content, re.DOTALL)
         
-        if json_match:
-            json_str = json_match.group(0)
-            return json.loads(json_str)
-        else:
-            # Jika regex gagal, coba parse langsung (mungkin raw json)
-            return json.loads(content)
+        raw_content = response.choices[0].message.content
+
+        # --- STEP KRUSIAL: CLEANING ---
+        json_str = clean_llm_response(raw_content)
+
+        # --- STEP KRUSIAL: VALIDASI PYDANTIC ---
+        try:
+            parsed_dict = json.loads(json_str)
+            
+            # Validasi & Auto-fix tipe data menggunakan Pydantic
+            # Jika LLM mengembalikan string di field list, Pydantic akan error/mencoba fix
+            validated_data = CandidateAnalysis(**parsed_dict)
+            
+            # Kembalikan sebagai Dictionary murni untuk Flask
+            return validated_data.model_dump()
+
+        except (json.JSONDecodeError, ValidationError) as e:
+            print(f"Parsing Error: {str(e)}")
+            print(f"Raw Content causing error: {raw_content}")
+            # Fallback agar Frontend tidak crash (White Screen)
+            return _get_fallback_data("Gagal memproses format CV.")
 
     except Exception as e:
-        return {
-            "city": None,
-            "current_role": None,
-            "education": [{"institution": "Unknown", "degree": "-", "major": "-", "year": "-"}],
-            "experience": [{"company": "-", "role": "-", "duration": "-", "details": "-"}],
-            "skills": [],
-            "summary": "Gagal menganalisis profil secara otomatis.",
-            "verdict": "Terjadi kesalahan saat parsing respons AI."
-        }
+        print(f"API Error: {str(e)}")
+        return _get_fallback_data(f"Error sistem: {str(e)}")
+
+def _get_fallback_data(reason: str) -> Dict[str, Any]:
+    """Data dummy aman agar Frontend tetap jalan meski AI gagal"""
+    return {
+        "city": None,
+        "current_role": "Unknown",
+        "education": [],
+        "experience": [],
+        "skills": [],
+        "verdict": reason,
+        "summary": "Gagal mengambil data otomatis.",
+        "match_score_estimate": 0
+    }
 
 
 def load_resume_meta(resume_id):
