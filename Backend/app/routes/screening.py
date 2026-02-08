@@ -149,6 +149,7 @@ def generate_verdict(context, job_description):
         )
 
         content = res.choices[0].message.content.strip()
+        print("LLM Response:", content)
 
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         
