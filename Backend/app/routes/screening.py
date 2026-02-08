@@ -24,7 +24,7 @@ from app.models import Resume, Candidate, JobPosition, JobApplication, Recruitme
 
 # Import utilitas extractor lokal
 # Jika file ini belum ada, pastikan Anda membuatnya atau sesuaikan importnya
-from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+from extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
 
 load_dotenv()
 
