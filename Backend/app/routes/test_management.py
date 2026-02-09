@@ -19,27 +19,27 @@ mgmt_bp = Blueprint("management", __name__)
 # Blueprint untuk Submission (Kandidat)
 submit_bp = Blueprint("submit", __name__)
 
-@submit_bp.before_request
-def restrict_access_by_role():
-    if request.method == "OPTIONS":
-        return
+# @submit_bp.before_request
+# def restrict_access_by_role():
+#     if request.method == "OPTIONS":
+#         return
 
-    verify_jwt_in_request()
+#     verify_jwt_in_request()
 
-    claims = get_jwt()
-    role = claims.get("role")
+#     claims = get_jwt()
+#     role = claims.get("role")
 
-    # GET boleh HR & SUPER_USER
-    if request.method == "GET":
-        if role in ["HR", "SUPER_USER"]:
-            return
+#     # GET boleh HR & SUPER_USER
+#     if request.method == "GET":
+#         if role in ["HR", "SUPER_USER"]:
+#             return
 
-    # Selain GET hanya SUPER_USER
-    if role != "SUPER_USER":
-        return jsonify({
-            "status": 403,
-            "message": "Access denied"
-        }), 403
+#     # Selain GET hanya SUPER_USER
+#     if role != "SUPER_USER":
+#         return jsonify({
+#             "status": 403,
+#             "message": "Access denied"
+#         }), 403
 
 
 @mgmt_bp.before_request
