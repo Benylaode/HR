@@ -7,7 +7,7 @@ import { AlertTriangle, Clock, Shield, ClipboardCheck, Info, Check } from "lucid
 import CFITTest from "@/components/test/CFITTest";
 import PAPITest from "@/components/test/PAPITest";
 import KraepelinTest from "@/components/test/KraepelinTest";
-import { cfitQuestions, papiQuestions, TEST_DURATION } from "@/lib/test-data";
+import { cfitQuestions, papiQuestions, TEST_DURATION, getTestDuration } from "@/lib/test-data";
 import TestIntroModal from "@/components/test/TestIntroModal"; // Impor modal baru
 
 type TestType = "cfit" | "kraepelin" | "papi";
@@ -305,9 +305,13 @@ export default function TestExamPage() {
       const testType = selectedTestToStart;
       let duration = TEST_DURATION;
 
-      // Override durasi jika tes Kraepelin dan config tersedia
+      // Override durasi berdasarkan tipe tes
       if (testType === "kraepelin" && kraepelinConfig) {
         duration = kraepelinConfig.columns * kraepelinConfig.duration_per_column;
+      } else if (testType === "cfit") {
+        duration = getTestDuration('cfit');
+      } else if (testType === "papi") {
+        duration = getTestDuration('papi');
       }
 
       // Request fullscreen when starting test
@@ -500,9 +504,9 @@ const submitCurrentTest = async () => {
   // --- SCREEN: MENU PILIH TEST ---
   if (!state.isStarted && !allTestsCompleted) {
     const testConfigs = [
-      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: "3 menit" },
+      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: `${Math.ceil(getTestDuration('cfit') / 60)} menit` },
       { type: "kraepelin" as TestType, name: "Kraepelin Test", icon: "📊", color: "green", questions: 50, time: "Per Kolom" },
-      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: "3 menit" },
+      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: `${Math.ceil(getTestDuration('papi') / 60)} menit` },
     ];
 
     return (

@@ -23,8 +23,23 @@ export interface PAPIQuestion {
   option_b: string;
 }
 
-// All tests are 3 minutes (180 seconds) each
-export const TEST_DURATION = 180;
+// All tests are 3 minutes (180 seconds) each by default
+// Bisa diubah oleh admin melalui test management page
+export const DEFAULT_TEST_DURATION = 180;
+
+// Helper function untuk get durasi dari localStorage atau default
+export const getTestDuration = (testType: 'cfit' | 'papi'): number => {
+  const stored = localStorage.getItem(`test_duration_${testType}`);
+  return stored ? parseInt(stored) : DEFAULT_TEST_DURATION;
+};
+
+// Helper function untuk set durasi (dipanggil dari admin panel)
+export const setTestDuration = (testType: 'cfit' | 'papi', duration: number): void => {
+  localStorage.setItem(`test_duration_${testType}`, duration.toString());
+};
+
+// Backward compatibility
+export const TEST_DURATION = DEFAULT_TEST_DURATION;
 
 export const cfitSubtests: CFITSubtest[] = [
   { id: 1, name: "Series Completion", questions: 13, duration: TEST_DURATION },
