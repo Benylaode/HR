@@ -170,31 +170,56 @@ class Resume(db.Model):
 
     candidate = db.relationship("Candidate", back_populates="resume", uselist=False, cascade="all, delete-orphan")
 
-class Candidate(db.Model):
+# ==========================================
+# MIXIN UNTUK DATA DIRI (KANDIDAT & KARYAWAN)
+# ==========================================
+class ProfileMixin(object):
+    """
+    Mixin ini berisi field form yang sama persis antara Kandidat dan Karyawan,
+    mengacu pada EmployeeCVForm.tsx.
+    """
+    full_name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, index=True, nullable=False)
+    whatsapp = db.Column(db.String(50))
+    gender = db.Column(db.String(20))
+    religion = db.Column(db.String(50))
+    birth_place = db.Column(db.String(100))
+    birth_date = db.Column(db.Date)
+    driver_license = db.Column(db.String(50))
+    address = db.Column(db.Text)
+    city = db.Column(db.String(100))
+    province = db.Column(db.String(100))
+    
+    # Riwayat Pendidikan
+    education = db.Column(db.String(100))
+    university = db.Column(db.String(150))
+    major = db.Column(db.String(150))
+    gpa = db.Column(db.String(10))
+    social_media = db.Column(db.Text)
+    
+    # Pengalaman Kerja Terakhir
+    position_applied = db.Column(db.String(100))
+    last_company = db.Column(db.String(150))
+    last_position = db.Column(db.String(150))
+    last_position_level = db.Column(db.String(100))
+    last_company_field = db.Column(db.String(100))
+    total_experience_years = db.Column(db.String(50)) # Sesuai form (string input)
+    experience_description = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=now_utc)
+
+# ==========================================
+# 4. CANDIDATE, EMPLOYEE & RESUME
+# ==========================================
+class Candidate(db.Model, ProfileMixin):
     __tablename__ = "candidates"
 
     id = db.Column(db.String, primary_key=True, default=uuid_str)
-    resume_id = db.Column(db.String, db.ForeignKey("resumes.id", ondelete="CASCADE"), unique=True, nullable=False)
-    name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, index=True)
-    phone = db.Column(db.String)
-    dob = db.Column(db.Date, nullable=True)
-    gender = db.Column(db.String(20), nullable=True)
-    address = db.Column(db.Text, nullable=True)
-    city = db.Column(db.String(100), nullable=True)
-    summary = db.Column(db.Text)
-    total_experience_years = db.Column(db.Float, default=0.0)
-    current_role = db.Column(db.String(100))
-    education = db.Column(JSONB, default=list) 
-    experience = db.Column(JSONB, default=list)
-    skills = db.Column(JSONB, default=list)
-    certifications = db.Column(JSONB, default=list)
-    languages = db.Column(JSONB, default=list)
-    social_links = db.Column(JSONB, default=dict)
-
-    # UPDATE
-    created_at = db.Column(db.DateTime, default=now_utc)
-
+    
+    # Resume ID sekarang nullable=True karena kita tidak mewajibkan CV Scanner lagi
+    resume_id = db.Column(db.String, db.ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True)
+    
+    # Relasi khusus Kandidat (Ada tracking/aplikasi)
     resume = db.relationship("Resume", back_populates="candidate")
     test_link = db.relationship("TestLink", back_populates="candidate", uselist=False, cascade="all, delete-orphan")
     applications = db.relationship("JobApplication", back_populates="candidate", cascade="all, delete-orphan")
@@ -202,17 +227,33 @@ class Candidate(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "name": self.name,
+            "name": self.full_name,
             "email": self.email,
-            "phone": self.phone,
-            "city": self.city,
-            "current_role": self.current_role,
-            "experience_years": self.total_experience_years,
-            "education": self.education,
-            "skills": self.skills,
+            "whatsapp": self.whatsapp,
+            "position_applied": self.position_applied,
             "created_at": format_date(self.created_at)
         }
 
+class Employee(db.Model, ProfileMixin):
+    __tablename__ = "employees"
+
+    id = db.Column(db.String, primary_key=True, default=uuid_str)
+    
+    # Karyawan bisa punya NIK, Department, dll di masa depan
+    employee_status = db.Column(db.String(50), default="Active")
+    
+    # Relasi Karyawan ke Tes (TIDAK ADA relasi ke JobApplication / Tracking)
+    test_link = db.relationship("TestLink", back_populates="employee", uselist=False, cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.full_name,
+            "email": self.email,
+            "whatsapp": self.whatsapp,
+            "department": self.last_company_field, # Contoh mapping
+            "created_at": format_date(self.created_at)
+        }
 # ==========================================
 # 5. JOB APPLICATION (PIVOT)
 # ==========================================
@@ -256,14 +297,18 @@ class TestLink(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(100), unique=True, default=uuid_str)
-    candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), unique=True, nullable=False)
+    
+    # UPDATE: Keduanya jadi nullable=True. Sebuah token milik Kandidat ATAU Karyawan
+    candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), unique=True, nullable=True)
+    employee_id = db.Column(db.String, db.ForeignKey('employees.id'), unique=True, nullable=True)
+    
     status = db.Column(db.String(20), default="active")
     expires_at = db.Column(db.DateTime)
     
-    # UPDATE
     created_at = db.Column(db.DateTime, default=now_utc)
     
     candidate = db.relationship("Candidate", back_populates="test_link")
+    employee = db.relationship("Employee", back_populates="test_link")
     submissions = db.relationship('TestSubmission', backref='link', lazy=True)
 
 class TestSubmission(db.Model):

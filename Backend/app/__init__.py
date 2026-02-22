@@ -65,7 +65,9 @@ def create_app(testing=False):
     from .routes.dashboard import dashboard_bp
     from .routes.tracking import tracing_bp
     from .routes.ata import ata_bp
+    from .routes.karyawan import employees_bp
 
+    app.register_blueprint(employees_bp, url_prefix="/karyawan")
     app.register_blueprint(mgmt_bp, url_prefix="/management")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
     app.register_blueprint(candidates_bp, url_prefix="/candidates")

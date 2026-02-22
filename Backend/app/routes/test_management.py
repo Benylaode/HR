@@ -3,67 +3,21 @@ from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 from app import db
 from app.models import (
     PapiQuestion, CfitQuestion, KraepelinConfig, 
-    PapiScoringMap, CfitNorma, TestSubmission, TestLink, Candidate
+    PapiScoringMap, CfitNorma, TestSubmission, TestLink, Candidate, Employee
 )
 from sqlalchemy.exc import IntegrityError
 import numpy as np
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 import uuid
-
+from app.models import now_utc # Import now_utc untuk waktu expired link
 
 # Blueprint untuk Manajemen (Admin)
 mgmt_bp = Blueprint("management", __name__)
 
-# Blueprint untuk Submission (Kandidat)
+# Blueprint untuk Submission (Kandidat/Karyawan)
 submit_bp = Blueprint("submit", __name__)
-
-# @submit_bp.before_request
-# def restrict_access_by_role():
-#     if request.method == "OPTIONS":
-#         return
-
-#     verify_jwt_in_request()
-
-#     claims = get_jwt()
-#     role = claims.get("role")
-
-#     # GET boleh HR & SUPER_USER
-#     if request.method == "GET":
-#         if role in ["HR", "SUPER_USER"]:
-#             return
-
-#     # Selain GET hanya SUPER_USER
-#     if role != "SUPER_USER":
-#         return jsonify({
-#             "status": 403,
-#             "message": "Access denied"
-#         }), 403
-
-
-# @mgmt_bp.before_request
-# def restrict_access_by_role():
-#     if request.method == "OPTIONS":
-#         return
-
-#     verify_jwt_in_request()
-
-#     claims = get_jwt()
-#     role = claims.get("role")
-
-#     # GET boleh HR & SUPER_USER
-#     if request.method == "GET":
-#         if role in ["HR", "SUPER_USER"]:
-#             return
-
-#     # Selain GET hanya SUPER_USER
-#     if role != "SUPER_USER":
-#         return jsonify({
-#             "status": 403,
-#             "message": "Access denied"
-#         }), 403
-
 
 UPLOAD_FOLDER = 'app/static/uploads/cfit'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -75,27 +29,39 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-
 @mgmt_bp.route("/submissions", methods=["GET"])
 def get_all_submissions():
-    results = db.session.query(TestSubmission, TestLink, Candidate).join(
+    # Ubah cara query agar tidak hard-join ke Candidate saja
+    results = db.session.query(TestSubmission, TestLink).join(
         TestLink, TestSubmission.link_id == TestLink.id
-    ).join(
-        Candidate, TestLink.candidate_id == Candidate.id
     ).order_by(TestSubmission.submitted_at.desc()).all()
     
     output = []
-    for sub, link, candidate in results:
-        # Safety check: Pastikan scores bukan None
+    for sub, link in results:
         scores_data = sub.scores if sub.scores else {}
+        
+        # Tentukan siapa pesertanya (Kandidat atau Karyawan)
+        participant_name = "Unknown"
+        participant_id = None
+        participant_type = "Unknown"
+        
+        if link.candidate:
+            participant_name = link.candidate.full_name
+            participant_id = link.candidate_id
+            participant_type = "Candidate"
+        elif link.employee:
+            participant_name = link.employee.full_name
+            participant_id = link.employee_id
+            participant_type = "Employee"
         
         output.append({
             "id": sub.id,
-            "candidate_id": link.candidate_id,
-            "candidate_name": candidate.name,  # Nama kandidat dari tabel Candidate
+            "candidate_id": participant_id, # Tetap pakai key ini agar Frontend tidak error
+            "participant_type": participant_type,
+            "candidate_name": participant_name, 
             "test_type": sub.test_type,
             "scores": scores_data,
-            "submitted_at": sub.submitted_at.isoformat()
+            "submitted_at": sub.submitted_at.isoformat() if sub.submitted_at else None
         })
     
     return jsonify(output)
@@ -106,44 +72,53 @@ def generate_link():
     data = request.get_json()
 
     candidate_id = data.get('candidate_id')
+    employee_id = data.get('employee_id')
     
-    if not candidate_id:
-        return jsonify({"error": "Candidate ID harus dipilih"}), 400
+    if not candidate_id and not employee_id:
+        return jsonify({"error": "Harus menyertakan candidate_id atau employee_id"}), 400
     
-    candidate = Candidate.query.get(candidate_id)
-    if not candidate:
-        return jsonify({"error": "Kandidat tidak ditemukan"}), 404
+    # Cek user dan cari link existing
+    user = None
+    existing_link = None
+    
+    if candidate_id:
+        user = Candidate.query.get(candidate_id)
+        if not user: return jsonify({"error": "Kandidat tidak ditemukan"}), 404
+        existing_link = TestLink.query.filter_by(candidate_id=candidate_id).first()
+    else:
+        user = Employee.query.get(employee_id)
+        if not user: return jsonify({"error": "Karyawan tidak ditemukan"}), 404
+        existing_link = TestLink.query.filter_by(employee_id=employee_id).first()
 
-    # Hapus link lama jika ada (desain: 1 kandidat = 1 kali test)
-    existing_link = TestLink.query.filter_by(candidate_id=candidate_id).first()
+    # Hapus link lama jika ada
     if existing_link:
         db.session.delete(existing_link)
         db.session.commit()
 
     try:
         new_link = TestLink(
-            candidate_id=candidate.id, 
+            candidate_id=candidate_id, 
+            employee_id=employee_id,
             token=str(uuid.uuid4()),
-            status='active'
+            status='active',
+            expires_at=now_utc() + timedelta(days=3) # Link expired dalam 3 hari
         )
         db.session.add(new_link)
         db.session.commit()
 
-        test_url = f"http://localhost:3000/test/{new_link.token}?candidate={candidate.name}"
-        return jsonify({"link": test_url, "token": new_link.token})
+        # Gunakan full_name
+        test_url = f"http://localhost:3000/test/{new_link.token}?name={user.full_name}"
+        return jsonify({
+            "link": test_url, 
+            "token": new_link.token, 
+            "assigned_to": user.full_name,
+            "type": "Candidate" if candidate_id else "Employee"
+        })
         
     except IntegrityError:
         db.session.rollback()
         return jsonify({"error": "Gagal membuat link (Constraint Error)"}), 500
-    
-@mgmt_bp.route("/questions/papi", methods=["GET"])
-def get_papi_questions():
-    questions = PapiQuestion.query.order_by(PapiQuestion.id.asc()).all()
-    return jsonify([{
-        "id": q.id,
-        "option_a": q.statement_a,
-        "option_b": q.statement_b
-    } for q in questions])
+
 
 @submit_bp.route("/check-token/<string:token>", methods=["GET"])
 def check_token(token):
@@ -154,36 +129,76 @@ def check_token(token):
     if link.status != 'active':
         return jsonify({"error": "Link sudah tidak aktif"}), 403
         
-    # Ambil list tes yang sudah dikerjakan
+    # Validasi Expired
+    if link.expires_at and now_utc() > link.expires_at:
+        return jsonify({"error": "Link tes sudah kedaluwarsa"}), 403
+        
     submissions = TestSubmission.query.filter_by(link_id=link.id).all()
-    completed_tests = [sub.test_type for sub in submissions] # ['cfit', 'kraepelin', etc]
+    completed_tests = [sub.test_type for sub in submissions] 
+
+    # Cek tipe peserta
+    if link.candidate:
+        participant_name = link.candidate.full_name
+        participant_id = link.candidate_id
+        participant_type = "Candidate"
+    elif link.employee:
+        participant_name = link.employee.full_name
+        participant_id = link.employee_id
+        participant_type = "Employee"
+    else:
+        return jsonify({"error": "Data pengguna tidak ditemukan"}), 404
 
     return jsonify({
-        "candidate_id": link.candidate_id,
-        "candidate_name": link.candidate.name,
+        "candidate_id": participant_id, # Key dipertahankan untuk frontend
+        "participant_type": participant_type,
+        "candidate_name": participant_name,
         "status": link.status, 
         "completed_tests": completed_tests
     })
-    
-# Tambahkan di test_management.py
+
 
 @mgmt_bp.route("/links", methods=["GET"])
 def get_all_links():
-    # Ambil semua link dengan join ke Candidate untuk nama
-    results = db.session.query(TestLink, Candidate).join(
-        Candidate, TestLink.candidate_id == Candidate.id
-    ).order_by(TestLink.created_at.desc()).all()
+    # Ambil semua link tanpa hard-join
+    links = TestLink.query.order_by(TestLink.created_at.desc()).all()
     
+    output = []
+    for link in links:
+        if link.candidate:
+            participant_name = link.candidate.full_name
+            participant_type = "Candidate"
+        elif link.employee:
+            participant_name = link.employee.full_name
+            participant_type = "Employee"
+        else:
+            participant_name = "Unknown"
+            participant_type = "Unknown"
+
+        output.append({
+            "id": link.id,
+            "candidateName": participant_name,  # Key ini tetap agar tabel frontend tidak rusak
+            "participantType": participant_type,
+            "token": link.token,
+            "status": link.status,
+            "createdAt": link.created_at.isoformat() if link.created_at else None
+        })
+        
+    return jsonify(output)
+
+
+# ==========================================
+# ENDPOINT SOAL & SUBMISSION BAWAAN (TIDAK BERUBAH)
+# ==========================================
+
+@mgmt_bp.route("/questions/papi", methods=["GET"])
+def get_papi_questions():
+    questions = PapiQuestion.query.order_by(PapiQuestion.id.asc()).all()
     return jsonify([{
-        "id": link.id,
-        "candidateName": candidate.name,  # Nama kandidat actual
-        "token": link.token,
-        "status": link.status,
-        "createdAt": link.created_at.isoformat() if link.created_at else None
-    } for link, candidate in results])
+        "id": q.id,
+        "option_a": q.statement_a,
+        "option_b": q.statement_b
+    } for q in questions])
 
-
-# Tambahkan ini di backend Anda (di dalam mgmt_bp)
 @mgmt_bp.route("/questions/papi", methods=["POST"])
 def add_papi_question():
     data = request.get_json()
@@ -195,7 +210,7 @@ def add_papi_question():
 
     try:
         new_q = PapiQuestion(
-            statement_a=option_a, # Sesuaikan dengan nama field di model PapiQuestion
+            statement_a=option_a, 
             statement_b=option_b
         )
         db.session.add(new_q)
@@ -225,7 +240,6 @@ def submit_papi():
     link = TestLink.query.filter_by(token=token).first()
     if not link: 
         return jsonify({"error": "Token tidak valid atau tidak ditemukan"}), 404
-    # -------------------------------------------------
 
     papi_scores = {
         key: 0 for key in ['G','L','I','T','V','S','R','D','C','E','N','A','P','X','B','O','Z','K','F','W']
@@ -262,8 +276,7 @@ def finalize_test():
     if not link:
         return jsonify({"error": "Token tidak valid"}), 404
         
-    # Ubah status agar link tidak bisa digunakan lagi
-    link.status = 'completed' # Pastikan di models.py kolom ini bisa menerima string 'completed'
+    link.status = 'completed'
     db.session.commit()
     
     return jsonify({"message": "Seluruh rangkaian tes telah diselesaikan dan dikunci."})
@@ -281,18 +294,13 @@ def get_cfit_questions():
         "subtest": q.subtest,
         "subtestName": q.subtest_name,
         "instruction": q.instruction,
-        "question_image": q.image_url, # URL lengkap static
+        "question_image": q.image_url, 
         "options": q.options.split(",") if q.options else [],
         "correctAnswer": q.correct_answer
     } for q in questions])
 
 @mgmt_bp.route("/questions/cfit", methods=["POST"])
 def add_cfit_question():
-    """
-    Menangani pembuatan soal CFIT termasuk upload gambar.
-    Menggunakan form-data untuk mendukung pengiriman file.
-    """
-    # Mengambil data dari form-data
     subtest = request.form.get('subtest', type=int)
     correct_answer = request.form.get('correctAnswer', type=int)
     instruction = request.form.get('instruction', "")
@@ -300,14 +308,12 @@ def add_cfit_question():
     
     image_url = None
 
-    # Proses Upload Foto
     if 'image' in request.files:
         file = request.files['image']
         if file and allowed_file(file.filename):
             filename = secure_filename(f"cfit_{subtest}_{uuid.uuid4().hex[:8]}_{file.filename}")
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
-            # URL yang akan disimpan (bisa diakses via http://server/static/uploads/cfit/...)
             image_url = f"/static/uploads/cfit/{filename}"
 
     try:
@@ -327,12 +333,10 @@ def add_cfit_question():
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
     
-
 @mgmt_bp.route("/questions/cfit/<int:question_id>", methods=["DELETE"])
 def delete_cfit_question(question_id):
     q = CfitQuestion.query.get_or_404(question_id)
     try:
-        # Hapus file fisik jika ada
         if q.image_url:
             full_path = os.path.join('app', q.image_url.lstrip('/'))
             if os.path.exists(full_path):
@@ -348,14 +352,12 @@ def delete_cfit_question(question_id):
 @submit_bp.route("/cfit", methods=["POST"])
 def submit_cfit():
     data = request.get_json()
-    token = data.get('token')  # <--- Ambil token dari frontend
+    token = data.get('token') 
     answers = data.get('answers') 
     
-    # --- [TAMBAHAN] Validasi Token & Ambil Link ID ---
     link = TestLink.query.filter_by(token=token).first()
     if not link: 
         return jsonify({"error": "Token tidak valid atau tidak ditemukan"}), 404
-    # -------------------------------------------------
 
     questions = CfitQuestion.query.order_by(CfitQuestion.id).all()
     
@@ -381,7 +383,7 @@ def submit_cfit():
     classification = norma.classification if norma else "Unclassified"
 
     submission = TestSubmission(
-        link_id=link.id,  # <--- [PENTING] Masukkan ID link di sini
+        link_id=link.id, 
         test_type='cfit',
         raw_answers=answers,
         scores={
@@ -424,19 +426,17 @@ def submit_kraepelin():
     data = request.get_json()
     token = data.get('token')
     
-    # Data hasil hitungan FE
     fe_results = data.get('results') 
-    raw_answers = data.get('answers') # Opsional disimpan
+    raw_answers = data.get('answers') 
     
     link = TestLink.query.filter_by(token=token).first()
     if not link: return jsonify({"error": "Unauthorized"}), 401
 
-    # Backend tinggal simpan saja, tidak perlu numpy lagi
     submission = TestSubmission(
         link_id=link.id,
         test_type='kraepelin',
-        raw_answers=raw_answers, # Simpan raw data untuk backup/audit
-        scores=fe_results        # Simpan hasil hitungan FE (panker, janker)
+        raw_answers=raw_answers, 
+        scores=fe_results       
     )
     db.session.add(submission)
     db.session.commit()
@@ -444,15 +444,11 @@ def submit_kraepelin():
     return jsonify({"status": "success", "data": fe_results})
 
 
-# Tambahkan di routes/test_management.py (pastikan import model sudah ada)
-
 @mgmt_bp.route("/seed/cfit-norma", methods=["POST"])
 def seed_cfit_norma():
-    """Endpoint untuk mengisi tabel Norma CFIT sekaligus"""
-    data = request.get_json() # Mengharapkan List of objects
+    data = request.get_json() 
     
     try:
-        # Hapus data lama agar tidak duplikat (Opsional, hati-hati)
         CfitNorma.query.delete()
         
         for item in data:
@@ -471,20 +467,15 @@ def seed_cfit_norma():
 
 @mgmt_bp.route("/seed/papi-map", methods=["POST"])
 def seed_papi_map():
-    """Endpoint untuk mengisi Kunci Jawaban Scoring PAPI (G, L, I, dst)"""
     data = request.get_json()
     
     try:
         PapiScoringMap.query.delete()
         
         for item in data:
-            # item format: {"q": 1, "a": "G", "b": "N"} -> artinya Choice A=G, Choice B=N
-            
-            # Mapping A
             map_a = PapiScoringMap(question_id=item['q'], choice='A', aspect=item['a'])
             db.session.add(map_a)
             
-            # Mapping B
             map_b = PapiScoringMap(question_id=item['q'], choice='B', aspect=item['b'])
             db.session.add(map_b)
             
@@ -494,19 +485,12 @@ def seed_papi_map():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
     
-
-
 @mgmt_bp.route("/seed/papi-questions", methods=["POST"])
 def seed_papi_questions():
-    """Mengisi 90 Soal PAPI Kostick sekaligus"""
-    data = request.get_json() # List of {id, a, b}
+    data = request.get_json() 
     
     try:
-        # Reset data lama (Opsional, agar tidak duplikat)
-        # db.session.query(PapiQuestion).delete() 
-        
         for item in data:
-            # Cek apakah soal sudah ada berdasarkan ID
             existing = PapiQuestion.query.get(item['id'])
             if not existing:
                 q = PapiQuestion(
@@ -525,24 +509,16 @@ def seed_papi_questions():
 
 @mgmt_bp.route("/seed/cfit-questions", methods=["POST"])
 def seed_cfit_questions():
-    """Mengisi Soal CFIT (Metadata & Kunci Jawaban)"""
     data = request.get_json()
     
     try:
-        # Hapus data lama (Opsional)
-        # db.session.query(CfitQuestion).delete()
-        
         for item in data:
-            # item format: {subtest: 1, order: 1, answer: 2, options: "A,B,C,D,E,F"}
-            
-            # Kita asumsikan gambar sudah diupload manual ke folder static
-            # dengan nama: cfit_s{subtest}_{order}.jpg
             img_path = f"/static/uploads/cfit/cfit_s{item['subtest']}_{item['order']}.jpg"
             
             q = CfitQuestion(
                 subtest=item['subtest'],
                 subtest_name=f"Subtest {item['subtest']}",
-                instruction="Pilihlah jawaban yang paling tepat.", # Default instruction
+                instruction="Pilihlah jawaban yang paling tepat.", 
                 image_url=img_path, 
                 options=item.get('options', "A,B,C,D,E,F"),
                 correct_answer=item['answer'],

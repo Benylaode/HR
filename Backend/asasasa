@@ -1,0 +1,1000 @@
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "Python",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "REST API",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "PostgreSQL",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "MySQL",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "MongoDB",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "Docker",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "Linux Server",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "Git",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "GitHub",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:         "GitLab"
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:     ],
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:     "verdict": "Kandidat memiliki pengalaman yang relevan dalam pengembangan aplikasi web dan mobile, serta integrasi API dan database. Namun, lokasi kandidat tidak sesuai dengan yang diharapkan (Konawe).",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:     "summary": "Pengembang fullstack berpengalaman dengan keahlian dalam pengembangan web, mobile, dan integrasi AI.",
+Feb 08 13:40:07 srv1224816 gunicorn[213771]:     "match_score_estimate": 70
+Feb 08 13:40:07 srv1224816 gunicorn[213771]: }
+Feb 08 13:40:07 srv1224816 gunicorn[213771]: 127.0.0.1 - - [08/Feb/2026:13:40:07 +0000] "POST /screening/match_resume HTTP/1.0" 200 325 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:40:52 srv1224816 gunicorn[213771]: Parsing Error: Extra data: line 39 column 1 (char 1654)
+Feb 08 13:40:52 srv1224816 gunicorn[213771]: Raw Content causing error: {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "city": "Makassar",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "current_role": "Fullstack Developer & AI Backend Engineer",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "education": [],
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "experience": [
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "company": "Freelance / Self-Employed",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "role": "Fullstack Developer & AI Backend Engineer",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "duration": "2023–Present",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "details": "Mengembangkan dan mengelola 10+ aplikasi web dan AI-powered services untuk klien bisnis dan pendidikan."
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         },
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "company": "BPK Perwakilan Provinsi Sulawesi Selatan (Government Agency)",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "role": "IT Staff",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "duration": "2025",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "details": "Mengelola pemeliharaan aplikasi internal berbasis web dan memastikan stabilitas sistem pemerintahan."
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         },
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "company": "Universitas Hasanuddin",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "role": "Assistant Lecturer – Information Systems Lab",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "duration": "2023–2025",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "details": "Membimbing 150+ mahasiswa dalam mata kuliah Backend Development, REST API Design, dan Software Engineering."
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         }
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     ],
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "skills": [
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "React.js",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Mobile Development",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Node.js",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Python",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "REST API",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "PostgreSQL",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Docker",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Linux Server"
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     ],
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "verdict": "Kandidat memiliki pengalaman dalam pengembangan aplikasi web dan mobile, integrasi API, serta manajemen database yang sesuai dengan persyaratan pekerjaan. Namun, lokasi kandidat tidak sesuai dengan yang diharapkan (Konawe).",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "summary": "Pengembang fullstack berpengalaman dengan keahlian dalam backend engineering, integrasi API, dan manajemen database.",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "match_score_estimate": 75
+Feb 08 13:40:52 srv1224816 gunicorn[213771]: }
+Feb 08 13:40:52 srv1224816 gunicorn[213771]: {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "city": "Makassar",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "current_role": "Fullstack Developer & AI Backend Engineer",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "education": [],
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "experience": [
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "company": "Freelance / Self-Employed",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "role": "Fullstack Developer & AI Backend Engineer",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "duration": "2023–Present",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "details": "Mengembangkan dan mengelola 10+ aplikasi web dan AI-powered services untuk klien bisnis dan pendidikan."
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         },
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "company": "BPK Perwakilan Provinsi Sulawesi Selatan (Government Agency)",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "role": "IT Staff",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "duration": "2025",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "details": "Mengelola pemeliharaan aplikasi internal berbasis web dan memastikan stabilitas sistem pemerintahan."
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         },
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         {
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "company": "Universitas Hasanuddin",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "role": "Assistant Lecturer – Information Systems Lab",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "duration": "2023–2025",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:             "details": "Membimbing 150+ mahasiswa dalam mata kuliah Backend Development, REST API Design, dan Software Engineering."
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         }
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     ],
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "skills": [
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "React.js",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Mobile Development",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Node.js",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Python",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "REST API",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "PostgreSQL",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Docker",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:         "Linux Server"
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     ],
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "verdict": "Kandidat memiliki pengalaman dalam pengembangan aplikasi web dan mobile, integrasi API, serta manajemen database yang sesuai dengan persyaratan pekerjaan. Namun, lokasi kandidat tidak sesuai dengan yang diharapkan (Konawe).",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "summary": "Pengembang fullstack berpengalaman dengan keahlian dalam backend engineering, integrasi API, dan manajemen database.",
+Feb 08 13:40:52 srv1224816 gunicorn[213771]:     "match_score_estimate": 75
+Feb 08 13:40:52 srv1224816 gunicorn[213771]: }
+Feb 08 13:40:52 srv1224816 gunicorn[213771]: 127.0.0.1 - - [08/Feb/2026:13:40:52 +0000] "POST /screening/match_resume HTTP/1.0" 200 325 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:41:08 srv1224816 gunicorn[213771]: 127.0.0.1 - - [08/Feb/2026:13:41:08 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:41:08 srv1224816 gunicorn[213771]: 127.0.0.1 - - [08/Feb/2026:13:41:08 +0000] "GET /screening/candidates HTTP/1.0" 200 404 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:44:29 srv1224816 gunicorn[213771]: 127.0.0.1 - - [08/Feb/2026:13:44:29 +0000] "GET / HTTP/1.0" 404 207 "-" "-"
+Feb 08 13:50:22 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 13:50:22 srv1224816 gunicorn[213770]: [2026-02-08 13:50:22 +0000] [213770] [INFO] Handling signal: term
+Feb 08 13:50:23 srv1224816 gunicorn[213771]: [2026-02-08 13:50:23 +0000] [213771] [INFO] Worker exiting (pid: 213771)
+Feb 08 13:50:25 srv1224816 gunicorn[213770]: [2026-02-08 13:50:25 +0000] [213770] [INFO] Shutting down: Master
+Feb 08 13:50:25 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 13:50:25 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 13:50:25 srv1224816 systemd[1]: hr-backend.service: Consumed 14.032s CPU time, 89.7M memory peak, 0B memory swap peak.
+Feb 08 13:50:25 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 13:50:25 srv1224816 gunicorn[214053]: [2026-02-08 13:50:25 +0000] [214053] [INFO] Starting gunicorn 23.0.0
+Feb 08 13:50:25 srv1224816 gunicorn[214053]: [2026-02-08 13:50:25 +0000] [214053] [INFO] Listening at: http://0.0.0.0:5000 (214053)
+Feb 08 13:50:25 srv1224816 gunicorn[214053]: [2026-02-08 13:50:25 +0000] [214053] [INFO] Using worker: gthread
+Feb 08 13:50:25 srv1224816 gunicorn[214054]: [2026-02-08 13:50:25 +0000] [214054] [INFO] Booting worker with pid: 214054
+Feb 08 13:50:38 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:38 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:38 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:38 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:38 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:38 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:38 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:38 +0000] "GET /screening/candidates HTTP/1.0" 200 404 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:38 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:38 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:38 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:38 +0000] "GET /screening/candidates HTTP/1.0" 200 404 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:46 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:50:46 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:50:54 srv1224816 gunicorn[214054]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 13:51:03 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:51:03 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:51:03 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:51:03 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:51:07 srv1224816 gunicorn[214054]: API Error: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'meta-llama/llama-3.3-70b-instruct:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations', 'provider_name': 'Venice', 'is_byok': False}}, 'user_id': 'user_32B6J6ftqJqRrWKdAqCeEebYiPf'}
+Feb 08 13:51:07 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:51:07 +0000] "POST /screening/match_resume HTTP/1.0" 200 696 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:51:07 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:51:07 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:51:08 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:51:08 +0000] "GET /screening/candidates HTTP/1.0" 200 1177 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "GET /candidates HTTP/1.0" 200 1508 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "GET /candidates HTTP/1.0" 200 1508 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:37 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:37 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:41 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:41 +0000] "OPTIONS /candidates/7c9a2247-bb4a-4470-b20a-ae2f891d3fde HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:41 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:41 +0000] "DELETE /candidates/7c9a2247-bb4a-4470-b20a-ae2f891d3fde HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:43 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:43 +0000] "OPTIONS /candidates/86804ffd-4f77-4e44-9f8a-363243966124 HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 13:52:44 srv1224816 gunicorn[214054]: 127.0.0.1 - - [08/Feb/2026:13:52:44 +0000] "DELETE /candidates/86804ffd-4f77-4e44-9f8a-363243966124 HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:03:36 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:03:36 srv1224816 gunicorn[214053]: [2026-02-08 14:03:36 +0000] [214053] [INFO] Handling signal: term
+Feb 08 14:03:36 srv1224816 gunicorn[214054]: [2026-02-08 14:03:36 +0000] [214054] [INFO] Worker exiting (pid: 214054)
+Feb 08 14:03:38 srv1224816 gunicorn[214053]: [2026-02-08 14:03:38 +0000] [214053] [INFO] Shutting down: Master
+Feb 08 14:03:38 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:03:38 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:03:38 srv1224816 systemd[1]: hr-backend.service: Consumed 13.432s CPU time, 109.5M memory peak, 0B memory swap peak.
+Feb 08 14:03:38 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:03:38 srv1224816 gunicorn[214305]: [2026-02-08 14:03:38 +0000] [214305] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:03:38 srv1224816 gunicorn[214305]: [2026-02-08 14:03:38 +0000] [214305] [INFO] Listening at: http://0.0.0.0:5000 (214305)
+Feb 08 14:03:38 srv1224816 gunicorn[214305]: [2026-02-08 14:03:38 +0000] [214305] [INFO] Using worker: gthread
+Feb 08 14:03:38 srv1224816 gunicorn[214307]: [2026-02-08 14:03:38 +0000] [214307] [INFO] Booting worker with pid: 214307
+Feb 08 14:03:40 srv1224816 gunicorn[214307]: [2026-02-08 14:03:40 +0000] [214307] [ERROR] Exception in worker process
+Feb 08 14:03:40 srv1224816 gunicorn[214307]: Traceback (most recent call last):
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     worker.init_process()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     super().init_process()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     self.load_wsgi()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     self.wsgi = self.app.wsgi()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     self.callable = self.load()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:                     ^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     return self.load_wsgiapp()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     return util.import_app(self.app_uri)
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     mod = importlib.import_module(module)
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     app = create_app()
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:           ^^^^^^^^^^^^
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     from .routes.screening import screening_bp
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:03:40 srv1224816 gunicorn[214307]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:03:40 srv1224816 gunicorn[214307]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:03:40 srv1224816 gunicorn[214307]: [2026-02-08 14:03:40 +0000] [214307] [INFO] Worker exiting (pid: 214307)
+Feb 08 14:03:40 srv1224816 gunicorn[214305]: [2026-02-08 14:03:40 +0000] [214305] [ERROR] Worker (pid:214307) exited with code 3
+Feb 08 14:03:40 srv1224816 gunicorn[214305]: [2026-02-08 14:03:40 +0000] [214305] [ERROR] Shutting down: Master
+Feb 08 14:03:40 srv1224816 gunicorn[214305]: [2026-02-08 14:03:40 +0000] [214305] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:03:40 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:03:40 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:03:40 srv1224816 systemd[1]: hr-backend.service: Consumed 1.401s CPU time.
+Feb 08 14:03:40 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 1.
+Feb 08 14:03:40 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:03:40 srv1224816 gunicorn[214309]: [2026-02-08 14:03:40 +0000] [214309] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:03:40 srv1224816 gunicorn[214309]: [2026-02-08 14:03:40 +0000] [214309] [INFO] Listening at: http://0.0.0.0:5000 (214309)
+Feb 08 14:03:40 srv1224816 gunicorn[214309]: [2026-02-08 14:03:40 +0000] [214309] [INFO] Using worker: gthread
+Feb 08 14:03:40 srv1224816 gunicorn[214310]: [2026-02-08 14:03:40 +0000] [214310] [INFO] Booting worker with pid: 214310
+Feb 08 14:03:41 srv1224816 gunicorn[214310]: [2026-02-08 14:03:41 +0000] [214310] [ERROR] Exception in worker process
+Feb 08 14:03:41 srv1224816 gunicorn[214310]: Traceback (most recent call last):
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     worker.init_process()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     super().init_process()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     self.load_wsgi()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     self.wsgi = self.app.wsgi()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     self.callable = self.load()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:                     ^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     return self.load_wsgiapp()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     return util.import_app(self.app_uri)
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     mod = importlib.import_module(module)
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     app = create_app()
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:           ^^^^^^^^^^^^
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     from .routes.screening import screening_bp
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:03:41 srv1224816 gunicorn[214310]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:03:41 srv1224816 gunicorn[214310]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:03:41 srv1224816 gunicorn[214310]: [2026-02-08 14:03:41 +0000] [214310] [INFO] Worker exiting (pid: 214310)
+Feb 08 14:03:41 srv1224816 gunicorn[214309]: [2026-02-08 14:03:41 +0000] [214309] [ERROR] Worker (pid:214310) exited with code 3
+Feb 08 14:03:41 srv1224816 gunicorn[214309]: [2026-02-08 14:03:41 +0000] [214309] [ERROR] Shutting down: Master
+Feb 08 14:03:41 srv1224816 gunicorn[214309]: [2026-02-08 14:03:41 +0000] [214309] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:03:41 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:03:41 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:03:41 srv1224816 systemd[1]: hr-backend.service: Consumed 1.459s CPU time.
+Feb 08 14:03:42 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 2.
+Feb 08 14:03:42 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:03:42 srv1224816 gunicorn[214312]: [2026-02-08 14:03:42 +0000] [214312] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:03:42 srv1224816 gunicorn[214312]: [2026-02-08 14:03:42 +0000] [214312] [INFO] Listening at: http://0.0.0.0:5000 (214312)
+Feb 08 14:03:42 srv1224816 gunicorn[214312]: [2026-02-08 14:03:42 +0000] [214312] [INFO] Using worker: gthread
+Feb 08 14:03:42 srv1224816 gunicorn[214313]: [2026-02-08 14:03:42 +0000] [214313] [INFO] Booting worker with pid: 214313
+Feb 08 14:03:43 srv1224816 gunicorn[214313]: [2026-02-08 14:03:43 +0000] [214313] [ERROR] Exception in worker process
+Feb 08 14:03:43 srv1224816 gunicorn[214313]: Traceback (most recent call last):
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     worker.init_process()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     super().init_process()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     self.load_wsgi()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     self.wsgi = self.app.wsgi()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     self.callable = self.load()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:                     ^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     return self.load_wsgiapp()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     return util.import_app(self.app_uri)
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     mod = importlib.import_module(module)
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     app = create_app()
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:           ^^^^^^^^^^^^
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     from .routes.screening import screening_bp
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:03:43 srv1224816 gunicorn[214313]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:03:43 srv1224816 gunicorn[214313]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:03:43 srv1224816 gunicorn[214313]: [2026-02-08 14:03:43 +0000] [214313] [INFO] Worker exiting (pid: 214313)
+Feb 08 14:03:43 srv1224816 gunicorn[214312]: [2026-02-08 14:03:43 +0000] [214312] [ERROR] Worker (pid:214313) exited with code 3
+Feb 08 14:03:43 srv1224816 gunicorn[214312]: [2026-02-08 14:03:43 +0000] [214312] [ERROR] Shutting down: Master
+Feb 08 14:03:43 srv1224816 gunicorn[214312]: [2026-02-08 14:03:43 +0000] [214312] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:03:43 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:03:43 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:03:43 srv1224816 systemd[1]: hr-backend.service: Consumed 1.361s CPU time.
+Feb 08 14:03:44 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 3.
+Feb 08 14:03:44 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:03:44 srv1224816 gunicorn[214315]: [2026-02-08 14:03:44 +0000] [214315] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:03:44 srv1224816 gunicorn[214315]: [2026-02-08 14:03:44 +0000] [214315] [INFO] Listening at: http://0.0.0.0:5000 (214315)
+Feb 08 14:03:44 srv1224816 gunicorn[214315]: [2026-02-08 14:03:44 +0000] [214315] [INFO] Using worker: gthread
+Feb 08 14:03:44 srv1224816 gunicorn[214316]: [2026-02-08 14:03:44 +0000] [214316] [INFO] Booting worker with pid: 214316
+Feb 08 14:03:45 srv1224816 gunicorn[214316]: [2026-02-08 14:03:45 +0000] [214316] [ERROR] Exception in worker process
+Feb 08 14:03:45 srv1224816 gunicorn[214316]: Traceback (most recent call last):
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     worker.init_process()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     super().init_process()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     self.load_wsgi()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     self.wsgi = self.app.wsgi()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     self.callable = self.load()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:                     ^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     return self.load_wsgiapp()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     return util.import_app(self.app_uri)
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     mod = importlib.import_module(module)
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     app = create_app()
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:           ^^^^^^^^^^^^
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     from .routes.screening import screening_bp
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:03:45 srv1224816 gunicorn[214316]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:03:45 srv1224816 gunicorn[214316]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:03:45 srv1224816 gunicorn[214316]: [2026-02-08 14:03:45 +0000] [214316] [INFO] Worker exiting (pid: 214316)
+Feb 08 14:03:45 srv1224816 gunicorn[214315]: [2026-02-08 14:03:45 +0000] [214315] [ERROR] Worker (pid:214316) exited with code 3
+Feb 08 14:03:45 srv1224816 gunicorn[214315]: [2026-02-08 14:03:45 +0000] [214315] [ERROR] Shutting down: Master
+Feb 08 14:03:45 srv1224816 gunicorn[214315]: [2026-02-08 14:03:45 +0000] [214315] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:03:45 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:03:45 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:03:45 srv1224816 systemd[1]: hr-backend.service: Consumed 1.282s CPU time, 81.4M memory peak, 0B memory swap peak.
+Feb 08 14:03:45 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 4.
+Feb 08 14:03:45 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:03:45 srv1224816 gunicorn[214320]: [2026-02-08 14:03:45 +0000] [214320] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:03:45 srv1224816 gunicorn[214320]: [2026-02-08 14:03:45 +0000] [214320] [INFO] Listening at: http://0.0.0.0:5000 (214320)
+Feb 08 14:03:45 srv1224816 gunicorn[214320]: [2026-02-08 14:03:45 +0000] [214320] [INFO] Using worker: gthread
+Feb 08 14:03:45 srv1224816 gunicorn[214321]: [2026-02-08 14:03:45 +0000] [214321] [INFO] Booting worker with pid: 214321
+Feb 08 14:03:46 srv1224816 gunicorn[214321]: [2026-02-08 14:03:46 +0000] [214321] [ERROR] Exception in worker process
+Feb 08 14:03:46 srv1224816 gunicorn[214321]: Traceback (most recent call last):
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     worker.init_process()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     super().init_process()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     self.load_wsgi()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     self.wsgi = self.app.wsgi()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     self.callable = self.load()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:                     ^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     return self.load_wsgiapp()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     return util.import_app(self.app_uri)
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     mod = importlib.import_module(module)
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     app = create_app()
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:           ^^^^^^^^^^^^
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     from .routes.screening import screening_bp
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:03:46 srv1224816 gunicorn[214321]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:03:46 srv1224816 gunicorn[214321]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:03:46 srv1224816 gunicorn[214321]: [2026-02-08 14:03:46 +0000] [214321] [INFO] Worker exiting (pid: 214321)
+Feb 08 14:03:47 srv1224816 gunicorn[214320]: [2026-02-08 14:03:47 +0000] [214320] [ERROR] Worker (pid:214321) exited with code 3
+Feb 08 14:03:47 srv1224816 gunicorn[214320]: [2026-02-08 14:03:47 +0000] [214320] [ERROR] Shutting down: Master
+Feb 08 14:03:47 srv1224816 gunicorn[214320]: [2026-02-08 14:03:47 +0000] [214320] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:03:47 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:03:47 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:03:47 srv1224816 systemd[1]: hr-backend.service: Consumed 1.297s CPU time.
+Feb 08 14:03:47 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 5.
+Feb 08 14:03:47 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Start request repeated too quickly.[0m
+Feb 08 14:03:47 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:03:47 srv1224816 systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start hr-backend.service - Gunicorn service for HR Backend.[0m
+Feb 08 14:03:47 srv1224816 systemd[1]: hr-backend.service: Consumed 1.297s CPU time.
+Feb 08 14:04:33 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:04:34 srv1224816 gunicorn[214331]: [2026-02-08 14:04:34 +0000] [214331] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:04:34 srv1224816 gunicorn[214331]: [2026-02-08 14:04:34 +0000] [214331] [INFO] Listening at: http://0.0.0.0:5000 (214331)
+Feb 08 14:04:34 srv1224816 gunicorn[214331]: [2026-02-08 14:04:34 +0000] [214331] [INFO] Using worker: gthread
+Feb 08 14:04:34 srv1224816 gunicorn[214332]: [2026-02-08 14:04:34 +0000] [214332] [INFO] Booting worker with pid: 214332
+Feb 08 14:04:35 srv1224816 gunicorn[214332]: [2026-02-08 14:04:35 +0000] [214332] [ERROR] Exception in worker process
+Feb 08 14:04:35 srv1224816 gunicorn[214332]: Traceback (most recent call last):
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     worker.init_process()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     super().init_process()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     self.load_wsgi()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     self.wsgi = self.app.wsgi()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     self.callable = self.load()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:                     ^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     return self.load_wsgiapp()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     return util.import_app(self.app_uri)
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     mod = importlib.import_module(module)
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     app = create_app()
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:           ^^^^^^^^^^^^
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     from .routes.screening import screening_bp
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:04:35 srv1224816 gunicorn[214332]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:04:35 srv1224816 gunicorn[214332]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:04:35 srv1224816 gunicorn[214332]: [2026-02-08 14:04:35 +0000] [214332] [INFO] Worker exiting (pid: 214332)
+Feb 08 14:04:35 srv1224816 gunicorn[214331]: [2026-02-08 14:04:35 +0000] [214331] [ERROR] Worker (pid:214332) exited with code 3
+Feb 08 14:04:35 srv1224816 gunicorn[214331]: [2026-02-08 14:04:35 +0000] [214331] [ERROR] Shutting down: Master
+Feb 08 14:04:35 srv1224816 gunicorn[214331]: [2026-02-08 14:04:35 +0000] [214331] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:04:35 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:04:35 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:04:35 srv1224816 systemd[1]: hr-backend.service: Consumed 1.303s CPU time.
+Feb 08 14:04:35 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 1.
+Feb 08 14:04:35 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:04:35 srv1224816 gunicorn[214334]: [2026-02-08 14:04:35 +0000] [214334] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:04:35 srv1224816 gunicorn[214334]: [2026-02-08 14:04:35 +0000] [214334] [INFO] Listening at: http://0.0.0.0:5000 (214334)
+Feb 08 14:04:35 srv1224816 gunicorn[214334]: [2026-02-08 14:04:35 +0000] [214334] [INFO] Using worker: gthread
+Feb 08 14:04:35 srv1224816 gunicorn[214335]: [2026-02-08 14:04:35 +0000] [214335] [INFO] Booting worker with pid: 214335
+Feb 08 14:04:36 srv1224816 gunicorn[214335]: [2026-02-08 14:04:36 +0000] [214335] [ERROR] Exception in worker process
+Feb 08 14:04:36 srv1224816 gunicorn[214335]: Traceback (most recent call last):
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     worker.init_process()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     super().init_process()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     self.load_wsgi()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     self.wsgi = self.app.wsgi()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     self.callable = self.load()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:                     ^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     return self.load_wsgiapp()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     return util.import_app(self.app_uri)
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     mod = importlib.import_module(module)
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     app = create_app()
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:           ^^^^^^^^^^^^
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     from .routes.screening import screening_bp
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:04:36 srv1224816 gunicorn[214335]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:04:36 srv1224816 gunicorn[214335]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:04:36 srv1224816 gunicorn[214335]: [2026-02-08 14:04:36 +0000] [214335] [INFO] Worker exiting (pid: 214335)
+Feb 08 14:04:36 srv1224816 gunicorn[214334]: [2026-02-08 14:04:36 +0000] [214334] [ERROR] Worker (pid:214335) exited with code 3
+Feb 08 14:04:36 srv1224816 gunicorn[214334]: [2026-02-08 14:04:36 +0000] [214334] [ERROR] Shutting down: Master
+Feb 08 14:04:36 srv1224816 gunicorn[214334]: [2026-02-08 14:04:36 +0000] [214334] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:04:36 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:04:36 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:04:36 srv1224816 systemd[1]: hr-backend.service: Consumed 1.290s CPU time.
+Feb 08 14:04:36 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 2.
+Feb 08 14:04:36 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:04:37 srv1224816 gunicorn[214337]: [2026-02-08 14:04:37 +0000] [214337] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:04:37 srv1224816 gunicorn[214337]: [2026-02-08 14:04:37 +0000] [214337] [INFO] Listening at: http://0.0.0.0:5000 (214337)
+Feb 08 14:04:37 srv1224816 gunicorn[214337]: [2026-02-08 14:04:37 +0000] [214337] [INFO] Using worker: gthread
+Feb 08 14:04:37 srv1224816 gunicorn[214338]: [2026-02-08 14:04:37 +0000] [214338] [INFO] Booting worker with pid: 214338
+Feb 08 14:04:37 srv1224816 gunicorn[214338]: [2026-02-08 14:04:37 +0000] [214338] [ERROR] Exception in worker process
+Feb 08 14:04:37 srv1224816 gunicorn[214338]: Traceback (most recent call last):
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     worker.init_process()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     super().init_process()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     self.load_wsgi()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     self.wsgi = self.app.wsgi()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     self.callable = self.load()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:                     ^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     return self.load_wsgiapp()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     return util.import_app(self.app_uri)
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     mod = importlib.import_module(module)
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     app = create_app()
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:           ^^^^^^^^^^^^
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     from .routes.screening import screening_bp
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:04:37 srv1224816 gunicorn[214338]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:04:37 srv1224816 gunicorn[214338]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:04:37 srv1224816 gunicorn[214338]: [2026-02-08 14:04:37 +0000] [214338] [INFO] Worker exiting (pid: 214338)
+Feb 08 14:04:38 srv1224816 gunicorn[214337]: [2026-02-08 14:04:38 +0000] [214337] [ERROR] Worker (pid:214338) exited with code 3
+Feb 08 14:04:38 srv1224816 gunicorn[214337]: [2026-02-08 14:04:38 +0000] [214337] [ERROR] Shutting down: Master
+Feb 08 14:04:38 srv1224816 gunicorn[214337]: [2026-02-08 14:04:38 +0000] [214337] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:04:38 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:04:38 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:04:38 srv1224816 systemd[1]: hr-backend.service: Consumed 1.175s CPU time.
+Feb 08 14:04:38 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 3.
+Feb 08 14:04:38 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:04:38 srv1224816 gunicorn[214340]: [2026-02-08 14:04:38 +0000] [214340] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:04:38 srv1224816 gunicorn[214340]: [2026-02-08 14:04:38 +0000] [214340] [INFO] Listening at: http://0.0.0.0:5000 (214340)
+Feb 08 14:04:38 srv1224816 gunicorn[214340]: [2026-02-08 14:04:38 +0000] [214340] [INFO] Using worker: gthread
+Feb 08 14:04:38 srv1224816 gunicorn[214341]: [2026-02-08 14:04:38 +0000] [214341] [INFO] Booting worker with pid: 214341
+Feb 08 14:04:39 srv1224816 gunicorn[214341]: [2026-02-08 14:04:39 +0000] [214341] [ERROR] Exception in worker process
+Feb 08 14:04:39 srv1224816 gunicorn[214341]: Traceback (most recent call last):
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     worker.init_process()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     super().init_process()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     self.load_wsgi()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     self.wsgi = self.app.wsgi()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     self.callable = self.load()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:                     ^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     return self.load_wsgiapp()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     return util.import_app(self.app_uri)
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     mod = importlib.import_module(module)
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     app = create_app()
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:           ^^^^^^^^^^^^
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     from .routes.screening import screening_bp
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:04:39 srv1224816 gunicorn[214341]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:04:39 srv1224816 gunicorn[214341]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:04:39 srv1224816 gunicorn[214341]: [2026-02-08 14:04:39 +0000] [214341] [INFO] Worker exiting (pid: 214341)
+Feb 08 14:04:39 srv1224816 gunicorn[214340]: [2026-02-08 14:04:39 +0000] [214340] [ERROR] Worker (pid:214341) exited with code 3
+Feb 08 14:04:39 srv1224816 gunicorn[214340]: [2026-02-08 14:04:39 +0000] [214340] [ERROR] Shutting down: Master
+Feb 08 14:04:39 srv1224816 gunicorn[214340]: [2026-02-08 14:04:39 +0000] [214340] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:04:39 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:04:39 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:04:39 srv1224816 systemd[1]: hr-backend.service: Consumed 1.375s CPU time.
+Feb 08 14:04:40 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 4.
+Feb 08 14:04:40 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:04:40 srv1224816 gunicorn[214343]: [2026-02-08 14:04:40 +0000] [214343] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:04:40 srv1224816 gunicorn[214343]: [2026-02-08 14:04:40 +0000] [214343] [INFO] Listening at: http://0.0.0.0:5000 (214343)
+Feb 08 14:04:40 srv1224816 gunicorn[214343]: [2026-02-08 14:04:40 +0000] [214343] [INFO] Using worker: gthread
+Feb 08 14:04:40 srv1224816 gunicorn[214344]: [2026-02-08 14:04:40 +0000] [214344] [INFO] Booting worker with pid: 214344
+Feb 08 14:04:41 srv1224816 gunicorn[214344]: [2026-02-08 14:04:41 +0000] [214344] [ERROR] Exception in worker process
+Feb 08 14:04:41 srv1224816 gunicorn[214344]: Traceback (most recent call last):
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     worker.init_process()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/gthread.py", line 94, in init_process
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     super().init_process()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     self.load_wsgi()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     self.wsgi = self.app.wsgi()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:                 ^^^^^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     self.callable = self.load()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:                     ^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     return self.load_wsgiapp()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:            ^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     return util.import_app(self.app_uri)
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     mod = importlib.import_module(module)
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/usr/lib/python3.12/importlib/__init__.py", line 90, in import_module
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     return _bootstrap._gcd_import(name[level:], package, level)
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/run.py", line 4, in <module>
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     app = create_app()
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:           ^^^^^^^^^^^^
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/app/__init__.py", line 62, in create_app
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     from .routes.screening import screening_bp
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:   File "/var/www/HR/Backend/app/routes/screening.py", line 27, in <module>
+Feb 08 14:04:41 srv1224816 gunicorn[214344]:     from app.utils.extractor import extract_text_from_pdf, chunk_text, embed_chunks, embed_query
+Feb 08 14:04:41 srv1224816 gunicorn[214344]: ModuleNotFoundError: No module named 'app.utils.extractor'
+Feb 08 14:04:41 srv1224816 gunicorn[214344]: [2026-02-08 14:04:41 +0000] [214344] [INFO] Worker exiting (pid: 214344)
+Feb 08 14:04:41 srv1224816 gunicorn[214343]: [2026-02-08 14:04:41 +0000] [214343] [ERROR] Worker (pid:214344) exited with code 3
+Feb 08 14:04:41 srv1224816 gunicorn[214343]: [2026-02-08 14:04:41 +0000] [214343] [ERROR] Shutting down: Master
+Feb 08 14:04:41 srv1224816 gunicorn[214343]: [2026-02-08 14:04:41 +0000] [214343] [ERROR] Reason: Worker failed to boot.
+Feb 08 14:04:41 srv1224816 systemd[1]: [0;1;39m[0;1;31m[0;1;39mhr-backend.service: Main process exited, code=exited, status=3/NOTIMPLEMENTED[0m
+Feb 08 14:04:41 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:04:41 srv1224816 systemd[1]: hr-backend.service: Consumed 1.276s CPU time.
+Feb 08 14:04:41 srv1224816 systemd[1]: hr-backend.service: Scheduled restart job, restart counter is at 5.
+Feb 08 14:04:41 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Start request repeated too quickly.[0m
+Feb 08 14:04:41 srv1224816 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mhr-backend.service: Failed with result 'exit-code'.[0m
+Feb 08 14:04:41 srv1224816 systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start hr-backend.service - Gunicorn service for HR Backend.[0m
+Feb 08 14:04:41 srv1224816 systemd[1]: hr-backend.service: Consumed 1.276s CPU time.
+Feb 08 14:09:40 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:09:40 srv1224816 gunicorn[214529]: [2026-02-08 14:09:40 +0000] [214529] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:09:40 srv1224816 gunicorn[214529]: [2026-02-08 14:09:40 +0000] [214529] [INFO] Listening at: http://0.0.0.0:5000 (214529)
+Feb 08 14:09:40 srv1224816 gunicorn[214529]: [2026-02-08 14:09:40 +0000] [214529] [INFO] Using worker: gthread
+Feb 08 14:09:40 srv1224816 gunicorn[214530]: [2026-02-08 14:09:40 +0000] [214530] [INFO] Booting worker with pid: 214530
+Feb 08 14:09:47 srv1224816 gunicorn[214530]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 14:09:54 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:54 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:54 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:54 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:54 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:54 +0000] "GET /candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:54 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:54 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:58 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:58 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:58 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:58 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:09:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:09:59 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:10:05 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:10:05 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:10:08 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:10:08 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:10:08 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:10:08 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:10:12 srv1224816 gunicorn[214530]: API Error: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'meta-llama/llama-3.3-70b-instruct:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations', 'provider_name': 'Venice', 'is_byok': False}}, 'user_id': 'user_32B6J6ftqJqRrWKdAqCeEebYiPf'}
+Feb 08 14:10:12 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:10:12 +0000] "POST /screening/match_resume HTTP/1.0" 200 744 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:10:12 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:10:12 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:10:12 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:10:12 +0000] "GET /screening/candidates HTTP/1.0" 200 873 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "GET /candidates HTTP/1.0" 200 747 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:38 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:38 +0000] "GET /candidates HTTP/1.0" 200 747 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:44 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:44 +0000] "OPTIONS /candidates/a5df11f6-8f1f-49f4-acf2-a95477d148c8 HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:11:44 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:11:44 +0000] "DELETE /candidates/a5df11f6-8f1f-49f4-acf2-a95477d148c8 HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:34 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:34 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:42 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:42 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:44 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:44 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:45 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:45 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:46 srv1224816 gunicorn[214530]: API Error: Error code: 402 - {'error': {'message': 'Provider returned error', 'code': 402, 'metadata': {'raw': '{"error":"API key USD spend limit exceeded. Your account may still have USD balance, but this API key has reached its configured USD spending limit."}', 'provider_name': 'Venice', 'is_byok': False}}, 'user_id': 'user_32B6J6ftqJqRrWKdAqCeEebYiPf'}
+Feb 08 14:12:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:46 +0000] "POST /screening/match_resume HTTP/1.0" 200 707 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:47 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:47 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:12:47 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:12:47 +0000] "GET /screening/candidates HTTP/1.0" 200 836 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:46 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:46 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:46 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:46 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:46 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:46 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:46 +0000] "GET /candidates HTTP/1.0" 200 750 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:47 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:47 +0000] "GET /candidates HTTP/1.0" 200 750 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:47 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:47 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:50 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:50 +0000] "OPTIONS /candidates/f8763009-6716-4a35-a7b5-401e270505b8 HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:50 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:50 +0000] "DELETE /candidates/f8763009-6716-4a35-a7b5-401e270505b8 HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:52 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:52 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:17:59 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:17:59 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:18:03 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:18:03 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:18:03 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:18:03 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:18:07 srv1224816 gunicorn[214530]: API Error: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'meta-llama/llama-3.3-70b-instruct:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations', 'provider_name': 'Venice', 'is_byok': False}}, 'user_id': 'user_32B6J6ftqJqRrWKdAqCeEebYiPf'}
+Feb 08 14:18:07 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:18:07 +0000] "POST /screening/match_resume HTTP/1.0" 200 744 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:18:07 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:18:07 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:18:07 srv1224816 gunicorn[214530]: 127.0.0.1 - - [08/Feb/2026:14:18:07 +0000] "GET /screening/candidates HTTP/1.0" 200 873 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:07 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:21:07 srv1224816 gunicorn[214529]: [2026-02-08 14:21:07 +0000] [214529] [INFO] Handling signal: term
+Feb 08 14:21:08 srv1224816 gunicorn[214530]: [2026-02-08 14:21:08 +0000] [214530] [INFO] Worker exiting (pid: 214530)
+Feb 08 14:21:10 srv1224816 gunicorn[214529]: [2026-02-08 14:21:10 +0000] [214529] [INFO] Shutting down: Master
+Feb 08 14:21:10 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:21:10 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:21:10 srv1224816 systemd[1]: hr-backend.service: Consumed 18.567s CPU time, 560.6M memory peak, 0B memory swap peak.
+Feb 08 14:21:10 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:21:10 srv1224816 gunicorn[214688]: [2026-02-08 14:21:10 +0000] [214688] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:21:10 srv1224816 gunicorn[214688]: [2026-02-08 14:21:10 +0000] [214688] [INFO] Listening at: http://0.0.0.0:5000 (214688)
+Feb 08 14:21:10 srv1224816 gunicorn[214688]: [2026-02-08 14:21:10 +0000] [214688] [INFO] Using worker: gthread
+Feb 08 14:21:10 srv1224816 gunicorn[214689]: [2026-02-08 14:21:10 +0000] [214689] [INFO] Booting worker with pid: 214689
+Feb 08 14:21:19 srv1224816 gunicorn[214689]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 14:21:31 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:31 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:31 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:31 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:31 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:31 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:31 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:31 +0000] "GET /screening/candidates HTTP/1.0" 200 873 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:31 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:31 +0000] "GET /screening/candidates HTTP/1.0" 200 873 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:31 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:31 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:37 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:37 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:40 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:40 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:21:40 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:21:40 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:23:28 srv1224816 gunicorn[214689]: JSON Error. Raw: ...
+Feb 08 14:23:28 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:23:28 +0000] "POST /screening/match_resume HTTP/1.0" 200 357 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:23:28 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:23:28 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:23:28 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:23:28 +0000] "GET /screening/candidates HTTP/1.0" 200 1357 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:23:59 srv1224816 gunicorn[214689]: JSON Error. Raw: ...
+Feb 08 14:23:59 srv1224816 gunicorn[214689]: 127.0.0.1 - - [08/Feb/2026:14:23:59 +0000] "POST /screening/match_resume HTTP/1.0" 200 357 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:28:30 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:28:30 srv1224816 gunicorn[214688]: [2026-02-08 14:28:30 +0000] [214688] [INFO] Handling signal: term
+Feb 08 14:28:30 srv1224816 gunicorn[214689]: [2026-02-08 14:28:30 +0000] [214689] [INFO] Worker exiting (pid: 214689)
+Feb 08 14:28:32 srv1224816 gunicorn[214688]: [2026-02-08 14:28:32 +0000] [214688] [INFO] Shutting down: Master
+Feb 08 14:28:32 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:28:32 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:28:32 srv1224816 systemd[1]: hr-backend.service: Consumed 15.853s CPU time, 499.2M memory peak, 0B memory swap peak.
+Feb 08 14:28:32 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:28:33 srv1224816 gunicorn[214821]: [2026-02-08 14:28:33 +0000] [214821] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:28:33 srv1224816 gunicorn[214821]: [2026-02-08 14:28:33 +0000] [214821] [INFO] Listening at: http://0.0.0.0:5000 (214821)
+Feb 08 14:28:33 srv1224816 gunicorn[214821]: [2026-02-08 14:28:33 +0000] [214821] [INFO] Using worker: gthread
+Feb 08 14:28:33 srv1224816 gunicorn[214822]: [2026-02-08 14:28:33 +0000] [214822] [INFO] Booting worker with pid: 214822
+Feb 08 14:28:41 srv1224816 gunicorn[214822]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 14:28:50 srv1224816 gunicorn[214821]: [2026-02-08 14:28:50 +0000] [214821] [INFO] Handling signal: term
+Feb 08 14:28:50 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:28:51 srv1224816 gunicorn[214822]: [2026-02-08 14:28:51 +0000] [214822] [INFO] Worker exiting (pid: 214822)
+Feb 08 14:28:52 srv1224816 gunicorn[214821]: [2026-02-08 14:28:52 +0000] [214821] [INFO] Shutting down: Master
+Feb 08 14:28:52 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:28:52 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:28:52 srv1224816 systemd[1]: hr-backend.service: Consumed 11.171s CPU time, 457.2M memory peak, 0B memory swap peak.
+Feb 08 14:28:52 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:28:52 srv1224816 gunicorn[214833]: [2026-02-08 14:28:52 +0000] [214833] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:28:52 srv1224816 gunicorn[214833]: [2026-02-08 14:28:52 +0000] [214833] [INFO] Listening at: http://0.0.0.0:5000 (214833)
+Feb 08 14:28:52 srv1224816 gunicorn[214833]: [2026-02-08 14:28:52 +0000] [214833] [INFO] Using worker: gthread
+Feb 08 14:28:52 srv1224816 gunicorn[214834]: [2026-02-08 14:28:52 +0000] [214834] [INFO] Booting worker with pid: 214834
+Feb 08 14:29:00 srv1224816 gunicorn[214834]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 14:29:06 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:06 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:06 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:06 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:06 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:06 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:06 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:06 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:07 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:07 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:07 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:07 +0000] "GET /candidates HTTP/1.0" 200 1492 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:07 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:07 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:08 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:08 +0000] "GET /candidates HTTP/1.0" 200 1492 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:13 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:13 +0000] "OPTIONS /candidates/ded7bca9-7c99-457e-8ddf-8c86e3cecd80 HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:13 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:13 +0000] "DELETE /candidates/ded7bca9-7c99-457e-8ddf-8c86e3cecd80 HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:15 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:15 +0000] "OPTIONS /candidates/16fe7592-8b00-4e7f-a5ab-fad16439469a HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:16 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:16 +0000] "DELETE /candidates/16fe7592-8b00-4e7f-a5ab-fad16439469a HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:17 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:22 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:22 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:25 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:25 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:29:25 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:29:25 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:31:30 srv1224816 gunicorn[214834]: JSON Error. Raw: ...
+Feb 08 14:31:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:31:30 +0000] "POST /screening/match_resume HTTP/1.0" 200 357 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:31:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:31:30 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:03 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:03 +0000] "OPTIONS /auth/login HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:03 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:03 +0000] "POST /auth/login HTTP/1.0" 200 512 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:04 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:04 +0000] "GET /dashboard/stats HTTP/1.0" 200 77 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:04 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:04 +0000] "GET /dashboard/stats HTTP/1.0" 200 77 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:04 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:04 +0000] "GET /job-positions?status=active HTTP/1.0" 401 39 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:04 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:04 +0000] "GET /job-positions?status=active HTTP/1.0" 401 39 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:04 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:04 +0000] "GET /dashboard/leaderboard?job_id=all HTTP/1.0" 200 244 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:04 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:04 +0000] "GET /dashboard/leaderboard?job_id=all HTTP/1.0" 200 244 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "GET /candidates HTTP/1.0" 200 747 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "GET /candidates HTTP/1.0" 200 747 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: JSON Error. Raw: ...
+Feb 08 14:32:09 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:09 +0000] "POST /screening/match_resume HTTP/1.0" 200 357 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:13 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:13 +0000] "OPTIONS /candidates/d90777af-d45f-4b1d-807e-9a16bc608bfb HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:13 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:13 +0000] "GET /candidates/d90777af-d45f-4b1d-807e-9a16bc608bfb HTTP/1.0" 200 745 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "GET /screening/candidates HTTP/1.0" 200 486 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "GET /screening/candidates HTTP/1.0" 200 486 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:17 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:17 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:18 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:18 +0000] "GET /screening/candidates HTTP/1.0" 200 486 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:18 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:18 +0000] "GET /screening/candidates HTTP/1.0" 200 486 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:21 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:21 +0000] "OPTIONS /ata HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:21 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:21 +0000] "OPTIONS /ata HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:21 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:21 +0000] "GET /ata HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:21 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:21 +0000] "GET /ata HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "GET /candidates HTTP/1.0" 200 747 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:24 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:24 +0000] "GET /candidates HTTP/1.0" 200 747 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:28 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:28 +0000] "OPTIONS /candidates/d90777af-d45f-4b1d-807e-9a16bc608bfb HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:28 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:28 +0000] "DELETE /candidates/d90777af-d45f-4b1d-807e-9a16bc608bfb HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:30 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:30 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:39 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:39 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:40 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:40 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:32:40 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:32:40 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:34:26 srv1224816 gunicorn[214834]: JSON Error. Raw: ...
+Feb 08 14:34:26 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:34:26 +0000] "POST /screening/match_resume HTTP/1.0" 200 360 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:34:26 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:34:26 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:34:26 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:34:26 +0000] "GET /screening/candidates HTTP/1.0" 200 489 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:35:22 srv1224816 gunicorn[214834]: JSON Error. Raw: ...
+Feb 08 14:35:22 srv1224816 gunicorn[214834]: 127.0.0.1 - - [08/Feb/2026:14:35:22 +0000] "POST /screening/match_resume HTTP/1.0" 200 360 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:10 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:41:10 srv1224816 gunicorn[214833]: [2026-02-08 14:41:10 +0000] [214833] [INFO] Handling signal: term
+Feb 08 14:41:11 srv1224816 gunicorn[214834]: [2026-02-08 14:41:11 +0000] [214834] [INFO] Worker exiting (pid: 214834)
+Feb 08 14:41:13 srv1224816 gunicorn[214833]: [2026-02-08 14:41:13 +0000] [214833] [INFO] Shutting down: Master
+Feb 08 14:41:13 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:41:13 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:41:13 srv1224816 systemd[1]: hr-backend.service: Consumed 16.197s CPU time.
+Feb 08 14:41:13 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:41:13 srv1224816 gunicorn[215118]: [2026-02-08 14:41:13 +0000] [215118] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:41:13 srv1224816 gunicorn[215118]: [2026-02-08 14:41:13 +0000] [215118] [INFO] Listening at: http://0.0.0.0:5000 (215118)
+Feb 08 14:41:13 srv1224816 gunicorn[215118]: [2026-02-08 14:41:13 +0000] [215118] [INFO] Using worker: gthread
+Feb 08 14:41:13 srv1224816 gunicorn[215119]: [2026-02-08 14:41:13 +0000] [215119] [INFO] Booting worker with pid: 215119
+Feb 08 14:41:26 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:26 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:26 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:26 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:27 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:27 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:27 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:27 +0000] "GET /screening/candidates HTTP/1.0" 200 420 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:27 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:27 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:27 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:27 +0000] "GET /screening/candidates HTTP/1.0" 200 420 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "OPTIONS /candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "OPTIONS /job-positions?status=active HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "GET /candidates HTTP/1.0" 200 750 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "GET /job-positions?status=active HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:29 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:29 +0000] "GET /candidates HTTP/1.0" 200 750 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:32 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:32 +0000] "OPTIONS /candidates/f2f15ab3-6807-4248-9e04-05bb600fe239 HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:33 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:33 +0000] "DELETE /candidates/f2f15ab3-6807-4248-9e04-05bb600fe239 HTTP/1.0" 200 45 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:34 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:34 +0000] "GET /screening/candidates HTTP/1.0" 200 3 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:45 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:45 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:51 srv1224816 gunicorn[215119]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 14:41:59 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:59 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:41:59 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:41:59 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:42:58 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:42:58 +0000] "POST /screening/match_resume HTTP/1.0" 200 332 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:43:30 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:43:30 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:43:30 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:43:30 +0000] "GET /screening/candidates HTTP/1.0" 200 422 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:43:53 srv1224816 gunicorn[215119]: 127.0.0.1 - - [08/Feb/2026:14:43:53 +0000] "POST /screening/match_resume HTTP/1.0" 200 332 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:45:49 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:45:49 srv1224816 gunicorn[215118]: [2026-02-08 14:45:49 +0000] [215118] [INFO] Handling signal: term
+Feb 08 14:45:50 srv1224816 gunicorn[215119]: [2026-02-08 14:45:50 +0000] [215119] [INFO] Worker exiting (pid: 215119)
+Feb 08 14:45:52 srv1224816 gunicorn[215118]: [2026-02-08 14:45:52 +0000] [215118] [INFO] Shutting down: Master
+Feb 08 14:45:52 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:45:52 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:45:52 srv1224816 systemd[1]: hr-backend.service: Consumed 12.562s CPU time, 95.4M memory peak, 0B memory swap peak.
+Feb 08 14:45:52 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:45:52 srv1224816 gunicorn[215247]: [2026-02-08 14:45:52 +0000] [215247] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:45:52 srv1224816 gunicorn[215247]: [2026-02-08 14:45:52 +0000] [215247] [INFO] Listening at: http://0.0.0.0:5000 (215247)
+Feb 08 14:45:52 srv1224816 gunicorn[215247]: [2026-02-08 14:45:52 +0000] [215247] [INFO] Using worker: gthread
+Feb 08 14:45:52 srv1224816 gunicorn[215250]: [2026-02-08 14:45:52 +0000] [215250] [INFO] Booting worker with pid: 215250
+Feb 08 14:45:53 srv1224816 systemd[1]: Stopping hr-backend.service - Gunicorn service for HR Backend...
+Feb 08 14:45:53 srv1224816 gunicorn[215247]: [2026-02-08 14:45:53 +0000] [215247] [INFO] Handling signal: term
+Feb 08 14:45:54 srv1224816 gunicorn[215250]: [2026-02-08 14:45:54 +0000] [215250] [INFO] Worker exiting (pid: 215250)
+Feb 08 14:45:54 srv1224816 gunicorn[215247]: [2026-02-08 14:45:54 +0000] [215247] [INFO] Shutting down: Master
+Feb 08 14:45:54 srv1224816 systemd[1]: hr-backend.service: Deactivated successfully.
+Feb 08 14:45:54 srv1224816 systemd[1]: Stopped hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:45:54 srv1224816 systemd[1]: hr-backend.service: Consumed 1.682s CPU time.
+Feb 08 14:45:54 srv1224816 systemd[1]: Started hr-backend.service - Gunicorn service for HR Backend.
+Feb 08 14:45:55 srv1224816 gunicorn[215255]: [2026-02-08 14:45:55 +0000] [215255] [INFO] Starting gunicorn 23.0.0
+Feb 08 14:45:55 srv1224816 gunicorn[215255]: [2026-02-08 14:45:55 +0000] [215255] [INFO] Listening at: http://0.0.0.0:5000 (215255)
+Feb 08 14:45:55 srv1224816 gunicorn[215255]: [2026-02-08 14:45:55 +0000] [215255] [INFO] Using worker: gthread
+Feb 08 14:45:55 srv1224816 gunicorn[215256]: [2026-02-08 14:45:55 +0000] [215256] [INFO] Booting worker with pid: 215256
+Feb 08 14:46:10 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:10 +0000] "OPTIONS /job-positions?status=active&available=true HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:10 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:10 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:10 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:10 +0000] "OPTIONS /screening/candidates HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:10 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:10 +0000] "GET /job-positions?status=active&available=true HTTP/1.0" 200 1425 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:10 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:10 +0000] "GET /screening/candidates HTTP/1.0" 200 422 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:10 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:10 +0000] "GET /screening/candidates HTTP/1.0" 200 422 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:18 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:18 +0000] "OPTIONS /screening/upload_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:24 srv1224816 gunicorn[215256]: Using CPU. Note: This module is much faster with a GPU.
+Feb 08 14:46:32 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:32 +0000] "POST /screening/upload_resume HTTP/1.0" 200 66 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+Feb 08 14:46:32 srv1224816 gunicorn[215256]: 127.0.0.1 - - [08/Feb/2026:14:46:32 +0000] "OPTIONS /screening/match_resume HTTP/1.0" 200 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"

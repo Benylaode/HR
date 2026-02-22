@@ -13,7 +13,8 @@ import {
   X,
   Briefcase,
   Power,
-  ClipboardCheck
+  ClipboardCheck,
+  UserPlus // Tambahkan icon UserPlus
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -32,7 +33,8 @@ const menuItems: MenuItem[] = [
   { name: "ATA Tracking", href: "/ata-tracking", icon: ClipboardCheck, roles: ["SUPER_USER", "HR"] },
   { name: "Kandidat", href: "/candidates", icon: Users, roles: ["SUPER_USER"] },
   { name: "Test Management", href: "/test-management", icon: ClipboardList, roles: ["SUPER_USER"] },
-  { name: "CV Scanner", href: "/cv-scanner", icon: FileText, roles: ["SUPER_USER"] },
+  // NAMA DAN ICON DIUBAH DI SINI (Tetap mengarah ke /cv-scanner karena halamannya di situ)
+  { name: "Input Pelamar", href: "/cv-scanner", icon: UserPlus, roles: ["SUPER_USER"] }, 
   { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["SUPER_USER", "HR"] },
   { name: "Laporan", href: "/reports", icon: FileBarChart, roles: ["SUPER_USER"] },
 ];
