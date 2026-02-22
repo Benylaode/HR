@@ -191,7 +191,7 @@ class ProfileMixin(object):
     province = db.Column(db.String(100))
     
     # Riwayat Pendidikan
-    education = db.Column(db.String(100))
+    education = db.Column(db.Text)
     university = db.Column(db.String(150))
     major = db.Column(db.String(150))
     gpa = db.Column(db.String(10))
