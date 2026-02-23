@@ -1,5 +1,5 @@
 # Gunakan image Node.js versi 18 Alpine (versi sangat ringan)
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set direktori kerja di dalam container
 WORKDIR /app

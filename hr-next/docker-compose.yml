@@ -3,7 +3,7 @@ version: '3.8'
 services:
   frontend:
     build:
-      context: ./hr-next
+      context: .
       dockerfile: Dockerfile # Pastikan ada Dockerfile di dalam folder hr-next
     container_name: hr-frontend
     ports:
