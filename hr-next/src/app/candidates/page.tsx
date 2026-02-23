@@ -28,7 +28,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5
 
 interface Candidate {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   phone: string;
   top_position: string;
@@ -78,10 +78,10 @@ const DetailModal = memo(({
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
-              {(candidate.name || "?").charAt(0).toUpperCase()}
+              {(candidate.fullName || "?").charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.name || "Nama Tidak Ada"}</h2>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.fullName || "Nama Tidak Ada"}</h2>
               <p className="text-sm text-[var(--secondary)]">{candidate.current_role || candidate.top_position || "Kandidat"}</p>
             </div>
           </div>
@@ -206,7 +206,7 @@ const EditModal = memo(({
   useEffect(() => {
     if (candidate) {
       setFormData({
-        name: candidate.name || "",
+        name: candidate.fullName || "",
         email: candidate.email || "",
         phone: candidate.phone || "",
         city: candidate.city || "",
@@ -242,7 +242,7 @@ const EditModal = memo(({
             </div>
             <div>
               <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Kandidat</h2>
-              <p className="text-xs text-[var(--secondary)]">{candidate.name}</p>
+              <p className="text-xs text-[var(--secondary)]">{candidate.fullName}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
@@ -422,7 +422,7 @@ export default function CandidatesPage() {
   const filteredCandidates = candidates.filter((c) => {
     const searchLower = (searchQuery || "").toLowerCase();
     const matchesSearch = 
-      (c.name || "").toLowerCase().includes(searchLower) || 
+      (c.fullName || "").toLowerCase().includes(searchLower) || 
       (c.email || "").toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     const matchesJob = jobFilter === "all" || c.top_position === jobFilter;
@@ -557,10 +557,10 @@ export default function CandidatesPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-sm">
-                                {(candidate.name || "?").charAt(0).toUpperCase()}
+                                {(candidate.fullName || "?").charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name || "Unknown"}</p>
+                                <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.fullName || "Unknown"}</p>
                                 <div className="flex items-center gap-2 text-xs text-[var(--secondary)]">
                                   <Mail size={12} />
                                   <span className="truncate max-w-[150px]">{candidate.email || "-"}</span>
@@ -637,10 +637,10 @@ export default function CandidatesPage() {
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-lg">
-                             {(candidate.name || "?").charAt(0).toUpperCase()}
+                             {(candidate.fullName || "?").charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <h3 className="font-bold text-[var(--primary-900)] text-base">{candidate.name || "Unknown"}</h3>
+                            <h3 className="font-bold text-[var(--primary-900)] text-base">{candidate.fullName || "Unknown"}</h3>
                             <p className="text-xs text-[var(--secondary)]">{candidate.email || "-"}</p>
                           </div>
                         </div>
