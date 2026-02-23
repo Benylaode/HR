@@ -51,7 +51,8 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_employees_email'), ['email'], unique=False)
 
     with op.batch_alter_table('candidates', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('full_name', sa.String(), nullable=False))
+        # PERBAIKAN: Menambahkan server_default='-' di sini
+        batch_op.add_column(sa.Column('full_name', sa.String(), nullable=False, server_default='-'))
         batch_op.add_column(sa.Column('whatsapp', sa.String(length=50), nullable=True))
         batch_op.add_column(sa.Column('religion', sa.String(length=50), nullable=True))
         batch_op.add_column(sa.Column('birth_place', sa.String(length=100), nullable=True))

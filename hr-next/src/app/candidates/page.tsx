@@ -26,7 +26,6 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-// Interfaces
 interface Candidate {
   id: string;
   name: string;
@@ -61,7 +60,6 @@ interface JobPosition {
   title: string;
 }
 
-// Detail Modal Component - Clean Design
 const DetailModal = memo(({ 
   candidate, 
   onClose 
@@ -77,14 +75,13 @@ const DetailModal = memo(({
         className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
-              {candidate.name.charAt(0).toUpperCase()}
+              {(candidate.name || "?").charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.name}</h2>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.name || "Nama Tidak Ada"}</h2>
               <p className="text-sm text-[var(--secondary)]">{candidate.current_role || candidate.top_position || "Kandidat"}</p>
             </div>
           </div>
@@ -93,13 +90,11 @@ const DetailModal = memo(({
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-6">
-          {/* Contact Grid */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2 text-[var(--secondary)]">
               <Mail size={16} className="text-[var(--secondary-400)]" />
-              <span>{candidate.email}</span>
+              <span>{candidate.email || "-"}</span>
             </div>
             <div className="flex items-center gap-2 text-[var(--secondary)]">
               <Phone size={16} className="text-[var(--secondary-400)]" />
@@ -115,7 +110,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* Summary */}
           {candidate.summary && (
             <div className="bg-[var(--primary-50)]/50 p-4 rounded-xl border border-[var(--primary-100)]">
               <h3 className="text-xs font-bold text-[var(--primary)] uppercase tracking-wide mb-2">Summary</h3>
@@ -123,7 +117,6 @@ const DetailModal = memo(({
             </div>
           )}
 
-          {/* Experience */}
           {candidate.experience && candidate.experience.length > 0 && (
             <div>
               <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 pl-1 border-l-2 border-[var(--primary)]">Pengalaman Kerja</h3>
@@ -141,9 +134,7 @@ const DetailModal = memo(({
             </div>
           )}
 
-          {/* Skills & Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             {/* Education */}
              {candidate.education && candidate.education.length > 0 && (
                 <div>
                   <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3">Pendidikan</h3>
@@ -158,7 +149,6 @@ const DetailModal = memo(({
                 </div>
               )}
 
-             {/* Skills */}
              {candidate.skills && candidate.skills.length > 0 && (
                 <div>
                   <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3">Keahlian</h3>
@@ -174,13 +164,12 @@ const DetailModal = memo(({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
            <div className="flex gap-4">
                <div className="flex items-center gap-2">
                  <span className="text-xs text-[var(--secondary-500)]">Match Score</span>
                  <span className={`text-sm font-bold px-2 py-0.5 rounded ${candidate.match_score >= 80 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                   {candidate.match_score}%
+                   {candidate.match_score || 0}%
                  </span>
                </div>
            </div>
@@ -194,7 +183,6 @@ const DetailModal = memo(({
 });
 DetailModal.displayName = 'DetailModal';
 
-// Edit Modal Component
 const EditModal = memo(({ 
   candidate, 
   onClose,
@@ -266,88 +254,39 @@ const EditModal = memo(({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Nama</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={inputClass}
-                required
-              />
+              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} required />
             </div>
             <div>
               <label className={labelClass}>Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={inputClass}
-                required
-              />
+              <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={inputClass} required />
             </div>
             <div>
               <label className={labelClass}>Telepon</label>
-              <input
-                type="text"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className={inputClass}
-              />
+              <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Kota</label>
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className={inputClass}
-              />
+              <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Posisi</label>
-              <input
-                type="text"
-                value={formData.current_role}
-                onChange={(e) => setFormData({ ...formData, current_role: e.target.value })}
-                className={inputClass}
-              />
+              <input type="text" value={formData.current_role} onChange={(e) => setFormData({ ...formData, current_role: e.target.value })} className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Pengalaman (Tahun)</label>
-              <input
-                type="number"
-                value={formData.total_experience_years}
-                onChange={(e) => setFormData({ ...formData, total_experience_years: parseInt(e.target.value) || 0 })}
-                className={inputClass}
-                min="0"
-              />
+              <input type="number" value={formData.total_experience_years} onChange={(e) => setFormData({ ...formData, total_experience_years: parseInt(e.target.value) || 0 })} className={inputClass} min="0" />
             </div>
           </div>
           
           <div>
             <label className={labelClass}>Ringkasan</label>
-            <textarea
-              value={formData.summary}
-              onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              rows={3}
-              className={`${inputClass} resize-none`}
-              placeholder="Deskripsi singkat..."
-            />
+            <textarea value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} rows={3} className={`${inputClass} resize-none`} placeholder="Deskripsi singkat..." />
           </div>
         </form>
 
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)]">
-          <button 
-            type="button"
-            onClick={onClose} 
-            className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors"
-          >
-            Batal
-          </button>
-          <button 
-            onClick={handleSubmit}
-            disabled={saving}
-            className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm"
-          >
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">Batal</button>
+          <button onClick={handleSubmit} disabled={saving} className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm">
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             {saving ? "Menyimpan..." : "Simpan"}
           </button>
@@ -362,18 +301,15 @@ export default function CandidatesPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
-  // State Data
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<JobPosition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [jobFilter, setJobFilter] = useState("all");
 
-  // Modal States
   const [detailModal, setDetailModal] = useState<CandidateDetail | null>(null);
   const [editModal, setEditModal] = useState<CandidateDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -419,7 +355,6 @@ export default function CandidatesPage() {
     }
   };
 
-  // Fetch Detail Candidate
   const fetchCandidateDetail = async (id: string) => {
     setLoadingDetail(true);
     try {
@@ -458,7 +393,7 @@ export default function CandidatesPage() {
 
       if (res.ok) {
         setEditModal(null);
-        fetchCandidates(); // Refresh list
+        fetchCandidates();
         alert("Data kandidat berhasil diperbarui!");
       } else {
         alert("Gagal memperbarui data.");
@@ -483,16 +418,17 @@ export default function CandidatesPage() {
     }
   };
 
-  // Filter Logic
+  // FIXED FILTER
   const filteredCandidates = candidates.filter((c) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = c.name.toLowerCase().includes(searchLower) || c.email.toLowerCase().includes(searchLower);
+    const searchLower = (searchQuery || "").toLowerCase();
+    const matchesSearch = 
+      (c.name || "").toLowerCase().includes(searchLower) || 
+      (c.email || "").toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     const matchesJob = jobFilter === "all" || c.top_position === jobFilter;
     return matchesSearch && matchesStatus && matchesJob;
   });
 
-  // Badge Helpers
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Pending": return "badge badge-warning";
@@ -522,7 +458,6 @@ export default function CandidatesPage() {
         />
         <main className="p-4 md:p-8 flex-1">
           
-          {/* Header Actions */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div className="w-full md:w-auto">
               <h2 className="text-xl md:text-2xl font-bold text-[var(--primary-900)]">Database Kandidat</h2>
@@ -536,7 +471,6 @@ export default function CandidatesPage() {
             </button>
           </div>
 
-          {/* Filters Section */}
           <div className="card-static bg-white p-4 rounded-xl border border-[var(--secondary-200)] mb-6 shadow-sm">
             <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
               <div className="relative flex-1 w-full">
@@ -584,7 +518,6 @@ export default function CandidatesPage() {
             </div>
           </div>
 
-          {/* Error State */}
           {error && (
             <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 mb-6 text-red-700 animation-shake">
               <AlertCircle size={20} />
@@ -592,14 +525,12 @@ export default function CandidatesPage() {
             </div>
           )}
 
-          {/* Loading Indicator for Detail */}
           {loadingDetail && (
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
               <Loader2 className="w-10 h-10 animate-spin text-white" />
             </div>
           )}
 
-          {/* Content Area */}
           <div className="bg-transparent md:bg-white md:rounded-2xl md:border md:border-[var(--secondary-200)] md:overflow-hidden md:shadow-sm">
             {loading ? (
               <div className="p-20 text-center text-[var(--secondary)]">
@@ -608,7 +539,6 @@ export default function CandidatesPage() {
               </div>
             ) : (
               <>
-                {/* Desktop Table View */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-[var(--secondary-50)] border-b border-[var(--secondary-100)]">
@@ -627,13 +557,13 @@ export default function CandidatesPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-sm">
-                                {candidate.name.charAt(0).toUpperCase()}
+                                {(candidate.name || "?").charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name}</p>
+                                <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.name || "Unknown"}</p>
                                 <div className="flex items-center gap-2 text-xs text-[var(--secondary)]">
                                   <Mail size={12} />
-                                  <span className="truncate max-w-[150px]">{candidate.email}</span>
+                                  <span className="truncate max-w-[150px]">{candidate.email || "-"}</span>
                                 </div>
                               </div>
                             </div>
@@ -644,24 +574,24 @@ export default function CandidatesPage() {
                                 <Briefcase size={14} className="text-[var(--secondary-400)]"/> {candidate.top_position || "Unassigned"}
                               </span>
                               <span className={`text-xs mt-1 ${candidate.match_score >= 80 ? 'text-[var(--primary)] font-bold' : 'text-[var(--secondary)]'}`}>
-                                Match: {candidate.match_score}%
+                                Match: {candidate.match_score || 0}%
                               </span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`${getStatusBadge(candidate.status)} rounded-full px-2.5 py-1 text-xs font-semibold`}>
-                              {candidate.status}
+                              {candidate.status || "-"}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getTestBadge(candidate.test_status)}`}>
-                              {candidate.test_status}
+                              {candidate.test_status || "-"}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-[var(--secondary)]">
-                            {new Date(candidate.created_at).toLocaleDateString("id-ID", {
+                            {candidate.created_at ? new Date(candidate.created_at).toLocaleDateString("id-ID", {
                               day: 'numeric', month: 'short', year: 'numeric'
-                            })}
+                            }) : "-"}
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-2">
@@ -701,30 +631,27 @@ export default function CandidatesPage() {
                   </table>
                 </div>
 
-                {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">
                   {filteredCandidates.map((candidate) => (
                     <div key={candidate.id} className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm flex flex-col gap-4">
-                      {/* Card Header: Profile & Score */}
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-lg">
-                             {candidate.name.charAt(0).toUpperCase()}
+                             {(candidate.name || "?").charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <h3 className="font-bold text-[var(--primary-900)] text-base">{candidate.name}</h3>
-                            <p className="text-xs text-[var(--secondary)]">{candidate.email}</p>
+                            <h3 className="font-bold text-[var(--primary-900)] text-base">{candidate.name || "Unknown"}</h3>
+                            <p className="text-xs text-[var(--secondary)]">{candidate.email || "-"}</p>
                           </div>
                         </div>
                         <div className="text-right">
                            <span className={`text-sm font-bold block ${candidate.match_score >= 80 ? 'text-[var(--primary)]' : 'text-[var(--secondary)]'}`}>
-                              {candidate.match_score}%
+                              {candidate.match_score || 0}%
                            </span>
                            <span className="text-[10px] text-[var(--secondary-400)] uppercase tracking-wider">Match</span>
                         </div>
                       </div>
 
-                      {/* Card Role & Info */}
                       <div className="grid grid-cols-2 gap-2 text-sm">
                          <div>
                             <p className="text-[10px] text-[var(--secondary-400)] uppercase">Posisi</p>
@@ -733,22 +660,20 @@ export default function CandidatesPage() {
                          <div>
                             <p className="text-[10px] text-[var(--secondary-400)] uppercase">Joined</p>
                             <p className="font-medium text-[var(--secondary)]">
-                               {new Date(candidate.created_at).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })}
+                               {candidate.created_at ? new Date(candidate.created_at).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : "-"}
                             </p>
                          </div>
                       </div>
 
-                      {/* Badges */}
                       <div className="flex gap-2">
                           <span className={`${getStatusBadge(candidate.status)} rounded-lg px-3 py-1 text-xs font-semibold flex-1 text-center`}>
-                              {candidate.status}
+                              {candidate.status || "-"}
                           </span>
                           <span className={`rounded-lg px-3 py-1 text-xs font-semibold flex-1 text-center border border-[var(--secondary-200)] bg-[var(--secondary-50)] text-[var(--secondary-600)]`}>
-                              {candidate.test_status} Test
+                              {candidate.test_status || "-"} Test
                           </span>
                       </div>
 
-                      {/* Actions */}
                       <div className="pt-3 border-t border-[var(--secondary-50)] flex justify-between gap-2 overflow-x-auto">
                           <button 
                             onClick={() => router.push(`/candidates/${candidate.id}/journey`)}
@@ -795,7 +720,6 @@ export default function CandidatesPage() {
         <Footer />
       </div>
 
-      {/* Modals */}
       {detailModal && <DetailModal candidate={detailModal} onClose={() => setDetailModal(null)} />}
       {editModal && <EditModal candidate={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
     </div>

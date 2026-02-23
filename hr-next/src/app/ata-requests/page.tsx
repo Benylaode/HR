@@ -23,21 +23,15 @@ export default function ATARequestsPage() {
   const [filter, setFilter] = useState('all')
   const [userRole, setUserRole] = useState<string>('') 
   
-  // State untuk penanda apakah user ini TIM HR atau BUKAN
   const [isHR, setIsHR] = useState(false)
 
   useEffect(() => {
-    // 1. PERBAIKAN DI SINI: Gunakan key "role" (bukan hr_role)
     const rawRole = localStorage.getItem("role"); 
-    
-    // 2. Normalisasi (Huruf Besar & Trim spasi)
     const role = rawRole ? rawRole.toUpperCase().trim() : ''; 
     
     setUserRole(role);
-    // 3. Logic Pendeteksi HR yang Aman
-    // Cek apakah di dalam role ada kata "HR" (misal: "HR STAFF", "HEAD OF HR", "HR")
     if (role.includes('HR')) {
-        setIsHR(true); // User ini dikenali sebagai orang HR
+        setIsHR(true);
     } else {
         setIsHR(false);
     }
@@ -46,7 +40,7 @@ export default function ATARequestsPage() {
   }, [])
 
   const getAuthHeaders = (): HeadersInit => {
-    const token = localStorage.getItem("hr_token"); // Pastikan token key-nya benar juga (cek localStorage Anda)
+    const token = localStorage.getItem("hr_token");
     return {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -65,21 +59,16 @@ export default function ATARequestsPage() {
     }
   }
 
-  // Logic Tombol Action (Approve/Reject)
   const shouldShowActionButtons = (req: ATARequest) => {
-    // Jika user terdeteksi sebagai HR, MATIKAN tombol Action di list ini
     if (isHR) return false; 
-
     if (req.status === 'Approved' || req.status === 'Rejected') return false;
     
-    // Logic Approve untuk KTT dan HO
     if (userRole === 'KTT') return req.approvals.HR === 'Approved' && req.approvals.KTT === 'Pending';
     if (userRole === 'HO') return req.approvals.KTT === 'Approved' && req.approvals.HO === 'Pending';
     
     return false;
   }
 
-  // --- STEPPER VISUAL ---
   const renderApprovalStepper = (approvals: ATARequest['approvals']) => {
     const steps = [
       { key: 'HR', label: 'HR' },
@@ -136,18 +125,17 @@ export default function ATARequestsPage() {
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
       console.log(`${action} request ${id} by ${userRole}`);
-      // Panggil API Approve/Reject disini
   }
 
+  // FIXED FILTER
   const filteredRequests = requests.filter(req => {
     if (filter === 'all') return true
-    return req.status.toLowerCase() === filter
+    return (req.status || "").toLowerCase() === filter.toLowerCase()
   })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-emerald-50 py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-4xl font-bold text-slate-900 mb-2">ATA Request Tracking</h1>
@@ -161,7 +149,6 @@ export default function ATARequestsPage() {
           </Link>
         </div>
 
-        {/* Filters */}
         <div className="flex gap-2 mb-6">
           {['all', 'pending', 'approved', 'rejected'].map((f) => (
             <button
@@ -178,7 +165,6 @@ export default function ATARequestsPage() {
           ))}
         </div>
 
-        {/* List */}
         {loading ? (
           <div className="text-center p-12">Loading...</div>
         ) : filteredRequests.length === 0 ? (
@@ -189,36 +175,33 @@ export default function ATARequestsPage() {
               <div key={req.id} className="card rounded-xl p-6 bg-white shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
                 <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                   
-                  {/* KIRI */}
                   <div className="flex-1 w-full">
                     <div className="flex items-start gap-3 mb-2">
                       <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 font-bold text-lg">
-                        {req.title.charAt(0)}
+                        {(req.title || "?").charAt(0)}
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-slate-900">{req.title}</h3>
+                        <h3 className="font-bold text-lg text-slate-900">{req.title || "Tidak ada judul"}</h3>
                         <div className="flex items-center text-xs text-slate-500 mt-1 space-x-2">
-                           <span>📄 {req.department}</span>
+                           <span>📄 {req.department || "-"}</span>
                            <span>•</span>
-                           <span>👤 {req.requester}</span>
+                           <span>👤 {req.requester || "-"}</span>
                         </div>
                       </div>
                     </div>
                     {renderApprovalStepper(req.approvals)}
                   </div>
 
-                  {/* KANAN */}
                   <div className="flex flex-col items-end gap-3 mt-2 md:mt-0">
                     <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                       req.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                       req.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {req.status}
+                      {req.status || "Unknown"}
                     </span>
 
                     <div className="flex items-center gap-2 mt-2">
-                        {/* 1. Logic Tombol Approve (Muncul jika isHR FALSE dan giliran KTT/HO) */}
                         {shouldShowActionButtons(req) && (
                             <>
                                 <button onClick={() => handleAction(req.id, 'reject')} className="px-4 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50">
@@ -230,8 +213,6 @@ export default function ATARequestsPage() {
                             </>
                         )}
 
-                        {/* 2. Logic Tombol Detail */}
-                        {/* Kunci Perbaikan: HANYA MUNCUL JIKA `isHR` ADALAH FALSE */}
                         {!isHR && (
                           <Link
                             href={`/ata-requests/${req.id}`}

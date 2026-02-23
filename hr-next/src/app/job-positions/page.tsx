@@ -10,7 +10,6 @@ import {
   DollarSign, Loader2, CheckCircle, AlertTriangle, Save
 } from "lucide-react";
 
-// --- Types & Interfaces ---
 interface JobPosition {
   id: string;
   title: string;
@@ -54,7 +53,6 @@ const INITIAL_FORM_DATA: JobFormData = {
   available: true,
 };
 
-// --- Toast Component (Internal) ---
 const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => (
   <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg border flex items-center gap-3 animate-in slide-in-from-right duration-300 ${type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
     {type === 'success' ? <CheckCircle size={18}/> : <AlertTriangle size={18}/>}
@@ -63,7 +61,6 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
   </div>
 );
 
-// --- Memoized Modal Component ---
 const JobFormModal = memo(({ 
   isOpen, onClose, onSubmit, title, formData, setFormData, fieldErrors, isSubmitting
 }: {
@@ -197,7 +194,6 @@ const JobFormModal = memo(({
 });
 JobFormModal.displayName = "JobFormModal";
 
-// --- Main Page ---
 export default function JobPositionsPage() {
   const router = useRouter();
   const [user, setUser] = useState<{name: string} | null>(null);
@@ -225,7 +221,6 @@ export default function JobPositionsPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // FETCH JOBS - FIX: Signal passed as argument
   const fetchJobs = useCallback(async (signal?: AbortSignal) => {
     try {
       setIsLoading(true);
@@ -243,7 +238,6 @@ export default function JobPositionsPage() {
     }
   }, [getAuthHeaders]);
 
-  // USE EFFECT - FIX: Controller created inside effect
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
     if (!userData) { router.push("/"); return; }
@@ -301,7 +295,7 @@ export default function JobPositionsPage() {
       if (res.ok) {
         showToast(`Posisi berhasil ${isEdit ? 'diperbarui' : 'dibuat'}!`, 'success');
         setModalConfig({ type: null });
-        fetchJobs(); // No signal needed for manual refetch
+        fetchJobs(); 
       } else {
         const err = await res.json();
         showToast(err.message || "Gagal menyimpan data", 'error');
@@ -329,10 +323,12 @@ export default function JobPositionsPage() {
     }
   };
 
+  // FIXED FILTER
   const filteredJobs = useMemo(() => {
+    const search = (searchQuery || "").toLowerCase();
     return jobs.filter(j => 
-      j.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      j.department.toLowerCase().includes(searchQuery.toLowerCase())
+      (j.title || "").toLowerCase().includes(search) || 
+      (j.department || "").toLowerCase().includes(search)
     );
   }, [jobs, searchQuery]);
 
@@ -388,17 +384,16 @@ export default function JobPositionsPage() {
 
                     <div className="mb-4">
                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-bold text-gray-900 line-clamp-1 pr-16">{job.title}</h3>
+                          <h3 className="text-lg font-bold text-gray-900 line-clamp-1 pr-16">{job.title || "Posisi Tanpa Nama"}</h3>
                        </div>
                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${job.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {job.status}
+                          {job.status || "Unknown"}
                        </span>
                     </div>
 
                     <div className="space-y-2.5 text-sm text-gray-600 mb-5">
-                       <div className="flex items-center gap-2"><Building size={16} className="text-gray-400"/> {job.department}</div>
-                       <div className="flex items-center gap-2"><MapPin size={16} className="text-gray-400"/> {job.location}</div>
-                       {/* FIX APPLIED HERE */}
+                       <div className="flex items-center gap-2"><Building size={16} className="text-gray-400"/> {job.department || "-"}</div>
+                       <div className="flex items-center gap-2"><MapPin size={16} className="text-gray-400"/> {job.location || "-"}</div>
                        <div className="flex items-center gap-2 font-medium text-gray-800">
                           <DollarSign size={16} className="text-[var(--primary)]"/> 
                           {job.salary?.currency || 'IDR'} {(job.salary?.min ?? 0).toLocaleString()} - {(job.salary?.max ?? 0).toLocaleString()}
