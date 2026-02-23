@@ -211,7 +211,7 @@ export default function TestManagementPage() {
       if (resCandidates.ok) setCandidatesList(await resCandidates.json());
 
       // Fetch Karyawan
-      const resKaryawan = await fetch(`${API_BASE_URL}/karyawan`, { headers: getAuthHeaders() });
+      const resKaryawan = await fetch(`${API_BASE_URL}/employees`, { headers: getAuthHeaders() });
       if (resKaryawan.ok) setKaryawanList(await resKaryawan.json());
 
       // Fetch Jobs
