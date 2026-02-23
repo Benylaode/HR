@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 type FormData = {
   email: string;
@@ -28,11 +28,49 @@ type FormData = {
   experienceDescription: string;
 };
 
+// Tipe data untuk Job dari backend
+type JobPosition = {
+  id: number | string;
+  title: string;
+  status: string;
+  available: boolean;
+};
+
 export default function ManualRegistrationPage() {
   const [form, setForm] = useState<FormData>({} as FormData);
   const [submissionType, setSubmissionType] = useState<"candidate" | "employee">("candidate");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  
+  // State untuk menyimpan list list lowongan pekerjaan
+  const [jobs, setJobs] = useState<JobPosition[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+
+  // Ambil Base URL dari .env, fallback ke localhost jika belum diset
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+  // Mengambil data Job Positions (Publik) saat komponen pertama kali dimuat
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setIsLoadingJobs(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/job-positions?available=true`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setJobs(data);
+        } else {
+          console.error("Gagal mengambil data pekerjaan, status:", response.status);
+        }
+      } catch (error) {
+        console.error("Fetch Jobs Error:", error);
+      } finally {
+        setIsLoadingJobs(false);
+      }
+    };
+
+    fetchJobs();
+  }, [API_BASE_URL]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -48,11 +86,10 @@ export default function ManualRegistrationPage() {
     setIsLoading(true);
     setMessage(null);
 
-    // Endpoint mengarah ke backend Flask yang baru kita buat
     const apiUrl =
       submissionType === "candidate"
-        ? "http://localhost:5000/candidates"
-        : "http://localhost:5000/karyawan";
+        ? `${API_BASE_URL}/candidates`
+        : `${API_BASE_URL}/karyawan`;
 
     try {
       const response = await fetch(apiUrl, {
@@ -66,7 +103,7 @@ export default function ManualRegistrationPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Terjadi kesalahan saat menyimpan data");
+        throw new Error(data.error || data.message || "Terjadi kesalahan saat menyimpan data");
       }
 
       setMessage({
@@ -74,7 +111,7 @@ export default function ManualRegistrationPage() {
         text: `✅ Data ${submissionType === "candidate" ? "Kandidat" : "Karyawan"} berhasil disimpan!`,
       });
       
-      // Opsional: Kosongkan form setelah sukses
+      // Opsional: Kosongkan form setelah sukses dengan me-reset state
       // setForm({} as FormData);
       
     } catch (error: any) {
@@ -82,7 +119,6 @@ export default function ManualRegistrationPage() {
       setMessage({ type: "error", text: `❌ Gagal: ${error.message}` });
     } finally {
       setIsLoading(false);
-      // Auto-hide pesan setelah 5 detik
       setTimeout(() => setMessage(null), 5000);
     }
   };
@@ -171,11 +207,38 @@ export default function ManualRegistrationPage() {
             </div>
           </div>
 
-          {/* WORK EXPERIENCE */}
+          {/* WORK EXPERIENCE & POSITION (PERUBAHAN ADA DI SINI) */}
           <div>
             <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">6. Pengalaman Kerja Terakhir</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="positionApplied" placeholder="Posisi yang Dilamar (Saat Ini) *" required className={`${inputClass} border-blue-300 bg-blue-50`} onChange={handleChange} />
+              
+              {/* DROPDOWN DINAMIS UNTUK PELAMAR, INPUT TEXT UNTUK KARYAWAN */}
+              {submissionType === "candidate" ? (
+                <select
+                  name="positionApplied"
+                  required
+                  className={`${inputClass} border-blue-300 bg-blue-50`}
+                  onChange={handleChange}
+                >
+                  <option value="">
+                    {isLoadingJobs ? "Memuat Data Pekerjaan..." : "-- Pilih Posisi yang Dilamar -- *"}
+                  </option>
+                  {jobs.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.title}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input 
+                  name="positionApplied" 
+                  placeholder="Posisi Jabatan (Saat Ini) *" 
+                  required 
+                  className={`${inputClass} border-blue-300 bg-blue-50`} 
+                  onChange={handleChange} 
+                />
+              )}
+
               <input name="totalExperience" placeholder="Total Lama Pengalaman (Misal: 3 Tahun)" className={inputClass} onChange={handleChange} />
               
               <input name="lastCompany" placeholder="Nama Perusahaan Terakhir" className={inputClass} onChange={handleChange} />
