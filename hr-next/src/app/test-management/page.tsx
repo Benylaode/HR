@@ -213,6 +213,7 @@ export default function TestManagementPage() {
       // Fetch Karyawan
       const resKaryawan = await fetch(`${API_BASE_URL}/employees`, { headers: getAuthHeaders() });
       if (resKaryawan.ok) setKaryawanList(await resKaryawan.json());
+      
 
       // Fetch Jobs
       const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
@@ -1109,7 +1110,7 @@ export default function TestManagementPage() {
                        className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
                      >
                        <option value="">-- Pilih Kandidat --</option>
-                       {candidatesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                       {candidatesList.map(c => <option key={c.id} value={c.id}>{c.fullName}</option>)}
                      </select>
                    ) : (
                      <select 
@@ -1118,7 +1119,7 @@ export default function TestManagementPage() {
                        className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
                      >
                        <option value="">-- Pilih Karyawan --</option>
-                       {karyawanList.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
+                       {karyawanList.map(k => <option key={k.id} value={k.id}>{k.fullName}</option>)}
                      </select>
                    )}
                 </div>
