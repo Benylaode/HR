@@ -40,14 +40,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5
 
 export interface Candidate {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   top_position: string;
 }
 
 export interface Karyawan {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
 }
 
@@ -285,9 +285,9 @@ export default function TestManagementPage() {
       if (response.ok) {
         let participantName = "Unknown";
         if (participantType === "candidate") {
-           participantName = candidatesList.find(c => c.id === selectedCandidateId)?.name || "Unknown";
+           participantName = candidatesList.find(c => c.id === selectedCandidateId)?.fullName || "Unknown";
         } else {
-           participantName = karyawanList.find(k => k.id === selectedKaryawanId)?.name || "Unknown";
+           participantName = karyawanList.find(k => k.id === selectedKaryawanId)?.fullName || "Unknown";
         }
 
         setLocalTestLinks([{ 
