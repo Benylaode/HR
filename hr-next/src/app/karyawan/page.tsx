@@ -1,0 +1,698 @@
+"use client";
+
+import { useEffect, useState, memo } from "react";
+import { useRouter } from "next/navigation";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { 
+  Plus, 
+  Search, 
+  Mail, 
+  Phone, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Loader2, 
+  AlertCircle,
+  Briefcase,
+  Filter,
+  X,
+  MapPin,
+  Save,
+  GraduationCap,
+  User // <-- INI YANG DITAMBAHKAN UNTUK MEMPERBAIKI ERROR
+} from "lucide-react";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+// Disesuaikan dengan return dict dari backend Flask
+interface Karyawan {
+  id: string;
+  fullName: string;
+  email: string;
+  whatsapp: string;
+  positionApplied: string;
+  employee_status: string;
+  test_status: string;
+  created_at: string;
+}
+
+// Tambahan field untuk detail berdasarkan backend
+interface KaryawanDetail extends Karyawan {
+  gender?: string;
+  religion?: string;
+  birthPlace?: string;
+  birthDate?: string;
+  driverLicense?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  education?: string;
+  university?: string;
+  major?: string;
+  gpa?: string;
+  socialMedia?: string;
+  lastCompany?: string;
+  lastPosition?: string;
+  lastPositionLevel?: string;
+  lastCompanyField?: string;
+  totalExperience?: string;
+  experienceDescription?: string;
+}
+
+interface JobPosition {
+  id: string;
+  title: string;
+}
+
+const DetailModal = memo(({ 
+  karyawan, 
+  onClose 
+}: { 
+  karyawan: KaryawanDetail | null; 
+  onClose: () => void;
+}) => {
+  if (!karyawan) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
+              {(karyawan.fullName || "?").charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">{karyawan.fullName || "Nama Tidak Ada"}</h2>
+              <p className="text-sm text-[var(--secondary)]">{karyawan.positionApplied || "Karyawan Internal"}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-6">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <Mail size={16} className="text-[var(--secondary-400)]" />
+              <span>{karyawan.email || "-"}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <Phone size={16} className="text-[var(--secondary-400)]" />
+              <span>{karyawan.whatsapp || "-"}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <MapPin size={16} className="text-[var(--secondary-400)]" />
+              <span>{karyawan.city || karyawan.address || "-"}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[var(--secondary)]">
+              <Briefcase size={16} className="text-[var(--secondary-400)]" />
+              <span>{karyawan.totalExperience || "0"} pengalaman</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             {/* Pendidikan */}
+             <div>
+                <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                   <GraduationCap size={16} /> Pendidikan Terakhir
+                </h3>
+                <div className="space-y-1 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <p className="font-semibold text-[var(--primary-900)]">{karyawan.university || "-"}</p>
+                  <p className="text-xs text-[var(--secondary)]">{karyawan.education} - {karyawan.major}</p>
+                  <p className="text-xs font-medium mt-1">IPK: {karyawan.gpa || "-"}</p>
+                </div>
+              </div>
+
+              {/* Info Personal */}
+              <div>
+                <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                   <User size={16} /> Info Personal
+                </h3>
+                <div className="space-y-2 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="flex justify-between"><span className="text-[var(--secondary-500)]">Gender:</span> <span>{karyawan.gender || "-"}</span></div>
+                  <div className="flex justify-between"><span className="text-[var(--secondary-500)]">Lahir:</span> <span>{karyawan.birthPlace}, {karyawan.birthDate ? new Date(karyawan.birthDate).toLocaleDateString('id-ID') : "-"}</span></div>
+                  <div className="flex justify-between"><span className="text-[var(--secondary-500)]">Agama:</span> <span>{karyawan.religion || "-"}</span></div>
+                </div>
+              </div>
+          </div>
+
+          {/* Pengalaman Terakhir */}
+          {karyawan.lastCompany && (
+            <div>
+              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 pl-1 border-l-2 border-[var(--primary)]">Pengalaman Kerja Terakhir</h3>
+              <div className="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-base font-bold text-[var(--primary-900)]">{karyawan.lastPosition}</p>
+                    <p className="text-sm text-[var(--secondary-600)]">{karyawan.lastCompany} <span className="text-xs">({karyawan.lastCompanyField})</span></p>
+                  </div>
+                  <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary-50)] px-2 py-1 rounded border border-[var(--primary-100)]">{karyawan.lastPositionLevel}</span>
+                </div>
+                {karyawan.experienceDescription && (
+                  <p className="text-sm text-[var(--secondary-600)] mt-2 pt-2 border-t border-gray-200">
+                    "{karyawan.experienceDescription}"
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)]">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+DetailModal.displayName = 'DetailModal';
+
+const EditModal = memo(({ 
+  karyawan, 
+  onClose,
+  onSave 
+}: { 
+  karyawan: KaryawanDetail | null; 
+  onClose: () => void;
+  onSave: (data: Partial<KaryawanDetail>) => Promise<void>;
+}) => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    whatsapp: "",
+    city: "",
+    positionApplied: "",
+    employee_status: "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (karyawan) {
+      setFormData({
+        fullName: karyawan.fullName || "",
+        email: karyawan.email || "",
+        whatsapp: karyawan.whatsapp || "",
+        city: karyawan.city || "",
+        positionApplied: karyawan.positionApplied || "",
+        employee_status: karyawan.employee_status || "Pending",
+      });
+    }
+  }, [karyawan]);
+
+  if (!karyawan) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    await onSave(formData);
+    setSaving(false);
+  };
+
+  const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--secondary-200)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors text-[var(--primary-900)]";
+  const labelClass = "text-xs font-semibold text-[var(--secondary-500)] uppercase tracking-wide mb-1.5 block";
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[var(--primary-50)] flex items-center justify-center">
+              <Edit size={18} className="text-[var(--primary)]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Karyawan</h2>
+              <p className="text-xs text-[var(--secondary)]">{karyawan.fullName}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className={labelClass}>Status Karyawan</label>
+              <select value={formData.employee_status} onChange={(e) => setFormData({ ...formData, employee_status: e.target.value })} className={inputClass}>
+                <option value="Active">Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Resigned">Resigned</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Nama Lengkap</label>
+              <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className={inputClass} required />
+            </div>
+            <div>
+              <label className={labelClass}>Email</label>
+              <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={inputClass} required />
+            </div>
+            <div>
+              <label className={labelClass}>WhatsApp</label>
+              <input type="text" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Kota / Alamat</label>
+              <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className={inputClass} />
+            </div>
+            <div className="col-span-2">
+              <label className={labelClass}>Posisi (Jabatan)</label>
+              <input type="text" value={formData.positionApplied} onChange={(e) => setFormData({ ...formData, positionApplied: e.target.value })} className={inputClass} />
+            </div>
+          </div>
+        </form>
+
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+          <p className="text-[10px] text-orange-600 font-medium">*Pastikan backend API memiliki rute PUT /employees/id</p>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">Batal</button>
+            <button onClick={handleSubmit} disabled={saving} className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm">
+              {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+              {saving ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+EditModal.displayName = 'EditModal';
+
+export default function KaryawanPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  
+  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
+  const [jobs, setJobs] = useState<JobPosition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState("all");
+
+  const [detailModal, setDetailModal] = useState<KaryawanDetail | null>(null);
+  const [editModal, setEditModal] = useState<KaryawanDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  useEffect(() => {
+    const userData = localStorage.getItem("hr_user");
+    if (!userData) {
+      router.push("/");
+      return;
+    }
+    setUser(JSON.parse(userData));
+    fetchKaryawanList();
+    fetchJobs();
+  }, [router]);
+
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
+  const fetchKaryawanList = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/employees`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Gagal mengambil data karyawan");
+      setKaryawanList(await res.json());
+    } catch (err) {
+      setError("Gagal menghubungkan ke server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchJobs = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
+      if (res.ok) setJobs(await res.json());
+    } catch (err) {
+      console.error("Gagal mengambil data pekerjaan:", err);
+    }
+  };
+
+  const fetchKaryawanDetail = async (id: string) => {
+    setLoadingDetail(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/employees/${id}`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        return await res.json();
+      }
+      return null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleViewDetail = async (id: string) => {
+    const detail = await fetchKaryawanDetail(id);
+    if (detail) setDetailModal(detail);
+  };
+
+  const handleEdit = async (id: string) => {
+    const detail = await fetchKaryawanDetail(id);
+    if (detail) setEditModal(detail);
+  };
+
+  const handleSaveEdit = async (data: Partial<KaryawanDetail>) => {
+    if (!editModal) return;
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/employees/${editModal.id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        setEditModal(null);
+        fetchKaryawanList();
+        alert("Data karyawan berhasil diperbarui!");
+      } else {
+        alert("Gagal memperbarui data. (Apakah rute PUT di backend sudah ada?)");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus data karyawan ini?")) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/employees/${id}`, { method: "DELETE", headers: getAuthHeaders() });
+      if (res.ok) {
+        setKaryawanList(prev => prev.filter(c => c.id !== id));
+      } else {
+        alert("Gagal menghapus data.");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan saat menghapus.");
+    }
+  };
+
+  // FILTER LOGIC
+  const filteredKaryawan = karyawanList.filter((k) => {
+    const searchLower = (searchQuery || "").toLowerCase();
+    const matchesSearch = 
+      (k.fullName || "").toLowerCase().includes(searchLower) || 
+      (k.email || "").toLowerCase().includes(searchLower);
+    
+    const currentStatus = k.employee_status || "Pending";
+    const matchesStatus = statusFilter === "all" || currentStatus === statusFilter;
+    
+    const matchesJob = jobFilter === "all" || k.positionApplied === jobFilter;
+    
+    return matchesSearch && matchesStatus && matchesJob;
+  });
+
+  const getStatusBadge = (status: string) => {
+    const s = status || "Pending";
+    switch (s) {
+      case "Active": return "badge badge-success";
+      case "Pending": return "badge badge-warning";
+      case "Resigned": return "badge badge-danger";
+      default: return "badge badge-secondary";
+    }
+  };
+
+  const getTestBadge = (status: string) => {
+    if (status === "Completed") return "badge badge-success";
+    if (status === "Active") return "badge badge-primary";
+    return "badge badge-secondary text-[var(--secondary-400)]";
+  };
+
+  if (!user) return null;
+
+  return (
+    <div className="min-h-screen bg-[var(--background)]">
+      <Sidebar />
+      <div className="lg:ml-64 min-h-screen flex flex-col">
+        <Header 
+          title="Karyawan Internal" 
+          subtitle="Manajemen data karyawan dan hasil asesmen internal"
+        />
+        <main className="p-4 md:p-8 flex-1">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div className="w-full md:w-auto">
+              <h2 className="text-xl md:text-2xl font-bold text-[var(--primary-900)]">Database Karyawan</h2>
+              <p className="text-xs md:text-sm text-[var(--secondary)] mt-1">Total {karyawanList.length} karyawan terdaftar</p>
+            </div>
+            <button 
+              onClick={() => router.push('/apply')} 
+              className="w-full md:w-auto bg-[var(--primary)] text-white px-5 py-3 md:py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[var(--primary-700)] hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95 text-sm"
+            >
+              <Plus size={18} /> Input Karyawan Baru
+            </button>
+          </div>
+
+          <div className="card-static bg-white p-4 rounded-xl border border-[var(--secondary-200)] mb-6 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+              <div className="relative flex-1 w-full">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--secondary-400)]" />
+                <input
+                  type="text"
+                  placeholder="Cari nama atau email karyawan..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row md:items-center gap-3 w-full md:w-auto">
+                <div className="w-full md:w-auto flex items-center gap-2">
+                  <Briefcase size={18} className="text-[var(--secondary-400)] hidden md:block" />
+                  <select
+                    value={jobFilter}
+                    onChange={(e) => setJobFilter(e.target.value)}
+                    className="w-full md:w-56 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-white cursor-pointer text-sm text-[var(--secondary-700)] appearance-none"
+                  >
+                    <option value="all">Semua Posisi</option>
+                    {jobs.map((job) => (
+                      <option key={job.id} value={job.title}>{job.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="w-full md:w-auto flex items-center gap-2">
+                  <Filter size={18} className="text-[var(--secondary-400)] hidden md:block" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full md:w-48 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-white cursor-pointer text-sm text-[var(--secondary-700)] appearance-none"
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Resigned">Resigned</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 mb-6 text-red-700 animation-shake">
+              <AlertCircle size={20} />
+              <p>{error}</p>
+            </div>
+          )}
+
+          {loadingDetail && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+              <Loader2 className="w-10 h-10 animate-spin text-white" />
+            </div>
+          )}
+
+          <div className="bg-transparent md:bg-white md:rounded-2xl md:border md:border-[var(--secondary-200)] md:overflow-hidden md:shadow-sm">
+            {loading ? (
+              <div className="p-20 text-center text-[var(--secondary)]">
+                <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-[var(--primary)]" />
+                <p className="font-medium">Memuat data karyawan...</p>
+              </div>
+            ) : (
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--secondary-50)] border-b border-[var(--secondary-100)]">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Karyawan</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Posisi / Jabatan</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Test Status</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Tanggal Didaftarkan</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--secondary-50)]">
+                      {filteredKaryawan.map((karyawan) => (
+                        <tr key={karyawan.id} className="hover:bg-[var(--primary-50)]/30 transition-colors group">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-sm">
+                                {(karyawan.fullName || "?").charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{karyawan.fullName || "Unknown"}</p>
+                                <div className="flex items-center gap-2 text-xs text-[var(--secondary)]">
+                                  <Mail size={12} />
+                                  <span className="truncate max-w-[150px]">{karyawan.email || "-"}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-[var(--primary-900)] flex items-center gap-1">
+                                <Briefcase size={14} className="text-[var(--secondary-400)]"/> {karyawan.positionApplied || "Unassigned"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`${getStatusBadge(karyawan.employee_status)} rounded-full px-2.5 py-1 text-xs font-semibold`}>
+                              {karyawan.employee_status || "Pending"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getTestBadge(karyawan.test_status)}`}>
+                              {karyawan.test_status || "-"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-[var(--secondary)]">
+                            {karyawan.created_at ? new Date(karyawan.created_at).toLocaleDateString("id-ID", {
+                              day: 'numeric', month: 'short', year: 'numeric'
+                            }) : "-"}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button 
+                                onClick={() => handleViewDetail(karyawan.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg transition-colors" 
+                                title="Lihat Detail"
+                              >
+                                <Eye size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleEdit(karyawan.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--success)] hover:bg-green-50 rounded-lg transition-colors" 
+                                title="Edit"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(karyawan.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--danger)] hover:bg-red-50 rounded-lg transition-colors" 
+                                title="Hapus"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden space-y-4">
+                  {filteredKaryawan.map((karyawan) => (
+                    <div key={karyawan.id} className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm flex flex-col gap-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-lg">
+                             {(karyawan.fullName || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-[var(--primary-900)] text-base">{karyawan.fullName || "Unknown"}</h3>
+                            <p className="text-xs text-[var(--secondary)]">{karyawan.email || "-"}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                         <div>
+                            <p className="text-[10px] text-[var(--secondary-400)] uppercase">Posisi</p>
+                            <p className="font-medium text-[var(--primary-900)] truncate">{karyawan.positionApplied || "Unassigned"}</p>
+                         </div>
+                         <div>
+                            <p className="text-[10px] text-[var(--secondary-400)] uppercase">Joined</p>
+                            <p className="font-medium text-[var(--secondary)]">
+                               {karyawan.created_at ? new Date(karyawan.created_at).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : "-"}
+                            </p>
+                         </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                          <span className={`${getStatusBadge(karyawan.employee_status)} rounded-lg px-3 py-1 text-xs font-semibold flex-1 text-center`}>
+                              {karyawan.employee_status || "Pending"}
+                          </span>
+                          <span className={`rounded-lg px-3 py-1 text-xs font-semibold flex-1 text-center border border-[var(--secondary-200)] bg-[var(--secondary-50)] text-[var(--secondary-600)]`}>
+                              {karyawan.test_status || "-"} Test
+                          </span>
+                      </div>
+
+                      <div className="pt-3 border-t border-[var(--secondary-50)] flex justify-between gap-2 overflow-x-auto">
+                          <button 
+                            onClick={() => handleViewDetail(karyawan.id)}
+                            className="flex-1 py-2 px-3 bg-[var(--primary-50)] text-[var(--primary)] rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-[var(--primary-100)]"
+                          >
+                             <Eye size={14} /> Detail
+                          </button>
+                          <button 
+                                onClick={() => handleEdit(karyawan.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--success)] bg-gray-50 rounded-lg" 
+                              >
+                                <Edit size={16} />
+                          </button>
+                          <button 
+                                onClick={() => handleDelete(karyawan.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--danger)] bg-gray-50 rounded-lg" 
+                              >
+                                <Trash2 size={16} />
+                          </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredKaryawan.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-[var(--secondary)]">
+                    <div className="w-16 h-16 bg-[var(--secondary-50)] rounded-full flex items-center justify-center mb-4">
+                       <Search size={32} className="text-[var(--secondary-400)]" />
+                    </div>
+                    <p className="font-bold text-[var(--primary-900)]">Tidak ada karyawan yang ditemukan</p>
+                    <p className="text-sm">Coba ubah filter pencarian Anda atau tambahkan karyawan baru.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </main>
+        <Footer />
+      </div>
+
+      {detailModal && <DetailModal karyawan={detailModal} onClose={() => setDetailModal(null)} />}
+      {editModal && <EditModal karyawan={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
+    </div>
+  );
+}

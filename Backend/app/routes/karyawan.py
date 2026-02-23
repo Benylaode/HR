@@ -139,3 +139,85 @@ def delete_employee(employee_id):
     db.session.delete(emp)
     db.session.commit()
     return jsonify({"message": "Employee deleted successfully"})
+
+@employees_bp.route("/<employee_id>", methods=["PUT"])
+def update_employee(employee_id):
+    # Cari data karyawan berdasarkan ID
+    emp = Employee.query.get(employee_id)
+    if not emp:
+        return jsonify({"error": "Employee not found"}), 404
+
+    data = request.get_json(force=True)
+
+    try:
+        # Update field-field utama yang ada di Modal Edit Frontend
+        if "fullName" in data:
+            emp.full_name = data["fullName"]
+        if "email" in data:
+            emp.email = data["email"]
+        if "whatsapp" in data:
+            emp.whatsapp = data["whatsapp"]
+        if "city" in data:
+            emp.city = data["city"]
+        if "positionApplied" in data:
+            emp.position_applied = data["positionApplied"]
+        if "employee_status" in data:
+            emp.employee_status = data["employee_status"]
+
+        # [OPSIONAL] Update untuk field lainnya jika nantinya form edit diperluas
+        if "gender" in data:
+            emp.gender = data["gender"]
+        if "religion" in data:
+            emp.religion = data["religion"]
+        if "birthPlace" in data:
+            emp.birth_place = data["birthPlace"]
+        if "birthDate" in data:
+            if data["birthDate"]:
+                emp.birth_date = datetime.strptime(data["birthDate"], "%Y-%m-%d").date()
+            else:
+                emp.birth_date = None
+        if "driverLicense" in data:
+            emp.driver_license = data["driverLicense"]
+        if "address" in data:
+            emp.address = data["address"]
+        if "province" in data:
+            emp.province = data["province"]
+        if "education" in data:
+            emp.education = data["education"]
+        if "university" in data:
+            emp.university = data["university"]
+        if "major" in data:
+            emp.major = data["major"]
+        if "gpa" in data:
+            emp.gpa = data["gpa"]
+        if "socialMedia" in data:
+            emp.social_media = data["socialMedia"]
+        if "lastCompany" in data:
+            emp.last_company = data["lastCompany"]
+        if "lastPosition" in data:
+            emp.last_position = data["lastPosition"]
+        if "lastPositionLevel" in data:
+            emp.last_position_level = data["lastPositionLevel"]
+        if "lastCompanyField" in data:
+            emp.last_company_field = data["lastCompanyField"]
+        if "totalExperience" in data:
+            emp.total_experience_years = data["totalExperience"]
+        if "experienceDescription" in data:
+            emp.experience_description = data["experienceDescription"]
+
+        # Simpan perubahan ke database
+        db.session.commit()
+
+        return jsonify({
+            "message": "Employee updated successfully",
+            "data": employee_to_dict(emp)
+        }), 200
+
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error. Email atau WhatsApp mungkin sudah digunakan."}), 400
+    except ValueError as e:
+        return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Terjadi kesalahan pada server: {str(e)}"}), 500

@@ -45,6 +45,12 @@ export interface Candidate {
   top_position: string;
 }
 
+export interface Karyawan {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface JobPosition {
   id: string;
   title: string;
@@ -126,12 +132,15 @@ export default function TestManagementPage() {
   const [localTestLinks, setLocalTestLinks] = useState<TestLink[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]); 
   
-  // Candidates & Jobs List for Dropdown
+  // Candidates, Karyawan & Jobs List for Dropdown
   const [candidatesList, setCandidatesList] = useState<Candidate[]>([]);
+  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]); // Data Karyawan
   const [jobsList, setJobsList] = useState<JobPosition[]>([]);
   
   // Form State
+  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate"); // Tipe Peserta
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
+  const [selectedKaryawanId, setSelectedKaryawanId] = useState("");
   const [selectedJobId, setSelectedJobId] = useState(""); 
 
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -144,8 +153,6 @@ export default function TestManagementPage() {
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState<Submission | null>(null);
-  const [showCreateSubtypeModal, setShowCreateSubtypeModal] = useState(false);
-  const [showEditSubtypeModal, setShowEditSubtypeModal] = useState(false);
 
   // Form Inputs
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -167,12 +174,12 @@ export default function TestManagementPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
 
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
@@ -199,9 +206,15 @@ export default function TestManagementPage() {
       const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() }); 
       if (resSubs.ok) setSubmissions(await resSubs.json());
 
+      // Fetch Kandidat
       const resCandidates = await fetch(`${API_BASE_URL}/candidates`, { headers: getAuthHeaders() });
       if (resCandidates.ok) setCandidatesList(await resCandidates.json());
 
+      // Fetch Karyawan
+      const resKaryawan = await fetch(`${API_BASE_URL}/karyawan`, { headers: getAuthHeaders() });
+      if (resKaryawan.ok) setKaryawanList(await resKaryawan.json());
+
+      // Fetch Jobs
       const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
       if (resJobs.ok) setJobsList(await resJobs.json());
 
@@ -222,7 +235,6 @@ export default function TestManagementPage() {
               .filter((q: any) => q.subtest === st.id)
               .map((q: any) => ({
                 id: q.id,
-                // Fix: Pastikan URL gambar lengkap dengan API_BASE_URL
                 imageUrl: q.question_image ? `${API_BASE_URL}${q.question_image}` : null,
                 correctAnswer: String.fromCharCode(65 + q.correctAnswer),
               })),
@@ -250,28 +262,36 @@ export default function TestManagementPage() {
   // --- HANDLERS ---
 
   const handleGenerateLink = async () => { 
-    if (!selectedCandidateId) { alert("Pilih kandidat dari daftar!"); return; }
+    if (participantType === "candidate" && !selectedCandidateId) { alert("Pilih kandidat dari daftar!"); return; }
+    if (participantType === "karyawan" && !selectedKaryawanId) { alert("Pilih karyawan dari daftar!"); return; }
     
     setIsGeneratingLink(true);
     try {
+      // Setup payload sesuai tipe partisipan
+      const payload = {
+        job_id: selectedJobId || null,
+        ...(participantType === "candidate" ? { candidate_id: selectedCandidateId } : { karyawan_id: selectedKaryawanId })
+      };
+
       const response = await fetch(`${API_BASE_URL}/management/generate-link`, {
         method: "POST", 
         headers: getAuthHeaders(), 
-        body: JSON.stringify({ 
-            candidate_id: selectedCandidateId,
-            job_id: selectedJobId || null 
-        }), 
+        body: JSON.stringify(payload), 
       });
       
       const data = await response.json();
 
       if (response.ok) {
-        const selectedCand = candidatesList.find(c => c.id === selectedCandidateId);
-        const candName = selectedCand ? selectedCand.name : "Unknown";
+        let participantName = "Unknown";
+        if (participantType === "candidate") {
+           participantName = candidatesList.find(c => c.id === selectedCandidateId)?.name || "Unknown";
+        } else {
+           participantName = karyawanList.find(k => k.id === selectedKaryawanId)?.name || "Unknown";
+        }
 
         setLocalTestLinks([{ 
             id: Date.now(), 
-            candidateName: candName, 
+            candidateName: participantName, 
             token: data.token, 
             status: "active", 
             createdAt: new Date().toISOString() 
@@ -280,6 +300,7 @@ export default function TestManagementPage() {
         alert(`Link dibuat!\nToken: ${data.token}`);
         setShowCreateLinkModal(false);
         setSelectedCandidateId(""); 
+        setSelectedKaryawanId("");
         setSelectedJobId("");
       } else {
         alert(`Gagal: ${data.error || "Terjadi kesalahan"}`);
@@ -341,19 +362,16 @@ export default function TestManagementPage() {
     } catch (err) { console.error(err); }
   };
 
-  const handleCreateSubtype = () => { setShowCreateSubtypeModal(false); };
-  const handleUpdateSubtype = () => { setShowEditSubtypeModal(false); };
-
   // --- UTILS ---
   const copyLink = async (token: string) => {
-  try {
-    const url = `${window.location.origin}/test/${token}`;
-    await navigator.clipboard.writeText(url).then(() => alert("Disalin!"));
-    console.log("Link berhasil disalin!");
-  } catch (err) {
-    console.error("Gagal menyalin");
-  }
-};
+    try {
+      const url = `${window.location.origin}/test/${token}`;
+      await navigator.clipboard.writeText(url).then(() => alert("Disalin!"));
+      console.log("Link berhasil disalin!");
+    } catch (err) {
+      console.error("Gagal menyalin");
+    }
+  };
 
   const getOptionLabels = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
   const labelToIndex = (label: string) => label.charCodeAt(0) - 65;
@@ -392,7 +410,7 @@ export default function TestManagementPage() {
       <table className="w-full text-left text-sm">
         <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
           <tr>
-            <th className="px-6 py-4">Kandidat</th>
+            <th className="px-6 py-4">Peserta</th>
             <th className="px-6 py-4">Jenis Tes</th>
             <th className="px-6 py-4">Hasil Ringkas</th>
             <th className="px-6 py-4">Waktu Submit</th>
@@ -890,7 +908,7 @@ export default function TestManagementPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
                     <tr>
-                      <th className="p-4">Kandidat</th>
+                      <th className="p-4">Peserta</th>
                       <th className="p-4">Token</th>
                       <th className="p-4">Status</th>
                       <th className="p-4 text-right">Aksi</th>
@@ -1063,17 +1081,48 @@ export default function TestManagementPage() {
                 <button onClick={() => setShowCreateLinkModal(false)}><X className="text-[var(--secondary-400)] hover:text-red-500 transition-colors" /></button>
               </div>
               <div className="p-6 space-y-4">
-                <div>
-                   <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Pilih Kandidat</label>
-                   <select 
-                     value={selectedCandidateId} 
-                     onChange={(e) => setSelectedCandidateId(e.target.value)}
-                     className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
-                   >
-                     <option value="">-- Pilih Kandidat --</option>
-                     {candidatesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                   </select>
+                
+                {/* PILIHAN TIPE PESERTA (TOGGLE) */}
+                <div className="flex gap-2 mb-2 p-1 bg-[var(--secondary-50)] rounded-lg w-full">
+                  <button 
+                    onClick={() => setParticipantType("candidate")}
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${participantType === "candidate" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}
+                  >
+                    Kandidat Baru
+                  </button>
+                  <button 
+                    onClick={() => setParticipantType("karyawan")}
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${participantType === "karyawan" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}
+                  >
+                    Karyawan Internal
+                  </button>
                 </div>
+
+                <div>
+                   <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">
+                     Pilih {participantType === "candidate" ? "Kandidat" : "Karyawan"}
+                   </label>
+                   {participantType === "candidate" ? (
+                     <select 
+                       value={selectedCandidateId} 
+                       onChange={(e) => setSelectedCandidateId(e.target.value)}
+                       className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
+                     >
+                       <option value="">-- Pilih Kandidat --</option>
+                       {candidatesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                     </select>
+                   ) : (
+                     <select 
+                       value={selectedKaryawanId} 
+                       onChange={(e) => setSelectedKaryawanId(e.target.value)}
+                       className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
+                     >
+                       <option value="">-- Pilih Karyawan --</option>
+                       {karyawanList.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
+                     </select>
+                   )}
+                </div>
+
                 <div>
                    <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Posisi (Opsional)</label>
                    <select 
@@ -1088,7 +1137,7 @@ export default function TestManagementPage() {
                 <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)] flex gap-3">
                    <AlertCircle className="w-5 h-5 text-[var(--primary)] flex-shrink-0" />
                    <p className="text-xs text-[var(--primary-800)] leading-relaxed">
-                      Link akan otomatis berisi 3 paket tes (CFIT, PAPI, Kraepelin). Token unik akan di-generate untuk akses kandidat.
+                      Link akan otomatis berisi 3 paket tes (CFIT, PAPI, Kraepelin). Token unik akan di-generate untuk akses ujian.
                    </p>
                 </div>
               </div>
@@ -1155,7 +1204,7 @@ export default function TestManagementPage() {
               <div className="p-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] shrink-0">
                  <div>
                     <h3 className="text-lg font-bold text-[var(--primary-900)]">Detail Hasil Tes</h3>
-                    <p className="text-xs text-[var(--secondary)]">Kandidat: {showDetailModal.candidate_name}</p>
+                    <p className="text-xs text-[var(--secondary)]">Peserta: {showDetailModal.candidate_name}</p>
                  </div>
                  <button onClick={() => setShowDetailModal(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X className="text-[var(--secondary-400)]" /></button>
               </div>

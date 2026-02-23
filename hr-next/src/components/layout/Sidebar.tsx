@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { UserCheck } from "lucide-react";
 
 interface MenuItem {
   name: string;
@@ -33,7 +34,7 @@ const menuItems: MenuItem[] = [
   { name: "ATA Tracking", href: "/ata-tracking", icon: ClipboardCheck, roles: ["SUPER_USER", "HR"] },
   { name: "Kandidat", href: "/candidates", icon: Users, roles: ["SUPER_USER"] },
   { name: "Test Management", href: "/test-management", icon: ClipboardList, roles: ["SUPER_USER"] },
-  // NAMA DAN ICON DIUBAH DI SINI (Tetap mengarah ke /cv-scanner karena halamannya di situ)
+  { name: "Karyawan", href: "/karyawan", icon: UserCheck, roles: ["SUPER_USER", "HR"] },
   { name: "Input Pelamar", href: "/apply", icon: UserPlus, roles: ["SUPER_USER"] }, 
   { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["SUPER_USER", "HR"] },
   { name: "Laporan", href: "/reports", icon: FileBarChart, roles: ["SUPER_USER"] },
