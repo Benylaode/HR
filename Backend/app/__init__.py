@@ -67,7 +67,7 @@ def create_app(testing=False):
     from .routes.ata import ata_bp
     from .routes.karyawan import employees_bp
 
-    app.register_blueprint(employees_bp, url_prefix="/karyawan")
+    app.register_blueprint(employees_bp, url_prefix="/employees")
     app.register_blueprint(mgmt_bp, url_prefix="/management")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
     app.register_blueprint(candidates_bp, url_prefix="/candidates")
