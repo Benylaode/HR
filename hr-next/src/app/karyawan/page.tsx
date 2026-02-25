@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { toast } from "sonner"; // <-- 1. IMPORT SONNER
 import { 
   Plus, 
   Search, 
@@ -21,7 +22,7 @@ import {
   MapPin,
   Save,
   GraduationCap,
-  User // <-- INI YANG DITAMBAHKAN UNTUK MEMPERBAIKI ERROR
+  User 
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -331,8 +332,10 @@ export default function KaryawanPage() {
       const res = await fetch(`${API_BASE_URL}/employees`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Gagal mengambil data karyawan");
       setKaryawanList(await res.json());
+      setError(null); // Reset error jika sukses
     } catch (err) {
       setError("Gagal menghubungkan ke server.");
+      toast.error("Gagal memuat daftar karyawan."); // Notifikasi error cantik
     } finally {
       setLoading(false);
     }
@@ -354,9 +357,11 @@ export default function KaryawanPage() {
       if (res.ok) {
         return await res.json();
       }
+      toast.error("Gagal memuat detail karyawan.");
       return null;
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan jaringan.");
       return null;
     } finally {
       setLoadingDetail(false);
@@ -373,41 +378,56 @@ export default function KaryawanPage() {
     if (detail) setEditModal(detail);
   };
 
+  // 2. PERUBAHAN: Gunakan toast.promise untuk proses Update
   const handleSaveEdit = async (data: Partial<KaryawanDetail>) => {
     if (!editModal) return;
     
-    try {
+    const updateTask = async () => {
       const res = await fetch(`${API_BASE_URL}/employees/${editModal.id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
 
-      if (res.ok) {
-        setEditModal(null);
-        fetchKaryawanList();
-        alert("Data karyawan berhasil diperbarui!");
-      } else {
-        alert("Gagal memperbarui data. (Apakah rute PUT di backend sudah ada?)");
+      if (!res.ok) {
+        throw new Error("Gagal memperbarui data. (Apakah rute PUT di backend sudah ada?)");
       }
-    } catch (err) {
-      alert("Terjadi kesalahan.");
-    }
+      
+      setEditModal(null);
+      fetchKaryawanList();
+      return "Data karyawan berhasil diperbarui!";
+    };
+
+    toast.promise(updateTask(), {
+      loading: 'Menyimpan perubahan...',
+      success: (msg) => msg,
+      error: (err) => err.message || 'Terjadi kesalahan sistem.',
+    });
   };
 
+  // 3. PERUBAHAN: Gunakan toast.promise untuk proses Delete
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus data karyawan ini?")) return;
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/employees/${id}`, { method: "DELETE", headers: getAuthHeaders() });
-      if (res.ok) {
-        setKaryawanList(prev => prev.filter(c => c.id !== id));
-      } else {
-        alert("Gagal menghapus data.");
+    const deleteTask = async () => {
+      const res = await fetch(`${API_BASE_URL}/employees/${id}`, { 
+        method: "DELETE", 
+        headers: getAuthHeaders() 
+      });
+      
+      if (!res.ok) {
+        throw new Error("Gagal menghapus data dari server.");
       }
-    } catch (err) {
-      alert("Terjadi kesalahan saat menghapus.");
-    }
+      
+      setKaryawanList(prev => prev.filter(c => c.id !== id));
+      return "Data karyawan berhasil dihapus.";
+    };
+
+    toast.promise(deleteTask(), {
+      loading: 'Menghapus data...',
+      success: (msg) => msg,
+      error: (err) => err.message || 'Terjadi kesalahan saat menghapus.',
+    });
   };
 
   // FILTER LOGIC

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner' // <-- 1. IMPORT SONNER DI SINI
 
 interface ATARequest {
   id: string
@@ -49,11 +50,14 @@ export default function ATARequestsPage() {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ata`, { headers: getAuthHeaders() })
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/ata`, { headers: getAuthHeaders() })
+      if (!response.ok) throw new Error('Gagal mengambil data dari server');
+      
       const data = await response.json()
       setRequests(data)
     } catch (error) {
       console.error('Error fetching ATA requests:', error)
+      toast.error('Gagal memuat daftar ATA Request', { description: 'Periksa koneksi server Anda.' })
     } finally {
       setLoading(false)
     }
@@ -123,8 +127,40 @@ export default function ATARequestsPage() {
     );
   };
 
+  // 2. PERUBAHAN DI SINI: Integrasi API dan Animasi Toast Promise
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
-      console.log(`${action} request ${id} by ${userRole}`);
+    
+    // Konfirmasi dulu sebelum menolak
+    if (action === 'reject') {
+       if (!confirm("Apakah Anda yakin ingin menolak pengajuan ini?")) return;
+    }
+
+    const processAction = async () => {
+      // Sesuaikan endpoint ini dengan backend Anda. 
+      // Contoh ini menggunakan metode PUT untuk mengubah status.
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/ata/${id}/${action}`, {
+         method: 'POST', // atau PUT, sesuaikan backend Anda
+         headers: getAuthHeaders(),
+         body: JSON.stringify({ role: userRole })
+      });
+
+      if (!response.ok) {
+         const errData = await response.json().catch(() => null);
+         throw new Error(errData?.error || `Gagal melakukan ${action} pada request ini`);
+      }
+
+      // Refresh data di tabel
+      await fetchRequests();
+      
+      return action === 'approve' ? 'Request berhasil disetujui!' : 'Request telah ditolak.';
+    };
+
+    // Panggil Toast Promise
+    toast.promise(processAction(), {
+      loading: `Memproses ${action} request...`,
+      success: (msg) => msg,
+      error: (err) => err.message || 'Terjadi kesalahan sistem.',
+    });
   }
 
   // FIXED FILTER
@@ -166,7 +202,10 @@ export default function ATARequestsPage() {
         </div>
 
         {loading ? (
-          <div className="text-center p-12">Loading...</div>
+          <div className="text-center p-12">
+             <div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+             <p className="text-slate-500">Memuat data...</p>
+          </div>
         ) : filteredRequests.length === 0 ? (
           <div className="text-center p-12 bg-white rounded-xl shadow-sm">Belum ada data</div>
         ) : (
@@ -178,7 +217,7 @@ export default function ATARequestsPage() {
                   <div className="flex-1 w-full">
                     <div className="flex items-start gap-3 mb-2">
                       <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 font-bold text-lg">
-                        {(req.title || "?").charAt(0)}
+                        {(req.title || "?").charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <h3 className="font-bold text-lg text-slate-900">{req.title || "Tidak ada judul"}</h3>
@@ -204,10 +243,16 @@ export default function ATARequestsPage() {
                     <div className="flex items-center gap-2 mt-2">
                         {shouldShowActionButtons(req) && (
                             <>
-                                <button onClick={() => handleAction(req.id, 'reject')} className="px-4 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50">
+                                <button 
+                                  onClick={() => handleAction(req.id, 'reject')} 
+                                  className="px-4 py-1.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                                >
                                     Reject
                                 </button>
-                                <button onClick={() => handleAction(req.id, 'approve')} className="px-4 py-1.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700">
+                                <button 
+                                  onClick={() => handleAction(req.id, 'approve')} 
+                                  className="px-4 py-1.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors shadow-sm"
+                                >
                                     Approve
                                 </button>
                             </>

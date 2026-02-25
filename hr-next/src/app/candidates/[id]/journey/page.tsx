@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import JourneyTimeline from '@/components/recruitment/JourneyTimeline'
+import { toast } from 'sonner' // <-- 1. IMPORT SONNER DI SINI
 import { 
   Loader2, ChevronLeft, Upload, Download, Send, User as UserIcon,
   Briefcase, TrendingUp
@@ -46,37 +47,31 @@ export default function CandidateJourneyPage() {
     fetchJourney()
   }, [candidateId])
 
-    const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
   
   const fetchJourney = async () => {
     try {
       // Step 1: Fetch candidate to get application_id
       const candidateData = await getCandidateApplications(candidateId)
-      console.log('Candidate data:', candidateData)
       
       // Check if candidate has any job applications
       if (!candidateData.applications || candidateData.applications.length === 0) {
-        console.log('No applications found')
         setJourney(null)
         return
       }
       
       // Step 2: Use first application to fetch journey
       const applicationId = candidateData.applications[0].id
-      console.log('Using application_id:', applicationId)
-      
       const data = await getJourneyTimeline(applicationId)
-      console.log('Journey data:', data)
       setJourney(data)
     } catch (error: any) {
       console.error('Error fetching journey:', error)
-      
       // If no application found, show friendly UI instead of alert
       setJourney(null)
     } finally {
@@ -84,89 +79,103 @@ export default function CandidateJourneyPage() {
     }
   }
   
+  // 2. PERUBAHAN DI SINI: Update Stage menggunakan toast.promise
   const handleStageUpdate = async () => {
     if (!journey || !selectedStage) {
-      alert('⚠️ Please select a stage')
+      toast.warning('Peringatan', { description: 'Silakan pilih tahap (stage) terlebih dahulu' })
       return
     }
     
     if (isRejectionStage(selectedStage) && !notes.trim()) {
-      alert('⚠️ Notes/reason is required for rejection stages')
+      toast.warning('Peringatan', { description: 'Catatan/alasan wajib diisi untuk tahap penolakan' })
       return
     }
     
     setActionLoading(true)
-    try {
-      // Get application ID from journey metadata or need to fetch it
-      if (!journey?.application_id) {
-        alert('⚠️ Cannot find application ID')
-        return
+    
+    const updateTask = async () => {
+      try {
+        if (!journey?.application_id) {
+          throw new Error('ID Aplikasi tidak ditemukan')
+        }
+        
+        const result = await updateStage({
+          application_id: journey.application_id,
+          new_stage: selectedStage,
+          notes: notes.trim(),
+          actor_name: actorName
+        })
+        
+        if (result.whatsapp_link) {
+          setWhatsappLink(result.whatsapp_link)
+        }
+        
+        // Reset form
+        setSelectedStage('')
+        setNotes('')
+        
+        // Refresh journey
+        await fetchJourney()
+
+        return result.message || 'Tahap kandidat berhasil diperbarui!'
+      } finally {
+        setActionLoading(false)
       }
-      
-      const result = await updateStage({
-        application_id: journey.application_id,
-        new_stage: selectedStage,
-        notes: notes.trim(),
-        actor_name: actorName
-      })
-      
-      alert(`✅ ${result.message}`)
-      
-      if (result.whatsapp_link) {
-        setWhatsappLink(result.whatsapp_link)
-      }
-      
-      // Reset form
-      setSelectedStage('')
-      setNotes('')
-      
-      // Refresh journey
-      await fetchJourney()
-    } catch (error: any) {
-      alert(`❌ Error: ${error.message}`)
-    } finally {
-      setActionLoading(false)
     }
+
+    toast.promise(updateTask(), {
+      loading: 'Memperbarui tahap kandidat...',
+      success: (msg) => msg,
+      error: (err) => err.message || 'Gagal memperbarui tahap.',
+    })
   }
   
+  // 3. PERUBAHAN DI SINI: Upload Dokumen menggunakan toast.promise
   const handleDocumentUpload = async () => {
     if (!docFile) {
-      alert('⚠️ Please select a file')
+      toast.warning('Peringatan', { description: 'Silakan pilih file dokumen terlebih dahulu' })
       return
     }
     
     setUploadLoading(true)
-    try {
-      if (!journey?.application_id) {
-        alert('⚠️ Cannot find application ID')
-        return
+
+    const uploadTask = async () => {
+      try {
+        if (!journey?.application_id) {
+          throw new Error('ID Aplikasi tidak ditemukan')
+        }
+        
+        const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
+        
+        if (result.whatsapp_link) {
+          setWhatsappLink(result.whatsapp_link)
+        }
+        
+        // Reset form
+        setDocFile(null)
+        setUploadNotes('')
+        
+        // Refresh journey
+        await fetchJourney()
+
+        return result.message || 'Dokumen berhasil diunggah!'
+      } finally {
+        setUploadLoading(false)
       }
-      
-      const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
-      
-      alert(`✅ ${result.message}`)
-      
-      if (result.whatsapp_link) {
-        setWhatsappLink(result.whatsapp_link)
-      }
-      
-      // Reset form
-      setDocFile(null)
-      setUploadNotes('')
-      
-      // Refresh journey
-      await fetchJourney()
-    } catch (error: any) {
-      alert(`❌ Error: ${error.message}`)
-    } finally {
-      setUploadLoading(false)
     }
+
+    toast.promise(uploadTask(), {
+      loading: 'Mengunggah dokumen ke server...',
+      success: (msg) => msg,
+      error: (err) => err.message || 'Gagal mengunggah dokumen.',
+    })
   }
   
+  // 4. PERUBAHAN DI SINI: Menyalin Link WhatsApp menggunakan toast.success
   const copyWhatsAppLink = () => {
     if (whatsappLink) {
       navigator.clipboard.writeText(whatsappLink)
-      alert('✅ WhatsApp link copied to clipboard!')
+      toast.success('Disalin!', { description: 'Link WhatsApp berhasil disalin ke clipboard.' })
     }
   }
   

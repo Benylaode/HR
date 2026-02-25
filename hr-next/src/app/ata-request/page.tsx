@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner' // <-- 1. IMPORT SONNER DI SINI
 
 export default function ATARequestPage() {
   const router = useRouter()
@@ -24,14 +25,16 @@ export default function ATARequestPage() {
     setLoading(true)
 
     const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
+      const token = localStorage.getItem("hr_token");
+      return {
+        // PERHATIKAN: "Content-Type" dihapus di sini karena kita mengirim FormData (file). 
+        // Browser akan otomatis menambahkan Content-Type multipart/form-data beserta boundary-nya.
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+    };
 
-    try {
+    // 2. PERUBAHAN DI SINI: Menggunakan fungsi terpisah untuk dimasukkan ke toast.promise
+    const submitTask = async () => {
       const formDataToSend = new FormData()
       
       // Append all form fields
@@ -44,7 +47,7 @@ export default function ATARequestPage() {
         formDataToSend.append('file', file)
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ata`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/ata`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: formDataToSend,
@@ -52,18 +55,24 @@ export default function ATARequestPage() {
 
       const data = await response.json()
 
-      if (response.ok) {
-        alert(`✅ ATA Request berhasil disubmit!\nRequest ID: ${data.id}\n\nNext Step: ${data.next_step}`)
-        router.push('/ata-requests')
-      } else {
-        alert(`❌ Error: ${data.error}`)
+      if (!response.ok) {
+        throw new Error(data.error || 'Terjadi kesalahan saat submit ATA Request')
       }
-    } catch (error) {
-      console.error('Error submitting ATA:', error)
-      alert('❌ Terjadi kesalahan saat submit ATA Request')
-    } finally {
-      setLoading(false)
+
+      return data; // Mengembalikan data untuk dipakai di pesan sukses
     }
+
+    // 3. Menjalankan animasi loading, sukses, dan error otomatis
+    toast.promise(submitTask(), {
+      loading: 'Mengirim ATA Request...',
+      success: (data) => {
+        // Redirect setelah 1 detik agar user sempat melihat pesan sukses
+        setTimeout(() => router.push('/ata-requests'), 1000);
+        return `ATA Request berhasil disubmit! (ID: ${data.id})`;
+      },
+      error: (err) => `Gagal: ${err.message}`,
+      finally: () => setLoading(false) // Matikan loading state tombol
+    })
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,17 +96,32 @@ export default function ATARequestPage() {
         </div>
 
         {/* Form Card */}
-        <div className="card-static rounded-2xl p-8 animate-fade-in">
+        <div className="card-static bg-white shadow-xl rounded-2xl p-8 animate-fade-in border border-slate-100">
           <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Justification */}
+            <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-lg">
+              <h3 className="font-semibold text-purple-900 mb-2">📝 Justifikasi</h3>
+              <p className="text-sm text-slate-600 mb-3">Jelaskan mengapa posisi ini diperlukan</p>
+              <textarea
+                required
+                rows={5}
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-sm resize-none"
+                value={formData.justification}
+                onChange={(e) => setFormData({ ...formData, justification: e.target.value })}
+                placeholder="Alasan kenapa posisi ini dibutuhkan, dampak jika tidak ada, dan manfaat yang diharapkan..."
+              />
+            </div>
+
             {/* Requester Info */}
             <div className="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-lg">
               <h3 className="font-semibold text-teal-900 mb-2">📋 Informasi Requester</h3>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Nama Requester</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nama Requester *</label>
                 <input
                   type="text"
                   required
-                  className="input rounded-lg"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-teal-400 text-sm"
                   value={formData.requester_name}
                   onChange={(e) => setFormData({ ...formData, requester_name: e.target.value })}
                   placeholder="Nama Anda"
@@ -115,7 +139,7 @@ export default function ATARequestPage() {
                   <input
                     type="text"
                     required
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 text-sm"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="e.g. Senior Software Engineer"
@@ -126,7 +150,7 @@ export default function ATARequestPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Department *</label>
                   <select
                     required
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 text-sm"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   >
@@ -144,7 +168,7 @@ export default function ATARequestPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Level *</label>
                   <select
                     required
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 text-sm"
                     value={formData.level}
                     onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                   >
@@ -162,7 +186,7 @@ export default function ATARequestPage() {
                   <input
                     type="text"
                     required
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 text-sm"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="Jakarta, Bandung, Surabaya, dll"
@@ -173,7 +197,7 @@ export default function ATARequestPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Employment Type *</label>
                   <select
                     required
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 text-sm"
                     value={formData.employment_type}
                     onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
                   >
@@ -194,7 +218,7 @@ export default function ATARequestPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Minimum Salary (Rp)</label>
                   <input
                     type="number"
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm"
                     value={formData.salary_min}
                     onChange={(e) => setFormData({ ...formData, salary_min: e.target.value })}
                     placeholder="5000000"
@@ -204,26 +228,13 @@ export default function ATARequestPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">Maximum Salary (Rp)</label>
                   <input
                     type="number"
-                    className="input rounded-lg"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm"
                     value={formData.salary_max}
                     onChange={(e) => setFormData({ ...formData, salary_max: e.target.value })}
                     placeholder="10000000"
                   />
                 </div>
               </div>
-            </div>
-
-            {/* Justification */}
-            <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-lg">
-              <h3 className="font-semibold text-purple-900 mb-2">📝 Justifikasi</h3>
-              <p className="text-sm text-slate-600 mb-3">Jelaskan mengapa posisi ini diperlukan</p>
-              <textarea
-                rows={5}
-                className="input rounded-lg"
-                value={formData.justification}
-                onChange={(e) => setFormData({ ...formData, justification: e.target.value })}
-                placeholder="Alasan kenapa posisi ini dibutuhkan, dampak jika tidak ada, dan manfaat yang diharapkan..."
-              />
             </div>
 
             {/* File Attachment */}
@@ -234,10 +245,10 @@ export default function ATARequestPage() {
                 type="file"
                 accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition-all"
+                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 transition-all cursor-pointer"
               />
               {file && (
-                <p className="mt-2 text-sm text-green-600">✓ {file.name} ({(file.size / 1024).toFixed(2)} KB)</p>
+                <p className="mt-2 text-sm text-green-600 font-medium">✓ {file.name} ({(file.size / 1024).toFixed(2)} KB)</p>
               )}
             </div>
 
@@ -246,14 +257,14 @@ export default function ATARequestPage() {
               <button
                 type="button"
                 onClick={() => router.push('/ata-requests')}
-                className="btn-secondary rounded-lg flex-1 py-3 font-semibold"
+                className="bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl flex-1 py-3.5 font-bold transition-colors"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary rounded-lg flex-1 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white rounded-xl flex-1 py-3.5 font-bold hover:from-teal-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-200"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -261,7 +272,7 @@ export default function ATARequestPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Submitting...
+                    Memproses...
                   </span>
                 ) : (
                   '🚀 Submit ATA Request'
@@ -272,13 +283,13 @@ export default function ATARequestPage() {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 bg-white border border-teal-200 rounded-xl p-4 animate-fade-in">
-          <div className="flex gap-3">
-            <div className="text-teal-500 text-xl">ℹ️</div>
-            <div className="text-sm text-slate-600">
-              <strong className="text-slate-900">Proses Approval:</strong><br />
+        <div className="mt-6 bg-white shadow-md border border-teal-100 rounded-xl p-5 animate-fade-in">
+          <div className="flex gap-4 items-start">
+            <div className="bg-teal-100 p-2 rounded-lg text-teal-600 text-xl">ℹ️</div>
+            <div className="text-sm text-slate-600 leading-relaxed">
+              <strong className="text-slate-900 block mb-1">Proses Approval:</strong>
               1. HR Approval → 2. KTT Approval (48h) → 3. HO Jakarta Approval (72h)<br />
-              Setelah semua approve, sistem akan otomatis membuat Job Position.
+              Setelah semua pihak memberikan <em>approval</em>, sistem akan secara otomatis membuat <strong>Job Position</strong> yang baru.
             </div>
           </div>
         </div>

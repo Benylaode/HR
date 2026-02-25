@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { toast } from "sonner"; // <-- 1. IMPORT SONNER
 import {
   Plus, Search, Edit2, Trash2, X, Briefcase, MapPin, Building,
-  DollarSign, Loader2, CheckCircle, AlertTriangle, Save
+  DollarSign, Loader2, AlertTriangle, Save
 } from "lucide-react";
 
 interface JobPosition {
@@ -53,13 +54,7 @@ const INITIAL_FORM_DATA: JobFormData = {
   available: true,
 };
 
-const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error', onClose: () => void }) => (
-  <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg border flex items-center gap-3 animate-in slide-in-from-right duration-300 ${type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-    {type === 'success' ? <CheckCircle size={18}/> : <AlertTriangle size={18}/>}
-    <span className="font-medium text-sm">{message}</span>
-    <button onClick={onClose}><X size={14} className="opacity-50 hover:opacity-100"/></button>
-  </div>
-);
+// 2. KOMPONEN TOAST MANUAL DIHAPUS DARI SINI KARENA SUDAH PAKAI SONNER GLOBAL
 
 const JobFormModal = memo(({ 
   isOpen, onClose, onSubmit, title, formData, setFormData, fieldErrors, isSubmitting
@@ -205,8 +200,6 @@ export default function JobPositionsPage() {
   const [formData, setFormData] = useState<JobFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  
-  const [toast, setToast] = useState<{message: string, type: 'success'|'error'} | null>(null);
 
   const getAuthHeaders = useCallback(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("hr_token") : null;
@@ -215,11 +208,6 @@ export default function JobPositionsPage() {
       ...(token ? { "Authorization": `Bearer ${token}` } : {}),
     };
   }, []);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const fetchJobs = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -230,9 +218,14 @@ export default function JobPositionsPage() {
       });
       if (res.ok) {
         setJobs(await res.json());
+      } else {
+        toast.error("Gagal memuat daftar lowongan pekerjaan");
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') console.error("Fetch error:", error);
+      if (error.name !== 'AbortError') {
+         console.error("Fetch error:", error);
+         toast.error("Terjadi kesalahan koneksi saat memuat data");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -272,10 +265,12 @@ export default function JobPositionsPage() {
     return errors;
   }, [formData]);
 
+  // 3. PERUBAHAN: Gunakan toast.promise untuk handleSave
   const handleSave = useCallback(async () => {
     const errors = validateForm();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
+      toast.warning("Mohon lengkapi formulir dengan benar", { description: "Periksa kembali field yang berwarna merah." });
       return;
     }
 
@@ -285,42 +280,52 @@ export default function JobPositionsPage() {
       ? `${API_BASE_URL}/job-positions/${modalConfig.data?.id}` 
       : `${API_BASE_URL}/job-positions`;
 
-    try {
+    const saveTask = async () => {
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
-        showToast(`Posisi berhasil ${isEdit ? 'diperbarui' : 'dibuat'}!`, 'success');
-        setModalConfig({ type: null });
-        fetchJobs(); 
-      } else {
+      if (!res.ok) {
         const err = await res.json();
-        showToast(err.message || "Gagal menyimpan data", 'error');
+        throw new Error(err.message || "Gagal menyimpan data");
       }
-    } catch (error) {
-      showToast("Terjadi kesalahan jaringan", 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+
+      setModalConfig({ type: null });
+      fetchJobs(); 
+      return `Posisi berhasil ${isEdit ? 'diperbarui' : 'dibuat'}!`;
+    };
+
+    toast.promise(saveTask(), {
+      loading: 'Menyimpan data posisi...',
+      success: (msg) => msg,
+      error: (err) => err.message || "Terjadi kesalahan jaringan",
+      finally: () => setIsSubmitting(false)
+    });
   }, [formData, modalConfig, getAuthHeaders, fetchJobs, validateForm]);
 
+  // 4. PERUBAHAN: Gunakan toast.promise untuk handleDelete
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus posisi ini?")) return;
-    try {
+    
+    const deleteTask = async () => {
       const res = await fetch(`${API_BASE_URL}/job-positions/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
-      if (res.ok) {
-        showToast("Posisi berhasil dihapus", 'success');
-        fetchJobs();
-      }
-    } catch (error) {
-      showToast("Gagal menghapus data", 'error');
-    }
+      
+      if (!res.ok) throw new Error("Gagal menghapus data");
+      
+      fetchJobs();
+      return "Posisi berhasil dihapus";
+    };
+
+    toast.promise(deleteTask(), {
+       loading: 'Menghapus posisi...',
+       success: (msg) => msg,
+       error: (err) => err.message || 'Gagal menghapus data',
+    });
   };
 
   // FIXED FILTER
@@ -338,7 +343,7 @@ export default function JobPositionsPage() {
     <div className="flex min-h-screen bg-[#F8F9FC]">
       <Sidebar />
       <div className="flex-1 flex flex-col lg:ml-64">
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        {/* toast manual di JSX sudah dihapus */}
         
         <Header title="Lowongan Pekerjaan" subtitle="Kelola posisi yang tersedia untuk pelamar" />
         

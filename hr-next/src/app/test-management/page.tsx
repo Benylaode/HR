@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { toast } from "sonner"; // <-- 1. IMPORT SONNER
 import {
   CheckCircle,
   Plus,
@@ -257,18 +258,25 @@ export default function TestManagementPage() {
 
     } catch (err) {
       console.error("Error fetching data:", err);
+      toast.error("Gagal memuat data", { description: "Periksa koneksi internet atau server Anda." });
     }
   };
 
-  // --- HANDLERS ---
+  // --- HANDLERS DENGAN SONNER TOAST ---
 
   const handleGenerateLink = async () => { 
-    if (participantType === "candidate" && !selectedCandidateId) { alert("Pilih kandidat dari daftar!"); return; }
-    if (participantType === "karyawan" && !selectedKaryawanId) { alert("Pilih karyawan dari daftar!"); return; }
+    if (participantType === "candidate" && !selectedCandidateId) { 
+      toast.warning("Perhatian", { description: "Silakan pilih kandidat dari daftar!" }); 
+      return; 
+    }
+    if (participantType === "karyawan" && !selectedKaryawanId) { 
+      toast.warning("Perhatian", { description: "Silakan pilih karyawan dari daftar!" }); 
+      return; 
+    }
     
     setIsGeneratingLink(true);
-    try {
-      // Setup payload sesuai tipe partisipan
+
+    const generateTask = async () => {
       const payload = {
         job_id: selectedJobId || null,
         ...(participantType === "candidate" ? { candidate_id: selectedCandidateId } : { karyawan_id: selectedKaryawanId })
@@ -282,95 +290,171 @@ export default function TestManagementPage() {
       
       const data = await response.json();
 
-      if (response.ok) {
-        let participantName = "Unknown";
-        if (participantType === "candidate") {
-           participantName = candidatesList.find(c => c.id === selectedCandidateId)?.fullName || "Unknown";
-        } else {
-           participantName = karyawanList.find(k => k.id === selectedKaryawanId)?.fullName || "Unknown";
-        }
-
-        setLocalTestLinks([{ 
-            id: Date.now(), 
-            candidateName: participantName, 
-            token: data.token, 
-            status: "active", 
-            createdAt: new Date().toISOString() 
-        }, ...localTestLinks]);
-        
-        alert(`Link dibuat!\nToken: ${data.token}`);
-        setShowCreateLinkModal(false);
-        setSelectedCandidateId(""); 
-        setSelectedKaryawanId("");
-        setSelectedJobId("");
-      } else {
-        alert(`Gagal: ${data.error || "Terjadi kesalahan"}`);
+      if (!response.ok) {
+        throw new Error(data.error || "Gagal membuat link tes");
       }
-    } catch(e) { 
-        alert("Gagal menghubungi server."); 
-    } finally { 
-        setIsGeneratingLink(false); 
-    }
+
+      let participantName = "Unknown";
+      if (participantType === "candidate") {
+         participantName = candidatesList.find(c => c.id === selectedCandidateId)?.fullName || "Unknown";
+      } else {
+         participantName = karyawanList.find(k => k.id === selectedKaryawanId)?.fullName || "Unknown";
+      }
+
+      setLocalTestLinks([{ 
+          id: Date.now(), 
+          candidateName: participantName, 
+          token: data.token, 
+          status: "active", 
+          createdAt: new Date().toISOString() 
+      }, ...localTestLinks]);
+      
+      setShowCreateLinkModal(false);
+      setSelectedCandidateId(""); 
+      setSelectedKaryawanId("");
+      setSelectedJobId("");
+
+      return data.token;
+    };
+
+    toast.promise(generateTask(), {
+      loading: 'Membuat link tes...',
+      success: (token) => `Berhasil! Link tes dibuat dengan token: ${token}`,
+      error: (err) => err.message,
+      finally: () => setIsGeneratingLink(false)
+    });
   };
 
   const handleSaveKraepelin = async () => {
-    try {
+    const saveTask = async () => {
       const response = await fetch(`${API_BASE_URL}/management/config/kraepelin`, {
-        method: "PUT", headers: getAuthHeaders(),
-        body: JSON.stringify({ columns: parseInt(kraepelinColumns), rows: parseInt(kraepelinRows), durationPerColumn: parseInt(kraepelinTimePerColumn) }),
+        method: "PUT", 
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ 
+          columns: parseInt(kraepelinColumns), 
+          rows: parseInt(kraepelinRows), 
+          durationPerColumn: parseInt(kraepelinTimePerColumn) 
+        }),
       });
-      if (response.ok) alert("Tersimpan!");
-    } catch (err) { console.error(err); }
+      if (!response.ok) throw new Error("Gagal menyimpan konfigurasi");
+      return "Konfigurasi Kraepelin berhasil disimpan!";
+    };
+
+    toast.promise(saveTask(), {
+      loading: 'Menyimpan konfigurasi...',
+      success: (msg) => msg,
+      error: (err) => err.message,
+    });
   };
 
   const handleSaveTestDuration = () => {
-    // Simpan durasi ke localStorage
     setTestDuration('cfit', parseInt(cfitDuration));
     setTestDuration('papi', parseInt(papiDuration));
-    alert("Durasi tes CFIT dan PAPI berhasil disimpan!");
+    toast.success("Durasi Tersimpan", { description: "Durasi tes CFIT dan PAPI berhasil diperbarui." });
   };
 
   const handleAddPapiQuestion = async () => {
-    if (!optionA || !optionB) { alert("Isi opsi!"); return; }
+    if (!optionA || !optionB) { 
+      toast.warning("Peringatan", { description: "Opsi A dan B harus diisi!" }); 
+      return; 
+    }
+    
     setIsSubmitting(true);
-    try {
+    const saveTask = async () => {
       const res = await fetch(`${API_BASE_URL}/management/questions/papi`, {
-        method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ option_a: optionA, option_b: optionB }),
+        method: "POST", 
+        headers: getAuthHeaders(), 
+        body: JSON.stringify({ option_a: optionA, option_b: optionB }),
       });
-      if (res.ok) { alert("Disimpan!"); setShowQuestionModal(false); setOptionA(""); setOptionB(""); fetchData(); }
-    } catch (err) { console.error(err); } finally { setIsSubmitting(false); }
+      
+      if (!res.ok) throw new Error("Gagal menyimpan soal PAPI");
+      
+      setShowQuestionModal(false); 
+      setOptionA(""); 
+      setOptionB(""); 
+      fetchData(); 
+      return "Soal PAPI berhasil ditambahkan!";
+    };
+
+    toast.promise(saveTask(), {
+      loading: 'Menyimpan soal...',
+      success: (msg) => msg,
+      error: (err) => err.message,
+      finally: () => setIsSubmitting(false)
+    });
   };
 
   const handleAddCfitQuestion = async () => {
-      if (!imagePreview || !correctAnswer) return;
+      if (!imagePreview || !correctAnswer) {
+        toast.warning("Peringatan", { description: "Pilih gambar dan kunci jawaban terlebih dahulu!" });
+        return;
+      }
+
       setIsSubmitting(true);
-      const formData = new FormData();
-      if (fileInputRef.current?.files?.[0]) formData.append("image", fileInputRef.current.files[0]);
-      formData.append("subtest", String(selectedCfitSubtype?.id));
-      formData.append("correctAnswer", String(labelToIndex(correctAnswer)));
-      formData.append("instruction", selectedCfitSubtype?.instruction || "");
-      try {
-        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { method: "POST", body: formData, headers: getAuthHeaders() });
-        if (res.ok) { alert("Ditambahkan!"); setShowQuestionModal(false); setImagePreview(null); setCorrectAnswer(""); fetchData(); }
-      } catch (err) { alert("Error."); } finally { setIsSubmitting(false); }
+      const saveTask = async () => {
+        const formData = new FormData();
+        
+        // Hapus Content-Type header otomatis bila pakai FormData
+        const headers: HeadersInit = {
+           ...(localStorage.getItem("hr_token") ? { Authorization: `Bearer ${localStorage.getItem("hr_token")}` } : {}),
+        };
+
+        if (fileInputRef.current?.files?.[0]) formData.append("image", fileInputRef.current.files[0]);
+        formData.append("subtest", String(selectedCfitSubtype?.id));
+        formData.append("correctAnswer", String(labelToIndex(correctAnswer)));
+        formData.append("instruction", selectedCfitSubtype?.instruction || "");
+        
+        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { 
+          method: "POST", 
+          body: formData, 
+          headers: headers 
+        });
+        
+        if (!res.ok) throw new Error("Gagal menyimpan soal CFIT");
+        
+        setShowQuestionModal(false); 
+        setImagePreview(null); 
+        setCorrectAnswer(""); 
+        fetchData();
+        return "Soal CFIT berhasil ditambahkan!";
+      };
+
+      toast.promise(saveTask(), {
+        loading: 'Mengunggah soal...',
+        success: (msg) => msg,
+        error: (err) => err.message,
+        finally: () => setIsSubmitting(false)
+      });
   };
 
   const handleDeleteQuestion = async (endpoint: 'cfit' | 'papi', id: number) => {
-    if (!confirm("Hapus?")) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { method: "DELETE", headers: getAuthHeaders() });
-      if (res.ok) fetchData();
-    } catch (err) { console.error(err); }
+    if (!confirm("Apakah Anda yakin ingin menghapus soal ini?")) return;
+    
+    const deleteTask = async () => {
+      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { 
+        method: "DELETE", 
+        headers: getAuthHeaders() 
+      });
+      if (!res.ok) throw new Error("Gagal menghapus soal");
+      fetchData();
+      return "Soal berhasil dihapus";
+    };
+
+    toast.promise(deleteTask(), {
+      loading: 'Menghapus...',
+      success: (msg) => msg,
+      error: (err) => err.message
+    });
   };
 
   // --- UTILS ---
   const copyLink = async (token: string) => {
     try {
       const url = `${window.location.origin}/test/${token}`;
-      await navigator.clipboard.writeText(url).then(() => alert("Disalin!"));
-      console.log("Link berhasil disalin!");
+      await navigator.clipboard.writeText(url);
+      toast.success("Tersalin!", { description: "Link tes berhasil disalin ke clipboard." });
     } catch (err) {
-      console.error("Gagal menyalin");
+      toast.error("Gagal menyalin link.");
     }
   };
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { toast } from "sonner"; // <-- 1. IMPORT SONNER DI SINI
 import { 
   Plus, 
   Search, 
@@ -325,13 +326,13 @@ export default function CandidatesPage() {
     fetchJobs();
   }, [router]);
 
-    const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
 
   const fetchCandidates = async () => {
     try {
@@ -339,8 +340,10 @@ export default function CandidatesPage() {
       const res = await fetch(`${API_BASE_URL}/candidates`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Gagal mengambil data kandidat");
       setCandidates(await res.json());
+      setError(null);
     } catch (err) {
       setError("Gagal menghubungkan ke server.");
+      toast.error("Gagal memuat daftar kandidat.");
     } finally {
       setLoading(false);
     }
@@ -362,9 +365,11 @@ export default function CandidatesPage() {
       if (res.ok) {
         return await res.json();
       }
+      toast.error("Gagal memuat detail kandidat.");
       return null;
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan jaringan.");
       return null;
     } finally {
       setLoadingDetail(false);
@@ -381,44 +386,54 @@ export default function CandidatesPage() {
     if (detail) setEditModal(detail);
   };
 
+  // 2. PERUBAHAN DI SINI: Menggunakan toast.promise untuk edit data
   const handleSaveEdit = async (data: Partial<CandidateDetail>) => {
     if (!editModal) return;
     
-    try {
+    const updateTask = async () => {
       const res = await fetch(`${API_BASE_URL}/candidates/${editModal.id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
 
-      if (res.ok) {
-        setEditModal(null);
-        fetchCandidates();
-        alert("Data kandidat berhasil diperbarui!");
-      } else {
-        alert("Gagal memperbarui data.");
-      }
-    } catch (err) {
-      alert("Terjadi kesalahan.");
-    }
+      if (!res.ok) throw new Error("Gagal memperbarui data dari server.");
+      
+      setEditModal(null);
+      fetchCandidates();
+      return "Data kandidat berhasil diperbarui!";
+    };
+
+    await toast.promise(updateTask(), {
+      loading: 'Menyimpan perubahan...',
+      success: (message) => message,
+      error: (err) => err.message || 'Terjadi kesalahan sistem.',
+    });
   };
 
+  // 3. PERUBAHAN DI SINI: Menggunakan toast.promise untuk hapus data
   const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus kandidat ini?")) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus kandidat ini? Data tidak dapat dikembalikan.")) return;
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { method: "DELETE", headers: getAuthHeaders() });
-      if (res.ok) {
-        setCandidates(prev => prev.filter(c => c.id !== id));
-      } else {
-        alert("Gagal menghapus data.");
-      }
-    } catch (err) {
-      alert("Terjadi kesalahan saat menghapus.");
-    }
+    const deleteTask = async () => {
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { 
+        method: "DELETE", 
+        headers: getAuthHeaders() 
+      });
+      
+      if (!res.ok) throw new Error("Gagal menghapus data dari server.");
+      
+      setCandidates(prev => prev.filter(c => c.id !== id));
+      return "Kandidat berhasil dihapus!";
+    };
+
+    toast.promise(deleteTask(), {
+      loading: 'Menghapus data kandidat...',
+      success: (message) => message,
+      error: (err) => err.message || 'Terjadi kesalahan sistem.',
+    });
   };
 
-  // FIXED FILTER
   const filteredCandidates = candidates.filter((c) => {
     const searchLower = (searchQuery || "").toLowerCase();
     const matchesSearch = 
