@@ -16,6 +16,46 @@ def format_date(dt):
 def now_utc():
     return datetime.now(timezone.utc)
 
+class ProfileMixin(object):
+    # 1) Biodata [cite: 39-47]
+    full_name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, index=True, nullable=False)
+    gender = db.Column(db.String(20))
+    whatsapp = db.Column(db.String(50))
+    birth_date = db.Column(db.Date)
+    domicile_province = db.Column(db.String(100))
+    domicile_city = db.Column(db.String(100))
+    total_experience = db.Column(db.String(50)) # Format: X Tahun X Bulan
+    
+    # 2) Pendidikan [cite: 48-57]
+    degree = db.Column(db.String(50)) # Gelar
+    major = db.Column(db.String(150)) # Jurusan
+    study_program = db.Column(db.String(150)) # Program Studi
+    university = db.Column(db.String(150)) # Nama Institusi
+    edu_city = db.Column(db.String(100))
+    gpa = db.Column(db.String(20)) # Format: X dari 4
+    start_year = db.Column(db.String(4))
+    grad_year = db.Column(db.String(4))
+    
+    # 3) Keahlian & Organisasi (Opsional) [cite: 58-74]
+    trainings = db.Column(JSONB, default=list) # Array of objects
+    organizations = db.Column(JSONB, default=list) # Array of objects
+    
+    # 4) Pengalaman & Minat Kerja [cite: 75-99]
+    work_experiences = db.Column(JSONB, default=list) # Array of objects
+    internships = db.Column(JSONB, default=list) # Array of objects
+    applied_position_1 = db.Column(db.String(150))
+    applied_position_2 = db.Column(db.String(150))
+    notice_period = db.Column(db.String(50))
+    expected_salary = db.Column(db.BigInteger)
+    
+    # 5) Lain-Lain [cite: 100-124]
+    references = db.Column(JSONB, default=list)
+    relatives = db.Column(JSONB, default=list)
+    social_media = db.Column(JSONB, default=dict) # Object berisi IG, LinkedIn, dll.
+
+    created_at = db.Column(db.DateTime, default=now_utc)
+
 class RecruitmentStage(enum.Enum):
     CV_SCREENING    = "CV Screening"
     AI_SCREENING    = "AI Screening"
@@ -367,39 +407,43 @@ class KraepelinConfig(db.Model):
 class ATARequest(db.Model):
     __tablename__ = "ata_requests"
 
-    id = db.Column(db.String, primary_key=True) 
-    requester_name = db.Column(db.String, nullable=False)
+    id = db.Column(db.String, primary_key=True, default=uuid_str)
     
-    title = db.Column(db.String, nullable=False)
-    department = db.Column(db.String, nullable=False)
-    level = db.Column(db.String, nullable=False) 
-    location = db.Column(db.String, nullable=False)
-    employment_type = db.Column(db.String, nullable=False) 
+    # Form ATA Baru 
+    candidate_name = db.Column(db.String) # Nama Karyawan / Kandidat
+    employee_no = db.Column(db.String) # Nomor Karyawan (jika internal)
+    company = db.Column(db.String)
+    position = db.Column(db.String) # Jabatan yang diajukan
+    grade = db.Column(db.String)
+    report_to = db.Column(db.String) # Position Title dari atasan langsung
+    department = db.Column(db.String)
+    division = db.Column(db.String) # Opsional
+    budget_type = db.Column(db.String(50)) # Replacement / Additional
+    employment_agreement = db.Column(db.String(100))
+    staff_status = db.Column(db.String(50)) # Staff / Non Staff
+    point_of_hire = db.Column(db.String(100))
+    hired_type = db.Column(db.String(50)) # Local / Non Local Hired
+    requirements_note = db.Column(db.Text) # Requirements / Note / Justification
+    scan_ata_url = db.Column(db.String(255)) # URL untuk Scan ATA
     
-    salary_min = db.Column(db.BigInteger)
-    salary_max = db.Column(db.BigInteger)
-    attachment_url = db.Column(db.String(255), nullable=True)
-    
-    justification = db.Column(db.Text) 
+    # (Opsional) Jika tetap ingin menyimpan relasi ke user/pembuat
+    requester_name = db.Column(db.String)
 
-    # --- APPROVAL COLUMNS (Sesuai Flowchart) ---
-    # Status Global: Pending, Approved, Rejected
+    # --- APPROVAL COLUMNS ---
     status = db.Column(db.String(20), default="Pending")
     
-    # 1. HR Approval
-    hr_status = db.Column(db.String(20), default="Pending") # Pending/Approved/Rejected
+    hr_status = db.Column(db.String(20), default="Pending")
     hr_notes = db.Column(db.String)
     hr_date = db.Column(db.DateTime)
     
-    # 2. KTT Approval
     ktt_status = db.Column(db.String(20), default="Pending")
     ktt_notes = db.Column(db.String)
     ktt_date = db.Column(db.DateTime)
     
-    # 3. HO Jakarta Approval
     ho_status = db.Column(db.String(20), default="Pending")
     ho_notes = db.Column(db.String)
     ho_date = db.Column(db.DateTime)
+    
     job_id = db.Column(db.String, db.ForeignKey("job_positions.id"), nullable=True)
 
     created_at = db.Column(db.DateTime, default=now_utc)
@@ -408,8 +452,10 @@ class ATARequest(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "title": self.title,
-            "requester": self.requester_name,
+            "candidate_name": self.candidate_name,
+            "position": self.position,
+            "department": self.department,
+            "budget_type": self.budget_type,
             "status": self.status,
             "approvals": {
                 "HR": self.hr_status,

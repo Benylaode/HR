@@ -1,280 +1,204 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner"; // Pastikan Anda sudah menginstall sonner
 
-type FormData = {
-  email: string;
-  fullName: string;
-  whatsapp: string;
-  gender: string;
-  religion: string;
-  birthPlace: string;
-  birthDate: string;
-  driverLicense: string;
-  address: string;
-  city: string;
-  province: string;
-  education: string;
-  university: string;
-  major: string;
-  gpa: string;
-  socialMedia: string;
-  positionApplied: string;
-  lastCompany: string;
-  lastPosition: string;
-  lastPositionLevel: string;
-  lastCompanyField: string;
-  totalExperience: string;
-  experienceDescription: string;
-};
-
-// Tipe data untuk Job dari backend
-type JobPosition = {
-  id: number | string;
-  title: string;
-  status: string;
-  available: boolean;
-};
+type JobPosition = { id: string; title: string; available: boolean; };
 
 export default function ManualRegistrationPage() {
-  const [form, setForm] = useState<FormData>({} as FormData);
   const [submissionType, setSubmissionType] = useState<"candidate" | "employee">("candidate");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  
-  // State untuk menyimpan list list lowongan pekerjaan
   const [jobs, setJobs] = useState<JobPosition[]>([]);
-  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
-
-  // Ambil Base URL dari .env, fallback ke localhost jika belum diset
+  
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-  // Mengambil data Job Positions (Publik) saat komponen pertama kali dimuat
-  useEffect(() => {
-    const fetchJobs = async () => {
-      setIsLoadingJobs(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/job-positions?available=true`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          setJobs(data);
-        } else {
-          console.error("Gagal mengambil data pekerjaan, status:", response.status);
-        }
-      } catch (error) {
-        console.error("Fetch Jobs Error:", error);
-      } finally {
-        setIsLoadingJobs(false);
-      }
-    };
+  // State Form Utama yang mendukung Array
+  const [form, setForm] = useState({
+    job_id: "",
+    fullName: "", email: "", whatsapp: "", gender: "", birthDate: "", 
+    domicileProvince: "", domicileCity: "", totalExperience: "",
+    degree: "", major: "", studyProgram: "", university: "", eduCity: "", 
+    gpa: "", startYear: "", gradYear: "",
+    expectedSalary: "", noticePeriod: "<1 Bulan",
+    
+    // Arrays
+    trainings: [] as any[],
+    organizations: [] as any[],
+    workExperiences: [] as any[],
+  });
 
-    fetchJobs();
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/job-positions?available=true`)
+      .then((res) => res.json())
+      .then((data) => setJobs(data))
+      .catch((err) => console.error(err));
   }, [API_BASE_URL]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+  const handleTextChange = (e: any) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Helper Array Dynamics
+  const addArrayItem = (key: 'trainings' | 'organizations' | 'workExperiences', template: any) => {
+    if (form[key].length < 3) {
+      setForm({ ...form, [key]: [...form[key], template] });
+    } else {
+      toast.error("Maksimal 3 data yang dapat ditambahkan.");
+    }
+  };
+
+  const removeArrayItem = (key: 'trainings' | 'organizations' | 'workExperiences', index: number) => {
+    const newArr = [...form[key]];
+    newArr.splice(index, 1);
+    setForm({ ...form, [key]: newArr });
+  };
+
+  const updateArrayItem = (key: 'trainings' | 'organizations' | 'workExperiences', index: number, field: string, value: any) => {
+    const newArr = [...form[key]];
+    newArr[index] = { ...newArr[index], [field]: value };
+    setForm({ ...form, [key]: newArr });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage(null);
 
-    const apiUrl =
-      submissionType === "candidate"
-        ? `${API_BASE_URL}/candidates`
-        : `${API_BASE_URL}/karyawan`;
+    const apiUrl = submissionType === "candidate" ? `${API_BASE_URL}/candidates` : `${API_BASE_URL}/karyawan`;
 
     try {
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || "Terjadi kesalahan saat menyimpan data");
-      }
-
-      setMessage({
-        type: "success",
-        text: `✅ Data ${submissionType === "candidate" ? "Kandidat" : "Karyawan"} berhasil disimpan!`,
-      });
+      if (!response.ok) throw new Error(data.error || "Gagal menyimpan data");
       
-      // Opsional: Kosongkan form setelah sukses dengan me-reset state
-      // setForm({} as FormData);
-      
+      toast.success(`Data ${submissionType === "candidate" ? "Kandidat" : "Karyawan"} berhasil disubmit!`);
     } catch (error: any) {
-      console.error("Submit Error:", error);
-      setMessage({ type: "error", text: `❌ Gagal: ${error.message}` });
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
-      setTimeout(() => setMessage(null), 5000);
     }
   };
 
-  const inputClass =
-    "w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700 bg-white";
+  const inputClass = "w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm";
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10">
-      <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
+      <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-8">
         
         <div className="mb-8 border-b pb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Input Data Pelamar & Karyawan</h1>
-          <p className="text-gray-500">Silakan isi formulir di bawah ini untuk mendaftarkan kandidat baru atau menginput data karyawan internal.</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Formulir Pendaftaran</h1>
+          <p className="text-gray-500">Silakan lengkapi data profil, pendidikan, dan pengalaman Anda.</p>
         </div>
-
-        {message && (
-          <div className={`p-4 mb-6 rounded-lg ${message.type === "success" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"}`}>
-            {message.text}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* TIPE PENDAFTARAN */}
+          {/* Posisi & Tipe */}
           <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-            <h2 className="text-lg font-semibold mb-3 text-blue-800">1. Tipe Pendaftaran</h2>
-            <select
-              value={submissionType}
-              onChange={(e) => setSubmissionType(e.target.value as "candidate" | "employee")}
-              className={`${inputClass} border-blue-200 max-w-md`}
-              required
-            >
-              <option value="candidate">Kandidat Baru (Pelamar Eksternal)</option>
-              <option value="employee">Karyawan Internal</option>
-            </select>
+             <div className="grid md:grid-cols-2 gap-4">
+               <div>
+                  <label className="block font-semibold mb-2">Tipe Pelamar</label>
+                  <select value={submissionType} onChange={(e) => setSubmissionType(e.target.value as any)} className={inputClass}>
+                    <option value="candidate">Kandidat Baru (Eksternal)</option>
+                    <option value="employee">Karyawan Internal</option>
+                  </select>
+               </div>
+               <div>
+                  <label className="block font-semibold mb-2">Posisi yang Dilamar *</label>
+                  <select name="job_id" required value={form.job_id} onChange={handleTextChange} className={inputClass}>
+                    <option value="">-- Pilih Lowongan --</option>
+                    {jobs.map((job) => (<option key={job.id} value={job.id}>{job.title}</option>))}
+                  </select>
+               </div>
+             </div>
           </div>
 
-          {/* PERSONAL INFO */}
+          {/* 1. BIODATA */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">2. Informasi Pribadi</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="fullName" placeholder="Nama Lengkap *" required className={inputClass} onChange={handleChange} />
-              <input name="email" type="email" placeholder="Email Aktif *" required className={inputClass} onChange={handleChange} />
-              <input name="whatsapp" placeholder="Nomor WhatsApp *" required className={inputClass} onChange={handleChange} />
-              <select name="gender" required className={inputClass} onChange={handleChange}>
-                <option value="">-- Pilih Jenis Kelamin -- *</option>
+            <h2 className="text-xl font-bold mb-4 text-gray-700 border-b pb-2">1. Biodata</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input name="fullName" placeholder="Nama Lengkap *" required className={inputClass} onChange={handleTextChange} />
+              <input name="email" type="email" placeholder="Email Aktif *" required className={inputClass} onChange={handleTextChange} />
+              <input name="whatsapp" placeholder="Nomor WhatsApp *" required className={inputClass} onChange={handleTextChange} />
+              <select name="gender" required className={inputClass} onChange={handleTextChange}>
+                <option value="">-- Jenis Kelamin -- *</option>
                 <option value="Laki-laki">Laki-laki</option>
                 <option value="Perempuan">Perempuan</option>
               </select>
-              <input name="religion" placeholder="Agama" className={inputClass} onChange={handleChange} />
-              <input name="driverLicense" placeholder="SIM yang dimiliki (Misal: A, C)" className={inputClass} onChange={handleChange} />
+              <input name="domicileProvince" placeholder="Provinsi Domisili *" required className={inputClass} onChange={handleTextChange} />
+              <input name="domicileCity" placeholder="Kota Domisili *" required className={inputClass} onChange={handleTextChange} />
+              <input type="date" name="birthDate" required className={inputClass} onChange={handleTextChange} />
+              <input name="totalExperience" placeholder="Total Pengalaman (Misal: 2 Tahun 5 Bulan) *" required className={inputClass} onChange={handleTextChange} />
             </div>
           </div>
 
-          {/* BIRTH */}
+          {/* 2. PENDIDIKAN */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">3. Tempat & Tanggal Lahir</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="birthPlace" placeholder="Tempat Lahir *" required className={inputClass} onChange={handleChange} />
-              <div className="flex flex-col">
-                <input type="date" name="birthDate" required className={inputClass} onChange={handleChange} />
-              </div>
+            <h2 className="text-xl font-bold mb-4 text-gray-700 border-b pb-2">2. Pendidikan Terakhir</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <select name="degree" required className={inputClass} onChange={handleTextChange}>
+                <option value="">-- Gelar -- *</option>
+                <option value="SMA">SMA/SMK</option>
+                <option value="D3">D3</option>
+                <option value="S1">S1 / Sarjana</option>
+                <option value="S2">S2 / Magister</option>
+              </select>
+              <input name="major" placeholder="Jurusan *" required className={inputClass} onChange={handleTextChange} />
+              <input name="university" placeholder="Nama Universitas *" required className={inputClass} onChange={handleTextChange} />
+              <input name="gpa" placeholder="IPK (Misal: 3.5 dari 4) *" required className={inputClass} onChange={handleTextChange} />
+              <input name="startYear" placeholder="Tahun Mulai" className={inputClass} onChange={handleTextChange} />
+              <input name="gradYear" placeholder="Tahun Lulus" className={inputClass} onChange={handleTextChange} />
             </div>
           </div>
 
-          {/* ADDRESS */}
+          {/* 3. PENGALAMAN KERJA (DINAMIS ARRAY) */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">4. Alamat & Kontak</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="address" placeholder="Alamat Lengkap (Jalan, RT/RW)" className={`${inputClass} md:col-span-2`} onChange={handleChange} />
-              <input name="city" placeholder="Kota / Kabupaten" className={inputClass} onChange={handleChange} />
-              <input name="province" placeholder="Provinsi" className={inputClass} onChange={handleChange} />
-              <input name="socialMedia" placeholder="URL LinkedIn / Portofolio" className={`${inputClass} md:col-span-2`} onChange={handleChange} />
+            <div className="flex justify-between items-center border-b pb-2 mb-4">
+               <h2 className="text-xl font-bold text-gray-700">3. Riwayat Pekerjaan</h2>
+               <button type="button" onClick={() => addArrayItem('workExperiences', { company: '', position: '', start: '', end: '', salary: '' })} 
+                  className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded font-bold hover:bg-blue-200">
+                  + Tambah Pengalaman (Maks 3)
+               </button>
+            </div>
+            
+            {form.workExperiences.length === 0 && <p className="text-sm text-gray-400 italic">Belum ada pengalaman ditambahkan (Fresh Graduate).</p>}
+            
+            <div className="space-y-4">
+               {form.workExperiences.map((exp, idx) => (
+                  <div key={idx} className="p-4 border border-gray-200 rounded-lg bg-gray-50 relative">
+                     <button type="button" onClick={() => removeArrayItem('workExperiences', idx)} className="absolute top-2 right-2 text-red-500 hover:text-red-700 font-bold">X</button>
+                     <div className="grid md:grid-cols-2 gap-3 mb-3 pr-6">
+                        <input placeholder="Nama Perusahaan *" required className={inputClass} value={exp.company} onChange={(e) => updateArrayItem('workExperiences', idx, 'company', e.target.value)} />
+                        <input placeholder="Jabatan / Posisi *" required className={inputClass} value={exp.position} onChange={(e) => updateArrayItem('workExperiences', idx, 'position', e.target.value)} />
+                        <input placeholder="Mulai (Bulan Tahun) *" required className={inputClass} value={exp.start} onChange={(e) => updateArrayItem('workExperiences', idx, 'start', e.target.value)} />
+                        <input placeholder="Berakhir (Bulan Tahun / Saat ini) *" required className={inputClass} value={exp.end} onChange={(e) => updateArrayItem('workExperiences', idx, 'end', e.target.value)} />
+                        <input type="number" placeholder="Gaji Bersih (Rupiah) *" required className={inputClass} value={exp.salary} onChange={(e) => updateArrayItem('workExperiences', idx, 'salary', e.target.value)} />
+                     </div>
+                  </div>
+               ))}
             </div>
           </div>
 
-          {/* EDUCATION */}
+          {/* 4. EKSPEKTASI */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">5. Riwayat Pendidikan Terakhir</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="education" placeholder="Gelar (Misal: S1, D3, SMA)" className={inputClass} onChange={handleChange} />
-              <input name="university" placeholder="Nama Institusi / Universitas" className={inputClass} onChange={handleChange} />
-              <input name="major" placeholder="Jurusan / Program Studi" className={inputClass} onChange={handleChange} />
-              <input name="gpa" placeholder="IPK / Nilai Akhir" className={inputClass} onChange={handleChange} />
+            <h2 className="text-xl font-bold mb-4 text-gray-700 border-b pb-2">4. Ekspektasi & Lainnya</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="number" name="expectedSalary" placeholder="Harapan Gaji (Rupiah) *" required className={inputClass} onChange={handleTextChange} />
+              <select name="noticePeriod" required className={inputClass} onChange={handleTextChange}>
+                <option value="<1 Bulan">&lt; 1 Bulan</option>
+                <option value="1 Bulan">1 Bulan</option>
+                <option value=">1 Bulan">&gt; 1 Bulan</option>
+              </select>
             </div>
-          </div>
-
-          {/* WORK EXPERIENCE & POSITION (PERUBAHAN ADA DI SINI) */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">6. Pengalaman Kerja Terakhir</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              
-              {/* DROPDOWN DINAMIS UNTUK PELAMAR, INPUT TEXT UNTUK KARYAWAN */}
-              {submissionType === "candidate" ? (
-                <select
-                  name="positionApplied"
-                  required
-                  className={`${inputClass} border-blue-300 bg-blue-50`}
-                  onChange={handleChange}
-                >
-                  <option value="">
-                    {isLoadingJobs ? "Memuat Data Pekerjaan..." : "-- Pilih Posisi yang Dilamar -- *"}
-                  </option>
-                  {jobs.map((job) => (
-                    <option key={job.id} value={job.id}>
-                      {job.title}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input 
-                  name="positionApplied" 
-                  placeholder="Posisi Jabatan (Saat Ini) *" 
-                  required 
-                  className={`${inputClass} border-blue-300 bg-blue-50`} 
-                  onChange={handleChange} 
-                />
-              )}
-
-              <input name="totalExperience" placeholder="Total Lama Pengalaman (Misal: 3 Tahun)" className={inputClass} onChange={handleChange} />
-              
-              <input name="lastCompany" placeholder="Nama Perusahaan Terakhir" className={inputClass} onChange={handleChange} />
-              <input name="lastCompanyField" placeholder="Bidang Industri (Misal: IT, Pertambangan)" className={inputClass} onChange={handleChange} />
-              
-              <input name="lastPosition" placeholder="Jabatan / Posisi Terakhir" className={inputClass} onChange={handleChange} />
-              <input name="lastPositionLevel" placeholder="Level Jabatan (Misal: Staff, Supervisor)" className={inputClass} onChange={handleChange} />
-            </div>
-            <textarea
-              name="experienceDescription"
-              placeholder="Ceritakan secara singkat tugas dan tanggung jawab di pekerjaan terakhir..."
-              rows={4}
-              className={`${inputClass} mt-5`}
-              onChange={handleChange}
-            />
           </div>
 
           {/* SUBMIT BUTTON */}
           <div className="pt-6 border-t">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full text-white text-lg p-4 rounded-xl font-bold tracking-wide shadow-md transition-all ${
-                isLoading 
-                  ? "bg-blue-400 cursor-not-allowed" 
-                  : "bg-blue-600 hover:bg-blue-700 hover:shadow-lg active:scale-[0.99]"
-              }`}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Menyimpan Data...
-                </span>
-              ) : (
-                "Simpan Data Pendaftaran"
-              )}
+            <button type="submit" disabled={isLoading} className="w-full text-white text-lg p-4 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-50">
+              {isLoading ? "Memproses Data..." : "🚀 Kirim Pendaftaran"}
             </button>
           </div>
 

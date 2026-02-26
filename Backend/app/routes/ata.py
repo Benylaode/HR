@@ -35,17 +35,16 @@ def handle_ata_requests():
     
     # POST: Create new ATA request
     if request.method == "POST":
-        # PERBAIKAN UTAMA: Gunakan request.form, bukan request.get_json()
-        # karena client mengirim Multipart Form Data
+        # Menggunakan request.form karena client mengirim File (Multipart Form Data)
         data = request.form
         
-        # Validasi field wajib sederhana
-        if not data.get("title"):
-            return jsonify({"error": "Title is required"}), 400
+        # Validasi field wajib (contoh: position adalah jabatan yang diajukan)
+        if not data.get("position"):
+            return jsonify({"error": "Position is required"}), 400
 
         req_id = generate_request_id()
         
-        # Handle File Upload
+        # Handle File Upload (Scan ATA)
         attachment_path = None
         if 'file' in request.files:
             f = request.files['file']
@@ -56,25 +55,25 @@ def handle_ata_requests():
                 attachment_path = f"/static/uploads/ata_docs/{filename}"
 
         try:
-            # Konversi salary aman (handle string kosong)
-            s_min = data.get("salary_min")
-            s_max = data.get("salary_max")
-            
-            salary_min = int(s_min) if s_min and s_min.isdigit() else 0
-            salary_max = int(s_max) if s_max and s_max.isdigit() else 0
-
+            # Mapping ke struktur ATA Request yang baru
             new_req = ATARequest(
                 id=req_id,
-                requester_name=data.get("requester_name", "User"),
-                title=data.get("title"),
+                candidate_name=data.get("candidateName"),
+                employee_no=data.get("employeeNo"),
+                company=data.get("company"),
+                position=data.get("position"),
+                grade=data.get("grade"),
+                report_to=data.get("reportTo"),
                 department=data.get("department"),
-                level=data.get("level"),
-                location=data.get("location"),
-                employment_type=data.get("employment_type"),
-                salary_min=salary_min,
-                salary_max=salary_max,
-                justification=data.get("justification", ""),
-                attachment_url=attachment_path # Simpan URL file
+                division=data.get("division"),
+                budget_type=data.get("budgetType"),
+                employment_agreement=data.get("employmentAgreement"),
+                staff_status=data.get("staffStatus"),
+                point_of_hire=data.get("pointOfHire"),
+                hired_type=data.get("hiredType"),
+                requirements_note=data.get("requirementsNote"),
+                scan_ata_url=attachment_path, # Menyimpan path file Scan ATA
+                requester_name=data.get("requesterName", "User")
             )
             
             db.session.add(new_req)
@@ -100,18 +99,25 @@ def get_request_detail(req_id):
         if not req:
             return jsonify({"error": "Request not found"}), 404
         
+        # Update response JSON menyesuaikan kolom baru
         return jsonify({
             "id": req.id,
             "requester_name": req.requester_name,
-            "title": req.title,
+            "candidate_name": req.candidate_name,
+            "employee_no": req.employee_no,
+            "company": req.company,
+            "position": req.position,
+            "grade": req.grade,
+            "report_to": req.report_to,
             "department": req.department,
-            "level": req.level,
-            "location": req.location,
-            "employment_type": req.employment_type,
-            "salary_min": req.salary_min,
-            "salary_max": req.salary_max,
-            "justification": req.justification,
-            "attachment_url": req.attachment_url,
+            "division": req.division,
+            "budget_type": req.budget_type,
+            "employment_agreement": req.employment_agreement,
+            "staff_status": req.staff_status,
+            "point_of_hire": req.point_of_hire,
+            "hired_type": req.hired_type,
+            "requirements_note": req.requirements_note,
+            "scan_ata_url": req.scan_ata_url,
             "status": req.status,
             "hr_status": req.hr_status,
             "hr_notes": req.hr_notes,
@@ -128,16 +134,15 @@ def get_request_detail(req_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 2. APPROVAL ENDPOINT (Tetap JSON)
+
+# APPROVAL ENDPOINT
 @ata_bp.route("/<req_id>/approve", methods=["POST"])
 def approve_ata(req_id):
-    # Approval tidak butuh file, jadi tetap pakai JSON
     data = request.get_json()
     role = data.get("role") 
     decision = data.get("decision") 
     notes = data.get("notes", "")
     
-    # Ganti query.get dengan db.session.get (Modern SQLAlchemy)
     req = db.session.get(ATARequest, req_id)
     if not req:
         return jsonify({"error": "Request not found"}), 404
@@ -159,7 +164,7 @@ def approve_ata(req_id):
             "status": "Rejected",
             "rejected_by": role,
             "rejected_reason": notes,
-            "job_title": req.title,
+            "position": req.position,
             "requester": req.requester_name
         })
 
@@ -177,20 +182,23 @@ def approve_ata(req_id):
         
         req.status = "Approved"
         
-        # Auto-Create Job Position
+        # Auto-Create Job Position berdasar form ATA yang baru
         new_job = JobPosition(
-            title=req.title,
+            title=req.position,
             department=req.department,
-            level=req.level,
-            location=req.location,
-            employment_type=req.employment_type,
-            salary_min=req.salary_min,
-            salary_max=req.salary_max,
-            job_description=req.justification or "Job created from ATA",
+            level=req.grade or req.staff_status or "Staff",
+            location=req.point_of_hire or "Konawe",
+            employment_type=req.employment_agreement or "Full-time",
+            job_description=req.requirements_note or f"Job position created from ATA for {req.position}.",
             status="active",
             available=True
         )
         db.session.add(new_job)
+        db.session.flush() # Mendapatkan ID job position tanpa harus full commit
+        
+        # Update req.job_id agar terhubung antara ATA dan Job Position
+        req.job_id = new_job.id
+        
         db.session.commit()
         
         return jsonify({

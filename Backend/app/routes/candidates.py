@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from app import db
 from app.models import Candidate
 from datetime import datetime
+from app.models import  JobApplication, RecruitmentJourney, RecruitmentStage
 
 candidates_bp = Blueprint("candidates", __name__, url_prefix="/candidates")
 
@@ -31,45 +32,58 @@ def restrict_access_by_role():
         return jsonify({"status": 403, "message": "Access denied"}), 403
     
 def candidate_to_dict(candidate: Candidate):
-    # Logika untuk mencari status aplikasi terbaru kandidat
+    # Logika status aplikasi (Tetap sama seperti sebelumnya)
     best_app = None
     if candidate.applications:
         best_app = sorted(candidate.applications, key=lambda x: x.match_score or 0, reverse=True)[0]
 
     match_score = best_app.match_score if best_app else 0
-    top_position = best_app.job.title if (best_app and best_app.job) else candidate.position_applied
+    top_position = best_app.job.title if (best_app and best_app.job) else (candidate.applied_position_1 or "Unknown")
     status = best_app.status if best_app else "New Candidate"
     test_status = candidate.test_link.status.capitalize() if candidate.test_link else "Pending"
 
     return {
         "id": candidate.id,
         "resume_id": candidate.resume_id,
+        
+        # 1. Biodata
         "fullName": candidate.full_name,
         "email": candidate.email,
         "whatsapp": candidate.whatsapp,
         "gender": candidate.gender,
-        "religion": candidate.religion,
-        "birthPlace": candidate.birth_place,
         "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
-        "driverLicense": candidate.driver_license,
-        "address": candidate.address,
-        "city": candidate.city,
-        "province": candidate.province,
+        "domicileProvince": candidate.domicile_province,
+        "domicileCity": candidate.domicile_city,
+        "totalExperience": candidate.total_experience,
         
-        "education": candidate.education,
-        "university": candidate.university,
+        # 2. Pendidikan
+        "degree": candidate.degree,
         "major": candidate.major,
+        "studyProgram": candidate.study_program,
+        "university": candidate.university,
+        "eduCity": candidate.edu_city,
         "gpa": candidate.gpa,
-        "socialMedia": candidate.social_media,
+        "startYear": candidate.start_year,
+        "gradYear": candidate.grad_year,
         
-        "positionApplied": candidate.position_applied,
-        "lastCompany": candidate.last_company,
-        "lastPosition": candidate.last_position,
-        "lastPositionLevel": candidate.last_position_level,
-        "lastCompanyField": candidate.last_company_field,
-        "totalExperience": candidate.total_experience_years,
-        "experienceDescription": candidate.experience_description,
+        # 3. Keahlian & Organisasi
+        "trainings": candidate.trainings,
+        "organizations": candidate.organizations,
+        
+        # 4. Pengalaman & Minat Kerja
+        "workExperiences": candidate.work_experiences,
+        "internships": candidate.internships,
+        "appliedPosition1": candidate.applied_position_1,
+        "appliedPosition2": candidate.applied_position_2,
+        "noticePeriod": candidate.notice_period,
+        "expectedSalary": candidate.expected_salary,
+        
+        # 5. Lain-Lain
+        "references": candidate.references,
+        "relatives": candidate.relatives,
+        "socialMedia": candidate.social_media,
 
+        # Status & Relasi
         "top_position": top_position,
         "match_score": match_score,
         "status": status,
@@ -89,7 +103,6 @@ def candidate_to_dict(candidate: Candidate):
         "created_at": candidate.created_at.isoformat() if candidate.created_at else None
     }
 
-
 @candidates_bp.route("", methods=["POST"])
 def create_candidate():
     data = request.get_json(force=True)
@@ -99,51 +112,82 @@ def create_candidate():
         if data.get("birthDate"):
             birth_date = datetime.strptime(data["birthDate"], "%Y-%m-%d").date()
 
+        # 1. Simpan Kandidat dengan form baru
         candidate = Candidate(
-            # Resume ID sekarang opsional
             resume_id=data.get("resume_id"), 
             
-            # Mapping dari camelCase Frontend ke snake_case Backend
+            # Biodata
             full_name=data.get("fullName"),
             email=data.get("email"),
-            whatsapp=data.get("whatsapp"),
             gender=data.get("gender"),
-            religion=data.get("religion"),
-            birth_place=data.get("birthPlace"),
+            whatsapp=data.get("whatsapp"),
             birth_date=birth_date,
-            driver_license=data.get("driverLicense"),
-            address=data.get("address"),
-            city=data.get("city"),
-            province=data.get("province"),
+            domicile_province=data.get("domicileProvince"),
+            domicile_city=data.get("domicileCity"),
+            total_experience=data.get("totalExperience"),
             
-            education=data.get("education"),
-            university=data.get("university"),
+            # Pendidikan
+            degree=data.get("degree"),
             major=data.get("major"),
+            study_program=data.get("studyProgram"),
+            university=data.get("university"),
+            edu_city=data.get("eduCity"),
             gpa=data.get("gpa"),
-            social_media=data.get("socialMedia"),
+            start_year=data.get("startYear"),
+            grad_year=data.get("gradYear"),
             
-            position_applied=data.get("positionApplied"),
-            last_company=data.get("lastCompany"),
-            last_position=data.get("lastPosition"),
-            last_position_level=data.get("lastPositionLevel"),
-            last_company_field=data.get("lastCompanyField"),
-            total_experience_years=data.get("totalExperience"),
-            experience_description=data.get("experienceDescription")
+            # JSON Data
+            trainings=data.get("trainings", []),
+            organizations=data.get("organizations", []),
+            work_experiences=data.get("workExperiences", []),
+            internships=data.get("internships", []),
+            
+            # Minat Kerja
+            applied_position_1=data.get("appliedPosition1"),
+            applied_position_2=data.get("appliedPosition2"),
+            notice_period=data.get("noticePeriod"),
+            expected_salary=data.get("expectedSalary"),
+            
+            # Lain-lain
+            references=data.get("references", []),
+            relatives=data.get("relatives", []),
+            social_media=data.get("socialMedia", {})
         )
 
         db.session.add(candidate)
+        db.session.flush() # Dapatkan candidate.id tanpa commit dulu
+
+        # 2. Assign kandidat ke Job Position jika ada job_id di payload
+        job_id = data.get("job_id")
+        if job_id:
+            application = JobApplication(
+                candidate_id=candidate.id,
+                job_id=job_id,
+                status="Applied"
+            )
+            db.session.add(application)
+            db.session.flush()
+
+            # Buat recruitment journey pertama (Masuk ke sistem tracking HR)
+            journey = RecruitmentJourney(
+                application_id=application.id,
+                current_stage=RecruitmentStage.CV_SCREENING
+            )
+            db.session.add(journey)
+
         db.session.commit()
 
         return jsonify({
-            "message": "Candidate created successfully",
-            "data": candidate_to_dict(candidate)
+            "message": "Candidate created and applied successfully",
+            "data": candidate_to_dict(candidate) # Pastikan helper to_dict Anda sudah di update jika perlu
         }), 201
 
     except IntegrityError as e:
         db.session.rollback()
         return jsonify({"error": "Database integrity error (possibly duplicate email)"}), 400
-    except ValueError as e:
-        return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Invalid data or internal error: {str(e)}"}), 400
 
 
 @candidates_bp.route("", methods=["GET"])
