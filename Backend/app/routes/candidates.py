@@ -60,8 +60,8 @@ def candidate_to_dict(candidate: Candidate):
         "whatsapp": candidate.whatsapp,
         "gender": candidate.gender,
         "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
-        "domicileProvince": candidate.domicile_province,
-        "domicileCity": candidate.domicile_city,
+        "domicileProvince": candidate.province,
+        "domicileCity": candidate.city,
         "totalExperience": candidate.total_experience,
         
         # 2. Pendidikan
