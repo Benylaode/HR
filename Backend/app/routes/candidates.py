@@ -51,64 +51,51 @@ def candidate_to_dict(candidate: Candidate):
     test_status = candidate.test_link.status.capitalize() if candidate.test_link else "Pending"
 
     return {
-        "id": candidate.id,
-        "resume_id": candidate.resume_id, # Berisi Path File CV
-        
-        # 1. Biodata (Sesuai Skema Baru)
-        "fullName": candidate.full_name,
-        "email": candidate.email,
-        "whatsapp": candidate.whatsapp,
-        "gender": candidate.gender,
-        "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
-        "domicileProvince": candidate.province,
-        "domicileCity": candidate.city,
-        "totalExperience": candidate.total_experience,
-        
-        # 2. Pendidikan
-        "degree": candidate.degree,
-        "major": candidate.major,
-        "studyProgram": candidate.study_program,
-        "university": candidate.university,
-        "eduCity": candidate.edu_city,
-        "gpa": candidate.gpa,
-        "startYear": candidate.start_year,
-        "gradYear": candidate.grad_year,
-        
-        # 3. Data JSONB (List Array)
-        "trainings": candidate.trainings or [],
-        "organizations": candidate.organizations or [],
-        "workExperiences": candidate.work_experiences or [],
-        "internships": candidate.internships or [],
-        "references": candidate.references or [],
-        "relatives": candidate.relatives or [],
-        "socialMedia": candidate.social_media or {},
-        
-        # 4. Ekspektasi & Jabatan
-        "appliedPosition1": candidate.applied_position_1,
-        "appliedPosition2": candidate.applied_position_2,
-        "noticePeriod": candidate.notice_period,
-        "expectedSalary": candidate.expected_salary,
+            "id": candidate.id,
+            "resume_id": candidate.resume_id, 
+            
+            # 1. Biodata (Disesuaikan dengan ProfileMixin di models.py)
+            "fullName": candidate.full_name,
+            "email": candidate.email,
+            "whatsapp": candidate.whatsapp,
+            "gender": candidate.gender,
+            "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
+            "domicileProvince": candidate.province, # Di model: province
+            "domicileCity": candidate.city,         # Di model: city
+            "totalExperience": candidate.total_experience_years, # Di model: total_experience_years
+            
+            # 2. Pendidikan
+            "degree": candidate.education, # Mapping ke field education di mixin
+            "major": candidate.major,
+            "university": candidate.university,
+            "gpa": candidate.gpa,
+            
+            # 3. Data JSONB (Jika masih menggunakan field lama, pastikan kolomnya ada di DB)
+            # Note: Mixin baru Anda lebih banyak menggunakan field Text/String sederhana
+            "socialMedia": candidate.social_media or {},
+            
+            # 4. Ekspektasi & Jabatan
+            "appliedPosition1": candidate.position_applied, # Di model: position_applied
+            
+            # Metadata Table View
+            "top_position": top_position,
+            "match_score": match_score,
+            "status": status,
+            "test_status": test_status,
+            
+            "applications": [
+                {
+                    "id": app.id,
+                    "job_id": app.job_id,
+                    "job_title": app.job.title if app.job else None,
+                    "match_score": app.match_score,
+                    "status": app.status
+                } 
+                for app in candidate.applications
+            ] if candidate.applications else [],
 
-        # Metadata Table View
-        "top_position": top_position,
-        "match_score": match_score,
-        "status": status,
-        "test_status": test_status,
-        
-        "applications": [
-            {
-                "id": app.id,
-                "job_id": app.job_id,
-                "job_title": app.job.title if app.job else None,
-                "match_score": app.match_score,
-                "status": app.status
-            } 
-            for app in candidate.applications
-        ] if candidate.applications else [],
-
-        "created_at": candidate.created_at.isoformat() if candidate.created_at else None
-    }
-
+            "created_at": candidate.created_at.isoformat() if candidate.created_at else None
+        }
 
 @candidates_bp.route("", methods=["POST"])
 def create_candidate():
