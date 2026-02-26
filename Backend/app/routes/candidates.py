@@ -46,7 +46,7 @@ def candidate_to_dict(candidate: Candidate):
         best_app = sorted(candidate.applications, key=lambda x: x.match_score or 0, reverse=True)[0]
 
     match_score = best_app.match_score if best_app else 0
-    top_position = best_app.job.title if (best_app and best_app.job) else (candidate.applied_position_1 or "Unknown")
+    top_position = best_app.job.title if (best_app and best_app.job) else "Unknown"
     status = best_app.status if best_app else "New Candidate"
     test_status = candidate.test_link.status.capitalize() if candidate.test_link else "Pending"
 
