@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { toast } from "sonner"; // <-- 1. IMPORT SONNER DI SINI
+import { toast } from "sonner";
 import { 
   Plus, 
   Search, 
@@ -23,6 +23,9 @@ import {
   Save,
   User,
   TrendingUp,
+  GraduationCap,
+  Award,
+  Users
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -31,7 +34,7 @@ interface Candidate {
   id: string;
   fullName: string;
   email: string;
-  phone: string;
+  whatsapp: string; // Updated dari phone
   top_position: string;
   status: string;
   test_status: string;
@@ -39,21 +42,34 @@ interface Candidate {
   match_score: number;
 }
 
+// Interface disesuaikan dengan struktur JSONB dari Backend baru
 interface CandidateDetail extends Candidate {
   resume_id?: string;
-  dob?: string;
   gender?: string;
-  address?: string;
-  city?: string;
-  summary?: string;
-  total_experience_years?: number;
-  current_role?: string;
-  education?: Array<{ degree: string; institution: string; year?: string }>;
-  experience?: Array<{ title: string; company: string; duration?: string }>;
-  skills?: string[];
-  certifications?: string[];
-  languages?: string[];
-  social_links?: Record<string, string>;
+  birthDate?: string;
+  domicileProvince?: string;
+  domicileCity?: string;
+  totalExperience?: string;
+  
+  // Pendidikan (Flat dari backend)
+  degree?: string;
+  major?: string;
+  studyProgram?: string;
+  university?: string;
+  eduCity?: string;
+  gpa?: string;
+  startYear?: string;
+  gradYear?: string;
+
+  // Arrays (JSONB)
+  workExperiences?: Array<{ position: string; company: string; start: string; end: string; desc?: string }>;
+  internships?: Array<{ position: string; company: string; start: string; end: string }>;
+  trainings?: Array<{ name: string; organizer: string; year: string }>;
+  organizations?: Array<{ name: string; position: string; start: string; end: string }>;
+  
+  // Ekspektasi
+  expectedSalary?: number;
+  noticePeriod?: string;
 }
 
 interface JobPosition {
@@ -78,91 +94,112 @@ const DetailModal = memo(({
       >
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)] shrink-0">
               {(candidate.fullName || "?").charAt(0).toUpperCase()}
             </div>
             <div>
               <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.fullName || "Nama Tidak Ada"}</h2>
-              <p className="text-sm text-[var(--secondary)]">{candidate.current_role || candidate.top_position || "Kandidat"}</p>
+              <p className="text-sm text-[var(--secondary)]">{candidate.top_position || "Kandidat"}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors shrink-0">
             <X size={20} className="text-[var(--secondary-400)]" />
           </button>
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-6">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <Mail size={16} className="text-[var(--secondary-400)]" />
-              <span>{candidate.email || "-"}</span>
+          
+          {/* Info Dasar */}
+          <div className="grid grid-cols-2 gap-4 text-sm bg-[var(--primary-50)]/30 p-4 rounded-xl border border-[var(--secondary-100)]">
+            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
+              <Mail size={16} className="text-[var(--primary)]" />
+              <span className="truncate">{candidate.email || "-"}</span>
             </div>
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <Phone size={16} className="text-[var(--secondary-400)]" />
-              <span>{candidate.phone || "-"}</span>
+            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
+              <Phone size={16} className="text-[var(--primary)]" />
+              <span>{candidate.whatsapp || "-"}</span>
             </div>
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <MapPin size={16} className="text-[var(--secondary-400)]" />
-              <span>{candidate.city || candidate.address || "-"}</span>
+            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
+              <MapPin size={16} className="text-[var(--primary)]" />
+              <span>{candidate.domicileCity ? `${candidate.domicileCity}, ${candidate.domicileProvince}` : "-"}</span>
             </div>
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <Briefcase size={16} className="text-[var(--secondary-400)]" />
-              <span>{candidate.total_experience_years || 0} tahun pengalaman</span>
+            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
+              <Briefcase size={16} className="text-[var(--primary)]" />
+              <span>{candidate.totalExperience || "Fresh Graduate"}</span>
             </div>
           </div>
 
-          {candidate.summary && (
-            <div className="bg-[var(--primary-50)]/50 p-4 rounded-xl border border-[var(--primary-100)]">
-              <h3 className="text-xs font-bold text-[var(--primary)] uppercase tracking-wide mb-2">Summary</h3>
-              <p className="text-sm text-[var(--secondary-700)] leading-relaxed">{candidate.summary}</p>
+          {/* Pendidikan */}
+          {candidate.university && (
+            <div>
+              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                <GraduationCap size={16} className="text-[var(--primary)]"/> Pendidikan Terakhir
+              </h3>
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <p className="font-bold text-[var(--primary-900)]">{candidate.university}</p>
+                <p className="text-sm text-[var(--secondary-700)]">{candidate.degree} - {candidate.major}</p>
+                <div className="flex gap-4 mt-2 text-xs text-[var(--secondary-500)]">
+                  <span className="bg-white px-2 py-1 rounded border shadow-sm">IPK: {candidate.gpa || "-"}</span>
+                  <span className="bg-white px-2 py-1 rounded border shadow-sm">Lulus: {candidate.gradYear || "-"}</span>
+                </div>
+              </div>
             </div>
           )}
 
-          {candidate.experience && candidate.experience.length > 0 && (
+          {/* Pengalaman Kerja */}
+          {candidate.workExperiences && candidate.workExperiences.length > 0 && (
             <div>
-              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 pl-1 border-l-2 border-[var(--primary)]">Pengalaman Kerja</h3>
-              <div className="space-y-3">
-                {candidate.experience.map((exp, idx) => (
-                  <div key={idx} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <div>
-                      <p className="text-sm font-bold text-[var(--primary-900)]">{exp.title}</p>
-                      <p className="text-xs text-[var(--secondary)]">{exp.company}</p>
-                    </div>
-                    {exp.duration && <span className="text-xs font-medium text-[var(--secondary-400)] bg-white px-2 py-1 rounded border border-gray-100">{exp.duration}</span>}
+              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                <Briefcase size={16} className="text-[var(--primary)]"/> Pengalaman Kerja
+              </h3>
+              <div className="space-y-3 border-l-2 border-[var(--primary-200)] ml-2 pl-4">
+                {candidate.workExperiences.map((exp, idx) => (
+                  <div key={idx} className="relative">
+                    <div className="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-[var(--primary)] ring-4 ring-white"></div>
+                    <p className="text-sm font-bold text-[var(--primary-900)]">{exp.position}</p>
+                    <p className="text-xs font-medium text-[var(--primary)]">{exp.company}</p>
+                    <p className="text-xs text-[var(--secondary-400)] mt-0.5">{exp.start} - {exp.end || "Sekarang"}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
+          {/* Grid Organisasi & Pelatihan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             {candidate.education && candidate.education.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3">Pendidikan</h3>
-                  <div className="space-y-2">
-                    {candidate.education.map((edu, idx) => (
-                      <div key={idx} className="text-sm">
-                        <p className="font-semibold text-[var(--primary-900)]">{edu.degree}</p>
-                        <p className="text-xs text-[var(--secondary)]">{edu.institution} {edu.year && `(${edu.year})`}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+             {candidate.organizations && candidate.organizations.length > 0 && (
+               <div>
+                 <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                   <Users size={16} className="text-[var(--primary)]"/> Organisasi
+                 </h3>
+                 <div className="space-y-2">
+                   {candidate.organizations.map((org, idx) => (
+                     <div key={idx} className="text-sm p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                       <p className="font-semibold text-[var(--primary-900)]">{org.position}</p>
+                       <p className="text-xs text-[var(--secondary-600)]">{org.name}</p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
 
-             {candidate.skills && candidate.skills.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3">Keahlian</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {candidate.skills.slice(0, 8).map((skill, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-white border border-[var(--secondary-200)] text-[var(--secondary-600)] rounded-md text-xs font-medium">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+             {candidate.trainings && candidate.trainings.length > 0 && (
+               <div>
+                 <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                   <Award size={16} className="text-[var(--primary)]"/> Sertifikasi / Pelatihan
+                 </h3>
+                 <div className="space-y-2">
+                   {candidate.trainings.map((tr, idx) => (
+                     <div key={idx} className="text-sm p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                       <p className="font-semibold text-[var(--primary-900)]">{tr.name}</p>
+                       <p className="text-xs text-[var(--secondary-600)]">{tr.organizer} ({tr.year})</p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
           </div>
+          
         </div>
 
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
@@ -194,26 +231,22 @@ const EditModal = memo(({
   onSave: (data: Partial<CandidateDetail>) => Promise<void>;
 }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
-    phone: "",
-    city: "",
-    summary: "",
-    current_role: "",
-    total_experience_years: 0,
+    whatsapp: "",
+    domicileCity: "",
+    totalExperience: "",
   });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (candidate) {
       setFormData({
-        name: candidate.fullName || "",
+        fullName: candidate.fullName || "",
         email: candidate.email || "",
-        phone: candidate.phone || "",
-        city: candidate.city || "",
-        summary: candidate.summary || "",
-        current_role: candidate.current_role || "",
-        total_experience_years: candidate.total_experience_years || 0,
+        whatsapp: candidate.whatsapp || "",
+        domicileCity: candidate.domicileCity || "",
+        totalExperience: candidate.totalExperience || "",
       });
     }
   }, [candidate]);
@@ -242,7 +275,7 @@ const EditModal = memo(({
               <Edit size={18} className="text-[var(--primary)]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Kandidat</h2>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Basic Info</h2>
               <p className="text-xs text-[var(--secondary)]">{candidate.fullName}</p>
             </div>
           </div>
@@ -253,35 +286,26 @@ const EditModal = memo(({
 
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Nama</label>
-              <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} required />
+            <div className="col-span-2">
+              <label className={labelClass}>Nama Lengkap</label>
+              <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className={inputClass} required />
             </div>
             <div>
               <label className={labelClass}>Email</label>
               <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={inputClass} required />
             </div>
             <div>
-              <label className={labelClass}>Telepon</label>
-              <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className={inputClass} />
+              <label className={labelClass}>WhatsApp</label>
+              <input type="text" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Kota</label>
-              <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className={inputClass} />
+              <label className={labelClass}>Kota Domisili</label>
+              <input type="text" value={formData.domicileCity} onChange={(e) => setFormData({ ...formData, domicileCity: e.target.value })} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Posisi</label>
-              <input type="text" value={formData.current_role} onChange={(e) => setFormData({ ...formData, current_role: e.target.value })} className={inputClass} />
+              <label className={labelClass}>Total Pengalaman</label>
+              <input type="text" placeholder="Cth: 2 Tahun 3 Bulan" value={formData.totalExperience} onChange={(e) => setFormData({ ...formData, totalExperience: e.target.value })} className={inputClass} />
             </div>
-            <div>
-              <label className={labelClass}>Pengalaman (Tahun)</label>
-              <input type="number" value={formData.total_experience_years} onChange={(e) => setFormData({ ...formData, total_experience_years: parseInt(e.target.value) || 0 })} className={inputClass} min="0" />
-            </div>
-          </div>
-          
-          <div>
-            <label className={labelClass}>Ringkasan</label>
-            <textarea value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} rows={3} className={`${inputClass} resize-none`} placeholder="Deskripsi singkat..." />
           </div>
         </form>
 
@@ -386,7 +410,6 @@ export default function CandidatesPage() {
     if (detail) setEditModal(detail);
   };
 
-  // 2. PERUBAHAN DI SINI: Menggunakan toast.promise untuk edit data
   const handleSaveEdit = async (data: Partial<CandidateDetail>) => {
     if (!editModal) return;
     
@@ -411,7 +434,6 @@ export default function CandidatesPage() {
     });
   };
 
-  // 3. PERUBAHAN DI SINI: Menggunakan toast.promise untuk hapus data
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus kandidat ini? Data tidak dapat dikembalikan.")) return;
 
@@ -478,8 +500,10 @@ export default function CandidatesPage() {
               <h2 className="text-xl md:text-2xl font-bold text-[var(--primary-900)]">Database Kandidat</h2>
               <p className="text-xs md:text-sm text-[var(--secondary)] mt-1">Total {candidates.length} kandidat terdaftar</p>
             </div>
+            
+            {/* Tombol Add Candidate diarahkan ke form apply manual */}
             <button 
-              onClick={() => router.push('/cv-scanner')} 
+              onClick={() => router.push('/apply')} 
               className="w-full md:w-auto bg-[var(--primary)] text-white px-5 py-3 md:py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[var(--primary-700)] hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95 text-sm"
             >
               <Plus size={18} /> Add Candidate
@@ -576,7 +600,7 @@ export default function CandidatesPage() {
                               </div>
                               <div>
                                 <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.fullName || "Unknown"}</p>
-                                <div className="flex items-center gap-2 text-xs text-[var(--secondary)]">
+                                <div className="flex items-center gap-2 text-xs text-[var(--secondary)] mt-0.5">
                                   <Mail size={12} />
                                   <span className="truncate max-w-[150px]">{candidate.email || "-"}</span>
                                 </div>
@@ -656,7 +680,7 @@ export default function CandidatesPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-[var(--primary-900)] text-base">{candidate.fullName || "Unknown"}</h3>
-                            <p className="text-xs text-[var(--secondary)]">{candidate.email || "-"}</p>
+                            <p className="text-xs text-[var(--secondary)] mt-0.5">{candidate.email || "-"}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -667,7 +691,7 @@ export default function CandidatesPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="grid grid-cols-2 gap-2 text-sm border-y border-[var(--secondary-100)] py-3">
                          <div>
                             <p className="text-[10px] text-[var(--secondary-400)] uppercase">Posisi</p>
                             <p className="font-medium text-[var(--primary-900)] truncate">{candidate.top_position || "Unassigned"}</p>

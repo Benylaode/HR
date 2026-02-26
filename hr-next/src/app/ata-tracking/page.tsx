@@ -7,16 +7,18 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import { 
   Loader2, Search, CheckCircle, XCircle, FileText, 
-  User, Plus, UploadCloud, CircleDashed, Clock, AlertCircle 
+  User, Plus, UploadCloud, CircleDashed, Clock 
 } from 'lucide-react'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 // --- Interface Data Sesuai Struktur JSON Baru ---
 interface ATARequest {
   id: string
-  title: string
+  title?: string       // Properti lama (fallback)
+  position?: string    // Properti baru dari backend
   requester: string
+  requester_name?: string
   department: string
   status: 'Pending' | 'Approved' | 'Rejected'
   current_step: 'HR' | 'KTT' | 'HO' | 'DONE' | 'REJECTED' 
@@ -39,15 +41,6 @@ export default function ATATrackingPage() {
   
   // --- State Role & Auth ---
   const [userRole, setUserRole] = useState<string>('') 
-  
-  // --- State Modal ---
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    requester_name: '', title: '', department: '', level: '', location: '', 
-    employment_type: '', salary_min: '', salary_max: '', justification: '',
-  })
-  const [file, setFile] = useState<File | null>(null)
-  const [submitLoading, setSubmitLoading] = useState(false)
 
   // HELPER: Normalisasi Status
   const normalizeStatus = (status: any): string => {
@@ -62,13 +55,11 @@ export default function ATATrackingPage() {
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
     let role = '';
-    let requesterName = '';
 
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
         role = parsedUser.role ? parsedUser.role.toUpperCase().trim() : '';
-        requesterName = parsedUser.name || 'User';
       } catch (e) { console.error(e); }
     } 
     
@@ -77,8 +68,6 @@ export default function ATATrackingPage() {
     }
     
     setUserRole(role);
-    setFormData(prev => ({ ...prev, requester_name: requesterName }));
-
     fetchRequests();
   }, []);
 
@@ -90,7 +79,7 @@ export default function ATATrackingPage() {
     };
   };
 
-  // 2. Fetch Data dengan Logika Waterfall Sesuai Struktur {approvals: {HR, KTT, HO}}
+  // 2. Fetch Data
   const fetchRequests = async () => {
     setLoading(true);
     try {
@@ -99,15 +88,13 @@ export default function ATATrackingPage() {
       
       if (Array.isArray(rawData)) {
         const formattedData = rawData.map((item: any) => {
-          // Akses data dari dalam objek approvals
-          const hrStatus = normalizeStatus(item.approvals?.HR);
-          const kttStatus = normalizeStatus(item.approvals?.KTT);
-          const hoStatus = normalizeStatus(item.approvals?.HO);
+          const hrStatus = normalizeStatus(item.approvals?.HR || item.hr_status);
+          const kttStatus = normalizeStatus(item.approvals?.KTT || item.ktt_status);
+          const hoStatus = normalizeStatus(item.approvals?.HO || item.ho_status);
           const globalStatus = normalizeStatus(item.status);
 
           let currentStep: ATARequest['current_step'] = 'HR';
 
-          // LOGIKA WATERFALL: HR -> KTT -> HO
           if (globalStatus === 'Rejected') {
             currentStep = 'REJECTED';
           } else if (globalStatus === 'Approved') {
@@ -121,14 +108,10 @@ export default function ATATrackingPage() {
 
           return {
             ...item,
-            requester: item.requester || 'User',
+            requester: item.requester_name || item.requester || 'User',
             status: globalStatus as 'Pending' | 'Approved' | 'Rejected',
             current_step: currentStep,
-            approvals: {
-              HR: hrStatus,
-              KTT: kttStatus,
-              HO: hoStatus
-            }
+            approvals: { HR: hrStatus, KTT: kttStatus, HO: hoStatus }
           };
         });
         setRequests(formattedData);
@@ -228,35 +211,15 @@ export default function ATATrackingPage() {
     } catch (e) { console.error(e); }
   };
 
-  const handleSubmitATA = async () => {
-    if (!formData.title || !formData.department) return alert('⚠️ Lengkapi data wajib!');
-    setSubmitLoading(true);
-    try {
-      const form = new FormData();
-      Object.entries(formData).forEach(([k, v]) => form.append(k, v));
-      if (file) form.append('file', file);
-
-      const res = await fetch(`${API_BASE_URL}/ata`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem("hr_token")}` },
-        body: form,
-      });
-
-      if (res.ok) {
-        setIsCreateModalOpen(false);
-        setFormData({ requester_name: formData.requester_name, title: '', department: '', level: '', location: '', employment_type: '', salary_min: '', salary_max: '', justification: '' });
-        setFile(null);
-        fetchRequests();
-        alert("Request berhasil dikirim!");
-      }
-    } catch (e) { alert("Terjadi kesalahan koneksi."); }
-    finally { setSubmitLoading(false); }
-  };
-
+  // ✅ SOLUSI ERROR toLowerCase: Menggunakan safe fallback req.position || req.title || ""
   const filteredRequests = requests.filter(req => {
-    const matchesSearch = req.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         req.department.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'all' || req.status.toLowerCase() === filter;
+    const positionValue = (req.position || req.title || "").toLowerCase();
+    const deptValue = (req.department || "").toLowerCase();
+    const query = (searchQuery || "").toLowerCase();
+    
+    const matchesSearch = positionValue.includes(query) || deptValue.includes(query);
+    const matchesFilter = filter === 'all' || (req.status || "").toLowerCase() === filter;
+    
     return matchesSearch && matchesFilter;
   });
 
@@ -307,8 +270,10 @@ export default function ATATrackingPage() {
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
               </select>
-              <button onClick={() => setIsCreateModalOpen(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-600/20 hover:bg-teal-700 transition-all">
-                <Plus size={20}/> Request Posisi
+              
+              {/* Diarahkan ke halaman form pengajuan ATA yang baru */}
+              <button onClick={() => router.push('/ata-request')} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-600/20 hover:bg-teal-700 transition-all">
+                <Plus size={20}/> Buat Request Baru
               </button>
             </div>
           </div>
@@ -325,18 +290,25 @@ export default function ATATrackingPage() {
                     Belum ada data pengajuan yang ditemukan.
                 </div>
             ) : (
-              filteredRequests.map((req) => (
+              filteredRequests.map((req) => {
+                // Ekstraksi nilai posisi yang aman untuk dirender
+                const positionName = req.position || req.title || "Posisi Baru";
+                const initialLetter = positionName.charAt(0).toUpperCase();
+
+                return (
                 <div key={req.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:border-teal-300 transition-all group">
                   <div className="flex flex-col lg:flex-row justify-between gap-8">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-6">
+                        {/* ✅ SOLUSI ERROR req.title[0] */}
                         <div className="w-12 h-12 bg-teal-50 text-teal-700 flex items-center justify-center rounded-xl font-bold text-xl border border-teal-100 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
-                            {req.title[0]}
+                            {initialLetter}
                         </div>
                         <div>
-                          <h3 className="font-bold text-slate-900 text-lg">{req.title}</h3>
+                          {/* Render nama posisi dengan aman */}
+                          <h3 className="font-bold text-slate-900 text-lg">{positionName}</h3>
                           <div className="flex gap-3 text-sm text-slate-500 mt-1">
-                             <span className="flex items-center gap-1.5"><FileText size={14}/> {req.department}</span>
+                             <span className="flex items-center gap-1.5"><FileText size={14}/> {req.department || "-"}</span>
                              <span className="text-slate-300">•</span>
                              <span className="flex items-center gap-1.5"><User size={14}/> {req.requester}</span>
                           </div>
@@ -374,98 +346,12 @@ export default function ATATrackingPage() {
                     </div>
                   </div>
                 </div>
-              ))
+              )})
             )}
           </div>
         </main>
         <Footer />
       </div>
-
-      {/* MODAL CREATE REQUEST (FULL VERSION) */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 my-8">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-teal-600 text-white rounded-t-3xl">
-              <div className="flex items-center gap-3">
-                <Plus className="bg-white/20 p-1 rounded-lg" />
-                <h2 className="text-xl font-bold">Request Posisi Baru</h2>
-              </div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="hover:bg-teal-700 p-1 rounded-full transition-colors"><XCircle size={24}/></button>
-            </div>
-
-            <div className="p-6 md:p-8 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Judul Posisi</label>
-                    <input type="text" className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all" 
-                        value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="Contoh: Senior Engineer" />
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Departemen</label>
-                    <input type="text" className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all" 
-                        value={formData.department} onChange={(e) => setFormData({...formData, department: e.target.value})} placeholder="Contoh: IT" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Level</label>
-                    <select className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all bg-white"
-                        value={formData.level} onChange={(e) => setFormData({...formData, level: e.target.value})}>
-                        <option value="">Pilih Level</option>
-                        <option value="Staff">Staff</option>
-                        <option value="Supervisor">Supervisor</option>
-                        <option value="Manager">Manager</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Lokasi</label>
-                    <input type="text" className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                        value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} placeholder="Contoh: Jakarta / Site" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Gaji Min</label>
-                    <input type="number" className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-                        value={formData.salary_min} onChange={(e) => setFormData({...formData, salary_min: e.target.value})} />
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Gaji Max</label>
-                    <input type="number" className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-                        value={formData.salary_max} onChange={(e) => setFormData({...formData, salary_max: e.target.value})} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Justifikasi</label>
-                <textarea className="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 h-24 transition-all"
-                    value={formData.justification} onChange={(e) => setFormData({...formData, justification: e.target.value})} placeholder="Alasan penambahan tenaga kerja..."></textarea>
-              </div>
-
-              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:border-teal-400 transition-all cursor-pointer bg-slate-50/50">
-                  <UploadCloud className="mx-auto text-slate-400 mb-2" size={32} />
-                  <label className="block text-sm font-medium text-slate-700 cursor-pointer">
-                    <span className="text-teal-600 font-bold hover:underline">Klik untuk Upload Lampiran</span>
-                    <input type="file" onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)} className="hidden" />
-                    <p className="text-xs text-slate-400 mt-1">PDF, DOCX, atau Gambar (Max 5MB)</p>
-                  </label>
-                  {file && <div className="mt-3 p-2 bg-teal-50 rounded-lg text-teal-700 text-xs font-bold flex items-center justify-center gap-2 border border-teal-100">
-                    <CheckCircle size={14}/> {file.name}
-                  </div>}
-              </div>
-
-              <div className="pt-4 flex gap-4">
-                <button onClick={() => setIsCreateModalOpen(false)} className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm" disabled={submitLoading}>Batal</button>
-                <button onClick={handleSubmitATA} disabled={submitLoading} className="flex-1 py-3 bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-600/20 hover:bg-teal-700 flex justify-center items-center gap-2 transition-all">
-                    {submitLoading ? <><Loader2 className="animate-spin" size={20}/> Memproses...</> : "Kirim Request"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

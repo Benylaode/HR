@@ -207,7 +207,7 @@ export default function ATARequestPage() {
             </div>
 
             <div className="flex gap-3 pt-4">
-              <button type="button" onClick={() => router.push('/ata-requests')} className="bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl flex-1 py-3.5 font-bold transition-colors">Batal</button>
+              <button type="button" onClick={() => router.push('/ata-tracking')} className="bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl flex-1 py-3.5 font-bold transition-colors">Batal</button>
               <button type="submit" disabled={loading} className="bg-gradient-to-r from-teal-500 to-emerald-600 text-white rounded-xl flex-1 py-3.5 font-bold hover:from-teal-600 transition-all shadow-lg">
                 {loading ? 'Memproses...' : '🚀 Submit ATA Request'}
               </button>

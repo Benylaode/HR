@@ -1,12 +1,19 @@
+import json
+import os
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
 from app import db
-from app.models import Candidate
+from app.models import Candidate, JobApplication, RecruitmentJourney, RecruitmentStage
 from datetime import datetime
-from app.models import  JobApplication, RecruitmentJourney, RecruitmentStage
 
 candidates_bp = Blueprint("candidates", __name__, url_prefix="/candidates")
+
+# Konfigurasi Folder Upload CV
+UPLOAD_CV_FOLDER = 'app/static/uploads/cv'
+if not os.path.exists(UPLOAD_CV_FOLDER):
+    os.makedirs(UPLOAD_CV_FOLDER)
 
 @candidates_bp.before_request
 def restrict_access_by_role():
@@ -31,8 +38,9 @@ def restrict_access_by_role():
     if role != "SUPER_USER":
         return jsonify({"status": 403, "message": "Access denied"}), 403
     
+
 def candidate_to_dict(candidate: Candidate):
-    # Logika status aplikasi (Tetap sama seperti sebelumnya)
+    # Logika untuk mencari status aplikasi terbaru kandidat
     best_app = None
     if candidate.applications:
         best_app = sorted(candidate.applications, key=lambda x: x.match_score or 0, reverse=True)[0]
@@ -44,9 +52,9 @@ def candidate_to_dict(candidate: Candidate):
 
     return {
         "id": candidate.id,
-        "resume_id": candidate.resume_id,
+        "resume_id": candidate.resume_id, # Berisi Path File CV
         
-        # 1. Biodata
+        # 1. Biodata (Sesuai Skema Baru)
         "fullName": candidate.full_name,
         "email": candidate.email,
         "whatsapp": candidate.whatsapp,
@@ -66,24 +74,22 @@ def candidate_to_dict(candidate: Candidate):
         "startYear": candidate.start_year,
         "gradYear": candidate.grad_year,
         
-        # 3. Keahlian & Organisasi
-        "trainings": candidate.trainings,
-        "organizations": candidate.organizations,
+        # 3. Data JSONB (List Array)
+        "trainings": candidate.trainings or [],
+        "organizations": candidate.organizations or [],
+        "workExperiences": candidate.work_experiences or [],
+        "internships": candidate.internships or [],
+        "references": candidate.references or [],
+        "relatives": candidate.relatives or [],
+        "socialMedia": candidate.social_media or {},
         
-        # 4. Pengalaman & Minat Kerja
-        "workExperiences": candidate.work_experiences,
-        "internships": candidate.internships,
+        # 4. Ekspektasi & Jabatan
         "appliedPosition1": candidate.applied_position_1,
         "appliedPosition2": candidate.applied_position_2,
         "noticePeriod": candidate.notice_period,
         "expectedSalary": candidate.expected_salary,
-        
-        # 5. Lain-Lain
-        "references": candidate.references,
-        "relatives": candidate.relatives,
-        "socialMedia": candidate.social_media,
 
-        # Status & Relasi
+        # Metadata Table View
         "top_position": top_position,
         "match_score": match_score,
         "status": status,
@@ -103,24 +109,43 @@ def candidate_to_dict(candidate: Candidate):
         "created_at": candidate.created_at.isoformat() if candidate.created_at else None
     }
 
+
 @candidates_bp.route("", methods=["POST"])
 def create_candidate():
-    data = request.get_json(force=True)
+    # Karena Frontend sekarang menggunakan FormData (ada file CV), kita harus parsing dari form
+    if request.content_type and request.content_type.startswith('multipart/form-data'):
+        data_str = request.form.get('data')
+        try:
+            data = json.loads(data_str) if data_str else {}
+        except Exception:
+            return jsonify({"error": "Invalid JSON format in 'data' field"}), 400
+    else:
+        # Fallback jika dikirim murni via JSON (meski akan gagal mengunggah CV fisik)
+        data = request.get_json(force=True, silent=True) or {}
+
+    # Handle Upload CV Fisik
+    cv_path = None
+    if 'cv_file' in request.files:
+        file = request.files['cv_file']
+        if file and file.filename:
+            filename = secure_filename(f"CV_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+            save_path = os.path.join(UPLOAD_CV_FOLDER, filename)
+            file.save(save_path)
+            cv_path = f"/static/uploads/cv/{filename}"
 
     try:
         birth_date = None
         if data.get("birthDate"):
             birth_date = datetime.strptime(data["birthDate"], "%Y-%m-%d").date()
 
-        # 1. Simpan Kandidat dengan form baru
         candidate = Candidate(
-            resume_id=data.get("resume_id"), 
+            resume_id=cv_path, # Simpan path URL file CV ke resume_id
             
             # Biodata
             full_name=data.get("fullName"),
             email=data.get("email"),
-            gender=data.get("gender"),
             whatsapp=data.get("whatsapp"),
+            gender=data.get("gender"),
             birth_date=birth_date,
             domicile_province=data.get("domicileProvince"),
             domicile_city=data.get("domicileCity"),
@@ -136,28 +161,26 @@ def create_candidate():
             start_year=data.get("startYear"),
             grad_year=data.get("gradYear"),
             
-            # JSON Data
+            # Arrays (JSONB)
             trainings=data.get("trainings", []),
             organizations=data.get("organizations", []),
             work_experiences=data.get("workExperiences", []),
             internships=data.get("internships", []),
+            references=data.get("references", []),
+            relatives=data.get("relatives", []),
+            social_media=data.get("socialMedia", {}),
             
-            # Minat Kerja
+            # Ekspektasi
             applied_position_1=data.get("appliedPosition1"),
             applied_position_2=data.get("appliedPosition2"),
             notice_period=data.get("noticePeriod"),
-            expected_salary=data.get("expectedSalary"),
-            
-            # Lain-lain
-            references=data.get("references", []),
-            relatives=data.get("relatives", []),
-            social_media=data.get("socialMedia", {})
+            expected_salary=data.get("expectedSalary")
         )
 
         db.session.add(candidate)
-        db.session.flush() # Dapatkan candidate.id tanpa commit dulu
+        db.session.flush() # Ambil ID kandidat sebelum full commit
 
-        # 2. Assign kandidat ke Job Position jika ada job_id di payload
+        # 🚀 AUTO ASSIGN JOB POSITION & PIPELINE 🚀
         job_id = data.get("job_id")
         if job_id:
             application = JobApplication(
@@ -168,26 +191,27 @@ def create_candidate():
             db.session.add(application)
             db.session.flush()
 
-            # Buat recruitment journey pertama (Masuk ke sistem tracking HR)
+            # Buat recruitment journey (Tracking pertama kali: Masuk tahapan CV Screening)
             journey = RecruitmentJourney(
                 application_id=application.id,
-                current_stage=RecruitmentStage.CV_SCREENING
+                current_stage=RecruitmentStage.CV_SCREENING,
+                stage_data={}
             )
             db.session.add(journey)
 
         db.session.commit()
 
         return jsonify({
-            "message": "Candidate created and applied successfully",
-            "data": candidate_to_dict(candidate) # Pastikan helper to_dict Anda sudah di update jika perlu
+            "message": "Candidate created successfully",
+            "data": candidate_to_dict(candidate)
         }), 201
 
     except IntegrityError as e:
         db.session.rollback()
-        return jsonify({"error": "Database integrity error (possibly duplicate email)"}), 400
+        return jsonify({"error": "Pendaftaran gagal. Email kemungkinan sudah digunakan sebelumnya."}), 400
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Invalid data or internal error: {str(e)}"}), 400
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 @candidates_bp.route("", methods=["GET"])
@@ -211,6 +235,28 @@ def get_candidate(candidate_id):
     if not candidate:
         return jsonify({"error": "Candidate not found"}), 404
     return jsonify(candidate_to_dict(candidate))
+
+
+@candidates_bp.route("/<candidate_id>", methods=["PUT"])
+def update_candidate(candidate_id):
+    candidate = Candidate.query.get(candidate_id)
+    if not candidate:
+        return jsonify({"error": "Candidate not found"}), 404
+
+    data = request.get_json()
+    
+    if "fullName" in data: candidate.full_name = data["fullName"]
+    if "email" in data: candidate.email = data["email"]
+    if "whatsapp" in data: candidate.whatsapp = data["whatsapp"]
+    if "domicileCity" in data: candidate.domicile_city = data["domicileCity"]
+    if "totalExperience" in data: candidate.total_experience = data["totalExperience"]
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Kandidat berhasil diperbarui", "data": candidate_to_dict(candidate)})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 400
 
 
 @candidates_bp.route("/<candidate_id>", methods=["DELETE"])

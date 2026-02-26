@@ -5,22 +5,33 @@ import { useParams, useRouter } from 'next/navigation'
 import Sidebar from "@/components/layout/Sidebar"
 import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
-import { Loader2, ChevronLeft, Download, FileText, Building2, MapPin, Briefcase, DollarSign, Clock, CheckCircle, XCircle, User as UserIcon, AlertCircle } from 'lucide-react'
+import { 
+  Loader2, ChevronLeft, Download, FileText, Building2, 
+  MapPin, Briefcase, DollarSign, Clock, CheckCircle, 
+  XCircle, User as UserIcon, AlertCircle, Users, Hash, Target 
+} from 'lucide-react'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
+// Interface disesuaikan dengan 15 field ATA yang baru
 interface ATARequestDetail {
   id: string
   requester_name: string
-  title: string
+  candidate_name: string
+  employee_no: string
+  company: string
+  position: string
+  grade: string
+  report_to: string
   department: string
-  level: string
-  location: string
-  employment_type: string
-  salary_min: number
-  salary_max: number
-  justification: string
-  attachment_url: string | null
+  division: string
+  budget_type: string
+  employment_agreement: string
+  staff_status: string
+  point_of_hire: string
+  hired_type: string
+  requirements_note: string
+  scan_ata_url: string | null
   status: string
   hr_status: string
   hr_notes: string | null
@@ -55,13 +66,13 @@ export default function ATARequestDetailPage() {
     fetchRequest()
   }, [params.id])
 
-    const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
 
   const fetchRequest = async () => {
     try {
@@ -129,13 +140,16 @@ export default function ATARequestDetailPage() {
     return null
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  // Helper untuk render list item dengan desain asli
+  const DetailItem = ({ icon, label, value }: { icon: any, label: string, value: string | null }) => (
+    <div className="flex items-start gap-3">
+      <div className="text-slate-400 mt-1">{icon}</div>
+      <div>
+        <label className="text-xs font-medium text-slate-500">{label}</label>
+        <p className="text-slate-900 font-semibold">{value || '-'}</p>
+      </div>
+    </div>
+  )
 
   if (loading) {
     return (
@@ -184,7 +198,7 @@ export default function ATARequestDetailPage() {
       <div className="lg:ml-64 min-h-screen flex flex-col">
         <Header 
           title={`ATA Request: ${request.id}`}
-          subtitle={request.title}
+          subtitle={request.position}
         />
 
         <main className="p-4 md:p-8 flex-1">
@@ -219,79 +233,115 @@ export default function ATARequestDetailPage() {
 
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              
               {/* Position Details Card */}
-              <div className="card-static rounded-xl p-6 bg-white border border-slate-200">
-                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <div className="card-static rounded-xl p-6 bg-white border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2 border-b pb-4">
                   <Briefcase className="text-teal-600" size={24} />
                   Position Details
                 </h2>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <Building2 className="text-slate-400 mt-1" size={18} />
-                    <div>
-                      <label className="text-xs font-medium text-slate-500">Department</label>
-                      <p className="text-slate-900 font-semibold">{request.department}</p>
-                    </div>
-                  </div>
-                  {/* ... (detail lainnya tetap sama) */}
-                  <div className="flex items-start gap-3">
-                    <MapPin className="text-slate-400 mt-1" size={18} />
-                    <div>
-                      <label className="text-xs font-medium text-slate-500">Location</label>
-                      <p className="text-slate-900 font-semibold">{request.location || '-'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="text-slate-400 mt-1" size={18} />
-                    <div>
-                      <label className="text-xs font-medium text-slate-500">Employment Type</label>
-                      <p className="text-slate-900 font-semibold">{request.employment_type || '-'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <UserIcon className="text-slate-400 mt-1" size={18} />
-                    <div>
-                      <label className="text-xs font-medium text-slate-500">Requester</label>
-                      <p className="text-slate-900 font-semibold">{request.requester_name}</p>
-                    </div>
-                  </div>
+                
+                <div className="grid md:grid-cols-2 gap-y-6 gap-x-4">
+                  {/* Info Pekerjaan */}
+                  <DetailItem icon={<Building2 size={18}/>} label="Company" value={request.company} />
+                  <DetailItem icon={<Briefcase size={18}/>} label="Position" value={request.position} />
+                  <DetailItem icon={<Users size={18}/>} label="Department" value={request.department} />
+                  <DetailItem icon={<Users size={18}/>} label="Division" value={request.division} />
+                  <DetailItem icon={<FileText size={18}/>} label="Grade" value={request.grade} />
+                  <DetailItem icon={<UserIcon size={18}/>} label="Report To" value={request.report_to} />
+                  
+                  {/* Info Kandidat */}
+                  <DetailItem icon={<UserIcon size={18}/>} label="Candidate Name" value={request.candidate_name || "N/A (New Position)"} />
+                  <DetailItem icon={<Hash size={18}/>} label="Employee No." value={request.employee_no} />
+                  
+                  {/* Tipe & Kontrak */}
+                  <DetailItem icon={<DollarSign size={18}/>} label="Budget Type" value={request.budget_type} />
+                  <DetailItem icon={<FileText size={18}/>} label="Agreement" value={request.employment_agreement} />
+                  <DetailItem icon={<CheckCircle size={18}/>} label="Staff Status" value={request.staff_status} />
+                  <DetailItem icon={<Target size={18}/>} label="Hired Type" value={request.hired_type} />
+                  <DetailItem icon={<MapPin size={18}/>} label="Point of Hire" value={request.point_of_hire} />
+                  <DetailItem icon={<UserIcon size={18}/>} label="Requester" value={request.requester_name} />
                 </div>
               </div>
 
-              {/* Justification & Attachment (tetap sama) */}
-              <div className="card-static rounded-xl p-6 bg-white border border-slate-200">
+              {/* Justification & Note */}
+              <div className="card-static rounded-xl p-6 bg-white border border-slate-200 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <FileText className="text-teal-600" size={24} />
-                  Justification
+                  Requirements / Notes / Justification
                 </h2>
-                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {request.justification || 'No justification provided'}
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-lg mt-3">
+                  {request.requirements_note || 'No notes or justification provided.'}
                 </p>
               </div>
             </div>
 
-            {/* Right Column - Approval Timeline & Actions */}
+            {/* Right Column - Attachment, Timeline & Actions */}
             <div className="space-y-6">
-              <div className="card-static rounded-xl p-6 bg-white border border-slate-200">
+              
+              {/* Attachment Card (Baru) */}
+              <div className="card-static rounded-xl p-6 bg-white border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Download className="text-teal-600" size={20} />
+                  Scan ATA Form
+                </h2>
+                {request.scan_ata_url ? (
+                  <a href={`${API_BASE_URL}${request.scan_ata_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors group">
+                    <div className="p-2 bg-white border border-slate-200 rounded-md shadow-sm group-hover:shadow"><FileText className="text-teal-600" size={20}/></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">Document_ATA</p>
+                      <p className="text-xs text-slate-500">Click to view/download</p>
+                    </div>
+                  </a>
+                ) : (
+                   <p className="text-sm text-slate-500 italic">No document attached.</p>
+                )}
+              </div>
+
+              {/* Timeline Card */}
+              <div className="card-static rounded-xl p-6 bg-white border border-slate-200 shadow-sm">
                 <h2 className="text-xl font-bold text-slate-900 mb-6">Approval Timeline</h2>
                 
-                {/* Timeline item HR, KTT, HO (logika warna tetap sama) */}
-                <div className="space-y-6">
+                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-slate-200">
                    {/* HR Item */}
-                   <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${request.hr_status === 'Approved' ? 'bg-green-500' : 'bg-yellow-500'}`}>
-                         {request.hr_status === 'Approved' ? <CheckCircle size={16} className="text-white"/> : <Clock size={16} className="text-white"/>}
+                   <div className="relative flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 border-white ${request.hr_status === 'Approved' ? 'bg-green-500' : request.hr_status === 'Rejected' ? 'bg-red-500' : 'bg-yellow-500'}`}>
+                         {request.hr_status === 'Approved' ? <CheckCircle size={16} className="text-white"/> : request.hr_status === 'Rejected' ? <XCircle size={16} className="text-white"/> : <Clock size={16} className="text-white"/>}
                       </div>
-                      <div>
+                      <div className="pb-2">
                          <p className="text-sm font-bold text-slate-900">HR Approval</p>
-                         <p className="text-xs text-slate-500">{request.hr_status}</p>
+                         <p className="text-xs text-slate-500 mb-1">{request.hr_status}</p>
+                         {request.hr_notes && <p className="text-xs text-slate-600 italic bg-slate-50 p-2 rounded">"{request.hr_notes}"</p>}
                       </div>
                    </div>
-                   {/* ... KTT & HO Items ... */}
+                   
+                   {/* KTT Item */}
+                   <div className="relative flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 border-white ${request.ktt_status === 'Approved' ? 'bg-green-500' : request.ktt_status === 'Rejected' ? 'bg-red-500' : 'bg-slate-200 text-slate-400'}`}>
+                         {request.ktt_status === 'Approved' ? <CheckCircle size={16} className="text-white"/> : request.ktt_status === 'Rejected' ? <XCircle size={16} className="text-white"/> : <Clock size={16} />}
+                      </div>
+                      <div className="pb-2">
+                         <p className="text-sm font-bold text-slate-900">KTT / Site Approval</p>
+                         <p className="text-xs text-slate-500 mb-1">{request.ktt_status}</p>
+                         {request.ktt_notes && <p className="text-xs text-slate-600 italic bg-slate-50 p-2 rounded">"{request.ktt_notes}"</p>}
+                      </div>
+                   </div>
+
+                   {/* HO Item */}
+                   <div className="relative flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 border-white ${request.ho_status === 'Approved' ? 'bg-green-500' : request.ho_status === 'Rejected' ? 'bg-red-500' : 'bg-slate-200 text-slate-400'}`}>
+                         {request.ho_status === 'Approved' ? <CheckCircle size={16} className="text-white"/> : request.ho_status === 'Rejected' ? <XCircle size={16} className="text-white"/> : <Clock size={16} />}
+                      </div>
+                      <div>
+                         <p className="text-sm font-bold text-slate-900">HO Approval</p>
+                         <p className="text-xs text-slate-500 mb-1">{request.ho_status}</p>
+                         {request.ho_notes && <p className="text-xs text-slate-600 italic bg-slate-50 p-2 rounded">"{request.ho_notes}"</p>}
+                      </div>
+                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons - TERAPKAN FILTER ROLE DISINI */}
+              {/* Action Buttons */}
               {nextApprover && request.status === 'Pending' && (
                 <div className="card-static rounded-xl p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-sm">
                   <h3 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
@@ -300,14 +350,14 @@ export default function ATARequestDetailPage() {
                   </h3>
 
                   {userRole === "HR" ? (
-                    // Tampilan jika user adalah HR: Tombol disembunyikan, tampilkan pesan info
+                    // Tampilan jika user adalah HR
                     <div className="bg-white/60 p-3 rounded-lg border border-blue-100">
                       <p className="text-xs text-blue-700 font-medium leading-relaxed">
                         ⚠️ Status Anda adalah <strong>HR Staff</strong>. Menunggu approval selanjutnya dari pihak terkait (KTT/HO) sesuai alur sistem.
                       </p>
                     </div>
                   ) : (
-                    // Tampilan jika user BUKAN HR (Admin): Tombol muncul
+                    // Tampilan jika user BUKAN HR
                     <div className="space-y-2">
                       <button
                         onClick={() => handleApproval(nextApprover, 'Approved')}

@@ -1,6 +1,6 @@
-// API Helper Functions for Recruitment Journey Tracking
+// src/lib/api/tracking.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'
 
 export interface JourneyLog {
   id: number
@@ -36,21 +36,26 @@ export interface UpdateStageResponse {
 }
 
 /**
- * Fetch candidate data to get application_id
- * 
-
+ * Helper untuk mengambil Token dari LocalStorage.
+ * Dibuat HANYA untuk mengatur Authorization (TIDAK mengatur Content-Type).
  */
-
-  const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("hr_token");
+const getAuthHeaders = (): HeadersInit => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem("hr_token") : null;
   return {
-    "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 };
 
+/**
+ * Fetch candidate data to get application_id
+ */
 export async function getCandidateApplications(candidateId: string): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}`, { headers: getAuthHeaders() })
+  const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}`, { 
+    headers: {
+      "Content-Type": "application/json", // ✅ Manual di sini untuk JSON
+      ...getAuthHeaders()
+    } 
+  })
   
   if (!response.ok) {
     throw new Error('Failed to fetch candidate data')
@@ -64,20 +69,19 @@ export async function getCandidateApplications(candidateId: string): Promise<any
  */
 export async function getJourneyTimeline(applicationId: string): Promise<JourneyTimeline> {
   const url = `${API_BASE_URL}/tracing/${applicationId}`
-  console.log('Fetching journey from:', url)
   
-  const response = await fetch(url, { headers: getAuthHeaders() })
-  console.log('Journey response status:', response.status)
+  const response = await fetch(url, { 
+    headers: {
+      "Content-Type": "application/json", // ✅ Manual di sini untuk JSON
+      ...getAuthHeaders()
+    } 
+  })
   
   if (!response.ok) {
-    const errorText = await response.text()
-    console.error('Journey error:', errorText)
     throw new Error('Failed to fetch journey timeline')
   }
   
-  const data = await response.json()
-  console.log('Journey response data:', data)
-  return data
+  return response.json()
 }
 
 /**
@@ -86,7 +90,10 @@ export async function getJourneyTimeline(applicationId: string): Promise<Journey
 export async function updateStage(data: UpdateStageRequest): Promise<UpdateStageResponse> {
   const response = await fetch(`${API_BASE_URL}/tracing/update-stage`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: {
+      "Content-Type": "application/json", // ✅ Manual di sini untuk JSON
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(data),
   })
   
@@ -100,7 +107,7 @@ export async function updateStage(data: UpdateStageRequest): Promise<UpdateStage
 }
 
 /**
- * Upload document for candidate
+ * Upload document for candidate (Offering, Ticket, MCU)
  */
 export async function uploadDocument(
   applicationId: string,
@@ -112,12 +119,15 @@ export async function uploadDocument(
   formData.append('file', file)
   formData.append('application_id', applicationId)
   formData.append('doc_type', docType)
+  
   if (notes) {
     formData.append('notes', notes)
   }
   
   const response = await fetch(`${API_BASE_URL}/tracing/upload-doc`, {
     method: 'POST',
+    // 🚨 PENTING: JANGAN pasang "Content-Type": "application/json" di sini. 
+    // Biarkan browser yang mengatur Content-Type menjadi multipart/form-data.
     headers: getAuthHeaders(),
     body: formData,
   })
