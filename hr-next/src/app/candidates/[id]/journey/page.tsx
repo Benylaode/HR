@@ -81,95 +81,97 @@ export default function CandidateJourneyPage() {
   
   // 2. PERUBAHAN DI SINI: Update Stage menggunakan toast.promise
   const handleStageUpdate = async () => {
-    if (!journey || !selectedStage) {
-      toast.warning('Peringatan', { description: 'Silakan pilih tahap (stage) terlebih dahulu' })
-      return
-    }
-    
-    if (isRejectionStage(selectedStage) && !notes.trim()) {
-      toast.warning('Peringatan', { description: 'Catatan/alasan wajib diisi untuk tahap penolakan' })
-      return
-    }
-    
-    setActionLoading(true)
-    
-    const updateTask = async () => {
-      try {
-        if (!journey?.application_id) {
-          throw new Error('ID Aplikasi tidak ditemukan')
-        }
-        
-        const result = await updateStage({
-          application_id: journey.application_id,
-          new_stage: selectedStage,
-          notes: notes.trim(),
-          actor_name: actorName
-        })
-        
-        if (result.whatsapp_link) {
-          setWhatsappLink(result.whatsapp_link)
-        }
-        
-        // Reset form
-        setSelectedStage('')
-        setNotes('')
-        
-        // Refresh journey
-        await fetchJourney()
-
-        return result.message || 'Tahap kandidat berhasil diperbarui!'
-      } finally {
-        setActionLoading(false)
+      if (!journey || !selectedStage) {
+        toast.warning('Peringatan', { description: 'Silakan pilih tahap (stage) terlebih dahulu' })
+        return
       }
-    }
+      
+      if (isRejectionStage(selectedStage) && !notes.trim()) {
+        toast.warning('Peringatan', { description: 'Catatan/alasan wajib diisi untuk tahap penolakan' })
+        return
+      }
+      
+      setActionLoading(true)
+      
+      const updateTask = async () => {
+        try {
+          if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
+          
+          const result = await updateStage({
+            application_id: journey.application_id,
+            new_stage: selectedStage,
+            notes: notes.trim(),
+            actor_name: actorName
+          })
+          
+          // --- FITUR BUKA TAB WA OTOMATIS ---
+          if (result.whatsapp_link) {
+            setWhatsappLink(result.whatsapp_link)
+            // Membuka tab WhatsApp Web secara otomatis
+            window.open(result.whatsapp_link, '_blank')
+          }
+          
+          // Reset form
+          setSelectedStage('')
+          setNotes('')
+          
+          // Refresh journey
+          await fetchJourney()
 
-    toast.promise(updateTask(), {
-      loading: 'Memperbarui tahap kandidat...',
-      success: (msg) => msg,
-      error: (err) => err.message || 'Gagal memperbarui tahap.',
-    })
-  }
+          return result.message || 'Tahap kandidat berhasil diperbarui!'
+        } finally {
+          setActionLoading(false)
+        }
+      }
+
+      toast.promise(updateTask(), {
+        loading: 'Memperbarui tahap...',
+        success: (msg) => msg,
+        error: (err) => err.message || 'Gagal memperbarui tahap.',
+      })
+    }
   
   // 3. PERUBAHAN DI SINI: Upload Dokumen menggunakan toast.promise
   const handleDocumentUpload = async () => {
-    if (!docFile) {
-      toast.warning('Peringatan', { description: 'Silakan pilih file dokumen terlebih dahulu' })
-      return
-    }
-    
-    setUploadLoading(true)
-
-    const uploadTask = async () => {
-      try {
-        if (!journey?.application_id) {
-          throw new Error('ID Aplikasi tidak ditemukan')
-        }
-        
-        const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
-        
-        if (result.whatsapp_link) {
-          setWhatsappLink(result.whatsapp_link)
-        }
-        
-        // Reset form
-        setDocFile(null)
-        setUploadNotes('')
-        
-        // Refresh journey
-        await fetchJourney()
-
-        return result.message || 'Dokumen berhasil diunggah!'
-      } finally {
-        setUploadLoading(false)
+      if (!docFile) {
+        toast.warning('Peringatan', { description: 'Silakan pilih file dokumen terlebih dahulu' })
+        return
       }
-    }
+      
+      setUploadLoading(true)
 
-    toast.promise(uploadTask(), {
-      loading: 'Mengunggah dokumen ke server...',
-      success: (msg) => msg,
-      error: (err) => err.message || 'Gagal mengunggah dokumen.',
-    })
-  }
+      const uploadTask = async () => {
+        try {
+          if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
+          
+          const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
+          
+          // --- FITUR BUKA TAB WA OTOMATIS UNTUK DOKUMEN ---
+          if (result.whatsapp_link) {
+            setWhatsappLink(result.whatsapp_link)
+            // Membuka tab WhatsApp Web secara otomatis
+            window.open(result.whatsapp_link, '_blank')
+          }
+          
+          // Reset form
+          setDocFile(null)
+          setUploadNotes('')
+          
+          // Refresh journey
+          await fetchJourney()
+
+          return result.message || 'Dokumen berhasil diunggah!'
+        } finally {
+          setUploadLoading(false)
+        }
+      }
+
+      toast.promise(uploadTask(), {
+        loading: 'Mengunggah dokumen...',
+        success: (msg) => msg,
+        error: (err) => err.message || 'Gagal mengunggah dokumen.',
+      })
+    }
   
   // 4. PERUBAHAN DI SINI: Menyalin Link WhatsApp menggunakan toast.success
   const copyWhatsAppLink = () => {

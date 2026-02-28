@@ -8,6 +8,7 @@ from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
 from app.utils.whatsapp_helper import generate_wa_link
+from app.utils.email_helper import send_email_auto
 
 # Inisialisasi Blueprint
 tracing_bp = Blueprint("tracing", __name__, url_prefix="/tracing")
@@ -260,6 +261,7 @@ def update_stage():
 
     # 7. Generate WhatsApp Link (Kecuali tahap internal seperti HR Review)
     wa_link = None
+    email_sent_status = False
     if app.candidate:
         # Filter tahap yang perlu notif ke kandidat
         if new_stage_enum not in [RecruitmentStage.HR_REVIEW, RecruitmentStage.RANKING]:
@@ -269,11 +271,19 @@ def update_stage():
                 stage=new_stage_enum.value,
                 additional_info=notes
             )
+            email_sent_status = send_email_auto(
+                candidate_email=app.candidate.email, # Pastikan model Candidate punya kolom email
+                candidate_name=app.candidate.name,
+                stage=new_stage_enum.value,
+                job_title=app.job.title,
+                notes=notes
+            )
 
     return jsonify({
         "message": f"Berhasil memindahkan kandidat ke {new_stage_enum.value}",
         "current_stage": new_stage_enum.value,
         "whatsapp_link": wa_link,
+        "email_sent": email_sent_status,
         "timestamp": datetime.now().isoformat()
     })
 

@@ -163,22 +163,38 @@ export default function ManualRegistrationPage() {
         <form onSubmit={handleSubmit} className="p-10 space-y-12">
           
           {/* TIPE & LOWONGAN */}
-          <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-sm grid md:grid-cols-2 gap-8">
-               <div>
-                  <label className={labelClass}>Tipe Pendaftaran *</label>
-                  <select value={submissionType} onChange={(e) => setSubmissionType(e.target.value as any)} className={inputClass}>
-                    <option value="candidate">Kandidat Baru (Pelamar Eksternal)</option>
-                    <option value="employee">Karyawan (Data Internal / Mutasi)</option>
-                  </select>
-               </div>
-               <div>
-                  <label className={labelClass}>Posisi Utama Yang Dilamar *</label>
-                  <select name="job_id" required={submissionType === "candidate"} value={form.job_id} onChange={handleTextChange} className={`${inputClass} font-bold text-blue-800 border-blue-200`}>
-                    <option value="">-- Pilih Lowongan Tersedia --</option>
-                    {jobs.map((job) => (<option key={job.id} value={job.id}>{job.title}</option>))}
-                  </select>
-               </div>
-          </div>
+    <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-sm grid md:grid-cols-2 gap-8">
+      <div>
+          <label className={labelClass}>Tipe Pendaftaran *</label>
+          <select value={submissionType} onChange={(e) => setSubmissionType(e.target.value as any)} className={inputClass}>
+            <option value="candidate">Kandidat Baru (Pelamar Eksternal)</option>
+            <option value="employee">Karyawan (Data Internal / Mutasi)</option>
+          </select>
+      </div>
+   
+   {/* Jika Pelamar Eksternal, tampilkan lowongan aktif */}
+   {submissionType === "candidate" ? (
+     <div>
+        <label className={labelClass}>Posisi Utama Yang Dilamar *</label>
+        <select name="job_id" required value={form.job_id} onChange={handleTextChange} className={`${inputClass} font-bold text-blue-800 border-blue-200`}>
+          <option value="">-- Pilih Lowongan Tersedia --</option>
+          {jobs.map((job) => (<option key={job.id} value={job.id}>{job.title}</option>))}
+        </select>
+     </div>
+          ) : (
+            <div>
+                <label className={labelClass}>Posisi Anda Saat Ini *</label>
+                <input 
+                  type="text" 
+                  name="currentPosition" 
+                  required 
+                  placeholder="Cth: Staff IT / Supervisor HRD" 
+                  className={inputClass} 
+                  onChange={handleTextChange} 
+                />
+            </div>
+          )}
+        </div>
 
           {/* 1. BIODATA PRIBADI */}
           <section>

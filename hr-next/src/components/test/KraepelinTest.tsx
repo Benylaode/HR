@@ -12,10 +12,11 @@ interface KraepelinTestProps {
     rows: number;
     durationPerColumn: number;
   };
-  forceSubmit: boolean; // <--- 1. TAMBAHKAN INI
+  forceSubmit: boolean;
   manualSubmit: boolean;
 }
-  const BE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
+const BE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 export default function KraepelinTest({
   timeRemaining,
@@ -33,8 +34,6 @@ export default function KraepelinTest({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const answersRef = useRef<any>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
 
   useEffect(() => {
     const newGrid = generateKraepelinGrid(dbConfig.columns, dbConfig.rows);
@@ -61,7 +60,6 @@ export default function KraepelinTest({
     }
   }, [manualSubmit]);
 
-
   useEffect(() => {
     if (!grid.length) return;
     setColumnTimeLeft(dbConfig.durationPerColumn);
@@ -80,21 +78,16 @@ export default function KraepelinTest({
     }
   }, [columnTimeLeft]);
 
-  // --- NAVIGATION & INPUT ---
-
-// ... (kode di atas tetap sama)
+  // --- SUBMIT LOGIC ---
   const submitTest = async () => {
-      // Cegah submit ganda
       if (isSubmitting) return; 
       setIsSubmitting(true);
 
       const finalAnswers = answersRef.current;
       const finalGrid = grid; 
 
-      // Hitung skor di Client (Frontend)
       const analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
       try {
-        // Ambil token dari URL
         const pathSegments = window.location.pathname.split('/'); 
         const token = pathSegments[pathSegments.length - 1]; 
 
@@ -110,10 +103,10 @@ export default function KraepelinTest({
 
         if (response.ok) {
            const data = await response.json();
-           onComplete(data); // Lapor ke Parent bahwa selesai
+           onComplete(data); 
         } else {
            alert("Gagal menyimpan. Coba lagi.");
-           setIsSubmitting(false); // Reset agar bisa coba lagi
+           setIsSubmitting(false); 
         }
       } catch (error) {
         console.error("Error submitting:", error);
@@ -122,15 +115,13 @@ export default function KraepelinTest({
   };
 
   const submitDataToBackend = async () => {
-      if (isSubmitting) return; // Cegah double submit
+      if (isSubmitting) return; 
       setIsSubmitting(true);
 
       const finalAnswers = answersRef.current;
-      const finalGrid = grid; // pastikan state grid diambil
+      const finalGrid = grid; 
 
-      // Hitung skor apa adanya
       const analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
-
 
       try {
         const pathSegments = window.location.pathname.split('/'); 
@@ -151,7 +142,7 @@ export default function KraepelinTest({
            onComplete(data);
         } else {
            alert("Gagal menyimpan hasil.");
-           setIsSubmitting(false); // Reset jika gagal agar bisa coba lagi (opsional)
+           setIsSubmitting(false); 
         }
       } catch (error) {
         console.error("Error submitting:", error);
@@ -159,20 +150,19 @@ export default function KraepelinTest({
       }
   };
 
-useEffect(() => {
+  useEffect(() => {
     if (forceSubmit && !isSubmitting) {
         submitDataToBackend();
     }
-  }, [forceSubmit]); // Akan jalan otomatis jika forceSubmit berubah jadi true
+  }, [forceSubmit]); 
 
-  // --- 5. UPDATE handleMoveToNextColumn ---
+  // --- NAVIGATION & INPUT ---
   const handleMoveToNextColumn = async () => {
     if (currentColumn < dbConfig.columns - 1) {
       setCurrentColumn((prev) => prev + 1);
       setActiveInputIndex(dbConfig.rows - 2); 
       setCurrentInputValue("");
     } else {
-      // Jika sudah kolom terakhir selesai, panggil fungsi submit yang baru
       submitDataToBackend(); 
     }
   };
@@ -199,14 +189,25 @@ useEffect(() => {
     handleMoveToNextColumn();
   };
 
+  // --- PERBAIKAN: SCROLL LOGIC DENGAN OFFSET ---
   useEffect(() => {
     inputRef.current?.focus();
-    // Scroll Active Input ke tengah layar (Vertikal)
+    
     const activeInputEl = document.getElementById(`input-row-${currentColumn}-${activeInputIndex}`);
+    
     if (activeInputEl) {
-       activeInputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+       // Targetkan scroll ke 3 kotak di bawah posisi aktif agar input tidak tertutup
+       const offsetIndex = activeInputIndex + 3; 
+       const targetEl = document.getElementById(`input-row-${currentColumn}-${offsetIndex}`);
+       
+       if (targetEl) {
+           targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+       } else {
+           // Fallback jika sudah berada di deretan paling bawah
+           activeInputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+       }
     } else {
-       // Fallback ke kolom jika input belum ada (awal load)
+       // Fallback ke awal kolom
        const colEl = document.getElementById(`col-container-${currentColumn}`);
        colEl?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     }
@@ -222,7 +223,6 @@ useEffect(() => {
 
   const progressPercent = ((dbConfig.durationPerColumn - columnTimeLeft) / dbConfig.durationPerColumn) * 100;
 
-  // Gunakan h-screen minus header/footer agar fit di layar tanpa scroll window utama
   return (
     <div className="max-w-[95vw] mx-auto h-[calc(100vh-100px)] flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
        {/* HEADER */}
@@ -233,7 +233,7 @@ useEffect(() => {
               <Play className="text-blue-600 fill-blue-600" size={20} /> Tes Kraepelin
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              Jumlahkan dua angka vertikal bla bala bla, ketik digit terakhirnya.
+              Jumlahkan dua angka vertikal, ketik digit terakhirnya.
             </p>
           </div>
           
@@ -277,8 +277,9 @@ useEffect(() => {
             </div>
         </div>
       </div>
+      
+      {/* AREA KOTAK TES */}
       <div className="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 relative custom-scrollbar">
-
         <div className="flex gap-2 min-w-max h-full px-4 py-8 items-start">
             {grid.map((colData, colIndex) => {
                 const isCurrentCol = colIndex === currentColumn;
@@ -288,7 +289,8 @@ useEffect(() => {
                         key={colIndex} 
                         id={`col-container-${colIndex}`}
                         className={`
-                            flex flex-col items-center flex-shrink-0 transition-all duration-300 pb-10
+                            flex flex-col items-center flex-shrink-0 transition-all duration-300
+                            pb-[40vh] /* PERBAIKAN: Padding bawah besar agar tidak stuck di mentok layar bawah */
                             ${isCurrentCol ? 'opacity-100 scale-100 z-10' : 'opacity-40 scale-95 grayscale'}
                         `}
                         style={{ width: '64px' }}
