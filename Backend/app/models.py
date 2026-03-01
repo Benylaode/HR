@@ -16,45 +16,6 @@ def format_date(dt):
 def now_utc():
     return datetime.now(timezone.utc)
 
-class ProfileMixin(object):
-    # 1) Biodata [cite: 39-47]
-    full_name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, index=True, nullable=False)
-    gender = db.Column(db.String(20))
-    whatsapp = db.Column(db.String(50))
-    birth_date = db.Column(db.Date)
-    domicile_province = db.Column(db.String(100))
-    domicile_city = db.Column(db.String(100))
-    total_experience = db.Column(db.String(50)) # Format: X Tahun X Bulan
-    
-    # 2) Pendidikan [cite: 48-57]
-    degree = db.Column(db.String(50)) # Gelar
-    major = db.Column(db.String(150)) # Jurusan
-    study_program = db.Column(db.String(150)) # Program Studi
-    university = db.Column(db.String(150)) # Nama Institusi
-    edu_city = db.Column(db.String(100))
-    gpa = db.Column(db.String(20)) # Format: X dari 4
-    start_year = db.Column(db.String(4))
-    grad_year = db.Column(db.String(4))
-    
-    # 3) Keahlian & Organisasi (Opsional) [cite: 58-74]
-    trainings = db.Column(JSONB, default=list) # Array of objects
-    organizations = db.Column(JSONB, default=list) # Array of objects
-    
-    # 4) Pengalaman & Minat Kerja [cite: 75-99]
-    work_experiences = db.Column(JSONB, default=list) # Array of objects
-    internships = db.Column(JSONB, default=list) # Array of objects
-    applied_position_1 = db.Column(db.String(150))
-    applied_position_2 = db.Column(db.String(150))
-    notice_period = db.Column(db.String(50))
-    expected_salary = db.Column(db.BigInteger)
-    
-    # 5) Lain-Lain [cite: 100-124]
-    references = db.Column(JSONB, default=list)
-    relatives = db.Column(JSONB, default=list)
-    social_media = db.Column(JSONB, default=dict) # Object berisi IG, LinkedIn, dll.
-
-    created_at = db.Column(db.DateTime, default=now_utc)
 
 class RecruitmentStage(enum.Enum):
     CV_SCREENING    = "CV Screening"
@@ -215,39 +176,59 @@ class Resume(db.Model):
 # ==========================================
 class ProfileMixin(object):
     """
-    Mixin ini berisi field form yang sama persis antara Kandidat dan Karyawan,
-    mengacu pada EmployeeCVForm.tsx.
+    Mixin gabungan untuk data diri Kandidat dan Karyawan.
+    Mendukung form kompleks (JSONB) dan form sederhana (Text/String).
     """
+    # 1) Biodata Utama
     full_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, index=True, nullable=False)
-    whatsapp = db.Column(db.String(50))
     gender = db.Column(db.String(20))
-    religion = db.Column(db.String(50))
-    birth_place = db.Column(db.String(100))
+    whatsapp = db.Column(db.String(50))
     birth_date = db.Column(db.Date)
+    birth_place = db.Column(db.String(100))
+    religion = db.Column(db.String(50))
     driver_license = db.Column(db.String(50))
+    
+    # 2) Alamat & Domisili
     address = db.Column(db.Text)
-    city = db.Column(db.String(100))
-    province = db.Column(db.String(100))
+    city = db.Column(db.String(100)) # Bisa dipakai untuk domicile_city
+    province = db.Column(db.String(100)) # Bisa dipakai untuk domicile_province
     
-    # Riwayat Pendidikan
-    education = db.Column(db.Text)
-    university = db.Column(db.String(150))
-    major = db.Column(db.String(150))
-    gpa = db.Column(db.String(10))
-    social_media = db.Column(db.Text)
+    # 3) Pendidikan (Flat & Detail)
+    education = db.Column(db.Text) # Untuk input flat text
+    degree = db.Column(db.String(50)) 
+    major = db.Column(db.String(150)) 
+    study_program = db.Column(db.String(150)) 
+    university = db.Column(db.String(150)) 
+    gpa = db.Column(db.String(20)) 
+    start_year = db.Column(db.String(4))
+    grad_year = db.Column(db.String(4))
     
-    # Pengalaman Kerja Terakhir
+    # 4) Pengalaman Kerja (Flat) - Dari versi Karyawan
     position_applied = db.Column(db.String(100))
     last_company = db.Column(db.String(150))
     last_position = db.Column(db.String(150))
     last_position_level = db.Column(db.String(100))
     last_company_field = db.Column(db.String(100))
-    total_experience_years = db.Column(db.String(50)) # Sesuai form (string input)
+    total_experience_years = db.Column(db.String(50)) 
     experience_description = db.Column(db.Text)
+    
+    # 5) Pengalaman & Minat Kerja Detail (Array/JSON) - Dari versi Kandidat
+    applied_position_1 = db.Column(db.String(150))
+    applied_position_2 = db.Column(db.String(150))
+    notice_period = db.Column(db.String(50))
+    expected_salary = db.Column(db.BigInteger)
+    work_experiences = db.Column(JSONB, default=list) 
+    internships = db.Column(JSONB, default=list) 
+    
+    # 6) Keahlian, Organisasi & Lain-lain (JSONB)
+    trainings = db.Column(JSONB, default=list) 
+    organizations = db.Column(JSONB, default=list) 
+    references = db.Column(JSONB, default=list)
+    relatives = db.Column(JSONB, default=list)
+    social_media = db.Column(JSONB, default=dict) # Bisa string/JSON
 
     created_at = db.Column(db.DateTime, default=now_utc)
-
 # ==========================================
 # 4. CANDIDATE, EMPLOYEE & RESUME
 # ==========================================

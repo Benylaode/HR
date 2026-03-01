@@ -5,7 +5,7 @@ from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 from app import db
-from app.models import Candidate, JobApplication, RecruitmentJourney, RecruitmentStage
+from app.models import Candidate, JobApplication, RecruitmentJourney, RecruitmentStage, JourneyLog
 from datetime import datetime
 
 candidates_bp = Blueprint("candidates", __name__, url_prefix="/candidates")
@@ -54,28 +54,33 @@ def candidate_to_dict(candidate: Candidate):
             "id": candidate.id,
             "resume_id": candidate.resume_id, 
             
-            # 1. Biodata (Disesuaikan dengan ProfileMixin di models.py)
+            # 1. Biodata (Disesuaikan dengan ProfileMixin Gabungan di models.py)
             "fullName": candidate.full_name,
             "email": candidate.email,
             "whatsapp": candidate.whatsapp,
             "gender": candidate.gender,
             "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
-            "domicileProvince": candidate.province, # Di model: province
-            "domicileCity": candidate.city,         # Di model: city
-            "totalExperience": candidate.total_experience_years, # Di model: total_experience_years
+            "domicileProvince": candidate.province,  # Menggunakan province
+            "domicileCity": candidate.city,          # Menggunakan city
+            "totalExperience": candidate.total_experience_years, # Menggunakan total_experience_years
             
             # 2. Pendidikan
-            "degree": candidate.education, # Mapping ke field education di mixin
+            "degree": candidate.degree, # Menggunakan degree
             "major": candidate.major,
+            "studyProgram": candidate.study_program,
             "university": candidate.university,
             "gpa": candidate.gpa,
             
-            # 3. Data JSONB (Jika masih menggunakan field lama, pastikan kolomnya ada di DB)
-            # Note: Mixin baru Anda lebih banyak menggunakan field Text/String sederhana
+            # 3. Data JSONB (Dikembalikan agar FE bisa render profil lengkap)
             "socialMedia": candidate.social_media or {},
+            "workExperiences": candidate.work_experiences or [],
+            "trainings": candidate.trainings or [],
+            "organizations": candidate.organizations or [],
+            "internships": candidate.internships or [],
             
             # 4. Ekspektasi & Jabatan
-            "appliedPosition1": candidate.position_applied, # Di model: position_applied
+            "appliedPosition1": candidate.applied_position_1, 
+            "appliedPosition2": candidate.applied_position_2,
             
             # Metadata Table View
             "top_position": top_position,
@@ -99,7 +104,7 @@ def candidate_to_dict(candidate: Candidate):
 
 @candidates_bp.route("", methods=["POST"])
 def create_candidate():
-    # Karena Frontend sekarang menggunakan FormData (ada file CV), kita harus parsing dari form
+    # Parsing dari form data (Mendukung CV fisik dan JSON berbarengan)
     if request.content_type and request.content_type.startswith('multipart/form-data'):
         data_str = request.form.get('data')
         try:
@@ -107,7 +112,7 @@ def create_candidate():
         except Exception:
             return jsonify({"error": "Invalid JSON format in 'data' field"}), 400
     else:
-        # Fallback jika dikirim murni via JSON (meski akan gagal mengunggah CV fisik)
+        # Fallback via JSON murni
         data = request.get_json(force=True, silent=True) or {}
 
     # Handle Upload CV Fisik
@@ -125,8 +130,9 @@ def create_candidate():
         if data.get("birthDate"):
             birth_date = datetime.strptime(data["birthDate"], "%Y-%m-%d").date()
 
+        # Mapping sesuai dengan ProfileMixin Gabungan
         candidate = Candidate(
-            resume_id=cv_path, # Simpan path URL file CV ke resume_id
+            resume_id=cv_path,
             
             # Biodata
             full_name=data.get("fullName"),
@@ -134,16 +140,15 @@ def create_candidate():
             whatsapp=data.get("whatsapp"),
             gender=data.get("gender"),
             birth_date=birth_date,
-            domicile_province=data.get("domicileProvince"),
-            domicile_city=data.get("domicileCity"),
-            total_experience=data.get("totalExperience"),
+            province=data.get("domicileProvince"), # Dipetakan ke province
+            city=data.get("domicileCity"),         # Dipetakan ke city
+            total_experience_years=data.get("totalExperience"), # Dipetakan ke total_experience_years
             
             # Pendidikan
             degree=data.get("degree"),
             major=data.get("major"),
             study_program=data.get("studyProgram"),
             university=data.get("university"),
-            edu_city=data.get("eduCity"),
             gpa=data.get("gpa"),
             start_year=data.get("startYear"),
             grad_year=data.get("gradYear"),
@@ -165,7 +170,7 @@ def create_candidate():
         )
 
         db.session.add(candidate)
-        db.session.flush() # Ambil ID kandidat sebelum full commit
+        db.session.flush() # Ambil ID kandidat sebelum commit
 
         # 🚀 AUTO ASSIGN JOB POSITION & PIPELINE 🚀
         job_id = data.get("job_id")
@@ -178,13 +183,25 @@ def create_candidate():
             db.session.add(application)
             db.session.flush()
 
-            # Buat recruitment journey (Tracking pertama kali: Masuk tahapan CV Screening)
+            # Buat recruitment journey
             journey = RecruitmentJourney(
                 application_id=application.id,
                 current_stage=RecruitmentStage.CV_SCREENING,
                 stage_data={}
             )
             db.session.add(journey)
+            db.session.flush() # Flush agar journey.id didapatkan
+
+            # Buat LOG PERTAMA agar timeline FE tidak kosong/error
+            initial_log = JourneyLog(
+                journey_id=journey.id,
+                previous_stage=None,
+                new_stage=RecruitmentStage.CV_SCREENING.value,
+                action="Journey started - CV Screening",
+                notes="Candidate application received.",
+                actor_name="System"
+            )
+            db.session.add(initial_log)
 
         db.session.commit()
 
@@ -232,11 +249,12 @@ def update_candidate(candidate_id):
 
     data = request.get_json()
     
+    # Penyesuaian Update dengan Field Baru
     if "fullName" in data: candidate.full_name = data["fullName"]
     if "email" in data: candidate.email = data["email"]
     if "whatsapp" in data: candidate.whatsapp = data["whatsapp"]
-    if "domicileCity" in data: candidate.domicile_city = data["domicileCity"]
-    if "totalExperience" in data: candidate.total_experience = data["totalExperience"]
+    if "domicileCity" in data: candidate.city = data["domicileCity"] # Disesuaikan
+    if "totalExperience" in data: candidate.total_experience_years = data["totalExperience"] # Disesuaikan
 
     try:
         db.session.commit()
