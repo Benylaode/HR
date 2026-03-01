@@ -8,7 +8,7 @@ from app.models import (
 from sqlalchemy.exc import IntegrityError
 import numpy as np
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone  # <-- timezone ditambahkan di sini
 from werkzeug.utils import secure_filename
 import uuid
 from app.models import now_utc # Import now_utc untuk waktu expired link
@@ -129,9 +129,13 @@ def check_token(token):
     if link.status != 'active':
         return jsonify({"error": "Link sudah tidak aktif"}), 403
         
-    # Validasi Expired
-    if link.expires_at and now_utc() > link.expires_at:
-        return jsonify({"error": "Link tes sudah kedaluwarsa"}), 403
+    # Validasi Expired (DIPERBAIKI ZONA WAKTUNYA)
+    if link.expires_at:
+        # Konversi expires_at menjadi timezone-aware UTC jika belum
+        expires_at_aware = link.expires_at.replace(tzinfo=timezone.utc) if link.expires_at.tzinfo is None else link.expires_at
+        
+        if now_utc() > expires_at_aware:
+            return jsonify({"error": "Link tes sudah kedaluwarsa"}), 403
         
     submissions = TestSubmission.query.filter_by(link_id=link.id).all()
     completed_tests = [sub.test_type for sub in submissions] 
