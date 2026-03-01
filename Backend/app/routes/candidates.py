@@ -212,6 +212,9 @@ def create_candidate():
 
     except IntegrityError as e:
         db.session.rollback()
+        print("====== INTEGRITY ERROR ======")
+        print(str(e.orig)) 
+        print("=============================")
         return jsonify({"error": "Pendaftaran gagal. Email kemungkinan sudah digunakan sebelumnya."}), 400
     except Exception as e:
         db.session.rollback()
