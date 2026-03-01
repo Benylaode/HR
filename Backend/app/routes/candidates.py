@@ -5,7 +5,7 @@ from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 from app import db
-from app.models import Candidate, JobApplication, RecruitmentJourney, RecruitmentStage, JourneyLog
+from app.models import Candidate, JobApplication, RecruitmentJourney, RecruitmentStage, JourneyLog, Resume
 from datetime import datetime
 
 candidates_bp = Blueprint("candidates", __name__, url_prefix="/candidates")
@@ -37,7 +37,7 @@ def restrict_access_by_role():
     # Hanya SUPER_USER yang boleh menghapus atau mengedit
     if role != "SUPER_USER":
         return jsonify({"status": 403, "message": "Access denied"}), 403
-    
+
 
 def candidate_to_dict(candidate: Candidate):
     # Logika untuk mencari status aplikasi terbaru kandidat
@@ -51,56 +51,57 @@ def candidate_to_dict(candidate: Candidate):
     test_status = candidate.test_link.status.capitalize() if candidate.test_link else "Pending"
 
     return {
-            "id": candidate.id,
-            "resume_id": candidate.resume_id, 
-            
-            # 1. Biodata (Disesuaikan dengan ProfileMixin Gabungan di models.py)
-            "fullName": candidate.full_name,
-            "email": candidate.email,
-            "whatsapp": candidate.whatsapp,
-            "gender": candidate.gender,
-            "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
-            "domicileProvince": candidate.province,  # Menggunakan province
-            "domicileCity": candidate.city,          # Menggunakan city
-            "totalExperience": candidate.total_experience_years, # Menggunakan total_experience_years
-            
-            # 2. Pendidikan
-            "degree": candidate.degree, # Menggunakan degree
-            "major": candidate.major,
-            "studyProgram": candidate.study_program,
-            "university": candidate.university,
-            "gpa": candidate.gpa,
-            
-            # 3. Data JSONB (Dikembalikan agar FE bisa render profil lengkap)
-            "socialMedia": candidate.social_media or {},
-            "workExperiences": candidate.work_experiences or [],
-            "trainings": candidate.trainings or [],
-            "organizations": candidate.organizations or [],
-            "internships": candidate.internships or [],
-            
-            # 4. Ekspektasi & Jabatan
-            "appliedPosition1": candidate.applied_position_1, 
-            "appliedPosition2": candidate.applied_position_2,
-            
-            # Metadata Table View
-            "top_position": top_position,
-            "match_score": match_score,
-            "status": status,
-            "test_status": test_status,
-            
-            "applications": [
-                {
-                    "id": app.id,
-                    "job_id": app.job_id,
-                    "job_title": app.job.title if app.job else None,
-                    "match_score": app.match_score,
-                    "status": app.status
-                } 
-                for app in candidate.applications
-            ] if candidate.applications else [],
+        "id": candidate.id,
+        "resume_id": candidate.resume_id, 
+        
+        # 1. Biodata (Disesuaikan dengan ProfileMixin Gabungan di models.py)
+        "fullName": candidate.full_name,
+        "email": candidate.email,
+        "whatsapp": candidate.whatsapp,
+        "gender": candidate.gender,
+        "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
+        "domicileProvince": candidate.province,  # Sesuai field mixin baru
+        "domicileCity": candidate.city,          # Sesuai field mixin baru
+        "totalExperience": candidate.total_experience_years, # Sesuai field mixin baru
+        
+        # 2. Pendidikan
+        "degree": candidate.degree,
+        "major": candidate.major,
+        "studyProgram": candidate.study_program,
+        "university": candidate.university,
+        "gpa": candidate.gpa,
+        
+        # 3. Data JSONB (Dikembalikan agar FE bisa render profil lengkap)
+        "socialMedia": candidate.social_media or {},
+        "workExperiences": candidate.work_experiences or [],
+        "trainings": candidate.trainings or [],
+        "organizations": candidate.organizations or [],
+        "internships": candidate.internships or [],
+        
+        # 4. Ekspektasi & Jabatan
+        "appliedPosition1": candidate.applied_position_1, 
+        "appliedPosition2": candidate.applied_position_2,
+        
+        # Metadata Table View
+        "top_position": top_position,
+        "match_score": match_score,
+        "status": status,
+        "test_status": test_status,
+        
+        "applications": [
+            {
+                "id": app.id,
+                "job_id": app.job_id,
+                "job_title": app.job.title if app.job else None,
+                "match_score": app.match_score,
+                "status": app.status
+            } 
+            for app in candidate.applications
+        ] if candidate.applications else [],
 
-            "created_at": candidate.created_at.isoformat() if candidate.created_at else None
-        }
+        "created_at": candidate.created_at.isoformat() if candidate.created_at else None
+    }
+
 
 @candidates_bp.route("", methods=["POST"])
 def create_candidate():
@@ -115,8 +116,8 @@ def create_candidate():
         # Fallback via JSON murni
         data = request.get_json(force=True, silent=True) or {}
 
-    # Handle Upload CV Fisik
-    cv_path = None
+    # Handle Upload CV Fisik dan Pembuatan Data Resume
+    resume_record_id = None
     if 'cv_file' in request.files:
         file = request.files['cv_file']
         if file and file.filename:
@@ -124,6 +125,13 @@ def create_candidate():
             save_path = os.path.join(UPLOAD_CV_FOLDER, filename)
             file.save(save_path)
             cv_path = f"/static/uploads/cv/{filename}"
+            
+            # Buat record di tabel resumes dulu agar dapat ID
+            new_resume = Resume(filename=cv_path)
+            db.session.add(new_resume)
+            db.session.flush() # Eksekusi agar ID-nya di-generate oleh database
+            
+            resume_record_id = new_resume.id # Ambil ID resume tersebut
 
     try:
         birth_date = None
@@ -132,7 +140,7 @@ def create_candidate():
 
         # Mapping sesuai dengan ProfileMixin Gabungan
         candidate = Candidate(
-            resume_id=cv_path,
+            resume_id=resume_record_id, # Masukkan ID resume (Foreign Key), bukan String Path
             
             # Biodata
             full_name=data.get("fullName"),
@@ -212,10 +220,11 @@ def create_candidate():
 
     except IntegrityError as e:
         db.session.rollback()
+        # Cetak error ke terminal jika ada pelanggaran Constraint lain (opsional, sangat membantu debugging)
         print("====== INTEGRITY ERROR ======")
         print(str(e.orig)) 
         print("=============================")
-        return jsonify({"error": "Pendaftaran gagal. Email kemungkinan sudah digunakan sebelumnya."}), 400
+        return jsonify({"error": "Pendaftaran gagal. Data tidak lengkap atau email sudah digunakan."}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
@@ -256,7 +265,7 @@ def update_candidate(candidate_id):
     if "fullName" in data: candidate.full_name = data["fullName"]
     if "email" in data: candidate.email = data["email"]
     if "whatsapp" in data: candidate.whatsapp = data["whatsapp"]
-    if "domicileCity" in data: candidate.city = data["domicileCity"] # Disesuaikan
+    if "domicileCity" in data: candidate.city = data["domicileCity"] # Disesuaikan ke field 'city'
     if "totalExperience" in data: candidate.total_experience_years = data["totalExperience"] # Disesuaikan
 
     try:
