@@ -353,7 +353,8 @@ class CfitQuestion(db.Model):
     instruction = db.Column(db.Text)
     image_url = db.Column(db.String(255))
     options = db.Column(db.String(255))
-    correct_answer = db.Column(db.Integer)
+    # correct_answer = db.Column(db.Integer)
+    correct_answer = db.Column(db.String(50))
     order = db.Column(db.Integer)
 
 class CfitNorma(db.Model):

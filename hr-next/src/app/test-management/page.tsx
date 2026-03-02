@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { toast } from "sonner"; // <-- 1. IMPORT SONNER
+import { toast } from "sonner";
 import {
   CheckCircle,
   Plus,
@@ -112,10 +112,10 @@ const STATIC_CATEGORIES: Category[] = [
 ];
 
 const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
-  { id: 1, name: "Series Completion", code: "cfit_series", description: "Melengkapi pola urutan", instruction: "Tentukan pola yang melengkapi urutan gambar berikut.", optionCount: 6, questions: [] },
-  { id: 2, name: "Classification", code: "cfit_classification", description: "Klasifikasi objek", instruction: "Temukan gambar yang tidak termasuk dalam kelompok.", optionCount: 5, questions: [] },
-  { id: 3, name: "Matrices", code: "cfit_matrices", description: "Melengkapi matriks", instruction: "Lengkapi matriks dengan memilih gambar yang tepat.", optionCount: 6, questions: [] },
-  { id: 4, name: "Conditions", code: "cfit_conditions", description: "Kondisi dan aturan", instruction: "Berdasarkan kondisi yang diberikan, tentukan jawaban yang tepat.", optionCount: 5, questions: [] },
+  { id: 1, name: "Subtes 1: Pola Urutan", code: "cfit_series", description: "Melengkapi pola urutan gambar", instruction: "Tentukan 1 pola yang melengkapi urutan gambar tersebut.", optionCount: 6, questions: [] },
+  { id: 2, name: "Subtes 2: Klasifikasi", code: "cfit_classification", description: "Mencari 2 gambar yang berbeda", instruction: "Tentukan 2 gambar yang berbeda dari 3 gambar lainnya.", optionCount: 5, questions: [] },
+  { id: 3, name: "Subtes 3: Matriks", code: "cfit_matrices", description: "Melengkapi matriks gambar yang kosong", instruction: "Mencari pola gambar yang tepat untuk mengisi kotak yang kosong.", optionCount: 6, questions: [] },
+  { id: 4, name: "Subtes 4: Kondisi Titik", code: "cfit_conditions", description: "Menentukan komposisi peletakan titik", instruction: "Pilih gambar dimana posisi titik tidak berbeda komposisinya dengan gambar contoh.", optionCount: 5, questions: [] },
 ];
 
 type TabType = "test-links" | "categories" | "submissions";
@@ -135,11 +135,11 @@ export default function TestManagementPage() {
   
   // Candidates, Karyawan & Jobs List for Dropdown
   const [candidatesList, setCandidatesList] = useState<Candidate[]>([]);
-  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]); // Data Karyawan
+  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
   const [jobsList, setJobsList] = useState<JobPosition[]>([]);
   
   // Form State
-  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate"); // Tipe Peserta
+  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate");
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [selectedKaryawanId, setSelectedKaryawanId] = useState("");
   const [selectedJobId, setSelectedJobId] = useState(""); 
@@ -157,7 +157,8 @@ export default function TestManagementPage() {
 
   // Form Inputs
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [correctAnswer, setCorrectAnswer] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); 
+  const [correctAnswer, setCorrectAnswer] = useState<string | string[]>(""); // DIUBAH: Mendukung array string
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
 
@@ -165,15 +166,13 @@ export default function TestManagementPage() {
   const [kraepelinRows, setKraepelinRows] = useState("27");
   const [kraepelinTimePerColumn, setKraepelinTimePerColumn] = useState("15");
 
-  // State untuk durasi CFIT dan PAPI (disimpan di localStorage)
+  // State untuk durasi CFIT dan PAPI
   const [cfitDuration, setCfitDuration] = useState("180");
   const [papiDuration, setPapiDuration] = useState("180");
 
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
     return {
@@ -190,7 +189,6 @@ export default function TestManagementPage() {
     }
     setUser(JSON.parse(userData));
     
-    // Load durasi dari localStorage
     setCfitDuration(String(getTestDuration('cfit')));
     setPapiDuration(String(getTestDuration('papi')));
     
@@ -201,26 +199,24 @@ export default function TestManagementPage() {
 
   const fetchData = async () => {
     try {
-      const resLinks = await fetch(`${API_BASE_URL}/management/links`, { headers: getAuthHeaders() });
+      const fetchOptions: RequestInit = { headers: getAuthHeaders(), cache: "no-store" };
+
+      const resLinks = await fetch(`${API_BASE_URL}/management/links`, fetchOptions);
       if (resLinks.ok) setLocalTestLinks(await resLinks.json());
 
-      const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() }); 
+      const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, fetchOptions); 
       if (resSubs.ok) setSubmissions(await resSubs.json());
 
-      // Fetch Kandidat
-      const resCandidates = await fetch(`${API_BASE_URL}/candidates`, { headers: getAuthHeaders() });
+      const resCandidates = await fetch(`${API_BASE_URL}/candidates`, fetchOptions);
       if (resCandidates.ok) setCandidatesList(await resCandidates.json());
 
-      // Fetch Karyawan
-      const resKaryawan = await fetch(`${API_BASE_URL}/employees`, { headers: getAuthHeaders() });
+      const resKaryawan = await fetch(`${API_BASE_URL}/employees`, fetchOptions);
       if (resKaryawan.ok) setKaryawanList(await resKaryawan.json());
-      
 
-      // Fetch Jobs
-      const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
+      const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, fetchOptions);
       if (resJobs.ok) setJobsList(await resJobs.json());
 
-      const resKraepelin = await fetch(`${API_BASE_URL}/management/config/kraepelin`, { headers: getAuthHeaders() });
+      const resKraepelin = await fetch(`${API_BASE_URL}/management/config/kraepelin`, fetchOptions);
       if (resKraepelin.ok) {
         const data = await resKraepelin.json();
         setKraepelinColumns(String(data.columns || 50));
@@ -228,7 +224,7 @@ export default function TestManagementPage() {
         setKraepelinTimePerColumn(String(data.durationPerColumn || 15));
       }
 
-      const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`, { headers: getAuthHeaders() });
+      const resCfit = await fetch(`${API_BASE_URL}/management/questions/cfit`, fetchOptions);
       if (resCfit.ok) {
         const allCfitQuestionsFromBE = await resCfit.json();
         setCfitSubtypes((prev) => prev.map((st) => ({
@@ -238,14 +234,17 @@ export default function TestManagementPage() {
               .map((q: any) => ({
                 id: q.id,
                 imageUrl: q.question_image ? `${API_BASE_URL}${q.question_image}` : null,
-                correctAnswer: String.fromCharCode(65 + q.correctAnswer),
+                // Mengurai jawaban jika berisi koma (khusus subtes 2)
+                correctAnswer: typeof q.correctAnswer === 'string' && q.correctAnswer.includes(',') 
+                               ? q.correctAnswer.split(',').map((ans:string) => String.fromCharCode(65 + parseInt(ans))).join(' & ')
+                               : String.fromCharCode(65 + parseInt(q.correctAnswer)),
               })),
           }))
         );
         setLocalCategories(prev => prev.map(c => c.code === 'cfit' ? { ...c, question_count: allCfitQuestionsFromBE.length } : c));
       }
 
-      const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`, { headers: getAuthHeaders() });
+      const resPapi = await fetch(`${API_BASE_URL}/management/questions/papi`, fetchOptions);
       if (resPapi.ok) {
         const papiQ = await resPapi.json();
         const papiId = localCategories.find(c => c.code === 'papi')?.id || 2;
@@ -279,7 +278,7 @@ export default function TestManagementPage() {
     const generateTask = async () => {
       const payload = {
         job_id: selectedJobId || null,
-        ...(participantType === "candidate" ? { candidate_id: selectedCandidateId } : { karyawan_id: selectedKaryawanId })
+        ...(participantType === "candidate" ? { candidate_id: selectedCandidateId } : { employee_id: selectedKaryawanId })
       };
 
       const response = await fetch(`${API_BASE_URL}/management/generate-link`, {
@@ -294,20 +293,7 @@ export default function TestManagementPage() {
         throw new Error(data.error || "Gagal membuat link tes");
       }
 
-      let participantName = "Unknown";
-      if (participantType === "candidate") {
-         participantName = candidatesList.find(c => c.id === selectedCandidateId)?.fullName || "Unknown";
-      } else {
-         participantName = karyawanList.find(k => k.id === selectedKaryawanId)?.fullName || "Unknown";
-      }
-
-      setLocalTestLinks([{ 
-          id: Date.now(), 
-          candidateName: participantName, 
-          token: data.token, 
-          status: "active", 
-          createdAt: new Date().toISOString() 
-      }, ...localTestLinks]);
+      fetchData(); // Reload seluruh list link tes dari server
       
       setShowCreateLinkModal(false);
       setSelectedCandidateId(""); 
@@ -385,7 +371,7 @@ export default function TestManagementPage() {
   };
 
   const handleAddCfitQuestion = async () => {
-      if (!imagePreview || !correctAnswer) {
+      if (!imagePreview || correctAnswer.length === 0) {
         toast.warning("Peringatan", { description: "Pilih gambar dan kunci jawaban terlebih dahulu!" });
         return;
       }
@@ -394,15 +380,27 @@ export default function TestManagementPage() {
       const saveTask = async () => {
         const formData = new FormData();
         
-        // Hapus Content-Type header otomatis bila pakai FormData
         const headers: HeadersInit = {
            ...(localStorage.getItem("hr_token") ? { Authorization: `Bearer ${localStorage.getItem("hr_token")}` } : {}),
         };
 
-        if (fileInputRef.current?.files?.[0]) formData.append("image", fileInputRef.current.files[0]);
+        if (selectedFile) {
+            formData.append("image", selectedFile);
+        }
+        
         formData.append("subtest", String(selectedCfitSubtype?.id));
-        formData.append("correctAnswer", String(labelToIndex(correctAnswer)));
         formData.append("instruction", selectedCfitSubtype?.instruction || "");
+        
+        // LOGIKA PENYESUAIAN KUNCI JAWABAN (Subtes 2 butuh koma)
+        let answerToSubmit = "";
+        if (selectedCfitSubtype?.id === 2 && Array.isArray(correctAnswer)) {
+           // Mengubah ["B", "D"] menjadi "1,3"
+           answerToSubmit = correctAnswer.map(labelToIndex).sort().join(",");
+        } else {
+           // Mengubah "A" menjadi "0"
+           answerToSubmit = String(labelToIndex(correctAnswer as string)); 
+        }
+        formData.append("correctAnswer", answerToSubmit);
         
         const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { 
           method: "POST", 
@@ -414,7 +412,8 @@ export default function TestManagementPage() {
         
         setShowQuestionModal(false); 
         setImagePreview(null); 
-        setCorrectAnswer(""); 
+        setSelectedFile(null); 
+        setCorrectAnswer(selectedCfitSubtype?.id === 2 ? [] : ""); 
         fetchData();
         return "Soal CFIT berhasil ditambahkan!";
       };
@@ -460,9 +459,11 @@ export default function TestManagementPage() {
 
   const getOptionLabels = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
   const labelToIndex = (label: string) => label.charCodeAt(0) - 65;
+  
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target?.result as string);
       reader.readAsDataURL(file);
@@ -472,7 +473,7 @@ export default function TestManagementPage() {
   const isCfitCategory = selectedCategory?.code === "cfit";
   const isKraepelinCategory = selectedCategory?.code === "kraepelin";
 
-  // --- RENDER HELPERS FOR BEAUTIFUL SUBMISSIONS ---
+  // --- RENDER HELPERS ---
 
   const getTestBadgeColor = (type: string) => {
     switch (type) {
@@ -585,7 +586,6 @@ export default function TestManagementPage() {
     </div>
   );
 
-  // --- RENDER MODAL CONTENT (DASHBOARD) ---
   const renderDetailContent = (sub: Submission) => {
     if (!sub.scores || Object.keys(sub.scores).length === 0) {
         return <div className="p-8 text-center text-[var(--secondary)] italic">Data hasil belum diproses atau kosong.</div>;
@@ -655,7 +655,7 @@ export default function TestManagementPage() {
     }
 
     if (sub.test_type === 'papi') {
-        const aspects = Object.entries(sub.scores).filter(([key]) => /^[A-Z]$/.test(key)); // Filter A-Z keys
+        const aspects = Object.entries(sub.scores).filter(([key]) => /^[A-Z]$/.test(key));
         return (
             <div className="space-y-4">
                 <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl mb-4">
@@ -685,7 +685,6 @@ export default function TestManagementPage() {
     return <pre className="text-xs text-[var(--secondary-600)]">{JSON.stringify(sub.scores, null, 2)}</pre>;
   };
 
-
   if (!user) return null;
 
   return (
@@ -700,7 +699,6 @@ export default function TestManagementPage() {
              subtitle="Kelola soal, link tes, dan lihat hasil submission"
              onRefresh={fetchData}
            />
-           {/* Tab Navigation - Modern Pill Style */}
            <div className="px-4 md:px-8 pb-4 pt-1 flex overflow-x-auto scrollbar-hide">
              <div className="flex p-1 bg-[var(--secondary-100)] rounded-xl whitespace-nowrap">
                {[
@@ -737,7 +735,7 @@ export default function TestManagementPage() {
                    {localCategories.map((cat) => (
                      <button
                        key={cat.id}
-                       onClick={() => { setSelectedCategory(cat); setSelectedCfitSubtype(null); }}
+                       onClick={() => { setSelectedCategory(cat); setSelectedCfitSubtype(null); setCorrectAnswer(""); }}
                        className={`w-full flex items-center justify-between p-4 transition-all ${
                          selectedCategory?.id === cat.id
                            ? "bg-[var(--primary-50)] text-[var(--primary-900)] border-l-4 border-[var(--primary)]"
@@ -774,7 +772,6 @@ export default function TestManagementPage() {
                     </div>
                     {!selectedCfitSubtype ? (
                       <div className="space-y-6">
-                        {/* Konfigurasi Durasi CFIT */}
                         <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                           <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                             <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes CFIT</h3>
@@ -805,10 +802,9 @@ export default function TestManagementPage() {
                           </div>
                         </div>
 
-                        {/* Grid Subtypes */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {cfitSubtypes.map((st) => (
-                          <div key={st.id} onClick={() => setSelectedCfitSubtype(st)} className="bg-white p-5 rounded-xl border border-[var(--secondary-200)] hover:border-[var(--primary-300)] hover:shadow-md cursor-pointer group transition-all">
+                          <div key={st.id} onClick={() => { setSelectedCfitSubtype(st); setCorrectAnswer(st.id === 2 ? [] : ""); }} className="bg-white p-5 rounded-xl border border-[var(--secondary-200)] hover:border-[var(--primary-300)] hover:shadow-md cursor-pointer group transition-all">
                              <div className="flex justify-between items-start mb-4">
                                <div className="w-10 h-10 rounded-lg bg-[var(--primary-50)] text-[var(--primary)] flex items-center justify-center font-bold">{st.id}</div>
                                <span className="text-[10px] font-bold text-[var(--secondary-500)] bg-[var(--secondary-50)] px-2 py-1 rounded-lg uppercase tracking-wide border border-[var(--secondary-100)]">{st.questions.length} SOAL</span>
@@ -862,7 +858,6 @@ export default function TestManagementPage() {
                        <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">JUMLAH BARIS</label><input type="number" value={kraepelinRows} onChange={e => setKraepelinRows(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)] transition-all" /></div>
                        <div className="bg-[var(--primary-50)] p-3 rounded-xl border border-[var(--primary-100)]"><label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> DURASI PINDAH (DETIK)</label><input type="number" value={kraepelinTimePerColumn} onChange={e => setKraepelinTimePerColumn(e.target.value)} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" /></div>
                     </div>
-                    {/* Live Preview Kraepelin Grid */}
                     <div className="bg-[#1e293b] rounded-xl p-6 border border-gray-700 mt-6 shadow-inner">
                         <div className="flex items-center justify-between mb-4">
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Preview Grid Angka</p>
@@ -885,7 +880,6 @@ export default function TestManagementPage() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {/* Konfigurasi Durasi Tes */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                       <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                         <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes</h3>
@@ -941,7 +935,6 @@ export default function TestManagementPage() {
                       ) : null}
                     </div>
 
-                    {/* List Soal */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
                       <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-white">
                         <h3 className="font-bold text-[var(--primary-900)] text-lg">{selectedCategory.name}</h3>
@@ -1061,7 +1054,7 @@ export default function TestManagementPage() {
             </div>
           )}
           
-          {/* === TAB 3: SUBMISSIONS (IMPROVED UI) === */}
+          {/* === TAB 3: SUBMISSIONS === */}
           {activeTab === "submissions" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1078,12 +1071,11 @@ export default function TestManagementPage() {
                   <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.filter(s => s.test_type === 'kraepelin').length}</div><div className="text-sm text-[var(--secondary)]">Kraepelin Completed</div></div>
                 </div>
               </div>
-              {/* Desktop Table View */}
+              
               <div className="hidden md:block">
                  {renderSubmissionTable()}
               </div>
 
-              {/* Mobile Card View */}
               <div className="md:hidden space-y-4">
                  {submissions.map((sub) => {
                     let scoreBadge = <span className="text-[var(--secondary)] italic text-xs">Menunggu...</span>;
@@ -1167,7 +1159,6 @@ export default function TestManagementPage() {
               </div>
               <div className="p-6 space-y-4">
                 
-                {/* PILIHAN TIPE PESERTA (TOGGLE) */}
                 <div className="flex gap-2 mb-2 p-1 bg-[var(--secondary-50)] rounded-lg w-full">
                   <button 
                     onClick={() => setParticipantType("candidate")}
@@ -1241,6 +1232,7 @@ export default function TestManagementPage() {
           </div>
       )}
 
+      {/* --- ADD QUESTION MODAL --- */}
       {showQuestionModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
@@ -1257,11 +1249,32 @@ export default function TestManagementPage() {
                     {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 max-h-48 object-contain mx-auto rounded-lg border border-[var(--secondary-200)]" />}
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-2 block">Kunci Jawaban</label>
+                    <label className="text-xs font-bold text-[var(--secondary-500)] uppercase mb-2 block">
+                      Kunci Jawaban {selectedCfitSubtype?.id === 2 && <span className="text-red-500 normal-case ml-1">(Pilih 2)</span>}
+                    </label>
                     <div className="flex gap-2 flex-wrap">
-                      {getOptionLabels(selectedCfitSubtype?.optionCount || 6).map(lbl => (
-                        <button key={lbl} onClick={() => setCorrectAnswer(lbl)} className={`w-10 h-10 rounded-lg font-bold border transition-all ${correctAnswer === lbl ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md' : 'text-[var(--secondary-400)] border-[var(--secondary-200)] hover:bg-[var(--secondary-50)]'}`}>{lbl}</button>
-                      ))}
+                      {getOptionLabels(selectedCfitSubtype?.optionCount || 6).map(lbl => {
+                        const isSubtest2 = selectedCfitSubtype?.id === 2;
+                        const isSelected = isSubtest2 ? Array.isArray(correctAnswer) && correctAnswer.includes(lbl) : correctAnswer === lbl;
+                        return (
+                          <button 
+                            key={lbl} 
+                            onClick={() => {
+                              if (isSubtest2) {
+                                setCorrectAnswer((prev: any) => {
+                                  const arr = Array.isArray(prev) ? [...prev] : [];
+                                  if (arr.includes(lbl)) return arr.filter((a: string) => a !== lbl); // Unselect
+                                  if (arr.length < 2) return [...arr, lbl].sort(); // Select
+                                  toast.warning("Maksimal 2 kunci jawaban."); return arr;
+                                });
+                              } else {
+                                setCorrectAnswer(lbl);
+                              }
+                            }} 
+                            className={`w-10 h-10 rounded-lg font-bold border transition-all ${isSelected ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md' : 'text-[var(--secondary-400)] border-[var(--secondary-200)] hover:bg-[var(--secondary-50)]'}`}
+                          >{lbl}</button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -1283,6 +1296,7 @@ export default function TestManagementPage() {
         </div>
       )}
 
+      {/* --- DETAIL MODAL --- */}
       {showDetailModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95" onClick={e => e.stopPropagation()}>

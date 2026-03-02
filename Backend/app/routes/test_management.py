@@ -306,7 +306,7 @@ def get_cfit_questions():
 @mgmt_bp.route("/questions/cfit", methods=["POST"])
 def add_cfit_question():
     subtest = request.form.get('subtest', type=int)
-    correct_answer = request.form.get('correctAnswer', type=int)
+    correct_answer = request.form.get('correctAnswer')
     instruction = request.form.get('instruction', "")
     options = request.form.get('options', "A,B,C,D,E,F")
     
@@ -371,9 +371,22 @@ def submit_cfit():
     for idx, q in enumerate(questions):
         is_correct = False
         if idx < len(answers) and answers[idx] is not None:
-            if answers[idx] == q.correct_answer:
-                raw_score += 1
-                is_correct = True
+            user_ans = answers[idx] # Bisa berupa int (1) atau list ([1, 3])
+            db_ans_str = str(q.correct_answer)
+
+            # Konversi format DB ke list int jika ada koma (khusus subtes 2)
+            if ',' in db_ans_str:
+                db_ans = [int(x) for x in db_ans_str.split(',')]
+            else:
+                db_ans = int(db_ans_str)
+            if type(user_ans) == list and type(db_ans) == list:
+                if sorted(user_ans) == sorted(db_ans):
+                    raw_score += 1
+                    is_correct = True
+            else:
+                if user_ans == db_ans:
+                    raw_score += 1
+                    is_correct = True
         
         details.append({
             "q_id": q.id,
