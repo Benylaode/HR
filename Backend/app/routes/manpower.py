@@ -35,7 +35,7 @@ def restrict_access_by_role():
 # ==========================================
 
 # Ambil HANYA slot Manpower yang masih kosong
-@manpower_bp.route('/manpower/vacant', methods=['GET'])
+@manpower_bp.route('/vacant', methods=['GET'])
 def get_vacant_manpower():
     try:
         slots = Manpower.query.filter_by(is_filled=False).all()
@@ -45,7 +45,7 @@ def get_vacant_manpower():
 
 
 # Tambah Data Manpower Baru
-@manpower_bp.route('/manpower', methods=['POST'])
+@manpower_bp.route('/', methods=['POST'])
 def create_manpower():
     data = request.json
     
@@ -79,7 +79,7 @@ def create_manpower():
 
 
 # (Opsional) Ambil SEMUA slot Manpower (Kosong + Terisi) untuk halaman Report
-@manpower_bp.route('/manpower/all', methods=['GET'])
+@manpower_bp.route('/all', methods=['GET'])
 def get_all_manpower():
     try:
         slots = Manpower.query.order_by(Manpower.created_at.desc()).all()

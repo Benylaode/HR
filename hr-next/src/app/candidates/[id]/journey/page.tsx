@@ -74,7 +74,7 @@ export default function CandidateJourneyPage() {
     try {
       const headers = getAuthHeaders();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/api/manpower/vacant`, { headers });
+      const res = await fetch(`${apiUrl}/manpower/vacant`, { headers });
       
       if (res.ok) {
         const data = await res.json();

@@ -39,7 +39,7 @@ export default function ManpowerPage() {
   const fetchVacantManpower = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      const response = await fetch(`${baseUrl}/api/manpower/vacant`, { 
+      const response = await fetch(`${baseUrl}/manpower/vacant`, { 
         headers: getAuthHeaders() 
       });
       
@@ -63,7 +63,7 @@ export default function ManpowerPage() {
 
     const submitTask = async () => {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      const response = await fetch(`${baseUrl}/api/manpower`, {
+      const response = await fetch(`${baseUrl}/manpower/`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(formData),
