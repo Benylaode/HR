@@ -383,7 +383,7 @@ def submit_cfit():
                 if sorted(user_ans) == sorted(db_ans):
                     raw_score += 1
                     is_correct = True
-            else:
+            else: 
                 if user_ans == db_ans:
                     raw_score += 1
                     is_correct = True

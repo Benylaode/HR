@@ -189,27 +189,23 @@ export default function KraepelinTest({
     handleMoveToNextColumn();
   };
 
-  // --- PERBAIKAN: SCROLL LOGIC DENGAN OFFSET ---
+  // --- SCROLL LOGIC DENGAN POSISI CENTER ---
   useEffect(() => {
     inputRef.current?.focus();
     
     const activeInputEl = document.getElementById(`input-row-${currentColumn}-${activeInputIndex}`);
     
     if (activeInputEl) {
-       // Targetkan scroll ke 3 kotak di bawah posisi aktif agar input tidak tertutup
-       const offsetIndex = activeInputIndex + 3; 
-       const targetEl = document.getElementById(`input-row-${currentColumn}-${offsetIndex}`);
-       
-       if (targetEl) {
-           targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
-       } else {
-           // Fallback jika sudah berada di deretan paling bawah
-           activeInputEl.scrollIntoView({ behavior: "smooth", block: "center" });
-       }
+       // Memaksa elemen aktif untuk selalu berada di tengah viewport (layar)
+       activeInputEl.scrollIntoView({ 
+           behavior: "smooth", 
+           block: "center", 
+           inline: "center" 
+       });
     } else {
-       // Fallback ke awal kolom
+       // Fallback saat pindah kolom baru (kembali ke paling bawah)
        const colEl = document.getElementById(`col-container-${currentColumn}`);
-       colEl?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+       colEl?.scrollIntoView({ behavior: "smooth", inline: "center", block: "end" });
     }
   }, [activeInputIndex, currentColumn]);
 
@@ -280,7 +276,7 @@ export default function KraepelinTest({
       
       {/* AREA KOTAK TES */}
       <div className="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 relative custom-scrollbar">
-        <div className="flex gap-2 min-w-max h-full px-4 py-8 items-start">
+        <div className="flex gap-2 min-w-max h-full items-start px-4">
             {grid.map((colData, colIndex) => {
                 const isCurrentCol = colIndex === currentColumn;
                 
@@ -290,7 +286,7 @@ export default function KraepelinTest({
                         id={`col-container-${colIndex}`}
                         className={`
                             flex flex-col items-center flex-shrink-0 transition-all duration-300
-                            pb-[40vh] /* PERBAIKAN: Padding bawah besar agar tidak stuck di mentok layar bawah */
+                            py-[30vh] /* Padding besar atas bawah agar scroll behavior center selalu optimal */
                             ${isCurrentCol ? 'opacity-100 scale-100 z-10' : 'opacity-40 scale-95 grayscale'}
                         `}
                         style={{ width: '64px' }}
