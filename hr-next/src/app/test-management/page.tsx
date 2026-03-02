@@ -120,6 +120,59 @@ const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
 
 type TabType = "test-links" | "categories" | "submissions";
 
+// --- FUNGSI INTERPRETASI PAPI KOSTICK ---
+const getPapiAspectName = (aspect: string) => {
+  const names: Record<string, string> = {
+      G: "Hard Intense Worked (Pekerja Keras)",
+      L: "Leadership Role (Peran Kepemimpinan)",
+      I: "Ease in Decision Making (Pembuat Keputusan)",
+      T: "Pace (Tingkat Kecepatan/Sibuk)",
+      V: "Vigorous Type (Aktif & Penuh Semangat)",
+      S: "Social Extension (Perluasan Sosial)",
+      R: "Theoretical Type (Tipe Teoritis)",
+      D: "Interest in Details (Bekerja Detail)",
+      C: "Organized Type (Keteraturan)",
+      E: "Emotional Resistant (Daya Tahan Emosi)",
+      N: "Need to Finish Task (Penyelesaian Tugas)",
+      A: "Need to Achieve (Kebutuhan Berprestasi)",
+      P: "Need to Control Others (Kebutuhan Mengontrol)",
+      X: "Need to be Noticed (Kebutuhan Diperhatikan)",
+      B: "Need to Belong to Groups (Kebutuhan Diterima Kelompok)",
+      O: "Need for Closeness (Kebutuhan Kedekatan & Kasih Sayang)",
+      Z: "Need for Change (Kebutuhan Akan Perubahan)",
+      K: "Need to be Forceful (Kebutuhan Bertindak Tegas/Agresif)",
+      F: "Need to Support Authority (Kebutuhan Mendukung Otoritas)",
+      W: "Need for Rules & Supervision (Kebutuhan Aturan & Arahan)"
+  };
+  return names[aspect] || aspect;
+};
+
+const getPapiInterpretation = (aspect: string, score: number) => {
+  switch(aspect) {
+      case 'L': return score >= 5 ? "Sangat tinggi dimana seseorang memproyeksikan dirinya sebagai pemimpin, ia mencoba menggunakan orang lain untuk mencapai tujuannya." : "Cenderung tidak secara aktif menggunakan orang lain dalam bekerja.";
+      case 'P': return score >= 5 ? "Tingkat kebutuhan yang tinggi untuk menerima tanggung jawab dan menjadi pengontrol orang lain." : "Menurunnya keinginan untuk bertanggung jawab pada pekerjaan dan tindakan orang lain.";
+      case 'I': return score >= 8 ? "Tidak ragu dalam mengambil keputusan, cenderung terburu-buru." : score >= 5 ? "Lancar dan mudah mengambil keputusan." : score >= 3 ? "Berhati-hati membuat keputusan." : "Ragu - menolak mengambil keputusan.";
+      case 'F': return score >= 6 ? "Bersikap setia dan membantu, kemungkinan bantuannya bersifat politis." : score >= 4 ? "Setia terhadap otoritas." : score >= 2 ? "Mandiri." : "Cenderung egois, kemungkinan bisa memberontak.";
+      case 'W': return score >= 6 ? "Meningkatnya orientasi terhadap tugas dan membutuhkan instruksi yang jelas." : score >= 4 ? "Kebutuhan akan pengarahan dan harapan yang dirumuskan untuknya." : "Berorientasi pada tujuan, mandiri.";
+      case 'T': return score >= 4 ? "Tergolong aktif secara internal dan mental." : "Melakukan segala sesuatu menurut kemauan dan kecepatannya sendiri.";
+      case 'V': return score >= 5 ? "Aktif secara fisik, cenderung sportif." : "Cenderung pasif.";
+      case 'R': return score >= 5 ? "Nilai pendirian tergolong tinggi." : "Bersifat praktis.";
+      case 'D': return score >= 4 ? "Minat tinggi untuk bekerja secara detail." : "Menyadari kebutuhan akan kecermatan, tetapi tidak berminat bekerja detail.";
+      case 'C': return score >= 6 ? "Keteraturan tinggi cenderung kaku." : score >= 3 ? "Teratur tetapi tergolong fleksibel." : "Tidak teratur.";
+      case 'X': return score >= 6 ? "Benar-benar membutuhkan perhatian." : score >= 4 ? "Memiliki pola perilaku yang unik." : score >= 2 ? "Rendah hati, tulus." : "Cenderung pemalu.";
+      case 'B': return score >= 6 ? "Butuh disukai dan diakui, mudah dipengaruhi." : score >= 4 ? "Butuh diterima, tapi tidak mudah dipengaruhi kelompok." : "Selektif.";
+      case 'S': return score >= 6 ? "Kepercayaan tinggi dalam berhubungan sosial, suka interaksi sosial." : "Perhatian rendah terhadap hubungan sosial, kurang percaya pada orang lain.";
+      case 'O': return score >= 5 ? "Sangat tergantung, butuh penerimaan diri." : score >= 3 ? "Sadar akan hubungan perorangan, tapi tidak terlalu tergantung." : "Tidak suka hubungan perorangan.";
+      case 'N': return score >= 6 ? "Tekun, tanggung jawab tinggi." : score >= 4 ? "Cukup bertanggung jawab pada pekerjaan." : score >= 3 ? "Delegator." : "Komitmen rendah, tapi ada kemungkinan dapat memegang banyak pekerjaan dalam satu waktu.";
+      case 'A': return score >= 6 ? "Tujuan jelas, kebutuhan sukses dan ambisi tinggi." : "Ketidakpastian tujuan, tidak ada usaha lebih.";
+      case 'G': return score >= 4 ? "Kemauan bekerja keras tinggi." : "Bekerja untuk kesenangan saja, bukan hasil optimal.";
+      case 'Z': return score >= 8 ? "Mudah gelisah, frustasi, karena segala sesuatu tidak berjalan dengan cepat, mudah berubah-ubah." : score >= 6 ? "Membuat perubahan tertentu, berfikir jauh kedepan." : score >= 5 ? "Mudah menyesuaikan diri." : score >= 3 ? "Meremehkan atau mengacuhkan apabila dipaksa berubah." : "Tidak suka berubah, tradisional.";
+      case 'K': return score >= 8 ? "Agresif yang cenderung defensive." : score >= 6 ? "Menyalurkan agresi personal ke dalam pekerjaan, drive dan persaingan." : score === 5 ? "Keras kepala." : score >= 3 ? "Suka lingkungan yang tenang, menghindari konflik, biasanya menunda penyelesaian konflik." : "Menghindari masalah, menolak, mengelak adanya masalah.";
+      case 'E': return score >= 7 ? "Sangat normatif, kebutuhan pengendalian diri yang berlebihan, kecenderungan defensif." : score >= 4 ? "Punya pendekatan emosional seimbang, mampu mengendalikan." : score >= 2 ? "Agen bola terka." : "Terlalu cepat bereaksi, tidak normatif, ekspresi berlebihan.";
+      default: return "Tidak ada interpretasi spesifik.";
+  }
+};
+
 // --- 3. MAIN COMPONENT ---
 
 export default function TestManagementPage() {
@@ -135,11 +188,11 @@ export default function TestManagementPage() {
   
   // Candidates, Karyawan & Jobs List for Dropdown
   const [candidatesList, setCandidatesList] = useState<Candidate[]>([]);
-  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
+  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]); // Data Karyawan
   const [jobsList, setJobsList] = useState<JobPosition[]>([]);
   
   // Form State
-  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate");
+  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate"); // Tipe Peserta
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [selectedKaryawanId, setSelectedKaryawanId] = useState("");
   const [selectedJobId, setSelectedJobId] = useState(""); 
@@ -157,8 +210,8 @@ export default function TestManagementPage() {
 
   // Form Inputs
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); 
-  const [correctAnswer, setCorrectAnswer] = useState<string | string[]>(""); // DIUBAH: Mendukung array string
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State untuk file asli
+  const [correctAnswer, setCorrectAnswer] = useState<string | string[]>(""); // Mendukung array string
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
 
@@ -166,7 +219,7 @@ export default function TestManagementPage() {
   const [kraepelinRows, setKraepelinRows] = useState("27");
   const [kraepelinTimePerColumn, setKraepelinTimePerColumn] = useState("15");
 
-  // State untuk durasi CFIT dan PAPI
+  // State untuk durasi CFIT dan PAPI (disimpan di localStorage)
   const [cfitDuration, setCfitDuration] = useState("180");
   const [papiDuration, setPapiDuration] = useState("180");
 
@@ -189,6 +242,7 @@ export default function TestManagementPage() {
     }
     setUser(JSON.parse(userData));
     
+    // Load durasi dari localStorage
     setCfitDuration(String(getTestDuration('cfit')));
     setPapiDuration(String(getTestDuration('papi')));
     
@@ -199,6 +253,7 @@ export default function TestManagementPage() {
 
   const fetchData = async () => {
     try {
+      // Tambah cache: 'no-store' agar Next.js tidak nge-cache data lama
       const fetchOptions: RequestInit = { headers: getAuthHeaders(), cache: "no-store" };
 
       const resLinks = await fetch(`${API_BASE_URL}/management/links`, fetchOptions);
@@ -207,12 +262,15 @@ export default function TestManagementPage() {
       const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, fetchOptions); 
       if (resSubs.ok) setSubmissions(await resSubs.json());
 
+      // Fetch Kandidat
       const resCandidates = await fetch(`${API_BASE_URL}/candidates`, fetchOptions);
       if (resCandidates.ok) setCandidatesList(await resCandidates.json());
 
+      // Fetch Karyawan
       const resKaryawan = await fetch(`${API_BASE_URL}/employees`, fetchOptions);
       if (resKaryawan.ok) setKaryawanList(await resKaryawan.json());
-
+      
+      // Fetch Jobs
       const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, fetchOptions);
       if (resJobs.ok) setJobsList(await resJobs.json());
 
@@ -234,7 +292,6 @@ export default function TestManagementPage() {
               .map((q: any) => ({
                 id: q.id,
                 imageUrl: q.question_image ? `${API_BASE_URL}${q.question_image}` : null,
-                // Mengurai jawaban jika berisi koma (khusus subtes 2)
                 correctAnswer: typeof q.correctAnswer === 'string' && q.correctAnswer.includes(',') 
                                ? q.correctAnswer.split(',').map((ans:string) => String.fromCharCode(65 + parseInt(ans))).join(' & ')
                                : String.fromCharCode(65 + parseInt(q.correctAnswer)),
@@ -278,7 +335,7 @@ export default function TestManagementPage() {
     const generateTask = async () => {
       const payload = {
         job_id: selectedJobId || null,
-        ...(participantType === "candidate" ? { candidate_id: selectedCandidateId } : { employee_id: selectedKaryawanId })
+        ...(participantType === "candidate" ? { candidate_id: selectedCandidateId } : { employee_id: selectedKaryawanId }) 
       };
 
       const response = await fetch(`${API_BASE_URL}/management/generate-link`, {
@@ -293,7 +350,7 @@ export default function TestManagementPage() {
         throw new Error(data.error || "Gagal membuat link tes");
       }
 
-      fetchData(); // Reload seluruh list link tes dari server
+      fetchData(); // Reload from server
       
       setShowCreateLinkModal(false);
       setSelectedCandidateId(""); 
@@ -391,13 +448,10 @@ export default function TestManagementPage() {
         formData.append("subtest", String(selectedCfitSubtype?.id));
         formData.append("instruction", selectedCfitSubtype?.instruction || "");
         
-        // LOGIKA PENYESUAIAN KUNCI JAWABAN (Subtes 2 butuh koma)
         let answerToSubmit = "";
         if (selectedCfitSubtype?.id === 2 && Array.isArray(correctAnswer)) {
-           // Mengubah ["B", "D"] menjadi "1,3"
            answerToSubmit = correctAnswer.map(labelToIndex).sort().join(",");
         } else {
-           // Mengubah "A" menjadi "0"
            answerToSubmit = String(labelToIndex(correctAnswer as string)); 
         }
         formData.append("correctAnswer", answerToSubmit);
@@ -473,7 +527,7 @@ export default function TestManagementPage() {
   const isCfitCategory = selectedCategory?.code === "cfit";
   const isKraepelinCategory = selectedCategory?.code === "kraepelin";
 
-  // --- RENDER HELPERS ---
+  // --- RENDER HELPERS FOR BEAUTIFUL SUBMISSIONS ---
 
   const getTestBadgeColor = (type: string) => {
     switch (type) {
@@ -586,6 +640,7 @@ export default function TestManagementPage() {
     </div>
   );
 
+  // --- RENDER MODAL CONTENT (DASHBOARD) ---
   const renderDetailContent = (sub: Submission) => {
     if (!sub.scores || Object.keys(sub.scores).length === 0) {
         return <div className="p-8 text-center text-[var(--secondary)] italic">Data hasil belum diproses atau kosong.</div>;
@@ -658,25 +713,38 @@ export default function TestManagementPage() {
         const aspects = Object.entries(sub.scores).filter(([key]) => /^[A-Z]$/.test(key));
         return (
             <div className="space-y-4">
-                <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl mb-4">
-                    <h4 className="font-bold text-orange-900 text-sm">PAPI Kostick Profile</h4>
-                    <p className="text-xs text-orange-700">Skor mentah per aspek (Range 0-9)</p>
+                <div className="bg-orange-50 border border-orange-100 p-5 rounded-xl mb-4">
+                    <h4 className="font-bold text-orange-900 text-lg flex items-center gap-2"><CheckCircle className="w-5 h-5"/> PAPI Kostick Profile</h4>
+                    <p className="text-sm text-orange-700 mt-1">Berikut adalah interpretasi kepribadian berdasarkan skor 20 aspek (Range 0-9).</p>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2">
-                    {aspects.map(([key, value]: any) => (
-                        <div key={key} className="flex flex-col gap-1 p-2 border border-[var(--secondary-200)] rounded-lg hover:shadow-sm bg-white">
-                            <div className="flex justify-between items-center">
-                                <span className="font-bold text-[var(--primary-900)]">{key}</span>
-                                <span className="text-xs font-mono text-[var(--secondary-500)]">{value}/9</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                    {aspects.map(([key, value]: any) => {
+                        const score = Number(value);
+                        return (
+                        <div key={key} className="flex flex-col gap-3 p-4 border border-[var(--secondary-200)] rounded-xl hover:shadow-md bg-white transition-all">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 shrink-0 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center font-black text-xl border border-orange-200">{key}</div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="font-bold text-[var(--primary-900)] text-sm line-clamp-1">{getPapiAspectName(key)}</span>
+                                        <span className="font-bold text-xs bg-gray-100 px-2 py-1 rounded-md text-[var(--secondary-600)]">Skor: {score}/9</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div 
+                                            className={`h-full rounded-full ${score >= 6 ? 'bg-green-500' : (score <= 3 ? 'bg-red-400' : 'bg-yellow-400')}`} 
+                                            style={{ width: `${(score / 9) * 100}%` }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="w-full h-1.5 bg-[var(--secondary-100)] rounded-full overflow-hidden">
-                                <div 
-                                    className={`h-full rounded-full ${value > 5 ? 'bg-green-500' : (value < 4 ? 'bg-red-400' : 'bg-yellow-400')}`} 
-                                    style={{ width: `${(value / 9) * 100}%` }}
-                                />
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                <p className="text-xs text-gray-700 leading-relaxed">
+                                    <span className="font-bold text-gray-500 mr-1">Interpretasi:</span> 
+                                    {getPapiInterpretation(key, score)}
+                                </p>
                             </div>
                         </div>
-                    ))}
+                    )})}
                 </div>
             </div>
         );
@@ -684,6 +752,7 @@ export default function TestManagementPage() {
 
     return <pre className="text-xs text-[var(--secondary-600)]">{JSON.stringify(sub.scores, null, 2)}</pre>;
   };
+
 
   if (!user) return null;
 
@@ -699,6 +768,7 @@ export default function TestManagementPage() {
              subtitle="Kelola soal, link tes, dan lihat hasil submission"
              onRefresh={fetchData}
            />
+           {/* Tab Navigation - Modern Pill Style */}
            <div className="px-4 md:px-8 pb-4 pt-1 flex overflow-x-auto scrollbar-hide">
              <div className="flex p-1 bg-[var(--secondary-100)] rounded-xl whitespace-nowrap">
                {[
@@ -735,7 +805,7 @@ export default function TestManagementPage() {
                    {localCategories.map((cat) => (
                      <button
                        key={cat.id}
-                       onClick={() => { setSelectedCategory(cat); setSelectedCfitSubtype(null); setCorrectAnswer(""); }}
+                       onClick={() => { setSelectedCategory(cat); setSelectedCfitSubtype(null); }}
                        className={`w-full flex items-center justify-between p-4 transition-all ${
                          selectedCategory?.id === cat.id
                            ? "bg-[var(--primary-50)] text-[var(--primary-900)] border-l-4 border-[var(--primary)]"
@@ -772,6 +842,7 @@ export default function TestManagementPage() {
                     </div>
                     {!selectedCfitSubtype ? (
                       <div className="space-y-6">
+                        {/* Konfigurasi Durasi CFIT */}
                         <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                           <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                             <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes CFIT</h3>
@@ -802,6 +873,7 @@ export default function TestManagementPage() {
                           </div>
                         </div>
 
+                        {/* Grid Subtypes */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {cfitSubtypes.map((st) => (
                           <div key={st.id} onClick={() => { setSelectedCfitSubtype(st); setCorrectAnswer(st.id === 2 ? [] : ""); }} className="bg-white p-5 rounded-xl border border-[var(--secondary-200)] hover:border-[var(--primary-300)] hover:shadow-md cursor-pointer group transition-all">
@@ -858,6 +930,7 @@ export default function TestManagementPage() {
                        <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">JUMLAH BARIS</label><input type="number" value={kraepelinRows} onChange={e => setKraepelinRows(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)] transition-all" /></div>
                        <div className="bg-[var(--primary-50)] p-3 rounded-xl border border-[var(--primary-100)]"><label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> DURASI PINDAH (DETIK)</label><input type="number" value={kraepelinTimePerColumn} onChange={e => setKraepelinTimePerColumn(e.target.value)} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" /></div>
                     </div>
+                    {/* Live Preview Kraepelin Grid */}
                     <div className="bg-[#1e293b] rounded-xl p-6 border border-gray-700 mt-6 shadow-inner">
                         <div className="flex items-center justify-between mb-4">
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Preview Grid Angka</p>
@@ -880,6 +953,7 @@ export default function TestManagementPage() {
                   </div>
                 ) : (
                   <div className="space-y-6">
+                    {/* Konfigurasi Durasi Tes */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                       <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                         <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes</h3>
@@ -935,6 +1009,7 @@ export default function TestManagementPage() {
                       ) : null}
                     </div>
 
+                    {/* List Soal */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
                       <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-white">
                         <h3 className="font-bold text-[var(--primary-900)] text-lg">{selectedCategory.name}</h3>
@@ -1054,7 +1129,7 @@ export default function TestManagementPage() {
             </div>
           )}
           
-          {/* === TAB 3: SUBMISSIONS === */}
+          {/* === TAB 3: SUBMISSIONS (IMPROVED UI) === */}
           {activeTab === "submissions" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1071,11 +1146,12 @@ export default function TestManagementPage() {
                   <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.filter(s => s.test_type === 'kraepelin').length}</div><div className="text-sm text-[var(--secondary)]">Kraepelin Completed</div></div>
                 </div>
               </div>
-              
+              {/* Desktop Table View */}
               <div className="hidden md:block">
                  {renderSubmissionTable()}
               </div>
 
+              {/* Mobile Card View */}
               <div className="md:hidden space-y-4">
                  {submissions.map((sub) => {
                     let scoreBadge = <span className="text-[var(--secondary)] italic text-xs">Menunggu...</span>;
@@ -1159,6 +1235,7 @@ export default function TestManagementPage() {
               </div>
               <div className="p-6 space-y-4">
                 
+                {/* PILIHAN TIPE PESERTA (TOGGLE) */}
                 <div className="flex gap-2 mb-2 p-1 bg-[var(--secondary-50)] rounded-lg w-full">
                   <button 
                     onClick={() => setParticipantType("candidate")}
@@ -1299,7 +1376,7 @@ export default function TestManagementPage() {
       {/* --- DETAIL MODAL --- */}
       {showDetailModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+           <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
               <div className="p-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] shrink-0">
                  <div>
                     <h3 className="text-lg font-bold text-[var(--primary-900)]">Detail Hasil Tes</h3>
@@ -1307,7 +1384,7 @@ export default function TestManagementPage() {
                  </div>
                  <button onClick={() => setShowDetailModal(null)} className="p-2 hover:bg-gray-100 rounded-lg"><X className="text-[var(--secondary-400)]" /></button>
               </div>
-              <div className="p-6 overflow-y-auto flex-1">
+              <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
                  {renderDetailContent(showDetailModal)}
               </div>
               <div className="p-4 border-t border-[var(--secondary-100)] bg-gray-50 flex justify-end">

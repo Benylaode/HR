@@ -267,13 +267,13 @@ def update_stage():
         if new_stage_enum not in [RecruitmentStage.HR_REVIEW, RecruitmentStage.RANKING]:
             wa_link = generate_wa_link(
                 candidate_phone=app.candidate.phone,
-                candidate_name=app.candidate.name,
+                candidate_name=app.candidate.full_name,
                 stage=new_stage_enum.value,
                 additional_info=notes
             )
             email_sent_status = send_email_auto(
                 candidate_email=app.candidate.email, # Pastikan model Candidate punya kolom email
-                candidate_name=app.candidate.name,
+                candidate_name=app.candidate.full_name,
                 stage=new_stage_enum.value,
                 job_title=app.job.title,
                 notes=notes
@@ -352,7 +352,7 @@ def upload_document():
             
             wa_link = generate_wa_link(
                 candidate_phone=app.candidate.phone,
-                candidate_name=app.candidate.name,
+                candidate_name=app.candidate.full_name,
                 stage=stage_name_for_wa,
                 additional_info=full_doc_url  # Kirim link lengkap
             )
