@@ -26,6 +26,7 @@ export interface UpdateStageRequest {
   new_stage: string
   notes: string
   actor_name: string
+  manpower_id?: string
 }
 
 export interface UpdateStageResponse {

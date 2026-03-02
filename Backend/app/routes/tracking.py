@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, url_for
 from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 from app import db
 from app.models import (
-    JobApplication, RecruitmentJourney, JourneyLog, RecruitmentStage, User
+    JobApplication, RecruitmentJourney, JourneyLog, RecruitmentStage, User, Manpower
 )
 from datetime import datetime
 import os
@@ -193,6 +193,9 @@ def update_stage():
     new_stage_str = data.get("new_stage") 
     notes = data.get("notes", "").strip()
     actor_name = data.get("actor_name", "HR Admin") 
+    
+    # [BARU] Ambil manpower_id dari request (dikirim saat HR pilih dropdown di Frontend)
+    manpower_id = data.get("manpower_id")
 
     # 1. Validasi Input Dasar
     if not app_id or not new_stage_str:
@@ -234,18 +237,46 @@ def update_stage():
             "message": f"Untuk status '{new_stage_enum.value}', Anda wajib menyertakan alasan penolakan di kolom catatan."
         }), 400
 
+    # ==============================================================
+    # [BARU] 4B. Validasi Khusus untuk Status HIRED (Integrasi Manpower)
+    # ==============================================================
+    if new_stage_enum == RecruitmentStage.HIRED:
+        if not manpower_id:
+            return jsonify({
+                "error": "Slot Manpower Wajib Dipilih",
+                "message": "Untuk menerima kandidat (Hired), Anda wajib memilih slot Manpower yang akan ditempati."
+            }), 400
+            
+        manpower_slot = db.session.get(Manpower, manpower_id)
+        
+        if not manpower_slot:
+            return jsonify({"error": "Slot Manpower tidak ditemukan di database"}), 404
+            
+        if manpower_slot.is_filled:
+            return jsonify({"error": "Slot Manpower ini sudah terisi oleh karyawan/kandidat lain!"}), 400
+            
+        # Update slot manpower menjadi terisi
+        manpower_slot.is_filled = True
+        manpower_slot.filled_by_id = app.candidate_id
+        # Asumsi relasi app.candidate.full_name ada
+        if app.candidate:
+            manpower_slot.filled_by_name = app.candidate.full_name
+    # ==============================================================
+
     # 5. Proses Update
     old_stage_enum = journey.current_stage
     journey.current_stage = new_stage_enum
     
     # Update juga status di JobApplication utama agar sinkron
     # (Opsional, tergantung desain DB Anda mau double store atau tidak)
-    # app.status = new_stage_enum.name 
+    app.status = new_stage_enum.name 
 
     # 6. Logging
     action_title = f"Status updated: {new_stage_enum.value}"
     if new_stage_enum in REJECTION_STAGES:
         action_title = f"DECISION: {new_stage_enum.value.upper()}"
+    elif new_stage_enum == RecruitmentStage.HIRED:
+        action_title = f"DECISION: HIRED (Manpower ID: {manpower_id})"
 
     log = JourneyLog(
         journey_id=journey.id,
@@ -257,7 +288,7 @@ def update_stage():
     )
     
     db.session.add(log)
-    db.session.commit()
+    db.session.commit() # Ini akan menyimpan semua perubahan (Journey, Log, App, dan Manpower sekaligus)
 
     # 7. Generate WhatsApp Link (Kecuali tahap internal seperti HR Review)
     wa_link = None
@@ -265,19 +296,25 @@ def update_stage():
     if app.candidate:
         # Filter tahap yang perlu notif ke kandidat
         if new_stage_enum not in [RecruitmentStage.HR_REVIEW, RecruitmentStage.RANKING]:
-            wa_link = generate_wa_link(
-                candidate_phone=app.candidate.phone,
-                candidate_name=app.candidate.full_name,
-                stage=new_stage_enum.value,
-                additional_info=notes
-            )
-            email_sent_status = send_email_auto(
-                candidate_email=app.candidate.email, # Pastikan model Candidate punya kolom email
-                candidate_name=app.candidate.full_name,
-                stage=new_stage_enum.value,
-                job_title=app.job.title,
-                notes=notes
-            )
+            # Perhatikan: pastikan app.candidate.phone & email tidak error jika None
+            candidate_phone = getattr(app.candidate, 'phone', getattr(app.candidate, 'whatsapp', None))
+            
+            if candidate_phone:
+                wa_link = generate_wa_link(
+                    candidate_phone=candidate_phone,
+                    candidate_name=app.candidate.full_name,
+                    stage=new_stage_enum.value,
+                    additional_info=notes
+                )
+            
+            if app.candidate.email:
+                email_sent_status = send_email_auto(
+                    candidate_email=app.candidate.email, 
+                    candidate_name=app.candidate.full_name,
+                    stage=new_stage_enum.value,
+                    job_title=app.job.title if app.job else "Posisi",
+                    notes=notes
+                )
 
     return jsonify({
         "message": f"Berhasil memindahkan kandidat ke {new_stage_enum.value}",

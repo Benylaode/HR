@@ -446,3 +446,39 @@ class ATARequest(db.Model):
             },
             "created_at": format_date(self.created_at)
         }
+
+
+# Tambahkan ini di Backend/app/models.py
+
+class Manpower(db.Model):
+    __tablename__ = "manpower"
+
+    id = db.Column(db.Integer, primary_key=True) # atau db.String default=uuid_str jika ingin seragam
+    position_title = db.Column(db.String(100))
+    level = db.Column(db.String(50))
+    grade = db.Column(db.String(50))
+    section = db.Column(db.String(100))
+    department = db.Column(db.String(100))
+    division = db.Column(db.String(100))
+    local_status = db.Column(db.String(20))
+    first_join_month = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=now_utc)
+
+    # --- FITUR HIRE: MENGHUBUNGKAN DENGAN KANDIDAT ---
+    is_filled = db.Column(db.Boolean, default=False)
+    
+    # Karena id kandidat di models.py Anda bertipe String (UUID)
+    filled_by_id = db.Column(db.String, db.ForeignKey("candidates.id", ondelete="SET NULL"), nullable=True)
+    
+    # Relasi ke tabel Candidate
+    candidate = db.relationship("Candidate", backref=db.backref("manpower_slot", uselist=False))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "position_title": self.position_title,
+            "grade": self.grade,
+            "department": self.department,
+            "is_filled": self.is_filled,
+            "filled_by": self.candidate.full_name if self.candidate else None
+        }

@@ -6,7 +6,7 @@ import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import JourneyTimeline from '@/components/recruitment/JourneyTimeline'
-import { toast } from 'sonner' // <-- 1. IMPORT SONNER DI SINI
+import { toast } from 'sonner'
 import { 
   Loader2, ChevronLeft, Upload, Download, Send, User as UserIcon,
   Briefcase, TrendingUp
@@ -33,6 +33,10 @@ export default function CandidateJourneyPage() {
   const [selectedStage, setSelectedStage] = useState('')
   const [notes, setNotes] = useState('')
   const [actorName, setActorName] = useState('HR Admin')
+
+  // State untuk Integrasi Manpower
+  const [manpowerList, setManpowerList] = useState<any[]>([])
+  const [selectedManpower, setSelectedManpower] = useState('')
   
   // Document upload form
   const [docType, setDocType] = useState<'offering' | 'ticket' | 'mcu'>('offering')
@@ -47,6 +51,17 @@ export default function CandidateJourneyPage() {
     fetchJourney()
   }, [candidateId])
 
+  // Fetch Manpower ketika stage = Hired
+  useEffect(() => {
+    const isHired = selectedStage.toLowerCase() === 'hired' || selectedStage === 'Offer Accepted';
+    
+    if (isHired) {
+      fetchVacantManpower()
+    } else {
+      setSelectedManpower('') // Reset jika pindah stage lain
+    }
+  }, [selectedStage])
+
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
     return {
@@ -54,126 +69,136 @@ export default function CandidateJourneyPage() {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   };
+
+  const fetchVacantManpower = async () => {
+    try {
+      const headers = getAuthHeaders();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiUrl}/api/manpower/vacant`, { headers });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setManpowerList(data);
+      }
+    } catch (error) {
+      console.error("Gagal mengambil data manpower", error);
+      toast.error("Gagal memuat formasi Manpower yang kosong.");
+    }
+  }
   
   const fetchJourney = async () => {
     try {
-      // Step 1: Fetch candidate to get application_id
       const candidateData = await getCandidateApplications(candidateId)
-      
-      // Check if candidate has any job applications
       if (!candidateData.applications || candidateData.applications.length === 0) {
         setJourney(null)
         return
       }
-      
-      // Step 2: Use first application to fetch journey
       const applicationId = candidateData.applications[0].id
       const data = await getJourneyTimeline(applicationId)
       setJourney(data)
     } catch (error: any) {
       console.error('Error fetching journey:', error)
-      // If no application found, show friendly UI instead of alert
       setJourney(null)
     } finally {
       setLoading(false)
     }
   }
   
-  // 2. PERUBAHAN DI SINI: Update Stage menggunakan toast.promise
   const handleStageUpdate = async () => {
-      if (!journey || !selectedStage) {
-        toast.warning('Peringatan', { description: 'Silakan pilih tahap (stage) terlebih dahulu' })
-        return
-      }
-      
-      if (isRejectionStage(selectedStage) && !notes.trim()) {
-        toast.warning('Peringatan', { description: 'Catatan/alasan wajib diisi untuk tahap penolakan' })
-        return
-      }
-      
-      setActionLoading(true)
-      
-      const updateTask = async () => {
-        try {
-          if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
-          
-          const result = await updateStage({
-            application_id: journey.application_id,
-            new_stage: selectedStage,
-            notes: notes.trim(),
-            actor_name: actorName
-          })
-          
-          // --- FITUR BUKA TAB WA OTOMATIS ---
-          if (result.whatsapp_link) {
-            setWhatsappLink(result.whatsapp_link)
-            // Membuka tab WhatsApp Web secara otomatis
-            window.open(result.whatsapp_link, '_blank')
-          }
-          
-          // Reset form
-          setSelectedStage('')
-          setNotes('')
-          
-          // Refresh journey
-          await fetchJourney()
-
-          return result.message || 'Tahap kandidat berhasil diperbarui!'
-        } finally {
-          setActionLoading(false)
-        }
-      }
-
-      toast.promise(updateTask(), {
-        loading: 'Memperbarui tahap...',
-        success: (msg) => msg,
-        error: (err) => err.message || 'Gagal memperbarui tahap.',
-      })
+    if (!journey || !selectedStage) {
+      toast.warning('Peringatan', { description: 'Silakan pilih tahap (stage) terlebih dahulu' })
+      return
     }
+    
+    if (isRejectionStage(selectedStage) && !notes.trim()) {
+      toast.warning('Peringatan', { description: 'Catatan/alasan wajib diisi untuk tahap penolakan' })
+      return
+    }
+
+    // Validasi Wajib Pilih Manpower jika Hired
+    const isHired = selectedStage.toLowerCase() === 'hired' || selectedStage === 'Offer Accepted';
+    if (isHired && !selectedManpower) {
+      toast.warning('Peringatan', { description: 'Silakan pilih Slot Manpower untuk kandidat yang diterima!' })
+      return
+    }
+    
+    setActionLoading(true)
+    
+    const updateTask = async () => {
+      try {
+        if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
+        
+        const result = await updateStage({
+          application_id: journey.application_id,
+          new_stage: selectedStage,
+          notes: notes.trim(),
+          actor_name: actorName,
+          // Kirim manpower_id ke backend jika stage-nya Hired
+          ...(isHired && selectedManpower ? { manpower_id: selectedManpower } : {})
+        })
+        
+        if (result.whatsapp_link) {
+          setWhatsappLink(result.whatsapp_link)
+          window.open(result.whatsapp_link, '_blank')
+        }
+        
+        // Reset form
+        setSelectedStage('')
+        setNotes('')
+        setSelectedManpower('')
+        
+        // Refresh journey
+        await fetchJourney()
+
+        return result.message || 'Tahap kandidat berhasil diperbarui!'
+      } finally {
+        setActionLoading(false)
+      }
+    }
+
+    toast.promise(updateTask(), {
+      loading: 'Memperbarui tahap...',
+      success: (msg) => msg,
+      error: (err) => err.message || 'Gagal memperbarui tahap.',
+    })
+  }
   
-  // 3. PERUBAHAN DI SINI: Upload Dokumen menggunakan toast.promise
   const handleDocumentUpload = async () => {
-      if (!docFile) {
-        toast.warning('Peringatan', { description: 'Silakan pilih file dokumen terlebih dahulu' })
-        return
-      }
-      
-      setUploadLoading(true)
-
-      const uploadTask = async () => {
-        try {
-          if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
-          
-          const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
-          
-          // --- FITUR BUKA TAB WA OTOMATIS UNTUK DOKUMEN ---
-          if (result.whatsapp_link) {
-            setWhatsappLink(result.whatsapp_link)
-            // Membuka tab WhatsApp Web secara otomatis
-            window.open(result.whatsapp_link, '_blank')
-          }
-          
-          // Reset form
-          setDocFile(null)
-          setUploadNotes('')
-          
-          // Refresh journey
-          await fetchJourney()
-
-          return result.message || 'Dokumen berhasil diunggah!'
-        } finally {
-          setUploadLoading(false)
-        }
-      }
-
-      toast.promise(uploadTask(), {
-        loading: 'Mengunggah dokumen...',
-        success: (msg) => msg,
-        error: (err) => err.message || 'Gagal mengunggah dokumen.',
-      })
+    if (!docFile) {
+      toast.warning('Peringatan', { description: 'Silakan pilih file dokumen terlebih dahulu' })
+      return
     }
+    
+    setUploadLoading(true)
+
+    const uploadTask = async () => {
+      try {
+        if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
+        
+        const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
+        
+        if (result.whatsapp_link) {
+          setWhatsappLink(result.whatsapp_link)
+          window.open(result.whatsapp_link, '_blank')
+        }
+        
+        setDocFile(null)
+        setUploadNotes('')
+        await fetchJourney()
+
+        return result.message || 'Dokumen berhasil diunggah!'
+      } finally {
+        setUploadLoading(false)
+      }
+    }
+
+    toast.promise(uploadTask(), {
+      loading: 'Mengunggah dokumen...',
+      success: (msg) => msg,
+      error: (err) => err.message || 'Gagal mengunggah dokumen.',
+    })
+  }
   
-  // 4. PERUBAHAN DI SINI: Menyalin Link WhatsApp menggunakan toast.success
   const copyWhatsAppLink = () => {
     if (whatsappLink) {
       navigator.clipboard.writeText(whatsappLink)
@@ -296,8 +321,7 @@ export default function CandidateJourneyPage() {
             </div>
           </div>
           
-          {/* Modern Horizontal Layout - Timeline + Actions */}
-          <div className="flex gap-6">
+          <div className="flex flex-col xl:flex-row gap-6">
             {/* Main Timeline - 60% width */}
             <div className="flex-1">
               <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
@@ -324,7 +348,7 @@ export default function CandidateJourneyPage() {
             </div>
             
             {/* Compact Actions Panel - 40% width */}
-            <div className="w-96 space-y-4 flex-shrink-0">
+            <div className="w-full xl:w-96 space-y-4 flex-shrink-0">
               {/* Stage Update Card */}
               {!isTerminal && (
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border-2 border-blue-200 p-6">
@@ -344,7 +368,7 @@ export default function CandidateJourneyPage() {
                       <select
                         value={selectedStage}
                         onChange={(e) => setSelectedStage(e.target.value)}
-                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-medium text-sm"
+                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 font-medium text-sm transition-all"
                       >
                         <option value="">Choose stage...</option>
                         {allowedNext.map(stage => (
@@ -354,6 +378,36 @@ export default function CandidateJourneyPage() {
                         ))}
                       </select>
                     </div>
+
+                    {/* DROPDOWN MANPOWER (Muncul jika HIRED) */}
+                    {(selectedStage.toLowerCase() === 'hired' || selectedStage === 'Offer Accepted') && (
+                      <div className="animate-in fade-in slide-in-from-top-2">
+                        <label className="block text-xs font-bold text-emerald-700 mb-2 uppercase tracking-wide">
+                          Slot Manpower (Wajib) <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={selectedManpower}
+                          onChange={(e) => setSelectedManpower(e.target.value)}
+                          className="w-full px-4 py-3 bg-white border-2 border-emerald-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-medium text-sm shadow-sm transition-all"
+                        >
+                          <option value="">-- Pilih Formasi Kosong --</option>
+                          {manpowerList.map(slot => (
+                            <option key={slot.id} value={slot.id}>
+                              {slot.position_title} ({slot.level}) - Dept: {slot.department}
+                            </option>
+                          ))}
+                        </select>
+                        {manpowerList.length === 0 ? (
+                          <p className="text-xs text-red-500 mt-2 font-medium">
+                            ⚠️ Tidak ada slot kosong. Silakan tambah di menu Manpower.
+                          </p>
+                        ) : (
+                          <p className="text-xs text-emerald-600 mt-2 font-medium">
+                            ✓ {manpowerList.length} formasi tersedia
+                          </p>
+                        )}
+                      </div>
+                    )}
                     
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
@@ -363,7 +417,7 @@ export default function CandidateJourneyPage() {
                         rows={3}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm resize-none"
+                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm resize-none transition-all"
                         placeholder={isRejectionStage(selectedStage) ? 'Reason required for rejection' : 'Optional notes...'}
                       />
                     </div>
@@ -374,7 +428,7 @@ export default function CandidateJourneyPage() {
                         type="text"
                         value={actorName}
                         onChange={(e) => setActorName(e.target.value)}
-                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm"
+                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm transition-all"
                         placeholder="e.g. Sarah (HR)"
                       />
                     </div>
@@ -404,7 +458,7 @@ export default function CandidateJourneyPage() {
                   <select
                     value={docType}
                     onChange={(e) => setDocType(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all"
                   >
                     <option value="offering">Offering Letter</option>
                     <option value="ticket">Flight Ticket</option>
@@ -415,7 +469,7 @@ export default function CandidateJourneyPage() {
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     onChange={(e) => setDocFile(e.target.files?.[0] || null)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm transition-all"
                   />
                   {docFile && (
                     <p className="text-xs text-slate-600 truncate">📎 {docFile.name}</p>
@@ -425,7 +479,7 @@ export default function CandidateJourneyPage() {
                     type="text"
                     value={uploadNotes}
                     onChange={(e) => setUploadNotes(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm transition-all"
                     placeholder="Optional notes..."
                   />
                   
@@ -450,7 +504,7 @@ export default function CandidateJourneyPage() {
                         href={`${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800"
+                        className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 transition-colors"
                       >
                         <Download size={12} />
                         {key.replace('_url', '').toUpperCase()}
@@ -469,7 +523,7 @@ export default function CandidateJourneyPage() {
                   </div>
                   <button
                     onClick={copyWhatsAppLink}
-                    className="w-full bg-green-600 text-white rounded-lg py-2 font-semibold hover:bg-green-700 text-sm mb-2"
+                    className="w-full bg-green-600 text-white rounded-lg py-2 font-semibold hover:bg-green-700 text-sm mb-2 transition-colors"
                   >
                     Copy Link
                   </button>
@@ -477,7 +531,7 @@ export default function CandidateJourneyPage() {
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full bg-white text-green-600 border-2 border-green-600 rounded-lg py-2 font-semibold hover:bg-green-50 text-sm text-center"
+                    className="block w-full bg-white text-green-600 border-2 border-green-600 rounded-lg py-2 font-semibold hover:bg-green-50 text-sm text-center transition-colors"
                   >
                     Open WhatsApp
                   </a>
