@@ -141,7 +141,7 @@ def get_timeline(application_id):
 
     return jsonify({
         "application_id": app.id,
-        "candidate_name": app.candidate.name,
+        "candidate_name": app.candidate.full_name,
         "job_title": app.job.title,
         "current_stage": journey.current_stage.name,  # Use .name instead of .value
         "metadata": journey.stage_data,
@@ -173,7 +173,7 @@ def get_timeline_by_candidate(candidate_id):
 
     return jsonify({
         "application_id": app.id,
-        "candidate_name": app.candidate.name,
+        "candidate_name": app.candidate.full_name,
         "job_title": app.job.title,
         "current_stage": journey.current_stage.name,  # Use .name instead of .value
         "metadata": journey.stage_data,
