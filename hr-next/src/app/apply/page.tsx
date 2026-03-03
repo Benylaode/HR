@@ -20,7 +20,7 @@ export default function ManualRegistrationPage() {
   // === STATE LENGKAP (SINKRON DENGAN PROFILEMIXIN & JSONB FIELDS) ===
   const [form, setForm] = useState({
     job_id: "",
-    
+    currentPosition: "",
     // 1. Biodata Utama (ProfileMixin)
     fullName: "", 
     email: "", 
@@ -115,17 +115,17 @@ export default function ManualRegistrationPage() {
         ...form,
         province: form.domicileProvince,
         city: form.domicileCity,
-        total_experience_years: form.totalExperience,
+        totalExperience: form.totalExperience,
         education: form.degree,
-        position_applied: form.appliedPosition1,
+        positionApplied: submissionType === "employee" ? form.currentPosition : form.appliedPosition1,
         birth_place: form.birthPlace,
         driver_license: form.driverLicense,
         // Mapping pekerjaan terakhir untuk kolom statis mixin
-        last_company: form.workExperiences[0]?.company || "",
-        last_position: form.workExperiences[0]?.position || "",
-        last_position_level: form.workExperiences[0]?.level || "",
-        last_company_field: form.workExperiences[0]?.industry || "",
-        experience_description: form.workExperiences[0]?.desc || "",
+        lastCompany: form.workExperiences[0]?.company || "",
+        lastPosition: form.workExperiences[0]?.position || "",
+        lastPositionLevel: form.workExperiences[0]?.level || "",
+        lastCompanyField: form.workExperiences[0]?.industry || "",
+        experienceDescription: form.workExperiences[0]?.desc || "",
       };
 
       // --- PERBAIKAN: BEDAKAN CARA KIRIM DATA KANDIDAT VS KARYAWAN ---

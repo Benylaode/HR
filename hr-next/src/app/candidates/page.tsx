@@ -25,7 +25,11 @@ import {
   TrendingUp,
   GraduationCap,
   Award,
-  Users
+  Users,
+  Activity,    // Icon Kraepelin
+  BrainCircuit,// Icon CFIT
+  PieChart,    // Icon PAPI
+  FileText     // Icon Header Modal
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -50,6 +54,8 @@ interface CandidateDetail extends Candidate {
   domicileProvince?: string;
   domicileCity?: string;
   totalExperience?: string;
+  appliedPosition2?:string;
+  appliedPosition1?:string;
   
   // Pendidikan (Flat dari backend)
   degree?: string;
@@ -231,11 +237,10 @@ const EditModal = memo(({
   onSave: (data: Partial<CandidateDetail>) => Promise<void>;
 }) => {
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    whatsapp: "",
-    domicileCity: "",
-    totalExperience: "",
+    fullName: "", email: "", whatsapp: "", gender: "", birthDate: "",
+    domicileCity: "", domicileProvince: "",
+    degree: "", major: "", studyProgram: "", university: "", gpa: "", startYear: "", gradYear: "",
+    totalExperience: "", appliedPosition1: "", appliedPosition2: "", expectedSalary: "", noticePeriod: ""
   });
   const [saving, setSaving] = useState(false);
 
@@ -245,8 +250,23 @@ const EditModal = memo(({
         fullName: candidate.fullName || "",
         email: candidate.email || "",
         whatsapp: candidate.whatsapp || "",
+        gender: candidate.gender || "",
+        // Memastikan format YYYY-MM-DD
+        birthDate: candidate.birthDate ? candidate.birthDate.split('T')[0] : "",
         domicileCity: candidate.domicileCity || "",
+        domicileProvince: candidate.domicileProvince || "",
+        degree: candidate.degree || "",
+        major: candidate.major || "",
+        studyProgram: candidate.studyProgram || "",
+        university: candidate.university || "",
+        gpa: candidate.gpa || "",
+        startYear: candidate.startYear || "",
+        gradYear: candidate.gradYear || "",
         totalExperience: candidate.totalExperience || "",
+        appliedPosition1: candidate.appliedPosition1 || "",
+        appliedPosition2: candidate.appliedPosition2 || "",
+        expectedSalary: candidate.expectedSalary ? candidate.expectedSalary.toString() : "",
+        noticePeriod: candidate.noticePeriod || ""
       });
     }
   }, [candidate]);
@@ -256,26 +276,32 @@ const EditModal = memo(({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await onSave(formData);
+    // Parse salary ke number sebelum dikirim
+    const submissionData = {
+      ...formData,
+      expectedSalary: formData.expectedSalary ? parseInt(formData.expectedSalary, 10) : undefined
+    };
+    await onSave(submissionData);
     setSaving(false);
   };
 
   const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--secondary-200)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors text-[var(--primary-900)] placeholder-[var(--secondary-300)]";
   const labelClass = "text-xs font-semibold text-[var(--secondary-500)] uppercase tracking-wide mb-1.5 block";
+  const sectionTitleClass = "text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-6";
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)]"
+        className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[var(--primary-50)] flex items-center justify-center">
               <Edit size={18} className="text-[var(--primary)]" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Basic Info</h2>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Profil Kandidat</h2>
               <p className="text-xs text-[var(--secondary)]">{candidate.fullName}</p>
             </div>
           </div>
@@ -284,37 +310,131 @@ const EditModal = memo(({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className={labelClass}>Nama Lengkap</label>
-              <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className={inputClass} required />
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
+          <form id="editCandidateForm" onSubmit={handleSubmit} className="space-y-2">
+            
+            {/* 1. DATA UTAMA & KONTAK */}
+            <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Kontak</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Nama Lengkap *</label>
+                <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className={inputClass} required />
+              </div>
+              <div>
+                <label className={labelClass}>Email *</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={inputClass} required />
+              </div>
+              <div>
+                <label className={labelClass}>WhatsApp</label>
+                <input type="text" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Jenis Kelamin</label>
+                  <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className={inputClass}>
+                    <option value="">Pilih...</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Tanggal Lahir</label>
+                  <input type="date" value={formData.birthDate} onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })} className={inputClass} />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className={labelClass}>Email</label>
-              <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={inputClass} required />
-            </div>
-            <div>
-              <label className={labelClass}>WhatsApp</label>
-              <input type="text" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Kota Domisili</label>
-              <input type="text" value={formData.domicileCity} onChange={(e) => setFormData({ ...formData, domicileCity: e.target.value })} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Total Pengalaman</label>
-              <input type="text" placeholder="Cth: 2 Tahun 3 Bulan" value={formData.totalExperience} onChange={(e) => setFormData({ ...formData, totalExperience: e.target.value })} className={inputClass} />
-            </div>
-          </div>
-        </form>
 
-        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)]">
-          <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">Batal</button>
-          <button onClick={handleSubmit} disabled={saving} className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm">
-            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-            {saving ? "Menyimpan..." : "Simpan"}
-          </button>
+            {/* 2. DOMISILI */}
+            <h3 className={sectionTitleClass}>Lokasi & Domisili</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Kota / Kabupaten Domisili</label>
+                <input type="text" value={formData.domicileCity} onChange={(e) => setFormData({ ...formData, domicileCity: e.target.value })} className={inputClass} placeholder="Cth: Jakarta Selatan" />
+              </div>
+              <div>
+                <label className={labelClass}>Provinsi Domisili</label>
+                <input type="text" value={formData.domicileProvince} onChange={(e) => setFormData({ ...formData, domicileProvince: e.target.value })} className={inputClass} placeholder="Cth: DKI Jakarta" />
+              </div>
+            </div>
+
+            {/* 3. PENDIDIKAN */}
+            <h3 className={sectionTitleClass}>Pendidikan Terakhir</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Tingkat</label>
+                  <input type="text" value={formData.degree} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} className={inputClass} placeholder="Cth: S1, D3" />
+                </div>
+                <div>
+                  <label className={labelClass}>Fakultas / Peminatan</label>
+                  <input type="text" value={formData.major} onChange={(e) => setFormData({ ...formData, major: e.target.value })} className={inputClass} placeholder="Cth: Teknik" />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>Program Studi (Jurusan)</label>
+                <input type="text" value={formData.studyProgram} onChange={(e) => setFormData({ ...formData, studyProgram: e.target.value })} className={inputClass} placeholder="Cth: Teknik Informatika" />
+              </div>
+              <div>
+                <label className={labelClass}>Universitas / Institusi</label>
+                <input type="text" value={formData.university} onChange={(e) => setFormData({ ...formData, university: e.target.value })} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>IPK</label>
+                  <input type="text" value={formData.gpa} onChange={(e) => setFormData({ ...formData, gpa: e.target.value })} className={inputClass} placeholder="Cth: 3.80" />
+                </div>
+                <div>
+                  <label className={labelClass}>Tahun Masuk</label>
+                  <input type="text" value={formData.startYear} onChange={(e) => setFormData({ ...formData, startYear: e.target.value })} className={inputClass} placeholder="YYYY" />
+                </div>
+                <div>
+                  <label className={labelClass}>Tahun Lulus</label>
+                  <input type="text" value={formData.gradYear} onChange={(e) => setFormData({ ...formData, gradYear: e.target.value })} className={inputClass} placeholder="YYYY" />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. PENGALAMAN & EKSPEKTASI */}
+            <h3 className={sectionTitleClass}>Pengalaman & Ekspektasi Pekerjaan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Posisi Dilamar (Pilihan 1)</label>
+                <input type="text" value={formData.appliedPosition1} onChange={(e) => setFormData({ ...formData, appliedPosition1: e.target.value })} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Posisi Dilamar (Pilihan 2)</label>
+                <input type="text" value={formData.appliedPosition2} onChange={(e) => setFormData({ ...formData, appliedPosition2: e.target.value })} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Total Pengalaman Kerja</label>
+                <input type="text" value={formData.totalExperience} onChange={(e) => setFormData({ ...formData, totalExperience: e.target.value })} className={inputClass} placeholder="Cth: 2 Tahun" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Ekspektasi Gaji (IDR)</label>
+                  <input type="number" value={formData.expectedSalary} onChange={(e) => setFormData({ ...formData, expectedSalary: e.target.value })} className={inputClass} placeholder="Angka saja..." />
+                </div>
+                <div>
+                  <label className={labelClass}>Notice Period</label>
+                  <input type="text" value={formData.noticePeriod} onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })} className={inputClass} placeholder="Cth: 1 Bulan, Segera" />
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
+          <p className="text-[10px] text-[var(--secondary-500)] font-medium">Data kandidat akan langsung disinkronkan ke server.</p>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
+              Batal
+            </button>
+            <button type="submit" form="editCandidateForm" disabled={saving} className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm">
+              {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -322,21 +442,153 @@ const EditModal = memo(({
 });
 EditModal.displayName = 'EditModal';
 
+// ==========================================
+// MODAL HASIL TES UNTUK KANDIDAT
+// ==========================================
+const TestResultModal = memo(({ 
+  candidate, 
+  submissions,
+  onClose 
+}: { 
+  candidate: Candidate | null; 
+  submissions: any[];
+  onClose: () => void;
+}) => {
+  if (!candidate) return null;
+
+  // Filter khusus untuk Kandidat terpilih
+  const candSubs = submissions.filter(s => s.candidate_id === candidate.id && s.participant_type === "Candidate");
+  const cfit = candSubs.find(s => s.test_type === "cfit");
+  const kraepelin = candSubs.find(s => s.test_type === "kraepelin");
+  const papi = candSubs.find(s => s.test_type === "papi");
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+              <FileText size={20} className="text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Hasil Tes Asesmen Lengkap</h2>
+              <p className="text-xs text-[var(--secondary)]">{candidate.fullName} - {candidate.top_position}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-8">
+          
+          {/* SEKSI: CFIT */}
+          <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
+                <BrainCircuit className="text-blue-500" size={20}/> Tes Kecerdasan (CFIT)
+            </h3>
+            {cfit ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-blue-50 p-5 rounded-xl text-center border border-blue-100">
+                        <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider">IQ Score</p>
+                        <p className="text-4xl font-black text-blue-900 mt-2">{cfit.scores?.iq || 0}</p>
+                    </div>
+                    <div className="bg-green-50 p-5 rounded-xl text-center border border-green-100">
+                        <p className="text-xs text-green-600 font-extrabold uppercase tracking-wider">Klasifikasi</p>
+                        <p className="text-lg font-black text-green-900 mt-4">{cfit.scores?.classification || "-"}</p>
+                    </div>
+                    <div className="bg-slate-50 p-5 rounded-xl text-center border border-slate-200">
+                        <p className="text-xs text-slate-500 font-extrabold uppercase tracking-wider">Jawaban Benar</p>
+                        <p className="text-3xl font-black text-slate-800 mt-2">{cfit.scores?.raw_score || 0}</p>
+                    </div>
+                </div>
+            ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes CFIT.</p>}
+          </div>
+
+          {/* SEKSI: KRAEPELIN */}
+          <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
+                <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
+            </h3>
+            {kraepelin ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
+                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Benar</p>
+                        <p className="font-black text-xl text-slate-800 mt-1">{kraepelin.scores?.benar || 0}</p>
+                    </div>
+                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Salah / Lewat</p>
+                        <p className="font-black text-lg text-slate-800 mt-1">{kraepelin.scores?.salah || 0} / {kraepelin.scores?.terlewat || 0}</p>
+                    </div>
+                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Kecepatan</p>
+                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.kecepatan || "-"}</p>
+                    </div>
+                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Ketelitian</p>
+                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.ketelitian || "-"}</p>
+                    </div>
+                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Keajegan</p>
+                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.keajegan || "-"}</p>
+                    </div>
+                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Ketahanan</p>
+                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.ketahanan || "-"}</p>
+                    </div>
+                </div>
+            ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes Kraepelin.</p>}
+          </div>
+
+          {/* SEKSI: PAPI KOSTICK */}
+          <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
+                <PieChart className="text-purple-500" size={20}/> Tes Kepribadian (PAPI Kostick)
+            </h3>
+            {papi ? (
+                <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
+                    {Object.entries(papi.scores || {}).map(([key, value]) => (
+                        <div key={key} className="bg-purple-50 p-3 rounded-xl text-center border border-purple-100 shadow-sm">
+                            <p className="text-xs font-black text-purple-900">{key}</p>
+                            <p className="text-lg font-bold text-purple-700 mt-1">{String(value)}</p>
+                        </div>
+                    ))}
+                </div>
+            ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes PAPI.</p>}
+          </div>
+
+        </div>
+        
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)] flex-shrink-0">
+          <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
+            Tutup Laporan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+TestResultModal.displayName = 'TestResultModal';
+
+
 export default function CandidatesPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<JobPosition[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]); // Menyimpan hasil tes
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [jobFilter, setJobFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState("all"); // Filter Job dipertahankan
 
   const [detailModal, setDetailModal] = useState<CandidateDetail | null>(null);
   const [editModal, setEditModal] = useState<CandidateDetail | null>(null);
+  const [testResultModal, setTestResultModal] = useState<Candidate | null>(null); // State Modal Tes
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
@@ -348,6 +600,7 @@ export default function CandidatesPage() {
     setUser(JSON.parse(userData));
     fetchCandidates();
     fetchJobs();
+    fetchSubmissions(); // Fetch hasil tes
   }, [router]);
 
   const getAuthHeaders = (): HeadersInit => {
@@ -379,6 +632,16 @@ export default function CandidatesPage() {
       if (res.ok) setJobs(await res.json());
     } catch (err) {
       console.error("Gagal mengambil data pekerjaan:", err);
+    }
+  };
+
+  // Mengambil data hasil tes untuk semua kandidat
+  const fetchSubmissions = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() });
+      if (res.ok) setSubmissions(await res.json());
+    } catch (err) {
+      console.error("Gagal mengambil data hasil tes:", err);
     }
   };
 
@@ -462,7 +725,7 @@ export default function CandidatesPage() {
       (c.fullName || "").toLowerCase().includes(searchLower) || 
       (c.email || "").toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
-    const matchesJob = jobFilter === "all" || c.top_position === jobFilter;
+    const matchesJob = jobFilter === "all" || c.top_position === jobFilter; // Job filter dipertahankan
     return matchesSearch && matchesStatus && matchesJob;
   });
 
@@ -501,7 +764,6 @@ export default function CandidatesPage() {
               <p className="text-xs md:text-sm text-[var(--secondary)] mt-1">Total {candidates.length} kandidat terdaftar</p>
             </div>
             
-            {/* Tombol Add Candidate diarahkan ke form apply manual */}
             <button 
               onClick={() => router.push('/apply')} 
               className="w-full md:w-auto bg-[var(--primary)] text-white px-5 py-3 md:py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[var(--primary-700)] hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95 text-sm"
@@ -587,6 +849,7 @@ export default function CandidatesPage() {
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Test Status</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Tanggal Apply</th>
+                        <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Hasil Tes</th>
                         <th className="px-6 py-4 text-right text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
@@ -632,6 +895,17 @@ export default function CandidatesPage() {
                               day: 'numeric', month: 'short', year: 'numeric'
                             }) : "-"}
                           </td>
+                          
+                          {/* Tombol Lihat Hasil Tes Desktop */}
+                          <td className="px-6 py-4 text-center">
+                             <button 
+                               onClick={() => setTestResultModal(candidate)}
+                               className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                             >
+                               <Award size={14}/> Lihat Hasil
+                             </button>
+                          </td>
+
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-2">
                               <button 
@@ -713,6 +987,14 @@ export default function CandidatesPage() {
                           </span>
                       </div>
 
+                      {/* Tombol Lihat Hasil Tes Mobile */}
+                      <button 
+                         onClick={() => setTestResultModal(candidate)} 
+                         className="w-full py-2.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                      >
+                          <Award size={16} /> Lihat Hasil Asesmen Lengkap
+                      </button>
+
                       <div className="pt-3 border-t border-[var(--secondary-50)] flex justify-between gap-2 overflow-x-auto">
                           <button 
                             onClick={() => router.push(`/candidates/${candidate.id}/journey`)}
@@ -761,6 +1043,9 @@ export default function CandidatesPage() {
 
       {detailModal && <DetailModal candidate={detailModal} onClose={() => setDetailModal(null)} />}
       {editModal && <EditModal candidate={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
+      
+      {/* Panggil Modal Hasil Tes */}
+      {testResultModal && <TestResultModal candidate={testResultModal} submissions={submissions} onClose={() => setTestResultModal(null)} />}
     </div>
   );
 }

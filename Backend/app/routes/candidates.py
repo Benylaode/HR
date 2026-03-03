@@ -261,12 +261,36 @@ def update_candidate(candidate_id):
 
     data = request.get_json()
     
-    # Penyesuaian Update dengan Field Baru
+    # 1. Info Utama & Kontak
     if "fullName" in data: candidate.full_name = data["fullName"]
     if "email" in data: candidate.email = data["email"]
     if "whatsapp" in data: candidate.whatsapp = data["whatsapp"]
-    if "domicileCity" in data: candidate.city = data["domicileCity"] # Disesuaikan ke field 'city'
-    if "totalExperience" in data: candidate.total_experience_years = data["totalExperience"] # Disesuaikan
+    if "gender" in data: candidate.gender = data["gender"]
+    
+    if "birthDate" in data and data["birthDate"]:
+        candidate.birth_date = datetime.strptime(data["birthDate"], "%Y-%m-%d").date()
+    elif "birthDate" in data and not data["birthDate"]:
+        candidate.birth_date = None
+
+    # 2. Domisili
+    if "domicileCity" in data: candidate.city = data["domicileCity"] 
+    if "domicileProvince" in data: candidate.province = data["domicileProvince"]
+
+    # 3. Pendidikan
+    if "degree" in data: candidate.degree = data["degree"]
+    if "major" in data: candidate.major = data["major"]
+    if "studyProgram" in data: candidate.study_program = data["studyProgram"]
+    if "university" in data: candidate.university = data["university"]
+    if "gpa" in data: candidate.gpa = data["gpa"]
+    if "startYear" in data: candidate.start_year = data["startYear"]
+    if "gradYear" in data: candidate.grad_year = data["gradYear"]
+
+    # 4. Pekerjaan & Ekspektasi
+    if "totalExperience" in data: candidate.total_experience_years = data["totalExperience"]
+    if "appliedPosition1" in data: candidate.applied_position_1 = data["appliedPosition1"]
+    if "appliedPosition2" in data: candidate.applied_position_2 = data["appliedPosition2"]
+    if "expectedSalary" in data: candidate.expected_salary = data["expectedSalary"]
+    if "noticePeriod" in data: candidate.notice_period = data["noticePeriod"]
 
     try:
         db.session.commit()

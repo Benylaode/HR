@@ -219,8 +219,14 @@ export default function TestManagementPage() {
   const [kraepelinRows, setKraepelinRows] = useState("27");
   const [kraepelinTimePerColumn, setKraepelinTimePerColumn] = useState("15");
 
-  // State untuk durasi CFIT dan PAPI (disimpan di localStorage)
-  const [cfitDuration, setCfitDuration] = useState("180");
+  // --- PERUBAHAN: STATE UNTUK DURASI CFIT PER SUBTES ---
+  const [cfitDurations, setCfitDurations] = useState({
+    sub1: "180", // 3 Menit
+    sub2: "240", // 4 Menit
+    sub3: "180", // 3 Menit
+    sub4: "150", // 2.5 Menit
+  });
+  
   const [papiDuration, setPapiDuration] = useState("180");
 
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
@@ -242,9 +248,14 @@ export default function TestManagementPage() {
     }
     setUser(JSON.parse(userData));
     
-    // Load durasi dari localStorage
-    setCfitDuration(String(getTestDuration('cfit')));
-    setPapiDuration(String(getTestDuration('papi')));
+    // Load durasi CFIT dan PAPI dari localStorage (jika belum ada, gunakan default standard)
+    setCfitDurations({
+      sub1: String(getTestDuration('cfit_sub1') || 180),
+      sub2: String(getTestDuration('cfit_sub2') || 240),
+      sub3: String(getTestDuration('cfit_sub3') || 180),
+      sub4: String(getTestDuration('cfit_sub4') || 150),
+    });
+    setPapiDuration(String(getTestDuration('papi') || 180));
     
     fetchData(); 
   }, [router]);
@@ -390,10 +401,18 @@ export default function TestManagementPage() {
     });
   };
 
+  // --- PERUBAHAN: SAVE HANDLER DURASI CFIT (PER SUBTES) & PAPI ---
   const handleSaveTestDuration = () => {
-    setTestDuration('cfit', parseInt(cfitDuration));
-    setTestDuration('papi', parseInt(papiDuration));
-    toast.success("Durasi Tersimpan", { description: "Durasi tes CFIT dan PAPI berhasil diperbarui." });
+    if (selectedCategory?.code === 'cfit') {
+      setTestDuration('cfit_sub1', parseInt(cfitDurations.sub1));
+      setTestDuration('cfit_sub2', parseInt(cfitDurations.sub2));
+      setTestDuration('cfit_sub3', parseInt(cfitDurations.sub3));
+      setTestDuration('cfit_sub4', parseInt(cfitDurations.sub4));
+      toast.success("Durasi Tersimpan", { description: "Waktu untuk masing-masing Subtes CFIT berhasil diperbarui." });
+    } else if (selectedCategory?.code === 'papi') {
+      setTestDuration('papi', parseInt(papiDuration));
+      toast.success("Durasi Tersimpan", { description: "Durasi tes PAPI Kostick berhasil diperbarui." });
+    }
   };
 
   const handleAddPapiQuestion = async () => {
@@ -842,33 +861,86 @@ export default function TestManagementPage() {
                     </div>
                     {!selectedCfitSubtype ? (
                       <div className="space-y-6">
-                        {/* Konfigurasi Durasi CFIT */}
+                        
+                        {/* --- PERUBAHAN UI: KONFIGURASI DURASI CFIT PER SUBTES --- */}
                         <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                           <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                             <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes CFIT</h3>
-                            <p className="text-[var(--secondary)] text-sm">Konfigurasi durasi untuk seluruh tes CFIT</p>
+                            <p className="text-[var(--secondary)] text-sm">Atur batas waktu secara spesifik untuk masing-masing subtes.</p>
                           </div>
                           
-                          <div className="space-y-4">
-                            <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                              <label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                                <Clock className="w-3 h-3"/> DURASI TES CFIT (DETIK)
-                              </label>
-                              <input 
-                                type="number" 
-                                value={cfitDuration} 
-                                onChange={e => setCfitDuration(e.target.value)} 
-                                className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                              />
-                              <p className="text-xs text-[var(--primary-600)] mt-2">
-                                = {Math.ceil(parseInt(cfitDuration) / 60)} menit
-                              </p>
+                          <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Subtes 1 */}
+                              <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
+                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 1 (DETIK)
+                                </label>
+                                <input 
+                                  type="number" 
+                                  value={cfitDurations.sub1} 
+                                  onChange={e => setCfitDurations({...cfitDurations, sub1: e.target.value})} 
+                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
+                                />
+                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
+                                  = {(parseInt(cfitDurations.sub1 || "0") / 60).toFixed(1)} menit (Standar: 3 mnt)
+                                </p>
+                              </div>
+                              
+                              {/* Subtes 2 */}
+                              <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
+                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 2 (DETIK)
+                                </label>
+                                <input 
+                                  type="number" 
+                                  value={cfitDurations.sub2} 
+                                  onChange={e => setCfitDurations({...cfitDurations, sub2: e.target.value})} 
+                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
+                                />
+                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
+                                  = {(parseInt(cfitDurations.sub2 || "0") / 60).toFixed(1)} menit (Standar: 4 mnt)
+                                </p>
+                              </div>
+
+                              {/* Subtes 3 */}
+                              <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
+                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 3 (DETIK)
+                                </label>
+                                <input 
+                                  type="number" 
+                                  value={cfitDurations.sub3} 
+                                  onChange={e => setCfitDurations({...cfitDurations, sub3: e.target.value})} 
+                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
+                                />
+                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
+                                  = {(parseInt(cfitDurations.sub3 || "0") / 60).toFixed(1)} menit (Standar: 3 mnt)
+                                </p>
+                              </div>
+
+                              {/* Subtes 4 */}
+                              <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
+                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 4 (DETIK)
+                                </label>
+                                <input 
+                                  type="number" 
+                                  value={cfitDurations.sub4} 
+                                  onChange={e => setCfitDurations({...cfitDurations, sub4: e.target.value})} 
+                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
+                                />
+                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
+                                  = {(parseInt(cfitDurations.sub4 || "0") / 60).toFixed(1)} menit (Standar: 2.5 mnt)
+                                </p>
+                              </div>
                             </div>
+
                             <button 
                               onClick={handleSaveTestDuration} 
-                              className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+                              className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
                             >
-                              <CheckCircle className="w-5 h-5" /> Simpan Durasi
+                              <CheckCircle className="w-5 h-5" /> Simpan Durasi CFIT
                             </button>
                           </div>
                         </div>
@@ -953,37 +1025,14 @@ export default function TestManagementPage() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {/* Konfigurasi Durasi Tes */}
+                    {/* Konfigurasi Durasi Tes PAPI */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                       <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                         <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes</h3>
                         <p className="text-[var(--secondary)] text-sm">Konfigurasi durasi untuk tes {selectedCategory.name}</p>
                       </div>
                       
-                      {selectedCategory.code === 'cfit' ? (
-                        <div className="space-y-4">
-                          <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                            <label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                              <Clock className="w-3 h-3"/> DURASI TES CFIT (DETIK)
-                            </label>
-                            <input 
-                              type="number" 
-                              value={cfitDuration} 
-                              onChange={e => setCfitDuration(e.target.value)} 
-                              className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                            />
-                            <p className="text-xs text-[var(--primary-600)] mt-2">
-                              = {Math.ceil(parseInt(cfitDuration) / 60)} menit
-                            </p>
-                          </div>
-                          <button 
-                            onClick={handleSaveTestDuration} 
-                            className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
-                          >
-                            <CheckCircle className="w-5 h-5" /> Simpan Durasi
-                          </button>
-                        </div>
-                      ) : selectedCategory.code === 'papi' ? (
+                      {selectedCategory.code === 'papi' ? (
                         <div className="space-y-4">
                           <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
                             <label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
@@ -995,13 +1044,13 @@ export default function TestManagementPage() {
                               onChange={e => setPapiDuration(e.target.value)} 
                               className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
                             />
-                            <p className="text-xs text-[var(--primary-600)] mt-2">
-                              = {Math.ceil(parseInt(papiDuration) / 60)} menit
+                            <p className="text-[10px] text-[var(--primary-600)] mt-2">
+                              = {(parseInt(papiDuration || "0") / 60).toFixed(1)} menit
                             </p>
                           </div>
                           <button 
                             onClick={handleSaveTestDuration} 
-                            className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
+                            className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
                           >
                             <CheckCircle className="w-5 h-5" /> Simpan Durasi
                           </button>
@@ -1306,7 +1355,7 @@ export default function TestManagementPage() {
                  </button>
               </div>
             </div>
-          </div>
+        </div>
       )}
 
       {/* --- ADD QUESTION MODAL --- */}

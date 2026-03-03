@@ -27,16 +27,39 @@ export interface PAPIQuestion {
 // Bisa diubah oleh admin melalui test management page
 export const DEFAULT_TEST_DURATION = 180;
 
-// Helper function untuk get durasi dari localStorage atau default
-export const getTestDuration = (testType: 'cfit' | 'papi'): number => {
-  const stored = localStorage.getItem(`test_duration_${testType}`);
-  return stored ? parseInt(stored) : DEFAULT_TEST_DURATION;
+// --- PERBAIKAN DI SINI ---
+// Tambahkan tipe agar mendukung subtes CFIT terpisah
+export type TestDurationType = 'cfit' | 'cfit_sub1' | 'cfit_sub2' | 'cfit_sub3' | 'cfit_sub4' | 'papi';
+
+export const getTestDuration = (testType: TestDurationType): number => {
+  // Pengecekan window agar aman dari error SSR Next.js
+  if (typeof window === 'undefined') return 180;
+
+  const storedDuration = localStorage.getItem(`test_duration_${testType}`);
+  
+  // Jika belum disetting oleh Admin, berikan nilai default standar psikotes HRD
+  if (!storedDuration) {
+    switch (testType) {
+      case 'cfit_sub1': return 180; // 3 Menit
+      case 'cfit_sub2': return 240; // 4 Menit
+      case 'cfit_sub3': return 180; // 3 Menit
+      case 'cfit_sub4': return 150; // 2.5 Menit
+      case 'papi': return 180; // 3 Menit default untuk PAPI
+      case 'cfit': return 180; // Fallback general
+      default: return 180;
+    }
+  }
+  
+  return parseInt(storedDuration, 10);
 };
 
-// Helper function untuk set durasi (dipanggil dari admin panel)
-export const setTestDuration = (testType: 'cfit' | 'papi', duration: number): void => {
-  localStorage.setItem(`test_duration_${testType}`, duration.toString());
+export const setTestDuration = (testType: TestDurationType, duration: number): void => {
+  // Pengecekan window agar aman dari error SSR Next.js
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`test_duration_${testType}`, duration.toString());
+  }
 };
+// -------------------------
 
 // Backward compatibility
 export const TEST_DURATION = DEFAULT_TEST_DURATION;
