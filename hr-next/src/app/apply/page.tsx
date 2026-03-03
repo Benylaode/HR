@@ -110,9 +110,6 @@ export default function ManualRegistrationPage() {
     const apiUrl = submissionType === "candidate" ? `${API_BASE_URL}/candidates` : `${API_BASE_URL}/employees`;
 
     try {
-      const formDataToSend = new FormData();
-      if (cvFile) formDataToSend.append("cv_file", cvFile);
-      
       // ✅ LOGIKA MAPPING: Mengubah key FE agar pas dengan kolom Backend (ProfileMixin)
       const mappedData = {
         ...form,
@@ -131,9 +128,27 @@ export default function ManualRegistrationPage() {
         experience_description: form.workExperiences[0]?.desc || "",
       };
 
-      formDataToSend.append("data", JSON.stringify(mappedData));
+      // --- PERBAIKAN: BEDAKAN CARA KIRIM DATA KANDIDAT VS KARYAWAN ---
+      let fetchOptions: RequestInit = {
+        method: "POST",
+      };
 
-      const response = await fetch(apiUrl, { method: "POST", body: formDataToSend });
+      if (submissionType === "candidate") {
+        // Jika Kandidat, kirim pakai FormData karena ada file CV
+        const formDataToSend = new FormData();
+        if (cvFile) formDataToSend.append("cv_file", cvFile);
+        formDataToSend.append("data", JSON.stringify(mappedData));
+        fetchOptions.body = formDataToSend;
+      } else {
+        // Jika Karyawan, kirim pakai Raw JSON karena di backend memakai request.get_json()
+        fetchOptions.headers = {
+          "Content-Type": "application/json"
+        };
+        fetchOptions.body = JSON.stringify(mappedData);
+      }
+      // ---------------------------------------------------------------
+
+      const response = await fetch(apiUrl, fetchOptions);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Pendaftaran gagal");
       
@@ -156,6 +171,16 @@ export default function ManualRegistrationPage() {
         
         {/* Banner Header */}
         <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-10 text-white text-center">
+          <div className="flex justify-center mb-6 relative z-10">
+            <img 
+              src="/images/logos/MBM.png" 
+              alt="Logo MBM" 
+              className="h-20 md:h-24 object-contain drop-shadow-2xl bg-white/10 p-2 rounded-2xl backdrop-blur-sm border border-white/20"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/images/logos/MBMlogo.png";
+              }}
+            />
+          </div>
           <h1 className="text-4xl font-extrabold mb-3">Formulir Curriculum Vitae</h1>
           <p className="text-blue-100 text-sm max-w-2xl mx-auto">Harap lengkapi seluruh data Anda untuk keperluan seleksi administrasi dan manajemen database SDM.</p>
         </div>
@@ -163,38 +188,38 @@ export default function ManualRegistrationPage() {
         <form onSubmit={handleSubmit} className="p-10 space-y-12">
           
           {/* TIPE & LOWONGAN */}
-    <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-sm grid md:grid-cols-2 gap-8">
-      <div>
-          <label className={labelClass}>Tipe Pendaftaran *</label>
-          <select value={submissionType} onChange={(e) => setSubmissionType(e.target.value as any)} className={inputClass}>
-            <option value="candidate">Kandidat Baru (Pelamar Eksternal)</option>
-            <option value="employee">Karyawan (Data Internal / Mutasi)</option>
-          </select>
-      </div>
-   
-   {/* Jika Pelamar Eksternal, tampilkan lowongan aktif */}
-   {submissionType === "candidate" ? (
-     <div>
-        <label className={labelClass}>Posisi Utama Yang Dilamar *</label>
-        <select name="job_id" required value={form.job_id} onChange={handleTextChange} className={`${inputClass} font-bold text-blue-800 border-blue-200`}>
-          <option value="">-- Pilih Lowongan Tersedia --</option>
-          {jobs.map((job) => (<option key={job.id} value={job.id}>{job.title}</option>))}
-        </select>
-     </div>
-          ) : (
+          <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-sm grid md:grid-cols-2 gap-8">
             <div>
-                <label className={labelClass}>Posisi Anda Saat Ini *</label>
-                <input 
-                  type="text" 
-                  name="currentPosition" 
-                  required 
-                  placeholder="Cth: Staff IT / Supervisor HRD" 
-                  className={inputClass} 
-                  onChange={handleTextChange} 
-                />
+                <label className={labelClass}>Tipe Pendaftaran *</label>
+                <select value={submissionType} onChange={(e) => setSubmissionType(e.target.value as any)} className={inputClass}>
+                  <option value="candidate">Kandidat Baru (Pelamar Eksternal)</option>
+                  <option value="employee">Karyawan (Data Internal / Mutasi)</option>
+                </select>
             </div>
-          )}
-        </div>
+         
+           {/* Jika Pelamar Eksternal, tampilkan lowongan aktif */}
+           {submissionType === "candidate" ? (
+             <div>
+                <label className={labelClass}>Posisi Utama Yang Dilamar *</label>
+                <select name="job_id" required value={form.job_id} onChange={handleTextChange} className={`${inputClass} font-bold text-blue-800 border-blue-200`}>
+                  <option value="">-- Pilih Lowongan Tersedia --</option>
+                  {jobs.map((job) => (<option key={job.id} value={job.id}>{job.title}</option>))}
+                </select>
+             </div>
+            ) : (
+              <div>
+                  <label className={labelClass}>Posisi Anda Saat Ini *</label>
+                  <input 
+                    type="text" 
+                    name="currentPosition" 
+                    required 
+                    placeholder="Cth: Staff IT / Supervisor HRD" 
+                    className={inputClass} 
+                    onChange={handleTextChange} 
+                  />
+              </div>
+            )}
+          </div>
 
           {/* 1. BIODATA PRIBADI */}
           <section>
@@ -225,7 +250,7 @@ export default function ManualRegistrationPage() {
               <div><label className={labelClass}>Total Masa Kerja *</label><input name="totalExperience" placeholder="Cth: 2 Tahun 6 Bulan" required className={inputClass} onChange={handleTextChange} /></div>
               
               <div className="lg:col-span-3">
-                <label className={labelClass}>Upload CV (Wajib format PDF) *</label>
+                <label className={labelClass}>Upload CV (Wajib format PDF) {submissionType === "candidate" ? "*" : ""}</label>
                 <input type="file" accept=".pdf" required={submissionType === "candidate"} onChange={(e) => setCvFile(e.target.files ? e.target.files[0] : null)} className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:bg-blue-700 file:text-white cursor-pointer border border-gray-300 rounded-xl" />
               </div>
             </div>
