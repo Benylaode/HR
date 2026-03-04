@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, memo } from "react";
+import { useEffect, useState, useCallback, memo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { toast } from "sonner";
+import TestReportPDF from '@/components/test/TestReportPDF';
 import { 
   Plus, 
   Search, 
@@ -29,7 +30,8 @@ import {
   Activity,    // Icon Kraepelin
   BrainCircuit,// Icon CFIT
   PieChart,    // Icon PAPI
-  FileText     // Icon Header Modal
+  FileText,    // Icon Header Modal
+  Download     // Icon Download PDF
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -251,7 +253,6 @@ const EditModal = memo(({
         email: candidate.email || "",
         whatsapp: candidate.whatsapp || "",
         gender: candidate.gender || "",
-        // Memastikan format YYYY-MM-DD
         birthDate: candidate.birthDate ? candidate.birthDate.split('T')[0] : "",
         domicileCity: candidate.domicileCity || "",
         domicileProvince: candidate.domicileProvince || "",
@@ -276,7 +277,6 @@ const EditModal = memo(({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    // Parse salary ke number sebelum dikirim
     const submissionData = {
       ...formData,
       expectedSalary: formData.expectedSalary ? parseInt(formData.expectedSalary, 10) : undefined
@@ -454,6 +454,10 @@ const TestResultModal = memo(({
   submissions: any[];
   onClose: () => void;
 }) => {
+  // === STATE & REF UNTUK PDF ===
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   if (!candidate) return null;
 
   // Filter khusus untuk Kandidat terpilih
@@ -462,10 +466,48 @@ const TestResultModal = memo(({
   const kraepelin = candSubs.find(s => s.test_type === "kraepelin");
   const papi = candSubs.find(s => s.test_type === "papi");
 
+  // === FUNGSI DOWNLOAD PDF ===
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      const opt = {
+        margin: 0,
+        filename: `Hasil_Psikotes_Kandidat_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(pdfRef.current).save();
+    } catch (error) {
+      console.error("Gagal mencetak PDF:", error);
+      alert("Terjadi kesalahan saat mengunduh PDF.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // Persiapkan data yang akan dikirim ke komponen PDF
+  const pdfData = {
+    candidate_name: candidate.fullName,
+    participant_type: 'Candidate', // Tipe Kandidat
+    id: candidate.id,
+    scores: {
+      cfit: cfit?.scores,
+      kraepelin: kraepelin?.scores,
+      papi: papi?.scores
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         
+        {/* Header Modal */}
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
@@ -481,6 +523,7 @@ const TestResultModal = memo(({
           </button>
         </div>
 
+        {/* Body Modal */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-8">
           
           {/* SEKSI: CFIT */}
@@ -560,12 +603,30 @@ const TestResultModal = memo(({
 
         </div>
         
-        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)] flex-shrink-0">
-          <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
-            Tutup Laporan
+        {/* Footer Modal dengan Tombol Download */}
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
+          <button 
+            onClick={onClose} 
+            className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Tutup
+          </button>
+          
+          <button 
+            onClick={handleDownloadPDF} 
+            disabled={isGeneratingPDF}
+            className={`px-5 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${
+              isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
+          >
+            <Download size={16} />
+            {isGeneratingPDF ? 'Memproses PDF...' : 'Download Sertifikat'}
           </button>
         </div>
       </div>
+
+      {/* Komponen Hidden untuk Render PDF */}
+      <TestReportPDF ref={pdfRef} data={pdfData as any} />
     </div>
   );
 });

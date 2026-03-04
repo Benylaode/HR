@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState,useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import TestReportPDF from '@/components/test/TestReportPDF';
 import { toast } from "sonner"; // <-- 1. IMPORT SONNER
 import { 
   Plus, 
   Search, 
+  Download,
   Mail, 
   Phone, 
   Eye, 
@@ -44,6 +46,8 @@ interface Karyawan {
   created_at: string;
 }
 
+
+
 // Tambahan field untuk detail berdasarkan backend
 interface KaryawanDetail extends Karyawan {
   gender?: string;
@@ -66,6 +70,8 @@ interface KaryawanDetail extends Karyawan {
   totalExperience?: string;
   experienceDescription?: string;
 }
+
+
 
 const DetailModal = memo(({ 
   karyawan, 
@@ -415,6 +421,10 @@ const TestResultModal = memo(({
   submissions: any[];
   onClose: () => void;
 }) => {
+  // === STATE & REF UNTUK PDF ===
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   if (!karyawan) return null;
 
   // Filter khusus untuk Karyawan terpilih
@@ -422,6 +432,45 @@ const TestResultModal = memo(({
   const cfit = empSubs.find(s => s.test_type === "cfit");
   const kraepelin = empSubs.find(s => s.test_type === "kraepelin");
   const papi = empSubs.find(s => s.test_type === "papi");
+
+  // === FUNGSI DOWNLOAD PDF ===
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      // Import library secara dinamis agar aman di Next.js (SSR)
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+    const opt = {
+      margin: 0,
+      filename: `Hasil_Psikotes_${karyawan.fullName.replace(/\s+/g, '_')}.pdf`,
+      // Tambahkan 'as const' pada nilai string yang spesifik
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+    };
+
+      await html2pdf().set(opt).from(pdfRef.current).save();
+    } catch (error) {
+      console.error("Gagal mencetak PDF:", error);
+      alert("Terjadi kesalahan saat mengunduh PDF.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // Persiapkan data yang akan dikirim ke komponen PDF
+  const pdfData = {
+    candidate_name: karyawan.fullName,
+    participant_type: 'Employee',
+    id: karyawan.id,
+    scores: {
+      cfit: cfit?.scores,
+      kraepelin: kraepelin?.scores,
+      papi: papi?.scores
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -523,15 +572,34 @@ const TestResultModal = memo(({
 
         </div>
         
-        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)] flex-shrink-0">
-          <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
-            Tutup Laporan
+        {/* Footer Modal dengan Tombol Download */}
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
+          <button 
+            onClick={onClose} 
+            className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Tutup
+          </button>
+          
+          <button 
+            onClick={handleDownloadPDF} 
+            disabled={isGeneratingPDF}
+            className={`px-5 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${
+              isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
+          >
+            <Download size={16} />
+            {isGeneratingPDF ? 'Memproses PDF...' : 'Download Sertifikat'}
           </button>
         </div>
       </div>
+
+      {/* Komponen Hidden untuk Render PDF */}
+      <TestReportPDF ref={pdfRef} data={pdfData as any} />
     </div>
   );
 });
+
 TestResultModal.displayName = 'TestResultModal';
 
 
