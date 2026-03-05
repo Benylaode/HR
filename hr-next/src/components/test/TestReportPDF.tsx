@@ -107,9 +107,6 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
             <h1 style={{ fontSize: '22px', color: '#1e3a8a', margin: '0 0 8px 0', letterSpacing: '1.5px', fontWeight: '900', textTransform: 'uppercase' }}>
               PSYCHOLOGICAL ASSESSMENT REPORT
             </h1>
-            <h2 style={{ fontSize: '13px', color: '#334155', margin: '0 0 5px 0', fontWeight: 'bold', letterSpacing: '1px' }}>
-              MERDEKA BATTERY MATERIALS
-            </h2>
             <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
               Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan
             </p>
