@@ -157,7 +157,7 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
                 </div>
                 <div style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '4px', textAlign: 'center' }}>
                   <p style={{ fontSize: '9px', color: '#15803d', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Ketelitian</p>
-                  <p style={{ fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0', color: '#14532d' }}>{kraepelin?.ketelitian || kraepelin?.tianker || '-'}</p>
+                  <p style={{ fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0', color: '#14532d' }}>{kraepelin?.ketelitian || kraepelin?.janker || '-'}</p>
                 </div>
                 <div style={{ backgroundColor: '#fef2f2', padding: '8px', borderRadius: '4px', textAlign: 'center' }}>
                   <p style={{ fontSize: '9px', color: '#ef4444', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Total Errors</p>

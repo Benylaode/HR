@@ -219,7 +219,6 @@ export default function TestManagementPage() {
   const [kraepelinRows, setKraepelinRows] = useState("27");
   const [kraepelinTimePerColumn, setKraepelinTimePerColumn] = useState("15");
 
-  // --- PERUBAHAN: STATE UNTUK DURASI CFIT PER SUBTES ---
   const [cfitDurations, setCfitDurations] = useState({
     sub1: "180", // 3 Menit
     sub2: "240", // 4 Menit
@@ -329,7 +328,6 @@ export default function TestManagementPage() {
     }
   };
 
-  // --- HANDLERS DENGAN SONNER TOAST ---
 
   const handleGenerateLink = async () => { 
     if (participantType === "candidate" && !selectedCandidateId) { 

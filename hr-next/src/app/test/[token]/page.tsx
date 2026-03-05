@@ -24,6 +24,7 @@ interface TestState {
   timeRemaining: number;
   isStarted: boolean;
   isCompleted: boolean;
+  isTimerPaused: boolean; // Menambahkan state pause
 }
 
 export default function TestExamPage() {
@@ -47,6 +48,7 @@ export default function TestExamPage() {
     timeRemaining: TEST_DURATION,
     isStarted: false,
     isCompleted: false,
+    isTimerPaused: false, // Inisialisasi pause
   });
 
   const [showWarning, setShowWarning] = useState(false);
@@ -66,13 +68,14 @@ export default function TestExamPage() {
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [selectedTestToStart, setSelectedTestToStart] = useState<TestType | null>(null);
 
-    const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("access_token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("access_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   };
-};
+
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     if (/android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent) || window.innerWidth < 768) {
@@ -145,16 +148,13 @@ export default function TestExamPage() {
     fetchAllData();
   }, [token]); 
 
-  // Timer Logic
+  // Timer Logic (Diperbarui dengan isTimerPaused)
   useEffect(() => {
-    if (!state.isStarted || state.isCompleted) return;
+    if (!state.isStarted || state.isCompleted || state.isTimerPaused) return;
 
     const timer = setInterval(() => {
       setState((prev) => {
         if (prev.timeRemaining <= 1) {
-          // Waktu habis, otomatis trigger selesai untuk tes saat ini
-          // Note: handleTestComplete butuh dipanggil di effect atau event handler lain
-          // Di sini kita set time 0 dulu, nanti logic submit bisa ditrigger
           return { ...prev, timeRemaining: 0 }; 
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
@@ -162,14 +162,17 @@ export default function TestExamPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [state.isStarted, state.isCompleted]);
+  }, [state.isStarted, state.isCompleted, state.isTimerPaused]);
 
   // Pantau Timer Habis (0 detik) -> Auto Submit / Complete
   useEffect(() => {
       if (state.isStarted && state.timeRemaining === 0) {
-          handleTestComplete();
+          // CFIT auto-next subtes dari komponen anaknya sendiri, jadi jangan submit global di sini
+          if (state.currentTest !== "cfit") {
+              handleTestComplete();
+          }
       }
-  }, [state.timeRemaining, state.isStarted]);
+  }, [state.timeRemaining, state.isStarted, state.currentTest]);
 
 
   // Request Fullscreen
@@ -304,14 +307,16 @@ export default function TestExamPage() {
       
       const testType = selectedTestToStart;
       let duration = TEST_DURATION;
+      let isPaused = false; // Flag status pause saat mulai
 
       // Override durasi berdasarkan tipe tes
       if (testType === "kraepelin" && kraepelinConfig) {
         duration = kraepelinConfig.columns * kraepelinConfig.duration_per_column;
       } else if (testType === "cfit") {
-        duration = getTestDuration('cfit');
+        duration = getTestDuration('cfit_sub1' as any); // Set durasi awal subtes 1
+        isPaused = true; // Langsung pause karena akan masuk layar instruksi dulu
       } else if (testType === "papi") {
-        duration = getTestDuration('papi');
+        duration = getTestDuration('papi' as any);
       }
 
       // Request fullscreen when starting test
@@ -324,6 +329,7 @@ export default function TestExamPage() {
         ...prev,
         currentTest: testType,
         timeRemaining: duration,
+        isTimerPaused: isPaused,
         isStarted: true,
       }));
       
@@ -388,12 +394,8 @@ export default function TestExamPage() {
     }));
   };
 
-// Di dalam TestExamPage.tsx
-
-const submitCurrentTest = async () => {
+  const submitCurrentTest = async () => {
     // 1. CEGAH KRAEPELIN DISUBMIT DARI SINI
-    // Kraepelin punya tombol submit sendiri di komponen anaknya (KraepelinTest.tsx).
-    // Jadi kita hentikan proses di sini agar tidak double submit atau error.
     if (state.currentTest === "kraepelin") {
         setTriggerKraepelinSubmit(true); 
         return; 
@@ -412,7 +414,6 @@ const submitCurrentTest = async () => {
     } 
 
     // 3. VALIDASI ENDPOINT (PENTING!)
-    // Jika endpoint masih kosong (misal ada error logika), jangan lakukan fetch.
     if (!endpoint) {
         console.error("Error: Endpoint tidak terdefinisi untuk tes ini.");
         return;
@@ -435,7 +436,6 @@ const submitCurrentTest = async () => {
       }
     } catch (err) {
       console.error(`Koneksi ke Backend gagal (${endpoint}):`, err);
-      // alert("Koneksi ke server terputus."); // Opsional: matikan alert jika mengganggu
     }
   };
 
@@ -504,9 +504,9 @@ const submitCurrentTest = async () => {
   // --- SCREEN: MENU PILIH TEST ---
   if (!state.isStarted && !allTestsCompleted) {
     const testConfigs = [
-      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: `${Math.ceil(getTestDuration('cfit') / 60)} menit` },
+      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: `${Math.ceil(getTestDuration('cfit' as any) / 60)} menit` },
       { type: "kraepelin" as TestType, name: "Kraepelin Test", icon: "📊", color: "green", questions: 50, time: "Per Kolom" },
-      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: `${Math.ceil(getTestDuration('papi') / 60)} menit` },
+      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: `${Math.ceil(getTestDuration('papi' as any) / 60)} menit` },
     ];
 
     return (
@@ -690,6 +690,14 @@ const submitCurrentTest = async () => {
             answers={state.cfitAnswers}
             onAnswer={handleCFITAnswer}
             timeRemaining={state.timeRemaining}
+            onTimerControl={(action, newTime) => {
+              // Fungsi ini akan dipanggil oleh komponen CFITTest untuk mengatur waktu dan state pause global
+              setState((prev) => ({
+                ...prev,
+                isTimerPaused: action === "pause",
+                timeRemaining: newTime !== undefined ? newTime : prev.timeRemaining,
+              }));
+            }}
           />
         )}
         

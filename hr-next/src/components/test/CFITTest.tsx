@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CheckCircle, ArrowRight, Play, Info } from "lucide-react";
 import { toast } from "sonner";
+import { getTestDuration } from "@/lib/test-data";
 
 // 1. Interface
 interface CFITQuestion {
@@ -20,6 +21,7 @@ interface CFITTestProps {
   answers: any[]; // Diupdate menggunakan any[] agar bisa menerima array [1,3] atau angka tunggal
   onAnswer: (questionIndex: number, answer: any) => void;
   timeRemaining: number;
+  onTimerControl?: (action: "pause" | "resume", newTime?: number) => void;
 }
 
 export default function CFITTest({
@@ -27,6 +29,7 @@ export default function CFITTest({
   answers,
   onAnswer,
   timeRemaining,
+  onTimerControl,
 }: CFITTestProps) {
   const BE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -133,14 +136,31 @@ export default function CFITTest({
     return count;
   }, 0);
 
+  // --- PANTAU WAKTU HABIS ---
+  useEffect(() => {
+    if (phase === "test" && timeRemaining === 0) {
+      toast.error(`Waktu Subtes ${activeSubtestId} Habis!`, { 
+        description: "Otomatis beralih ke instruksi subtes berikutnya." 
+      });
+      handleNextPhase(true); // true = force next karena waktu habis
+    }
+  }, [timeRemaining, phase, activeSubtestId]);
+
   // --- HANDLERS ---
   const handleStartSubtest = () => {
     setPhase("test");
     window.scrollTo(0, 0);
+    
+    // Mulai dan set waktu sesuai subtes yang akan berjalan
+    const duration = getTestDuration(`cfit_sub${activeSubtestId}` as any);
+    if (onTimerControl) {
+      onTimerControl("resume", duration);
+    }
   };
 
-  const handleNextPhase = () => {
-    if (answeredInActiveSubtest < questionsInActiveSubtest.length) {
+  const handleNextPhase = (isTimeUp = false) => {
+    // Jika manual next (bukan karena waktu habis), pastikan semua terjawab
+    if (!isTimeUp && answeredInActiveSubtest < questionsInActiveSubtest.length) {
       const confirmNext = window.confirm("Masih ada soal yang belum Anda jawab di subtes ini. Anda tidak bisa kembali jika sudah lanjut. Lanjutkan?");
       if (!confirmNext) return;
     }
@@ -148,8 +168,16 @@ export default function CFITTest({
     if (currentSubtestIndex + 1 < availableSubtests.length) {
       setCurrentSubtestIndex((prev) => prev + 1);
       setPhase("instruction");
+      
+      // Pause dan siapkan durasi untuk subtes berikutnya
+      if (onTimerControl) {
+        const nextSubtestId = availableSubtests[currentSubtestIndex + 1];
+        const nextDuration = getTestDuration(`cfit_sub${nextSubtestId}` as any);
+        onTimerControl("pause", nextDuration);
+      }
     } else {
       setPhase("finished");
+      if (onTimerControl) onTimerControl("pause", 0); // Selesai semua (Timer stop)
     }
     window.scrollTo(0, 0);
   };
@@ -346,7 +374,7 @@ export default function CFITTest({
       {/* Action Pindah Subtes / Selesai */}
       <div className="mt-10 pt-8 border-t border-gray-200 flex justify-end">
          <button 
-           onClick={handleNextPhase}
+           onClick={() => handleNextPhase(false)} // False agar tetap trigger notifikasi konfirmasi peringatan kosong
            className="px-8 py-4 bg-gray-900 hover:bg-black text-white font-bold text-lg rounded-2xl shadow-lg flex items-center gap-3 transition-transform active:scale-95"
          >
            {currentSubtestIndex + 1 < availableSubtests.length ? (

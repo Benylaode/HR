@@ -432,7 +432,7 @@ const TestResultModal = memo(({
   const papi = empSubs.find(s => s.test_type === "papi");
 
   // Hitung Total Errors Kraepelin
-  const totalErrors = kraepelin ? (Number(kraepelin.scores?.salah || 0) + Number(kraepelin.scores?.terlewat || 0)) : "-";
+  const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
 
   const handleDownloadPDF = async () => {
     if (!pdfRef.current) return;
@@ -517,11 +517,11 @@ const TestResultModal = memo(({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                     <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
                         <p className="text-xs text-amber-600 font-extrabold uppercase tracking-wider">Kecepatan</p>
-                        <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.kecepatan || "-"}</p>
+                        <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.panker || "-"}</p>
                     </div>
                     <div className="bg-teal-50 border border-teal-100 p-5 rounded-xl">
                         <p className="text-xs text-teal-600 font-extrabold uppercase tracking-wider">Ketelitian</p>
-                        <p className="font-black text-3xl text-teal-900 mt-2">{kraepelin.scores?.ketelitian || "-"}</p>
+                        <p className="font-black text-3xl text-teal-900 mt-2">{kraepelin.scores?.janker || "-"}</p>
                     </div>
                     <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
                         <p className="text-xs text-red-600 font-extrabold uppercase tracking-wider">Total Errors</p>

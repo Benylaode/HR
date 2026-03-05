@@ -31,8 +31,11 @@ export default function KraepelinTest({
   const [activeInputIndex, setActiveInputIndex] = useState(0); 
   const [currentInputValue, setCurrentInputValue] = useState("");
   const [columnTimeLeft, setColumnTimeLeft] = useState(dbConfig.durationPerColumn);
+  
   const inputRef = useRef<HTMLInputElement | null>(null);
   const answersRef = useRef<any>([]);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null); 
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -55,7 +58,6 @@ export default function KraepelinTest({
 
   useEffect(() => {
     if (manualSubmit && !isSubmitting) {
-        console.log("Manual Submit Triggered!");
         submitTest();
     }
   }, [manualSubmit]);
@@ -189,24 +191,43 @@ export default function KraepelinTest({
     handleMoveToNextColumn();
   };
 
-  // --- SCROLL LOGIC DENGAN POSISI CENTER ---
+  // --- SCROLL LOGIC PRESISI TINGGI (UPDATE) ---
   useEffect(() => {
+    // Memastikan fokus pada input
     inputRef.current?.focus();
     
-    const activeInputEl = document.getElementById(`input-row-${currentColumn}-${activeInputIndex}`);
-    
-    if (activeInputEl) {
-       // Memaksa elemen aktif untuk selalu berada di tengah viewport (layar)
-       activeInputEl.scrollIntoView({ 
-           behavior: "smooth", 
-           block: "center", 
-           inline: "center" 
-       });
-    } else {
-       // Fallback saat pindah kolom baru (kembali ke paling bawah)
-       const colEl = document.getElementById(`col-container-${currentColumn}`);
-       colEl?.scrollIntoView({ behavior: "smooth", inline: "center", block: "end" });
-    }
+    // Beri sedikit jeda (20ms) agar DOM (khususnya input yang baru muncul) di-render sepenuhnya oleh React
+    const timer = setTimeout(() => {
+        const container = scrollContainerRef.current;
+        const activeInputEl = document.getElementById(`input-row-${currentColumn}-${activeInputIndex}`);
+        
+        if (container && activeInputEl) {
+            let offsetTop = 0;
+            let offsetLeft = 0;
+            let el: HTMLElement | null = activeInputEl;
+            
+            // Loop untuk menelusuri jarak elemen dari container utama
+            // Hal ini 100% imun terhadap bug yang disebabkan oleh efek animasi/scale CSS
+            while (el && el !== container) {
+                offsetTop += el.offsetTop;
+                offsetLeft += el.offsetLeft;
+                el = el.offsetParent as HTMLElement;
+            }
+
+            // Hitung kordinat tengah secara presisi
+            const targetY = offsetTop - (container.clientHeight / 2) + (activeInputEl.clientHeight / 2);
+            const targetX = offsetLeft - (container.clientWidth / 2) + (activeInputEl.clientWidth / 2);
+
+            // Eksekusi scroll
+            container.scrollTo({
+                top: targetY,
+                left: targetX,
+                behavior: "smooth"
+            });
+        }
+    }, 20);
+
+    return () => clearTimeout(timer);
   }, [activeInputIndex, currentColumn]);
 
   const formatTime = (sec: number) => {
@@ -274,8 +295,11 @@ export default function KraepelinTest({
         </div>
       </div>
       
-      {/* AREA KOTAK TES */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 relative custom-scrollbar">
+      {/* AREA KOTAK TES DENGAN REF */}
+      <div 
+        ref={scrollContainerRef} 
+        className="flex-1 overflow-x-auto overflow-y-auto bg-slate-50 relative custom-scrollbar scroll-smooth"
+      >
         <div className="flex gap-2 min-w-max h-full items-start px-4">
             {grid.map((colData, colIndex) => {
                 const isCurrentCol = colIndex === currentColumn;
@@ -312,7 +336,7 @@ export default function KraepelinTest({
                                 return (
                                     <div 
                                         key={rowIndex} 
-                                        id={isCurrentCol && isActiveInput ? `input-row-${colIndex}-${rowIndex}` : undefined}
+                                        id={`input-row-${colIndex}-${rowIndex}`}
                                         className="flex flex-col items-center relative"
                                     >
                                         {/* 1. ANGKA */}
