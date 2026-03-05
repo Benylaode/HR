@@ -441,7 +441,6 @@ const EditModal = memo(({
   );
 });
 EditModal.displayName = 'EditModal';
-
 // ==========================================
 // MODAL HASIL TES UNTUK KANDIDAT
 // ==========================================
@@ -454,26 +453,24 @@ const TestResultModal = memo(({
   submissions: any[];
   onClose: () => void;
 }) => {
-  // === STATE & REF UNTUK PDF ===
   const pdfRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   if (!candidate) return null;
 
-  // Filter khusus untuk Kandidat terpilih
   const candSubs = submissions.filter(s => s.candidate_id === candidate.id && s.participant_type === "Candidate");
   const cfit = candSubs.find(s => s.test_type === "cfit");
   const kraepelin = candSubs.find(s => s.test_type === "kraepelin");
   const papi = candSubs.find(s => s.test_type === "papi");
 
-  // === FUNGSI DOWNLOAD PDF ===
+  // Hitung Total Errors Kraepelin
+  const totalErrors = kraepelin ? (Number(kraepelin.scores?.salah || 0) + Number(kraepelin.scores?.terlewat || 0)) : "-";
+
   const handleDownloadPDF = async () => {
     if (!pdfRef.current) return;
-    
     setIsGeneratingPDF(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      
       const opt = {
         margin: 0,
         filename: `Hasil_Psikotes_Kandidat_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
@@ -481,7 +478,6 @@ const TestResultModal = memo(({
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
       };
-
       await html2pdf().set(opt).from(pdfRef.current).save();
     } catch (error) {
       console.error("Gagal mencetak PDF:", error);
@@ -491,16 +487,11 @@ const TestResultModal = memo(({
     }
   };
 
-  // Persiapkan data yang akan dikirim ke komponen PDF
   const pdfData = {
     candidate_name: candidate.fullName,
-    participant_type: 'Candidate', // Tipe Kandidat
+    participant_type: 'Candidate',
     id: candidate.id,
-    scores: {
-      cfit: cfit?.scores,
-      kraepelin: kraepelin?.scores,
-      papi: papi?.scores
-    }
+    scores: { cfit: cfit?.scores, kraepelin: kraepelin?.scores, papi: papi?.scores }
   };
 
   return (
@@ -534,8 +525,8 @@ const TestResultModal = memo(({
             {cfit ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-blue-50 p-5 rounded-xl text-center border border-blue-100">
-                        <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider">IQ Score</p>
-                        <p className="text-4xl font-black text-blue-900 mt-2">{cfit.scores?.iq || 0}</p>
+                        <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider">Skor IQ</p>
+                        <p className="text-3xl font-black text-blue-900 mt-2">{cfit.scores?.iq || 0}</p>
                     </div>
                     <div className="bg-green-50 p-5 rounded-xl text-center border border-green-100">
                         <p className="text-xs text-green-600 font-extrabold uppercase tracking-wider">Klasifikasi</p>
@@ -549,36 +540,24 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes CFIT.</p>}
           </div>
 
-          {/* SEKSI: KRAEPELIN */}
+          {/* SEKSI: KRAEPELIN (Diperbarui jadi 3 Kotak) */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
             </h3>
             {kraepelin ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
-                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Benar</p>
-                        <p className="font-black text-xl text-slate-800 mt-1">{kraepelin.scores?.benar || 0}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
+                        <p className="text-xs text-amber-600 font-extrabold uppercase tracking-wider">Kecepatan</p>
+                        <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.kecepatan || "-"}</p>
                     </div>
-                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Salah / Lewat</p>
-                        <p className="font-black text-lg text-slate-800 mt-1">{kraepelin.scores?.salah || 0} / {kraepelin.scores?.terlewat || 0}</p>
+                    <div className="bg-teal-50 border border-teal-100 p-5 rounded-xl">
+                        <p className="text-xs text-teal-600 font-extrabold uppercase tracking-wider">Ketelitian</p>
+                        <p className="font-black text-3xl text-teal-900 mt-2">{kraepelin.scores?.ketelitian || "-"}</p>
                     </div>
-                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Kecepatan</p>
-                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.kecepatan || "-"}</p>
-                    </div>
-                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Ketelitian</p>
-                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.ketelitian || "-"}</p>
-                    </div>
-                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Keajegan</p>
-                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.keajegan || "-"}</p>
-                    </div>
-                    <div className="border border-slate-200 bg-slate-50/50 p-4 rounded-xl">
-                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Ketahanan</p>
-                        <p className="font-bold text-base text-slate-800 mt-1">{kraepelin.scores?.ketahanan || "-"}</p>
+                    <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
+                        <p className="text-xs text-red-600 font-extrabold uppercase tracking-wider">Total Errors</p>
+                        <p className="font-black text-3xl text-red-900 mt-2">{totalErrors}</p>
                     </div>
                 </div>
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes Kraepelin.</p>}
@@ -603,29 +582,16 @@ const TestResultModal = memo(({
 
         </div>
         
-        {/* Footer Modal dengan Tombol Download */}
+        {/* Footer Modal */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
-          <button 
-            onClick={onClose} 
-            className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
             Tutup
           </button>
-          
-          <button 
-            onClick={handleDownloadPDF} 
-            disabled={isGeneratingPDF}
-            className={`px-5 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${
-              isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
-            <Download size={16} />
-            {isGeneratingPDF ? 'Memproses PDF...' : 'Download Sertifikat'}
+          <button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className={`px-5 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+            <Download size={16} /> {isGeneratingPDF ? 'Memproses PDF...' : 'Download Sertifikat'}
           </button>
         </div>
       </div>
-
-      {/* Komponen Hidden untuk Render PDF */}
       <TestReportPDF ref={pdfRef} data={pdfData as any} />
     </div>
   );
