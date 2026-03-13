@@ -7,7 +7,8 @@ import { AlertTriangle, Clock, Shield, ClipboardCheck, Info, Check } from "lucid
 import CFITTest from "@/components/test/CFITTest";
 import PAPITest from "@/components/test/PAPITest";
 import KraepelinTest from "@/components/test/KraepelinTest";
-import { cfitQuestions, papiQuestions, TEST_DURATION, getTestDuration } from "@/lib/test-data";
+import { cfitQuestions, papiQuestions } from "@/lib/test-data"; // getTestDuration & TEST_DURATION dihapus dari sini
+import { getTestConfig } from "@/utils/config-actions"; // <-- Import Server Action untuk config JSON
 import TestIntroModal from "@/components/test/TestIntroModal"; // Impor modal baru
 
 type TestType = "cfit" | "kraepelin" | "papi";
@@ -31,7 +32,7 @@ export default function TestExamPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   
-  // --- PERBAIKAN: Hooks dipindahkan ke DALAM function component ---
+  // --- Hooks dipindahkan ke DALAM function component ---
   const token = params?.token as string; // Tambahkan safe access
   const candidateNameParam = searchParams.get("candidate") || "Kandidat";
 
@@ -40,12 +41,21 @@ export default function TestExamPage() {
   const [isMobile, setIsMobile] = useState(false); // New state for mobile check
   const [triggerKraepelinSubmit, setTriggerKraepelinSubmit] = useState(false);
 
+  // State untuk menyimpan konfigurasi durasi global
+  const [testDurations, setTestDurations] = useState<any>({
+    cfit_sub1: 180,
+    cfit_sub2: 240,
+    cfit_sub3: 180,
+    cfit_sub4: 150,
+    papi: 1800
+  });
+
   const [state, setState] = useState<TestState>({
     currentTest: "cfit",
     cfitAnswers: new Array(cfitQuestions.length).fill(null),
     papiAnswers: new Array(papiQuestions.length).fill(null),
     kraepelinResults: null,
-    timeRemaining: TEST_DURATION,
+    timeRemaining: 0, // Akan di-set setelah config di-load
     isStarted: false,
     isCompleted: false,
     isTimerPaused: false, // Inisialisasi pause
@@ -97,6 +107,12 @@ export default function TestExamPage() {
 
     const fetchAllData = async () => {
       try {
+        // --- LOAD CONFIG DURASI DARI JSON SERVER ACTION ---
+        const config = await getTestConfig();
+        if (config) {
+           setTestDurations(config);
+        }
+        
         // 1. Cek Token
         const res = await fetch(`${API_BASE_URL}/submission/check-token/${token}`, { headers: getAuthHeaders() });
         
@@ -306,17 +322,17 @@ export default function TestExamPage() {
       if (!selectedTestToStart) return;
       
       const testType = selectedTestToStart;
-      let duration = TEST_DURATION;
+      let duration = 0;
       let isPaused = false; // Flag status pause saat mulai
 
-      // Override durasi berdasarkan tipe tes
+      // --- MENGGUNAKAN DURASI DARI STATE JSON ---
       if (testType === "kraepelin" && kraepelinConfig) {
         duration = kraepelinConfig.columns * kraepelinConfig.duration_per_column;
       } else if (testType === "cfit") {
-        duration = getTestDuration('cfit_sub1' as any); // Set durasi awal subtes 1
+        duration = testDurations.cfit_sub1 || 180; // Default ke 3 menit jika tidak ada
         isPaused = true; // Langsung pause karena akan masuk layar instruksi dulu
       } else if (testType === "papi") {
-        duration = getTestDuration('papi' as any);
+        duration = testDurations.papi || 1800; // Default ke 30 menit jika tidak ada
       }
 
       // Request fullscreen when starting test
@@ -504,9 +520,9 @@ export default function TestExamPage() {
   // --- SCREEN: MENU PILIH TEST ---
   if (!state.isStarted && !allTestsCompleted) {
     const testConfigs = [
-      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: `${Math.ceil(getTestDuration('cfit' as any) / 60)} menit` },
+      { type: "cfit" as TestType, name: "CFIT Intelligence Test", icon: "🧠", color: "blue", questions: dbQuestions.cfit.length || cfitQuestions.length, time: `${Math.ceil((testDurations.cfit_sub1 + testDurations.cfit_sub2 + testDurations.cfit_sub3 + testDurations.cfit_sub4)/ 60)} menit` },
       { type: "kraepelin" as TestType, name: "Kraepelin Test", icon: "📊", color: "green", questions: 50, time: "Per Kolom" },
-      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: `${Math.ceil(getTestDuration('papi' as any) / 60)} menit` },
+      { type: "papi" as TestType, name: "PAPI Kostick", icon: "👤", color: "purple", questions: dbQuestions.papi.length || papiQuestions.length, time: `${Math.ceil((testDurations.papi || 1800) / 60)} menit` },
     ];
 
     return (
