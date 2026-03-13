@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; // <-- Import Server Actions
 import { toast } from "sonner";
 import {
   CheckCircle,
@@ -32,7 +33,6 @@ import {
   Target,
   AlertCircle
 } from "lucide-react";
-import { setTestDuration, getTestDuration } from "@/lib/test-data";
 
 // --- 0. CONFIG ---
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -226,7 +226,7 @@ export default function TestManagementPage() {
     sub4: "150", // 2.5 Menit
   });
   
-  const [papiDuration, setPapiDuration] = useState("180");
+  const [papiDuration, setPapiDuration] = useState("1800");
 
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -247,14 +247,21 @@ export default function TestManagementPage() {
     }
     setUser(JSON.parse(userData));
     
-    // Load durasi CFIT dan PAPI dari localStorage (jika belum ada, gunakan default standard)
-    setCfitDurations({
-      sub1: String(getTestDuration('cfit_sub1') || 180),
-      sub2: String(getTestDuration('cfit_sub2') || 240),
-      sub3: String(getTestDuration('cfit_sub3') || 180),
-      sub4: String(getTestDuration('cfit_sub4') || 150),
-    });
-    setPapiDuration(String(getTestDuration('papi') || 180));
+    // --- LOAD DURASI DARI JSON VIA SERVER ACTION ---
+    const loadConfig = async () => {
+      const config = await getTestConfig();
+      if (config) {
+        setCfitDurations({
+          sub1: String(config.cfit_sub1 || 180),
+          sub2: String(config.cfit_sub2 || 240),
+          sub3: String(config.cfit_sub3 || 180),
+          sub4: String(config.cfit_sub4 || 150),
+        });
+        setPapiDuration(String(config.papi || 1800)); // Set papi dari config JSON
+      }
+    };
+    loadConfig();
+    // -----------------------------------------------
     
     fetchData(); 
   }, [router]);
@@ -399,18 +406,36 @@ export default function TestManagementPage() {
     });
   };
 
-  // --- PERUBAHAN: SAVE HANDLER DURASI CFIT (PER SUBTES) & PAPI ---
-  const handleSaveTestDuration = () => {
+  // --- MENGGUNAKAN SERVER ACTIONS UNTUK SIMPAN DURASI ---
+  const handleSaveTestDuration = async () => {
+    let payload = {};
+
     if (selectedCategory?.code === 'cfit') {
-      setTestDuration('cfit_sub1', parseInt(cfitDurations.sub1));
-      setTestDuration('cfit_sub2', parseInt(cfitDurations.sub2));
-      setTestDuration('cfit_sub3', parseInt(cfitDurations.sub3));
-      setTestDuration('cfit_sub4', parseInt(cfitDurations.sub4));
-      toast.success("Durasi Tersimpan", { description: "Waktu untuk masing-masing Subtes CFIT berhasil diperbarui." });
+      payload = {
+        cfit_sub1: parseInt(cfitDurations.sub1),
+        cfit_sub2: parseInt(cfitDurations.sub2),
+        cfit_sub3: parseInt(cfitDurations.sub3),
+        cfit_sub4: parseInt(cfitDurations.sub4),
+      };
     } else if (selectedCategory?.code === 'papi') {
-      setTestDuration('papi', parseInt(papiDuration));
-      toast.success("Durasi Tersimpan", { description: "Durasi tes PAPI Kostick berhasil diperbarui." });
+      payload = {
+        papi: parseInt(papiDuration)
+      };
     }
+
+    const saveTask = async () => {
+      // Panggil Server Action
+      const response = await saveTestConfig(payload);
+      
+      if (!response.success) throw new Error(response.error || "Gagal menyimpan konfigurasi JSON.");
+      return "Pengaturan waktu berhasil disimpan secara global!";
+    };
+
+    toast.promise(saveTask(), {
+      loading: 'Menyimpan ke pengaturan global...',
+      success: (msg) => msg,
+      error: (err) => err.message
+    });
   };
 
   const handleAddPapiQuestion = async () => {
