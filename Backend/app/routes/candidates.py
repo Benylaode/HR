@@ -3,6 +3,7 @@ import os
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
+from flask import Blueprint, request, jsonify, send_file # <-- Tambahkan send_file
 from werkzeug.utils import secure_filename
 from app import db
 from app.models import Candidate, JobApplication, RecruitmentJourney, RecruitmentStage, JourneyLog, Resume
@@ -53,7 +54,7 @@ def candidate_to_dict(candidate: Candidate):
     return {
         "id": candidate.id,
         "resume_id": candidate.resume_id, 
-        
+        "has_cv": True if candidate.resume else False,
         # 1. Biodata (Disesuaikan dengan ProfileMixin Gabungan di models.py)
         "fullName": candidate.full_name,
         "email": candidate.email,
@@ -309,3 +310,22 @@ def delete_candidate(candidate_id):
     db.session.delete(candidate)
     db.session.commit()
     return jsonify({"message": "Candidate deleted successfully"})
+
+@candidates_bp.route("/<candidate_id>/cv", methods=["GET"])
+def get_candidate_cv(candidate_id):
+    candidate = Candidate.query.get(candidate_id)
+
+    if not candidate or not candidate.resume:
+        return jsonify({"error": "Kandidat tidak memiliki dokumen CV."}), 404
+
+    file_path_db = candidate.resume.filename
+    if file_path_db.startswith('/'):
+        file_path_db = file_path_db.lstrip('/') 
+
+    full_path = os.path.join(os.getcwd(), 'app', file_path_db)
+
+    if os.path.exists(full_path):
+        # send_file akan mengirimkan file PDF langsung ke browser
+        return send_file(full_path, mimetype='application/pdf')
+    else:
+        return jsonify({"error": "File fisik tidak ditemukan di server."}), 404

@@ -30,7 +30,7 @@ import {
   Activity,    // Icon Kraepelin
   BrainCircuit,// Icon CFIT
   PieChart,    // Icon PAPI
-  FileText,    // Icon Header Modal
+  FileText,    // Icon Header Modal & CV
   Download     // Icon Download PDF
 } from "lucide-react";
 
@@ -40,7 +40,7 @@ interface Candidate {
   id: string;
   fullName: string;
   email: string;
-  whatsapp: string; // Updated dari phone
+  whatsapp: string; 
   top_position: string;
   status: string;
   test_status: string;
@@ -51,6 +51,7 @@ interface Candidate {
 // Interface disesuaikan dengan struktur JSONB dari Backend baru
 interface CandidateDetail extends Candidate {
   resume_id?: string;
+  has_cv?: boolean; // <-- DITAMBAHKAN: Untuk mengecek ketersediaan CV
   gender?: string;
   birthDate?: string;
   domicileProvince?: string;
@@ -92,134 +93,256 @@ const DetailModal = memo(({
   candidate: CandidateDetail | null; 
   onClose: () => void;
 }) => {
+  // <-- DITAMBAHKAN: State untuk loading saat fetch file CV
+  const [loadingCV, setLoadingCV] = useState(false);
+
   if (!candidate) return null;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Pending": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "Screening": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Interview": return "bg-indigo-100 text-indigo-700 border-indigo-200";
+      case "Hired": return "bg-green-100 text-green-700 border-green-200";
+      case "Rejected": return "bg-red-100 text-red-700 border-red-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  const formatCurrency = (amount?: number) => {
+    if (!amount) return "-";
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+  };
+
+  // <-- DITAMBAHKAN: Fungsi untuk hit API CV dan membuka PDF di tab baru
+  const handleViewCV = async () => {
+    if (!candidate?.id) return;
+    
+    setLoadingCV(true);
+    const token = localStorage.getItem("hr_token");
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/candidates/${candidate.id}/cv`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal mengambil file CV. File mungkin tidak ditemukan di server.");
+      }
+
+      const blob = await res.blob();
+      const fileUrl = window.URL.createObjectURL(blob);
+      window.open(fileUrl, '_blank');
+      
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoadingCV(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+        {/* HEADER MODAL */}
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)] shrink-0">
               {(candidate.fullName || "?").charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.fullName || "Nama Tidak Ada"}</h2>
-              <p className="text-sm text-[var(--secondary)]">{candidate.top_position || "Kandidat"}</p>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-bold text-[var(--primary-900)]">{candidate.fullName || "Nama Tidak Ada"}</h2>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusBadge(candidate.status || "Pending")}`}>
+                  {candidate.status || "Pending"}
+                </span>
+              </div>
+              <p className="text-sm text-[var(--secondary)]">{candidate.top_position || "Posisi Belum Ditentukan"}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors shrink-0">
-            <X size={20} className="text-[var(--secondary-400)]" />
-          </button>
+          
+          <div className="flex items-center gap-3 shrink-0">
+            {/* <-- DITAMBAHKAN: Tombol Lihat CV (Hanya muncul jika has_cv bernilai true) */}
+            {candidate.has_cv && (
+              <button 
+                onClick={handleViewCV}
+                disabled={loadingCV}
+                className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 shadow-sm"
+              >
+                {loadingCV ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                {loadingCV ? "Membuka..." : "Lihat CV"}
+              </button>
+            )}
+
+            <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors shrink-0">
+              <X size={20} className="text-[var(--secondary-400)]" />
+            </button>
+          </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-6">
+        {/* BODY MODAL */}
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-6">
           
-          {/* Info Dasar */}
-          <div className="grid grid-cols-2 gap-4 text-sm bg-[var(--primary-50)]/30 p-4 rounded-xl border border-[var(--secondary-100)]">
-            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
-              <Mail size={16} className="text-[var(--primary)]" />
-              <span className="truncate">{candidate.email || "-"}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
-              <Phone size={16} className="text-[var(--primary)]" />
-              <span>{candidate.whatsapp || "-"}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
-              <MapPin size={16} className="text-[var(--primary)]" />
-              <span>{candidate.domicileCity ? `${candidate.domicileCity}, ${candidate.domicileProvince}` : "-"}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--secondary-700)]">
-              <Briefcase size={16} className="text-[var(--primary)]" />
-              <span>{candidate.totalExperience || "Fresh Graduate"}</span>
+          {/* 1. INFO UTAMA & KONTAK */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <User size={16} /> Data Pribadi & Kontak
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-sm">
+              <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-1">
+                <Mail size={16} className="text-[var(--primary)] shrink-0" />
+                <span className="truncate">{candidate.email || "-"}</span>
+              </div>
+              <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-2">
+                <Phone size={16} className="text-[var(--primary)] shrink-0" />
+                <span>{candidate.whatsapp || "-"}</span>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Jenis Kelamin</p>
+                <p className="font-semibold text-[var(--primary-900)]">{candidate.gender || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Tanggal Lahir</p>
+                <p className="font-semibold text-[var(--primary-900)]">
+                  {candidate.birthDate ? new Date(candidate.birthDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Domisili</p>
+                <p className="font-semibold text-[var(--primary-900)]">{candidate.domicileCity || "-"}</p>
+                <p className="text-xs text-[var(--secondary-600)]">{candidate.domicileProvince || ""}</p>
+              </div>
             </div>
           </div>
 
-          {/* Pendidikan */}
-          {candidate.university && (
-            <div>
-              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
-                <GraduationCap size={16} className="text-[var(--primary)]"/> Pendidikan Terakhir
-              </h3>
-              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <p className="font-bold text-[var(--primary-900)]">{candidate.university}</p>
-                <p className="text-sm text-[var(--secondary-700)]">{candidate.degree} - {candidate.major}</p>
-                <div className="flex gap-4 mt-2 text-xs text-[var(--secondary-500)]">
-                  <span className="bg-white px-2 py-1 rounded border shadow-sm">IPK: {candidate.gpa || "-"}</span>
-                  <span className="bg-white px-2 py-1 rounded border shadow-sm">Lulus: {candidate.gradYear || "-"}</span>
-                </div>
+          {/* 2. EKSPEKTASI & POSISI */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <TrendingUp size={16} /> Ekspektasi & Lamaran
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="col-span-2">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Pilihan Posisi</p>
+                <p className="font-semibold text-[var(--primary-900)]">1. {candidate.appliedPosition1 || "-"}</p>
+                <p className="font-semibold text-[var(--primary-900)]">2. {candidate.appliedPosition2 || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Ekspektasi Gaji</p>
+                <p className="font-semibold text-[var(--primary-900)]">{formatCurrency(candidate.expectedSalary)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Notice Period</p>
+                <p className="font-semibold text-[var(--primary-900)]">{candidate.noticePeriod || "-"}</p>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Pengalaman Kerja */}
-          {candidate.workExperiences && candidate.workExperiences.length > 0 && (
-            <div>
-              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
-                <Briefcase size={16} className="text-[var(--primary)]"/> Pengalaman Kerja
+          {/* 3. PENDIDIKAN */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <GraduationCap size={16} /> Pendidikan Terakhir
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="col-span-2">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Universitas / Institusi</p>
+                <p className="font-bold text-[var(--primary-900)]">{candidate.university || "-"}</p>
+                <p className="text-xs text-[var(--secondary-600)] mt-0.5">{candidate.degree} - {candidate.major}</p>
+                {candidate.studyProgram && <p className="text-xs text-[var(--secondary-600)]">Program Studi: {candidate.studyProgram}</p>}
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Tahun Tempuh</p>
+                <p className="font-semibold text-[var(--primary-900)]">{candidate.startYear || "?"} - {candidate.gradYear || "?"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">IPK</p>
+                <p className="font-semibold text-[var(--primary-900)]">{candidate.gpa || "-"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. PENGALAMAN KERJA */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <div className="flex justify-between items-center mb-4 border-b pb-2">
+              <h3 className="text-sm font-bold text-[var(--primary)] flex items-center gap-2">
+                <Briefcase size={16} /> Pengalaman Kerja
               </h3>
-              <div className="space-y-3 border-l-2 border-[var(--primary-200)] ml-2 pl-4">
+              <span className="text-xs font-semibold bg-[var(--primary-50)] text-[var(--primary-700)] px-2.5 py-1 rounded-full">
+                Total: {candidate.totalExperience || "Fresh Graduate"}
+              </span>
+            </div>
+            
+            {candidate.workExperiences && candidate.workExperiences.length > 0 ? (
+              <div className="space-y-4 border-l-2 border-[var(--primary-200)] ml-2 pl-4 mt-2">
                 {candidate.workExperiences.map((exp, idx) => (
                   <div key={idx} className="relative">
                     <div className="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-[var(--primary)] ring-4 ring-white"></div>
                     <p className="text-sm font-bold text-[var(--primary-900)]">{exp.position}</p>
                     <p className="text-xs font-medium text-[var(--primary)]">{exp.company}</p>
                     <p className="text-xs text-[var(--secondary-400)] mt-0.5">{exp.start} - {exp.end || "Sekarang"}</p>
+                    {exp.desc && <p className="text-xs text-[var(--secondary-600)] mt-1 italic line-clamp-2">"{exp.desc}"</p>}
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Grid Organisasi & Pelatihan */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             {candidate.organizations && candidate.organizations.length > 0 && (
-               <div>
-                 <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
-                   <Users size={16} className="text-[var(--primary)]"/> Organisasi
-                 </h3>
-                 <div className="space-y-2">
-                   {candidate.organizations.map((org, idx) => (
-                     <div key={idx} className="text-sm p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                       <p className="font-semibold text-[var(--primary-900)]">{org.position}</p>
-                       <p className="text-xs text-[var(--secondary-600)]">{org.name}</p>
-                     </div>
-                   ))}
-                 </div>
-               </div>
-             )}
-
-             {candidate.trainings && candidate.trainings.length > 0 && (
-               <div>
-                 <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
-                   <Award size={16} className="text-[var(--primary)]"/> Sertifikasi / Pelatihan
-                 </h3>
-                 <div className="space-y-2">
-                   {candidate.trainings.map((tr, idx) => (
-                     <div key={idx} className="text-sm p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                       <p className="font-semibold text-[var(--primary-900)]">{tr.name}</p>
-                       <p className="text-xs text-[var(--secondary-600)]">{tr.organizer} ({tr.year})</p>
-                     </div>
-                   ))}
-                 </div>
-               </div>
-             )}
+            ) : (
+              <p className="text-xs text-[var(--secondary-500)] italic">Belum ada rincian pengalaman kerja dicatat.</p>
+            )}
           </div>
-          
+
+          {/* 5. ORGANISASI & PELATIHAN (JSONB) */}
+          {(candidate.organizations?.length || candidate.trainings?.length) ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {candidate.organizations && candidate.organizations.length > 0 && (
+                 <div>
+                   <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                     <Users size={16} className="text-[var(--primary)]"/> Organisasi
+                   </h3>
+                   <div className="space-y-2">
+                     {candidate.organizations.map((org, idx) => (
+                       <div key={idx} className="text-sm p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                         <p className="font-semibold text-[var(--primary-900)]">{org.position}</p>
+                         <p className="text-xs text-[var(--secondary-600)]">{org.name} ({org.start} - {org.end || "Sekarang"})</p>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
+               {candidate.trainings && candidate.trainings.length > 0 && (
+                 <div>
+                   <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
+                     <Award size={16} className="text-[var(--primary)]"/> Sertifikasi / Pelatihan
+                   </h3>
+                   <div className="space-y-2">
+                     {candidate.trainings.map((tr, idx) => (
+                       <div key={idx} className="text-sm p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                         <p className="font-semibold text-[var(--primary-900)]">{tr.name}</p>
+                         <p className="text-xs text-[var(--secondary-600)]">{tr.organizer} ({tr.year})</p>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+            </div>
+          ) : null}
+
         </div>
 
-        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
-           <div className="flex gap-4">
-               <div className="flex items-center gap-2">
-                 <span className="text-xs text-[var(--secondary-500)]">Match Score</span>
-                 <span className={`text-sm font-bold px-2 py-0.5 rounded ${candidate.match_score >= 80 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                   {candidate.match_score || 0}%
-                 </span>
-               </div>
-           </div>
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
+        {/* FOOTER MODAL */}
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[var(--secondary-500)]">Match Score AI</span>
+              <span className={`text-sm font-bold px-2 py-0.5 rounded ${candidate.match_score >= 80 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>
+                {candidate.match_score || 0}%
+              </span>
+            </div>
+          </div>
+          <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
             Tutup
           </button>
         </div>

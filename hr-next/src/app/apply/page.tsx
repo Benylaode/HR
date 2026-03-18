@@ -128,7 +128,6 @@ export default function ManualRegistrationPage() {
         experienceDescription: form.workExperiences[0]?.desc || "",
       };
 
-      // --- PERBAIKAN: BEDAKAN CARA KIRIM DATA KANDIDAT VS KARYAWAN ---
       let fetchOptions: RequestInit = {
         method: "POST",
       };
@@ -140,13 +139,12 @@ export default function ManualRegistrationPage() {
         formDataToSend.append("data", JSON.stringify(mappedData));
         fetchOptions.body = formDataToSend;
       } else {
-        // Jika Karyawan, kirim pakai Raw JSON karena di backend memakai request.get_json()
+        // Jika Karyawan, kirim pakai Raw JSON karena tidak ada CV
         fetchOptions.headers = {
           "Content-Type": "application/json"
         };
         fetchOptions.body = JSON.stringify(mappedData);
       }
-      // ---------------------------------------------------------------
 
       const response = await fetch(apiUrl, fetchOptions);
       const data = await response.json();
@@ -249,10 +247,13 @@ export default function ManualRegistrationPage() {
               <div><label className={labelClass}>Kota/Kabupaten *</label><input name="domicileCity" required className={inputClass} onChange={handleTextChange} /></div>
               <div><label className={labelClass}>Total Masa Kerja *</label><input name="totalExperience" placeholder="Cth: 2 Tahun 6 Bulan" required className={inputClass} onChange={handleTextChange} /></div>
               
-              <div className="lg:col-span-3">
-                <label className={labelClass}>Upload CV (Wajib format PDF) {submissionType === "candidate" ? "*" : ""}</label>
-                <input type="file" accept=".pdf" required={submissionType === "candidate"} onChange={(e) => setCvFile(e.target.files ? e.target.files[0] : null)} className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:bg-blue-700 file:text-white cursor-pointer border border-gray-300 rounded-xl" />
-              </div>
+              {/* ✅ PERBAIKAN: FIELD UPLOAD CV HANYA MUNCUL UNTUK KANDIDAT */}
+              {submissionType === "candidate" && (
+                <div className="lg:col-span-3">
+                  <label className={labelClass}>Upload CV (Wajib format PDF) *</label>
+                  <input type="file" accept=".pdf" required onChange={(e) => setCvFile(e.target.files ? e.target.files[0] : null)} className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:bg-blue-700 file:text-white cursor-pointer border border-gray-300 rounded-xl" />
+                </div>
+              )}
             </div>
           </section>
 

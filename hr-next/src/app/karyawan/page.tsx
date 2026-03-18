@@ -72,7 +72,6 @@ interface KaryawanDetail extends Karyawan {
 }
 
 
-
 const DetailModal = memo(({ 
   karyawan, 
   onClose 
@@ -82,20 +81,35 @@ const DetailModal = memo(({
 }) => {
   if (!karyawan) return null;
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Active": return "bg-green-100 text-green-700 border-green-200";
+      case "Pending": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "Resigned": return "bg-red-100 text-red-700 border-red-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col transform transition-all animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)]">
+        {/* HEADER MODAL */}
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
               {(karyawan.fullName || "?").charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--primary-900)]">{karyawan.fullName || "Nama Tidak Ada"}</h2>
-              <p className="text-sm text-[var(--secondary)]">{karyawan.positionApplied || "Karyawan Internal"}</p>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-bold text-[var(--primary-900)]">{karyawan.fullName || "Nama Tidak Ada"}</h2>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusBadge(karyawan.employee_status || "Pending")}`}>
+                  {karyawan.employee_status || "Pending"}
+                </span>
+              </div>
+              <p className="text-sm text-[var(--secondary)]">{karyawan.positionApplied || "Posisi Belum Ditentukan"}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
@@ -103,76 +117,111 @@ const DetailModal = memo(({
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-160px)] space-y-6">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <Mail size={16} className="text-[var(--secondary-400)]" />
-              <span>{karyawan.email || "-"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <Phone size={16} className="text-[var(--secondary-400)]" />
-              <span>{karyawan.whatsapp || "-"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <MapPin size={16} className="text-[var(--secondary-400)]" />
-              <span>{karyawan.city || karyawan.address || "-"}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[var(--secondary)]">
-              <Briefcase size={16} className="text-[var(--secondary-400)]" />
-              <span>{karyawan.totalExperience || "0"} pengalaman</span>
+        {/* BODY MODAL */}
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-6">
+          
+          {/* 1. INFO KONTAK */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <User size={16} /> Kontak Utama
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 text-sm">
+                <Mail size={16} className="text-[var(--secondary-400)]" />
+                <span className="text-[var(--primary-900)] font-medium">{karyawan.email || "-"}</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Phone size={16} className="text-[var(--secondary-400)]" />
+                <span className="text-[var(--primary-900)] font-medium">{karyawan.whatsapp || "-"}</span>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             {/* Pendidikan */}
-             <div>
-                <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
-                   <GraduationCap size={16} /> Pendidikan Terakhir
-                </h3>
-                <div className="space-y-1 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <p className="font-semibold text-[var(--primary-900)]">{karyawan.university || "-"}</p>
-                  <p className="text-xs text-[var(--secondary)]">{karyawan.education} - {karyawan.major}</p>
-                  <p className="text-xs font-medium mt-1">IPK: {karyawan.gpa || "-"}</p>
-                </div>
-              </div>
-
-              {/* Info Personal */}
+          {/* 2. DATA PRIBADI & ALAMAT */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <MapPin size={16} /> Data Pribadi & Alamat
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-sm">
               <div>
-                <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 flex items-center gap-2">
-                   <User size={16} /> Info Personal
-                </h3>
-                <div className="space-y-2 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <div className="flex justify-between"><span className="text-[var(--secondary-500)]">Gender:</span> <span>{karyawan.gender || "-"}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--secondary-500)]">Lahir:</span> <span>{karyawan.birthPlace}, {karyawan.birthDate ? new Date(karyawan.birthDate).toLocaleDateString('id-ID') : "-"}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--secondary-500)]">Agama:</span> <span>{karyawan.religion || "-"}</span></div>
-                </div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Jenis Kelamin</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.gender || "-"}</p>
               </div>
-          </div>
-
-          {/* Pengalaman Terakhir */}
-          {karyawan.lastCompany && (
-            <div>
-              <h3 className="text-xs font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-3 pl-1 border-l-2 border-[var(--primary)]">Pengalaman Kerja Terakhir</h3>
-              <div className="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-base font-bold text-[var(--primary-900)]">{karyawan.lastPosition}</p>
-                    <p className="text-sm text-[var(--secondary-600)]">{karyawan.lastCompany} <span className="text-xs">({karyawan.lastCompanyField})</span></p>
-                  </div>
-                  <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary-50)] px-2 py-1 rounded border border-[var(--primary-100)]">{karyawan.lastPositionLevel}</span>
-                </div>
-                {karyawan.experienceDescription && (
-                  <p className="text-sm text-[var(--secondary-600)] mt-2 pt-2 border-t border-gray-200">
-                    "{karyawan.experienceDescription}"
-                  </p>
-                )}
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Agama</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.religion || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">SIM</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.driverLicense || "-"}</p>
+              </div>
+              <div className="col-span-2 md:col-span-3">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Tempat, Tanggal Lahir</p>
+                <p className="font-semibold text-[var(--primary-900)]">
+                  {karyawan.birthPlace || "-"}, {karyawan.birthDate ? new Date(karyawan.birthDate).toLocaleDateString('id-ID') : "-"}
+                </p>
+              </div>
+              <div className="col-span-2 md:col-span-3">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Alamat Lengkap</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.address || "-"}</p>
+                <p className="text-xs text-[var(--secondary-600)] mt-0.5">
+                  {karyawan.city ? `${karyawan.city}, ` : ""}{karyawan.province || ""}
+                </p>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* 3. PENDIDIKAN */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <GraduationCap size={16} /> Pendidikan Terakhir
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="col-span-2 md:col-span-2">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Institusi / Universitas</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.university || "-"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Jenjang & Jurusan</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.education || "-"} {karyawan.major ? `- ${karyawan.major}` : ""}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">IPK</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.gpa || "-"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. PENGALAMAN KERJA */}
+          <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
+            <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
+              <Briefcase size={16} /> Pengalaman Kerja Terakhir
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Perusahaan Terakhir</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.lastCompany || "-"}</p>
+                <p className="text-xs text-[var(--secondary-600)] mt-0.5">{karyawan.lastCompanyField || ""}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Jabatan & Level</p>
+                <p className="font-semibold text-[var(--primary-900)]">{karyawan.lastPosition || "-"}</p>
+                <p className="text-xs text-[var(--secondary-600)] mt-0.5">{karyawan.lastPositionLevel || ""}</p>
+              </div>
+              <div className="col-span-1 md:col-span-2 border-t border-gray-100 pt-3 mt-1">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Total Pengalaman: <span className="font-semibold text-[var(--primary-900)]">{karyawan.totalExperience || "-"}</span></p>
+                <p className="text-sm text-[var(--secondary-700)] mt-2 italic whitespace-pre-wrap">
+                  {karyawan.experienceDescription ? `"${karyawan.experienceDescription}"` : "Tidak ada deskripsi pengalaman."}
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)]">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
+        {/* FOOTER MODAL */}
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)] flex-shrink-0">
+          <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
             Tutup
           </button>
         </div>
