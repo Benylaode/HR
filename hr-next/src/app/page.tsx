@@ -35,7 +35,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         if (data.access_token) {
             localStorage.setItem("hr_user", JSON.stringify(data.user));
             localStorage.setItem("hr_token", data.access_token);
-            console.log("Login Success, Token Saved:", data.access_token); // Debugging
             router.push("/dashboard");
         } else {
             setError("Token tidak diterima dari server.");

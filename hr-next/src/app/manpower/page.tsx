@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
@@ -16,11 +16,19 @@ interface Manpower {
 
 export default function ManpowerPage() {
   const [loading, setLoading] = useState(false)
+  const [tableLoading, setTableLoading] = useState(false)
   
-  // State Data Mentah dari API
-  const [allVacantSlots, setAllVacantSlots] = useState<Manpower[]>([])
+  // State Data dari Backend Baru
+  const [vacantSlots, setVacantSlots] = useState<Manpower[]>([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
   
-  // State Form Input (Kiri)
+  // State untuk Opsi Dropdown Filter yang lengkap
+  const [filterOptions, setFilterOptions] = useState<{ departments: string[], levels: string[] }>({ 
+    departments: [], 
+    levels: [] 
+  });
+  
   const [formData, setFormData] = useState({
     position_title: '',
     level: '',
@@ -28,22 +36,18 @@ export default function ManpowerPage() {
     department: '',
   })
 
-  // State Fitur Tabel Canggih (Kanan)
+  // State Parameter untuk dikirim ke Server
   const [query, setQuery] = useState({
     search: '',
     department: '',
     level: '',
-    sortBy: 'id' as keyof Manpower,
-    sortDir: 'desc' as 'asc' | 'desc',
+    sortBy: 'id',
+    sortDir: 'desc',
     page: 1,
     pageSize: 10
   })
+  
   const [showFilters, setShowFilters] = useState(false)
-
-  // Fetch Data (Sama seperti struktur hr-next asli)
-  useEffect(() => {
-    fetchVacantManpower()
-  }, [])
 
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
@@ -53,24 +57,79 @@ export default function ManpowerPage() {
     };
   };
 
-  const fetchVacantManpower = async () => {
+  // --- MENGAMBIL OPSI FILTER MASTER DARI BACKEND ---
+  const fetchFilterOptions = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      const response = await fetch(`${baseUrl}/manpower/vacant`, { 
-        headers: getAuthHeaders() 
-      });
-      
-      if (!response.ok) throw new Error('Gagal mengambil data dari server');
-      
-      const data = await response.json();
-      setAllVacantSlots(data);
+      const response = await fetch(`${baseUrl}/manpower/all`, { headers: getAuthHeaders() });
+      if (response.ok) {
+        const allData = await response.json();
+        // Ekstrak departemen dan level yang unik dari seluruh data
+        const depts = Array.from(new Set(allData.map((s: any) => s.department))) as string[];
+        const lvls = Array.from(new Set(allData.map((s: any) => s.level))) as string[];
+        
+        setFilterOptions({ departments: depts, levels: lvls });
+      }
     } catch (error) {
-      console.error('Error fetching manpower:', error);
-      toast.error('Gagal memuat formasi kosong');
+      console.error("Gagal mengambil opsi filter", error);
     }
   }
 
-  // Handle Form Submit (Sama seperti hr-next asli)
+  // Panggil sekali saat halaman dimuat
+  useEffect(() => {
+    fetchFilterOptions();
+  }, []);
+
+  // --- SERVER-SIDE FETCHING LOGIC TABEL ---
+  const fetchVacantManpower = async () => {
+    setTableLoading(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+      
+      const params = new URLSearchParams({
+        page: query.page.toString(),
+        page_size: query.pageSize.toString(),
+        search: query.search,
+        department: query.department,
+        level: query.level,
+        sort_by: query.sortBy,
+        sort_dir: query.sortDir
+      });
+
+      const response = await fetch(`${baseUrl}/manpower/vacant?${params.toString()}`, { 
+        headers: getAuthHeaders() 
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Gagal memuat data');
+      }
+      
+      const data = await response.json();
+      
+      setVacantSlots(data.items || []);
+      setTotalItems(data.total || 0);
+      setTotalPages(data.total_pages || 1);
+      
+    } catch (error: any) {
+      console.error('Error fetching manpower:', error);
+      toast.error('Gagal memuat formasi', { description: error.message });
+      setVacantSlots([]);
+    } finally {
+      setTableLoading(false);
+    }
+  }
+
+  // Otomatis panggil API jika parameter query berubah (Search, Paginasi, Sort)
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchVacantManpower();
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [query]); 
+
+  // --- FORM LOGIC ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -91,7 +150,15 @@ export default function ManpowerPage() {
       if (!response.ok) throw new Error(data.error || 'Terjadi kesalahan')
 
       setFormData({ position_title: '', level: '', grade: '', department: '' })
-      await fetchVacantManpower()
+      
+      // Update filter options jika ada departemen/level baru yang ditambahkan
+      await fetchFilterOptions();
+
+      if (query.page !== 1) {
+        updateQuery({ page: 1 });
+      } else {
+        await fetchVacantManpower();
+      }
       return data;
     }
 
@@ -103,56 +170,11 @@ export default function ManpowerPage() {
     })
   }
 
-  // --- LOGIK FITUR TABEL (Search, Filter, Sort, Pagination) ---
-  
-  // Mendapatkan opsi unik untuk dropdown filter
-  const uniqueDepartments = useMemo(() => Array.from(new Set(allVacantSlots.map(s => s.department))), [allVacantSlots])
-  const uniqueLevels = useMemo(() => Array.from(new Set(allVacantSlots.map(s => s.level))), [allVacantSlots])
-
-  // Memproses data berdasarkan kueri saat ini
-  const processedData = useMemo(() => {
-    let result = [...allVacantSlots]
-
-    // 1. Search (Mencari di posisi dan departemen)
-    if (query.search) {
-      const lowerSearch = query.search.toLowerCase()
-      result = result.filter(slot => 
-        slot.position_title.toLowerCase().includes(lowerSearch) ||
-        slot.department.toLowerCase().includes(lowerSearch)
-      )
-    }
-
-    // 2. Filters
-    if (query.department) result = result.filter(slot => slot.department === query.department)
-    if (query.level) result = result.filter(slot => slot.level === query.level)
-
-    // 3. Sorting
-    result.sort((a, b) => {
-      let valA = a[query.sortBy]
-      let valB = b[query.sortBy]
-      
-      if (typeof valA === 'string') valA = valA.toLowerCase()
-      if (typeof valB === 'string') valB = valB.toLowerCase()
-
-      if (valA < valB) return query.sortDir === 'asc' ? -1 : 1
-      if (valA > valB) return query.sortDir === 'asc' ? 1 : -1
-      return 0
-    })
-
-    return result
-  }, [allVacantSlots, query.search, query.department, query.level, query.sortBy, query.sortDir])
-
-  // 4. Pagination
-  const totalItems = processedData.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / query.pageSize))
-  const paginatedSlots = processedData.slice((query.page - 1) * query.pageSize, query.page * query.pageSize)
-
-  // Helper function untuk update query state
   const updateQuery = (patch: Partial<typeof query>) => {
-    setQuery(prev => ({ ...prev, ...patch, page: patch.page !== undefined ? patch.page : 1 })) // Reset ke page 1 jika ada prubahan filter/sort
+    setQuery(prev => ({ ...prev, ...patch, page: patch.page !== undefined ? patch.page : 1 }))
   }
 
-  const handleSort = (key: keyof Manpower) => {
+  const handleSort = (key: string) => {
     if (query.sortBy === key) {
       updateQuery({ sortDir: query.sortDir === 'asc' ? 'desc' : 'asc' })
     } else {
@@ -169,7 +191,7 @@ export default function ManpowerPage() {
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* KOLOM KIRI: Form Input (Lebar: 4 Kolom) */}
+            {/* KOLOM KIRI: Form Input */}
             <div className="lg:col-span-4 flex flex-col gap-6">
               <div className="bg-white shadow-xl rounded-2xl p-6 border border-slate-100">
                 <h2 className="text-xl font-bold text-slate-900 mb-6 border-b pb-3 flex items-center gap-2">
@@ -212,11 +234,16 @@ export default function ManpowerPage() {
               </div>
             </div>
 
-            {/* KOLOM KANAN: Tabel Canggih (Lebar: 8 Kolom) */}
+            {/* KOLOM KANAN: Tabel Canggih */}
             <div className="lg:col-span-8">
-              <div className="bg-white shadow-xl rounded-2xl border border-slate-100 flex flex-col h-full overflow-hidden">
+              <div className="bg-white shadow-xl rounded-2xl border border-slate-100 flex flex-col h-full overflow-hidden relative">
                 
-                {/* Header & Controls Tabel */}
+                {tableLoading && (
+                  <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
+                  </div>
+                )}
+
                 <div className="p-5 border-b border-slate-100 bg-slate-50/50 space-y-4">
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -226,12 +253,11 @@ export default function ManpowerPage() {
                       Daftar Slot Kosong
                     </h2>
                     <span className="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1.5 rounded-full border border-teal-200 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-                      {allVacantSlots.length} Total
+                      <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                      {totalItems} Total
                     </span>
                   </div>
 
-                  {/* Toolbar Tabel: Search & Filter */}
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                       <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -265,21 +291,20 @@ export default function ManpowerPage() {
                     </select>
                   </div>
 
-                  {/* Panel Filter Dropdown */}
                   {showFilters && (
                     <div className="pt-3 border-t border-slate-200 flex flex-wrap gap-4 animate-in fade-in slide-in-from-top-2">
                       <div className="flex-1 min-w-[150px]">
                         <label className="text-xs font-semibold text-slate-500 mb-1 block">Department</label>
                         <select className="w-full p-2 border border-slate-200 rounded-lg text-sm" value={query.department} onChange={e => updateQuery({ department: e.target.value })}>
                           <option value="">Semua Department</option>
-                          {uniqueDepartments.map(d => <option key={d} value={d}>{d}</option>)}
+                          {filterOptions.departments.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                       </div>
                       <div className="flex-1 min-w-[150px]">
                         <label className="text-xs font-semibold text-slate-500 mb-1 block">Level</label>
                         <select className="w-full p-2 border border-slate-200 rounded-lg text-sm" value={query.level} onChange={e => updateQuery({ level: e.target.value })}>
                           <option value="">Semua Level</option>
-                          {uniqueLevels.map(l => <option key={l} value={l}>{l}</option>)}
+                          {filterOptions.levels.map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
                       </div>
                       {(query.department || query.level) && (
@@ -293,13 +318,12 @@ export default function ManpowerPage() {
                   )}
                 </div>
                 
-                {/* Tabel Data */}
-                <div className="flex-1 overflow-x-auto">
+                <div className="flex-1 overflow-x-auto min-h-[300px]">
                   <table className="w-full text-left border-collapse min-w-[600px]">
                     <thead>
                       <tr className="bg-white border-b border-slate-200">
                         {['position_title', 'level', 'department'].map((key) => (
-                          <th key={key} onClick={() => handleSort(key as keyof Manpower)} className="p-4 font-bold text-slate-600 text-sm uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors select-none">
+                          <th key={key} onClick={() => handleSort(key)} className="p-4 font-bold text-slate-600 text-sm uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition-colors select-none">
                             <div className="flex items-center gap-2">
                               {key === 'position_title' ? 'Posisi' : key}
                               {query.sortBy === key ? (
@@ -311,8 +335,8 @@ export default function ManpowerPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
-                      {paginatedSlots.length > 0 ? (
-                        paginatedSlots.map((slot) => (
+                      {vacantSlots.length > 0 ? (
+                        vacantSlots.map((slot) => (
                           <tr key={slot.id} className="hover:bg-slate-50 transition-colors group">
                             <td className="p-4">
                               <p className="font-bold text-slate-800 group-hover:text-teal-700 transition-colors">{slot.position_title}</p>
@@ -334,7 +358,7 @@ export default function ManpowerPage() {
                             </td>
                           </tr>
                         ))
-                      ) : (
+                      ) : !tableLoading && (
                         <tr>
                           <td colSpan={3} className="p-12 text-center">
                             <h3 className="text-lg font-bold text-slate-700">Data tidak ditemukan</h3>
@@ -346,7 +370,6 @@ export default function ManpowerPage() {
                   </table>
                 </div>
 
-                {/* Footer / Pagination */}
                 {totalItems > 0 && (
                   <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm text-slate-500">
@@ -358,7 +381,6 @@ export default function ManpowerPage() {
                       </button>
                       
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        // Logika untuk menampilkan maksimal 5 nomor halaman
                         let pageNum = query.page;
                         if (totalPages <= 5) pageNum = i + 1;
                         else if (query.page <= 3) pageNum = i + 1;
