@@ -1,24 +1,35 @@
 """
-Skrip Seed - memasukkan data sampel Manpower Planning ke dalam pangkalan data.
-Cara laksana: python seed.py
+Skrip Seed - Direct Database Connection (Murni SQLAlchemy, Skip Flask)
+Cara laksana: python seed_direct.py
 """
 import sys
 import os
 
-# Memastikan direktori semasa boleh diakses
+# Memastikan direktori saat ini bisa dibaca
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# [UPDATE PENTING]: Import create_app, bukan app
-from app import create_app, db
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# KITA HANYA IMPORT STRUKTUR TABEL (MODEL), TIDAK IMPORT FLASK/APP
 from app.models import Manpower, Karyawan
 
-# Buat instance aplikasi Flask
-app = create_app()
+# ==========================================
+# 1. KONEKSI LANGSUNG KE POSTGRESQL
+# ==========================================
+DATABASE_URI = "postgresql://postgres:pas@localhost:5432/hrrs"
 
-# Menetapkan rentetan sambungan pangkalan data (connection string)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:pas@localhost:5432/hrrs"
+# Membuat 'mesin' yang langsung terhubung ke database
+engine = create_engine(DATABASE_URI)
 
-# Data Sampel untuk Manpower
+# Membuat 'sesi' manual (pengganti db.session milik Flask)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+session = SessionLocal()
+
+
+# ==========================================
+# 2. DATA SAMPEL
+# ==========================================
 POSITIONS = [
     {"position_title": "VP of Engineering", "level": "VP", "grade": "G1", "section": "-", "department": "Engineering", "division": "Technology", "local_non_local": "Local", "work_location": "Jakarta HQ"},
     {"position_title": "Senior Software Engineer", "level": "Senior", "grade": "G3", "section": "Backend", "department": "Engineering", "division": "Technology", "local_non_local": "Local", "work_location": "Jakarta HQ"},
@@ -31,7 +42,6 @@ POSITIONS = [
     {"position_title": "Talent Acquisition", "level": "Mid", "grade": "G4", "section": "Recruitment", "department": "Human Resources", "division": "Operations", "local_non_local": "Local", "work_location": "Surabaya Office"},
 ]
 
-# Data Sampel untuk Karyawan
 EMPLOYEES = [
     (1, [{"nama_lengkap": "Ahmad Rizki Pratama"}]),
     (2, [{"nama_lengkap": "Siti Nurhaliza"}, {"nama_lengkap": "Budi Santoso"}]),
@@ -41,47 +51,51 @@ EMPLOYEES = [
     (6, [{"nama_lengkap": "Citra Wahyuni"}]),
     (7, [{"nama_lengkap": "Andi Wijaya"}]),
     (8, [{"nama_lengkap": "Nuraini Hidayat"}]),
-    # Index 9 sengaja dibiarkan kosong untuk menguji paparan formasi kosong
+    # Index 9 sengaja dikosongkan agar UI menampilkan label "Slot Formasi Kosong"
 ]
 
+
+# ==========================================
+# 3. PROSES EKSEKUSI (EKSTRAK CEPAT)
+# ==========================================
 def seed():
-    # Menjalankan konteks aplikasi Flask agar boleh berinteraksi dengan SQLAlchemy
-    with app.app_context():
-        try:
-            # Memeriksa sama ada data sudah wujud
-            if Manpower.query.count() > 0:
-                print("Pangkalan data sudah mempunyai data Manpower. Seeding dibatalkan.")
-                return
+    try:
+        # Cek pakai session buatan kita sendiri
+        if session.query(Manpower).count() > 0:
+            print("Peringatan: Tabel Manpower sudah ada isinya. Seeding dibatalkan untuk mencegah duplikat.")
+            return
 
-            print("Memulakan proses seeding data...")
+        print("Menghubungkan ke PostgreSQL dan memulai injeksi data...")
 
-            # 1. Masukkan data Posisi/Manpower
-            for pos_data in POSITIONS:
-                pos = Manpower(**pos_data)
-                db.session.add(pos)
-            
-            db.session.commit()
+        # 1. Simpan Posisi
+        for pos_data in POSITIONS:
+            pos = Manpower(**pos_data)
+            session.add(pos)
+        
+        session.commit()
 
-            # Dapatkan ID yang baru dibuat untuk dipadankan dengan pekerja
-            id_list = [m.id for m in Manpower.query.order_by(Manpower.id.asc()).all()]
+        # Tarik semua ID Manpower yang baru saja dibuat
+        id_list = [m.id for m in session.query(Manpower).order_by(Manpower.id.asc()).all()]
 
-            # 2. Masukkan data Pekerja/Karyawan
-            total_employees = 0
-            for idx, emp_list in EMPLOYEES:
-                if idx <= len(id_list):
-                    position_id = id_list[idx - 1]
-                    for emp_data in emp_list:
-                        # Kaitkan Karyawan dengan ID Manpower yang betul
-                        emp = Karyawan(manpower_id=position_id, **emp_data)
-                        db.session.add(emp)
-                        total_employees += 1
-            
-            db.session.commit()
-            print(f"✅ Berjaya menyimpan {len(POSITIONS)} posisi dan {total_employees} pekerja ke dalam pangkalan data hrrs!")
+        # 2. Simpan Karyawan
+        total_employees = 0
+        for idx, emp_list in EMPLOYEES:
+            if idx <= len(id_list):
+                position_id = id_list[idx - 1]
+                for emp_data in emp_list:
+                    emp = Karyawan(manpower_id=position_id, **emp_data)
+                    session.add(emp)
+                    total_employees += 1
+        
+        session.commit()
+        print(f"✅ Selesai! {len(POSITIONS)} posisi dan {total_employees} karyawan berhasil disuntikkan murni ke PostgreSQL.")
 
-        except Exception as e:
-            db.session.rollback()
-            print(f"❌ Proses seeding gagal: {e}")
+    except Exception as e:
+        session.rollback()
+        print(f"❌ Terjadi kesalahan fatal: {e}")
+    
+    finally:
+        session.close() # Wajib tutup jalur koneksi setelah selesai
 
 if __name__ == "__main__":
     seed()
