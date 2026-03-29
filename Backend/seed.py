@@ -1,6 +1,6 @@
 """
 Skrip Seed - memasukkan data sampel Manpower Planning ke dalam pangkalan data.
-Cara laksana: python seed_db.py
+Cara laksana: python seed.py
 """
 import sys
 import os
@@ -8,14 +8,17 @@ import os
 # Memastikan direktori semasa boleh diakses
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Import aplikasi Flask dan pangkalan data anda
-from app import app, db
+# [UPDATE PENTING]: Import create_app, bukan app
+from app import create_app, db
 from app.models import Manpower, Karyawan
 
-# Menetapkan rentetan sambungan pangkalan data (connection string) mengikut permintaan anda
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:password@72.62.122.36:5432/hrrs"
+# Buat instance aplikasi Flask
+app = create_app()
 
-# Data Sampel untuk Manpower (disesuaikan dengan medan model Flask anda)
+# Menetapkan rentetan sambungan pangkalan data (connection string)
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:pas@localhost:5432/hrrs"
+
+# Data Sampel untuk Manpower
 POSITIONS = [
     {"position_title": "VP of Engineering", "level": "VP", "grade": "G1", "section": "-", "department": "Engineering", "division": "Technology", "local_non_local": "Local", "work_location": "Jakarta HQ"},
     {"position_title": "Senior Software Engineer", "level": "Senior", "grade": "G3", "section": "Backend", "department": "Engineering", "division": "Technology", "local_non_local": "Local", "work_location": "Jakarta HQ"},
@@ -28,7 +31,7 @@ POSITIONS = [
     {"position_title": "Talent Acquisition", "level": "Mid", "grade": "G4", "section": "Recruitment", "department": "Human Resources", "division": "Operations", "local_non_local": "Local", "work_location": "Surabaya Office"},
 ]
 
-# Data Sampel untuk Karyawan (disesuaikan dengan medan model Flask Karyawan anda)
+# Data Sampel untuk Karyawan
 EMPLOYEES = [
     (1, [{"nama_lengkap": "Ahmad Rizki Pratama"}]),
     (2, [{"nama_lengkap": "Siti Nurhaliza"}, {"nama_lengkap": "Budi Santoso"}]),
@@ -38,7 +41,7 @@ EMPLOYEES = [
     (6, [{"nama_lengkap": "Citra Wahyuni"}]),
     (7, [{"nama_lengkap": "Andi Wijaya"}]),
     (8, [{"nama_lengkap": "Nuraini Hidayat"}]),
-    # Index 9 (Talent Acquisition) sengaja dibiarkan kosong untuk menguji paparan slot kosong
+    # Index 9 sengaja dibiarkan kosong untuk menguji paparan formasi kosong
 ]
 
 def seed():
