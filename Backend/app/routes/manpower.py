@@ -240,10 +240,3 @@ def get_all_manpower():
         return jsonify([slot.to_dict() for slot in slots]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-@manpower_bp.route('/all', methods=['GET'])
-def get_all_manpower():
-    try:
-        slots = Manpower.query.order_by(Manpower.created_at.desc()).all()
-        return jsonify([slot.to_dict() for slot in slots]), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
