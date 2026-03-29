@@ -467,7 +467,7 @@ class Manpower(db.Model):
     
     # --- RELASI DATABASE (Sangat Penting) ---
     # Menghubungkan 1 formasi ke banyak karyawan yang mendudukinya
-    karyawan_list = db.relationship('Karyawan', backref='posisi_manpower', lazy=True)
+    karyawan_list = db.relationship('Employee', backref='posisi_manpower', lazy=True)
     manpower_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True)
 
     # Fungsi untuk mengirim data JSON ke Frontend dengan struktur lengkap
