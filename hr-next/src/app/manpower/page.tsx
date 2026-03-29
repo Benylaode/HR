@@ -38,7 +38,7 @@ export default function ManpowerPage() {
     levels: [] 
   });
   
-  // [UPDATE]: Tambahan state division dan work_location
+  // State division dan work_location
   const [formData, setFormData] = useState({
     position_title: '',
     level: '',
@@ -158,7 +158,6 @@ export default function ManpowerPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Terjadi kesalahan')
 
-      // [UPDATE]: Reset data termasuk field yang baru
       setFormData({ position_title: '', level: '', grade: '', department: '', division: '', work_location: '' })
       
       await fetchFilterOptions();
@@ -194,167 +193,180 @@ export default function ManpowerPage() {
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:ml-64 min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-emerald-50">
+      <div className="lg:ml-64 min-h-screen flex flex-col bg-slate-50/50">
         <Header title="Manpower Planning" subtitle="Kelola ketersediaan formasi dan slot posisi" />
         
-        <main className="flex-1 p-4 md:p-8">
-          <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 w-full">
+          {/* Wrapper utama dengan items-start untuk mencegah elemen stretch secara aneh */}
+          <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
             
-            {/* KOLOM KIRI: Form Input */}
-            <div className="lg:col-span-4 flex flex-col gap-6">
-              <div className="bg-white shadow-xl rounded-2xl p-6 border border-slate-100">
-                <h2 className="text-xl font-bold text-slate-900 mb-6 border-b pb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+            {/* KOLOM KIRI: Form Input (Dibuat Sticky agar saat scroll tabel, form tetap terlihat di layar desktop) */}
+            <div className="xl:col-span-4 w-full flex flex-col gap-6 xl:sticky xl:top-24 z-10">
+              <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl p-6 border border-slate-200/60">
+                <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5">
+                  <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
                   Tambah Formasi
                 </h2>
                 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  {/* [UPDATE]: BLOK 1 - STRUKTUR ORGANISASI */}
-                  <div className="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-lg space-y-4">
-                    <h3 className="font-semibold text-teal-900 text-sm flex items-center gap-2">🏢 Organisasi & Jabatan</h3>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* BLOK 1 - STRUKTUR ORGANISASI */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                      Organisasi & Jabatan
+                    </h3>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Nama Posisi *</label>
-                      <input type="text" name="position_title" required value={formData.position_title} onChange={handleChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Fullstack Developer" />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Divisi</label>
-                        <input type="text" name="division" value={formData.division} onChange={handleChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Technology" />
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Nama Posisi *</label>
+                        <input type="text" name="position_title" required value={formData.position_title} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. Fullstack Developer" />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Department *</label>
-                        <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. IT" />
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Divisi</label>
+                          <input type="text" name="division" value={formData.division} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. Technology" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Department *</label>
+                          <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. IT" />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* [UPDATE]: BLOK 2 - KARIR & LOKASI */}
-                  <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-lg space-y-4">
-                    <h3 className="font-semibold text-emerald-900 text-sm flex items-center gap-2">📊 Karir & Lokasi</h3>
+                  {/* BLOK 2 - KARIR & LOKASI */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      Karir & Lokasi
+                    </h3>
                     
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Level *</label>
-                        <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Staff" />
+                    <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Level *</label>
+                          <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. Staff" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Grade *</label>
+                          <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. 2A" />
+                        </div>
                       </div>
+                      
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Grade *</label>
-                        <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. 2A" />
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Lokasi Kerja</label>
+                        <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="Otomatis Makassar jika kosong" />
                       </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Lokasi Kerja</label>
-                      <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="Otomatis Makassar jika kosong" />
                     </div>
                   </div>
 
-                  <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-teal-500 to-emerald-600 text-white rounded-xl py-3.5 font-bold hover:from-teal-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 flex items-center justify-center gap-2">
-                    {loading ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div> : 'Simpan Formasi'}
+                  <button type="submit" disabled={loading} className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-800 transition-all shadow-md hover:shadow-lg disabled:opacity-70 flex items-center justify-center gap-2 mt-2">
+                    {loading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div> : 'Simpan Formasi'}
                   </button>
                 </form>
               </div>
             </div>
 
-            {/* KOLOM KANAN: Tabel Canggih ala SaaS */}
-            <div className="lg:col-span-8">
-              <div className="bg-white shadow-xl rounded-2xl border border-slate-100 flex flex-col h-full overflow-hidden relative">
+            {/* KOLOM KANAN: Tabel Canggih ala SaaS (min-w-0 untuk mencegah overflow grid) */}
+            <div className="xl:col-span-8 w-full min-w-0 flex flex-col gap-6">
+              <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl border border-slate-200/60 flex flex-col relative overflow-hidden">
                 
                 {tableLoading && (
-                  <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="animate-spin w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full"></div>
-                      <span className="text-sm font-semibold text-teal-700 animate-pulse">Memuat data...</span>
+                  <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20 flex items-center justify-center rounded-2xl">
+                    <div className="flex flex-col items-center gap-3 bg-white p-4 rounded-2xl shadow-xl border border-slate-100">
+                      <div className="animate-spin w-8 h-8 border-4 border-teal-100 border-t-teal-600 rounded-full"></div>
+                      <span className="text-sm font-semibold text-slate-600">Memuat data...</span>
                     </div>
                   </div>
                 )}
 
                 {/* ── Controls & Filters Header ── */}
-                <div className="p-5 border-b border-slate-100 bg-slate-50/50 space-y-4">
+                <div className="p-5 md:p-6 border-b border-slate-100 bg-white space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                      </div>
-                      Daftar Formasi Kosong
-                    </h2>
+                    <div>
+                      <h2 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
+                        Daftar Formasi Kosong
+                      </h2>
+                      <p className="text-sm text-slate-500 mt-1">Kelola dan pantau seluruh slot posisi yang tersedia.</p>
+                    </div>
                     
                     <div className="flex items-center gap-3">
                       <Link 
                         href="/manpower/org-chart" 
-                        className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3.5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm"
+                        className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm"
                       >
-                        <Network size={16} />
+                        <Network size={16} className="text-indigo-500" />
                         <span className="hidden sm:inline">Org Chart</span>
                       </Link>
 
-                      <span className="bg-teal-50 text-teal-700 text-xs font-bold px-3 py-2 rounded-xl border border-teal-200 flex items-center gap-1.5 shadow-sm">
-                        <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                      <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-2 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         {totalItems} Formasi
-                      </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Search Bar & Toggles */}
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <div className="relative flex-1 group">
-                      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
+                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
                       <input 
                         type="text" placeholder="Cari posisi atau departemen..." 
-                        className="w-full pl-9 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm"
+                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
                         value={query.search} onChange={e => updateQuery({ search: e.target.value })}
                       />
                       {query.search && (
-                        <button onClick={() => updateQuery({ search: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full p-1">
+                        <button onClick={() => updateQuery({ search: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-200 rounded-full p-1 transition-colors">
                           <X size={12} />
                         </button>
                       )}
                     </div>
                     
-                    <button 
-                      onClick={() => setShowFilters(!showFilters)}
-                      className={`px-4 py-2.5 border rounded-xl text-sm font-medium flex items-center gap-2 transition-all shadow-sm ${showFilters || query.department || query.level ? 'bg-teal-50 border-teal-200 text-teal-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                    >
-                      <Filter size={16} /> Filter
-                      {(query.department || query.level) && <span className="w-4 h-4 rounded-full bg-teal-500 text-white text-[10px] flex items-center justify-center font-bold">!</span>}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`px-4 py-2.5 border rounded-xl text-sm font-semibold flex items-center gap-2 transition-all ${showFilters || query.department || query.level ? 'bg-teal-50 border-teal-200 text-teal-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
+                      >
+                        <Filter size={16} /> <span className="hidden sm:inline">Filter</span>
+                        {(query.department || query.level) && <span className="w-4 h-4 rounded-full bg-teal-500 text-white text-[10px] flex items-center justify-center font-bold">!</span>}
+                      </button>
 
-                    <select 
-                      className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm font-medium text-slate-600"
-                      value={query.pageSize} onChange={e => updateQuery({ pageSize: Number(e.target.value) })}
-                    >
-                      <option value={5}>5 Baris</option>
-                      <option value={10}>10 Baris</option>
-                      <option value={25}>25 Baris</option>
-                    </select>
+                      <select 
+                        className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm font-semibold text-slate-700 cursor-pointer"
+                        value={query.pageSize} onChange={e => updateQuery({ pageSize: Number(e.target.value) })}
+                      >
+                        <option value={5}>5 Baris</option>
+                        <option value={10}>10 Baris</option>
+                        <option value={25}>25 Baris</option>
+                      </select>
+                    </div>
                   </div>
 
-                  {/* Filter Dropdowns */}
+                  {/* Filter Dropdowns (Grid Flexibel) */}
                   {showFilters && (
-                    <div className="pt-4 pb-2 border-t border-slate-200 flex flex-wrap gap-4 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex-1 min-w-[150px]">
+                    <div className="pt-4 pb-1 border-t border-slate-100 flex flex-col sm:flex-row flex-wrap gap-4 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex-1 min-w-[200px]">
                         <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wider">Department</label>
-                        <select className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm" value={query.department} onChange={e => updateQuery({ department: e.target.value })}>
+                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.department} onChange={e => updateQuery({ department: e.target.value })}>
                           <option value="">Semua Department</option>
                           {filterOptions.departments.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                       </div>
-                      <div className="flex-1 min-w-[150px]">
+                      <div className="flex-1 min-w-[200px]">
                         <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wider">Level</label>
-                        <select className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none transition-all shadow-sm" value={query.level} onChange={e => updateQuery({ level: e.target.value })}>
+                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.level} onChange={e => updateQuery({ level: e.target.value })}>
                           <option value="">Semua Level</option>
                           {filterOptions.levels.map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
                       </div>
                       {(query.department || query.level) && (
-                        <div className="flex items-end pb-1.5">
-                          <button onClick={() => updateQuery({ department: '', level: '' })} className="text-xs text-red-500 font-semibold hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-1">
+                        <div className="flex items-end pb-1.5 w-full sm:w-auto mt-2 sm:mt-0">
+                          <button onClick={() => updateQuery({ department: '', level: '' })} className="text-xs text-red-600 font-semibold hover:text-red-700 hover:bg-red-50 px-4 py-2.5 rounded-xl border border-red-100 transition-colors flex items-center justify-center gap-1.5 w-full sm:w-auto">
                             <X size={14} /> Reset Filter
                           </button>
                         </div>
@@ -363,92 +375,101 @@ export default function ManpowerPage() {
                   )}
                 </div>
                 
-                {/* ── Area Tabel (Zebra & Hover Teal) ── */}
-                <div className="flex-1 overflow-x-auto min-h-[300px]">
+                {/* ── Area Tabel (Responsive Horizontal Scroll) ── */}
+                <div className="w-full overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[800px]">
-                    <thead>
-                      <tr className="bg-slate-50/80 border-b border-slate-200">
+                    <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-sm border-b border-slate-200">
+                      <tr>
                         {/* Kolom Posisi */}
-                        <th onClick={() => handleSort('position_title')} className="px-5 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none w-1/3">
+                        <th onClick={() => handleSort('position_title')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-2/6">
                           <div className="flex items-center gap-2">
                             Posisi
                             {query.sortBy === 'position_title' ? (
-                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-teal-600"/> : <ChevronDown size={14} className="text-teal-600"/>
+                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-slate-800"/> : <ChevronDown size={14} className="text-slate-800"/>
                             ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
                           </div>
                         </th>
                         {/* Kolom Level & Grade */}
-                        <th onClick={() => handleSort('level')} className="px-5 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none">
+                        <th onClick={() => handleSort('level')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-1/6">
                           <div className="flex items-center gap-2">
                             Level & Grade
                             {query.sortBy === 'level' ? (
-                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-teal-600"/> : <ChevronDown size={14} className="text-teal-600"/>
+                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-slate-800"/> : <ChevronDown size={14} className="text-slate-800"/>
                             ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
                           </div>
                         </th>
                         {/* Kolom Departemen */}
-                        <th onClick={() => handleSort('department')} className="px-5 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none">
+                        <th onClick={() => handleSort('department')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-1/6">
                           <div className="flex items-center gap-2">
                             Departemen
                             {query.sortBy === 'department' ? (
-                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-teal-600"/> : <ChevronDown size={14} className="text-teal-600"/>
+                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-slate-800"/> : <ChevronDown size={14} className="text-slate-800"/>
                             ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
                           </div>
                         </th>
                         {/* Kolom Lokasi */}
-                        <th className="px-5 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none">
+                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none w-1/6">
                           Lokasi
                         </th>
                         {/* Kolom Staff */}
-                        <th className="px-5 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none text-center">
-                          Staff
+                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none text-center w-[10%]">
+                          Kebutuhan
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
                       {vacantSlots.length > 0 ? (
                         vacantSlots.map((slot) => (
-                          <tr key={slot.id} className="hover:bg-teal-50/40 transition-colors group">
+                          <tr key={slot.id} className="hover:bg-slate-50/80 transition-colors group">
                             
                             {/* Posisi */}
-                            <td className="px-5 py-4">
-                              <p className="font-bold text-slate-800 group-hover:text-teal-700 group-hover:underline underline-offset-2 transition-all cursor-pointer">
+                            <td className="px-6 py-4 align-top">
+                              <p className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors cursor-pointer line-clamp-2">
                                 {slot.position_title}
                               </p>
-                              <p className="text-[11px] text-slate-400 mt-1 font-mono">ID: {slot.id}</p>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-[10px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                  ID: {slot.id}
+                                </span>
+                                {slot.division && (
+                                  <span className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                                    • {slot.division}
+                                  </span>
+                                )}
+                              </div>
                             </td>
 
-                            {/* Level & Grade Grouped */}
-                            <td className="px-5 py-4">
-                              <div className="flex flex-col gap-1 items-start">
-                                <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md tracking-wide">
+                            {/* Level & Grade */}
+                            <td className="px-6 py-4 align-top">
+                              <div className="flex flex-col gap-1.5 items-start">
+                                <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md tracking-wide whitespace-nowrap">
                                   {slot.level}
                                 </span>
-                                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-mono">
+                                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-mono whitespace-nowrap">
                                   Grade: {slot.grade}
                                 </span>
                               </div>
                             </td>
 
                             {/* Departemen */}
-                            <td className="px-5 py-4">
+                            <td className="px-6 py-4 align-top">
                               <span className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-teal-400 transition-colors"></span>
-                                {slot.department}
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-teal-400 transition-colors flex-shrink-0"></span>
+                                <span className="line-clamp-2">{slot.department}</span>
                               </span>
                             </td>
 
                             {/* Lokasi */}
-                            <td className="px-5 py-4">
+                            <td className="px-6 py-4 align-top">
                               <div className="flex items-center gap-1.5 text-slate-500 text-sm">
-                                <MapPin size={14} className="text-slate-400" /> 
-                                {slot.work_location || 'Kantor Pusat - Makassar'}
+                                <MapPin size={14} className="text-slate-400 flex-shrink-0" /> 
+                                <span className="line-clamp-2">{slot.work_location || 'Kantor Pusat - Makassar'}</span>
                               </div>
                             </td>
 
                             {/* Staff Badge */}
-                            <td className="px-5 py-4 text-center">
-                              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200 group-hover:bg-teal-100 group-hover:text-teal-700 group-hover:border-teal-200 transition-colors cursor-help" title="Posisi Kosong">
+                            <td className="px-6 py-4 align-top text-center">
+                              <div className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold bg-slate-50 text-slate-600 border border-slate-200 group-hover:bg-teal-50 group-hover:text-teal-700 group-hover:border-teal-200 transition-colors shadow-sm cursor-help" title="Kebutuhan SDM">
                                 {slot.employee_count || 0}
                               </div>
                             </td>
@@ -457,12 +478,14 @@ export default function ManpowerPage() {
                         ))
                       ) : !tableLoading && (
                         <tr>
-                          <td colSpan={5} className="py-16 text-center">
-                            <div className="flex flex-col items-center justify-center text-slate-400 space-y-3">
-                              <Search size={40} className="text-slate-300 opacity-50" />
+                          <td colSpan={5} className="py-20 text-center">
+                            <div className="flex flex-col items-center justify-center text-slate-400 space-y-4">
+                              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
+                                <Search size={28} className="text-slate-300" />
+                              </div>
                               <div>
-                                <h3 className="text-lg font-bold text-slate-700">Data tidak ditemukan</h3>
-                                <p className="text-slate-500 mt-1 text-sm">Coba sesuaikan kata kunci pencarian atau filter Anda.</p>
+                                <h3 className="text-lg font-bold text-slate-700">Tidak ada formasi ditemukan</h3>
+                                <p className="text-slate-500 mt-1 text-sm max-w-sm mx-auto">Coba sesuaikan kata kunci pencarian, atau reset filter yang sedang aktif.</p>
                               </div>
                             </div>
                           </td>
@@ -474,48 +497,49 @@ export default function ManpowerPage() {
 
                 {/* ── Pagination Footer ── */}
                 {totalItems > 0 && (
-                  <div className="p-5 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-sm text-slate-500">
-                      Menampilkan <span className="font-bold text-slate-800">{Math.min((query.page - 1) * query.pageSize + 1, totalItems)}</span> - <span className="font-bold text-slate-800">{Math.min(query.page * query.pageSize, totalItems)}</span> dari <span className="font-bold text-slate-800">{totalItems}</span> formasi
+                  <div className="p-4 md:p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
+                    <p className="text-sm text-slate-500 text-center sm:text-left">
+                      Menampilkan <span className="font-bold text-slate-900">{Math.min((query.page - 1) * query.pageSize + 1, totalItems)}</span> - <span className="font-bold text-slate-900">{Math.min(query.page * query.pageSize, totalItems)}</span> dari <span className="font-bold text-slate-900">{totalItems}</span> data
                     </p>
                     
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <button 
                         disabled={query.page === 1} 
                         onClick={() => updateQuery({ page: query.page - 1 })} 
-                        className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm mr-1"
                       >
-                        <ChevronLeft size={18} />
+                        <ChevronLeft size={16} />
                       </button>
                       
-                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        let pageNum = query.page;
-                        if (totalPages <= 5) pageNum = i + 1;
-                        else if (query.page <= 3) pageNum = i + 1;
-                        else if (query.page >= totalPages - 2) pageNum = totalPages - 4 + i;
-                        else pageNum = query.page - 2 + i;
+                      <div className="flex items-center overflow-x-auto max-w-[200px] sm:max-w-none scrollbar-hide">
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let pageNum = query.page;
+                          if (totalPages <= 5) pageNum = i + 1;
+                          else if (query.page <= 3) pageNum = i + 1;
+                          else if (query.page >= totalPages - 2) pageNum = totalPages - 4 + i;
+                          else pageNum = query.page - 2 + i;
 
-                        return (
-                          <button 
-                            key={pageNum} onClick={() => updateQuery({ page: pageNum })} 
-                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${pageNum === query.page ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-md scale-105' : 'text-slate-600 hover:bg-slate-100 hover:text-teal-600'}`}
-                          >
-                            {pageNum}
-                          </button>
-                        )
-                      })}
+                          return (
+                            <button 
+                              key={pageNum} onClick={() => updateQuery({ page: pageNum })} 
+                              className={`min-w-[36px] h-9 mx-0.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center ${pageNum === query.page ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-200/50 bg-transparent'}`}
+                            >
+                              {pageNum}
+                            </button>
+                          )
+                        })}
+                      </div>
 
                       <button 
                         disabled={query.page === totalPages} 
                         onClick={() => updateQuery({ page: query.page + 1 })} 
-                        className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm ml-1"
                       >
-                        <ChevronRight size={18} />
+                        <ChevronRight size={16} />
                       </button>
                     </div>
                   </div>
                 )}
-
               </div>
             </div>
           </div>
