@@ -15,7 +15,7 @@ DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "hrrs"
 DB_USER = "postgres"
-DB_PASS = "pas"
+DB_PASS = "password"
 
 # ==========================================
 # 2. DATA SAMPEL (PETA FORMASI & PENGHUNI)
