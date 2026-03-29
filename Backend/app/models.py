@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime, timezone # <--- UPDATE IMPORT
+from datetime import datetime, timezone 
 import uuid
 import enum
 from sqlalchemy.dialects.postgresql import JSONB
@@ -12,10 +12,8 @@ def format_date(dt):
     """Helper untuk format tanggal ke ISO string agar aman buat Frontend"""
     return dt.isoformat() if dt else None
 
-# Helper untuk waktu sekarang (Timezone Aware) - PENGGANTI UTCNOW
 def now_utc():
     return datetime.now(timezone.utc)
-
 
 class RecruitmentStage(enum.Enum):
     CV_SCREENING    = "CV Screening"
@@ -49,7 +47,6 @@ class RecruitmentJourney(db.Model):
     current_stage = db.Column(db.Enum(RecruitmentStage, name="recruitment_stage_enum"), default=RecruitmentStage.CV_SCREENING, nullable=False)
     stage_data = db.Column(JSONB, default=dict)
     
-    # UPDATE: Menggunakan now_utc
     created_at = db.Column(db.DateTime, default=now_utc)
     updated_at = db.Column(db.DateTime, default=now_utc, onupdate=now_utc)
 
@@ -75,9 +72,7 @@ class JourneyLog(db.Model):
     notes = db.Column(db.Text, nullable=True)
     actor_name = db.Column(db.String, nullable=True)
     
-    # UPDATE
     created_at = db.Column(db.DateTime, default=now_utc)
-
     journey = db.relationship("RecruitmentJourney", back_populates="logs")
 
     def to_dict(self):
@@ -103,7 +98,6 @@ class User(db.Model):
     role = db.Column(db.Enum("SUPER_USER", "HR", name="user_roles"), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     
-    # UPDATE
     created_at = db.Column(db.DateTime, default=now_utc)
 
     def to_dict(self):
@@ -136,7 +130,6 @@ class JobPosition(db.Model):
     required_skills = db.Column(JSONB, default=list)
     available = db.Column(db.Boolean, default=True)
     
-    # UPDATE
     created_at = db.Column(db.DateTime, default=now_utc)
     updated_at = db.Column(db.DateTime, default=now_utc, onupdate=now_utc)
 
@@ -155,31 +148,9 @@ class JobPosition(db.Model):
         }
 
 # ==========================================
-# 4. CANDIDATE & RESUME
-# ==========================================
-class Resume(db.Model):
-    __tablename__ = "resumes"
-    id = db.Column(db.String, primary_key=True, default=uuid_str)
-    filename = db.Column(db.String, nullable=False)
-    
-    # UPDATE
-    uploaded_at = db.Column(db.DateTime, default=now_utc)
-    
-    index_path = db.Column(db.Text)
-    chunks_path = db.Column(db.Text)
-    raw_text = db.Column(db.Text)
-
-    candidate = db.relationship("Candidate", back_populates="resume", uselist=False, cascade="all, delete-orphan")
-
-# ==========================================
 # MIXIN UNTUK DATA DIRI (KANDIDAT & KARYAWAN)
 # ==========================================
 class ProfileMixin(object):
-    """
-    Mixin gabungan untuk data diri Kandidat dan Karyawan.
-    Mendukung form kompleks (JSONB) dan form sederhana (Text/String).
-    """
-    # 1) Biodata Utama
     full_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, index=True, nullable=False)
     gender = db.Column(db.String(20))
@@ -189,13 +160,11 @@ class ProfileMixin(object):
     religion = db.Column(db.String(50))
     driver_license = db.Column(db.String(50))
     
-    # 2) Alamat & Domisili
     address = db.Column(db.Text)
-    city = db.Column(db.String(100)) # Bisa dipakai untuk domicile_city
-    province = db.Column(db.String(100)) # Bisa dipakai untuk domicile_province
+    city = db.Column(db.String(100)) 
+    province = db.Column(db.String(100)) 
     
-    # 3) Pendidikan (Flat & Detail)
-    education = db.Column(db.Text) # Untuk input flat text
+    education = db.Column(db.Text)
     degree = db.Column(db.String(50)) 
     major = db.Column(db.String(150)) 
     study_program = db.Column(db.String(150)) 
@@ -204,7 +173,6 @@ class ProfileMixin(object):
     start_year = db.Column(db.String(4))
     grad_year = db.Column(db.String(4))
     
-    # 4) Pengalaman Kerja (Flat) - Dari versi Karyawan
     position_applied = db.Column(db.String(100))
     last_company = db.Column(db.String(150))
     last_position = db.Column(db.String(150))
@@ -213,7 +181,6 @@ class ProfileMixin(object):
     total_experience_years = db.Column(db.String(50)) 
     experience_description = db.Column(db.Text)
     
-    # 5) Pengalaman & Minat Kerja Detail (Array/JSON) - Dari versi Kandidat
     applied_position_1 = db.Column(db.String(150))
     applied_position_2 = db.Column(db.String(150))
     notice_period = db.Column(db.String(50))
@@ -221,26 +188,35 @@ class ProfileMixin(object):
     work_experiences = db.Column(JSONB, default=list) 
     internships = db.Column(JSONB, default=list) 
     
-    # 6) Keahlian, Organisasi & Lain-lain (JSONB)
     trainings = db.Column(JSONB, default=list) 
     organizations = db.Column(JSONB, default=list) 
     references = db.Column(JSONB, default=list)
     relatives = db.Column(JSONB, default=list)
-    social_media = db.Column(JSONB, default=dict) # Bisa string/JSON
+    social_media = db.Column(JSONB, default=dict)
 
     created_at = db.Column(db.DateTime, default=now_utc)
+
 # ==========================================
 # 4. CANDIDATE, EMPLOYEE & RESUME
 # ==========================================
+class Resume(db.Model):
+    __tablename__ = "resumes"
+    id = db.Column(db.String, primary_key=True, default=uuid_str)
+    filename = db.Column(db.String, nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=now_utc)
+    index_path = db.Column(db.Text)
+    chunks_path = db.Column(db.Text)
+    raw_text = db.Column(db.Text)
+
+    candidate = db.relationship("Candidate", back_populates="resume", uselist=False, cascade="all, delete-orphan")
+
+
 class Candidate(db.Model, ProfileMixin):
     __tablename__ = "candidates"
 
     id = db.Column(db.String, primary_key=True, default=uuid_str)
-    
-    # Resume ID sekarang nullable=True karena kita tidak mewajibkan CV Scanner lagi
     resume_id = db.Column(db.String, db.ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True)
     
-    # Relasi khusus Kandidat (Ada tracking/aplikasi)
     resume = db.relationship("Resume", back_populates="candidate")
     test_link = db.relationship("TestLink", back_populates="candidate", uselist=False, cascade="all, delete-orphan")
     applications = db.relationship("JobApplication", back_populates="candidate", cascade="all, delete-orphan")
@@ -259,11 +235,11 @@ class Employee(db.Model, ProfileMixin):
     __tablename__ = "employees"
 
     id = db.Column(db.String, primary_key=True, default=uuid_str)
-    
-    # Karyawan bisa punya NIK, Department, dll di masa depan
     employee_status = db.Column(db.String(50), default="Active")
     
-    # Relasi Karyawan ke Tes (TIDAK ADA relasi ke JobApplication / Tracking)
+    # 🌟 PERBAIKAN: Foreign Key Manpower diletakkan di dalam Employee
+    manpower_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True)
+
     test_link = db.relationship("TestLink", back_populates="employee", uselist=False, cascade="all, delete-orphan")
 
     def to_dict(self):
@@ -272,11 +248,49 @@ class Employee(db.Model, ProfileMixin):
             "name": self.full_name,
             "email": self.email,
             "whatsapp": self.whatsapp,
-            "department": self.last_company_field, # Contoh mapping
+            "department": self.last_company_field,
             "created_at": format_date(self.created_at)
         }
+
 # ==========================================
-# 5. JOB APPLICATION (PIVOT)
+# 5. MANPOWER (POSISI / SLOT KARYAWAN)
+# ==========================================
+class Manpower(db.Model):
+    __tablename__ = 'manpower'
+
+    id = db.Column(db.Integer, primary_key=True)
+    position_title = db.Column(db.String(200), nullable=False)
+    level = db.Column(db.String(100), nullable=False)
+    grade = db.Column(db.String(50), nullable=False)
+    
+    division = db.Column(db.String(150), nullable=True)
+    department = db.Column(db.String(150), nullable=False)
+    section = db.Column(db.String(150), nullable=True)
+    work_location = db.Column(db.String(200), nullable=True, default='Makassar')
+    local_non_local = db.Column(db.String(50), nullable=True, default='Local')
+    
+    # Relasi ke Karyawan
+    karyawan_list = db.relationship('Employee', backref='posisi_manpower', lazy=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "position_title": self.position_title,
+            "level": self.level,
+            "grade": self.grade,
+            "division": self.division,
+            "department": self.department,
+            "section": self.section,
+            "work_location": self.work_location,
+            "local_non_local": self.local_non_local,
+            "employee_count": len(self.karyawan_list), 
+            "is_filled": len(self.karyawan_list) > 0,
+            # 🌟 PERBAIKAN: Menggunakan k.full_name dari ProfileMixin
+            "employees": [{"id": k.id, "nama": k.full_name} for k in self.karyawan_list]
+        }
+
+# ==========================================
+# 6. JOB APPLICATION (PIVOT) & TESTS
 # ==========================================
 class JobApplication(db.Model):
     __tablename__ = "job_applications"
@@ -292,7 +306,6 @@ class JobApplication(db.Model):
         default="Applied"
     )
 
-    # UPDATE
     applied_at = db.Column(db.DateTime, default=now_utc)
 
     candidate = db.relationship("Candidate", back_populates="applications")
@@ -318,14 +331,10 @@ class TestLink(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(100), unique=True, default=uuid_str)
-    
-    # UPDATE: Keduanya jadi nullable=True. Sebuah token milik Kandidat ATAU Karyawan
     candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), unique=True, nullable=True)
     employee_id = db.Column(db.String, db.ForeignKey('employees.id'), unique=True, nullable=True)
-    
     status = db.Column(db.String(20), default="active")
     expires_at = db.Column(db.DateTime)
-    
     created_at = db.Column(db.DateTime, default=now_utc)
     
     candidate = db.relationship("Candidate", back_populates="test_link")
@@ -340,11 +349,9 @@ class TestSubmission(db.Model):
     test_type = db.Column(db.String(20))
     raw_answers = db.Column(JSONB)       
     scores = db.Column(JSONB)            
-    
-    # UPDATE
     submitted_at = db.Column(db.DateTime, default=now_utc)
 
-# Model Soal lainnya tetap sama, tidak ada field DateTime
+# Model Soal
 class CfitQuestion(db.Model):
     __tablename__ = 'cfit_questions'
     id = db.Column(db.Integer, primary_key=True)
@@ -353,7 +360,6 @@ class CfitQuestion(db.Model):
     instruction = db.Column(db.Text)
     image_url = db.Column(db.String(255))
     options = db.Column(db.String(255))
-    # correct_answer = db.Column(db.Integer)
     correct_answer = db.Column(db.String(50))
     order = db.Column(db.Integer)
 
@@ -384,34 +390,27 @@ class KraepelinConfig(db.Model):
     rows = db.Column(db.Integer, default=27)
     duration_per_column = db.Column(db.Integer, default=15)
 
-# Tambahkan di app/models.py
-
 class ATARequest(db.Model):
     __tablename__ = "ata_requests"
 
     id = db.Column(db.String, primary_key=True, default=uuid_str)
-    
-    # Form ATA Baru 
-    candidate_name = db.Column(db.String) # Nama Karyawan / Kandidat
-    employee_no = db.Column(db.String) # Nomor Karyawan (jika internal)
+    candidate_name = db.Column(db.String) 
+    employee_no = db.Column(db.String) 
     company = db.Column(db.String)
-    position = db.Column(db.String) # Jabatan yang diajukan
+    position = db.Column(db.String) 
     grade = db.Column(db.String)
-    report_to = db.Column(db.String) # Position Title dari atasan langsung
+    report_to = db.Column(db.String) 
     department = db.Column(db.String)
-    division = db.Column(db.String) # Opsional
-    budget_type = db.Column(db.String(50)) # Replacement / Additional
+    division = db.Column(db.String) 
+    budget_type = db.Column(db.String(50)) 
     employment_agreement = db.Column(db.String(100))
-    staff_status = db.Column(db.String(50)) # Staff / Non Staff
+    staff_status = db.Column(db.String(50)) 
     point_of_hire = db.Column(db.String(100))
-    hired_type = db.Column(db.String(50)) # Local / Non Local Hired
-    requirements_note = db.Column(db.Text) # Requirements / Note / Justification
-    scan_ata_url = db.Column(db.String(255)) # URL untuk Scan ATA
-    
-    # (Opsional) Jika tetap ingin menyimpan relasi ke user/pembuat
+    hired_type = db.Column(db.String(50)) 
+    requirements_note = db.Column(db.Text) 
+    scan_ata_url = db.Column(db.String(255)) 
     requester_name = db.Column(db.String)
 
-    # --- APPROVAL COLUMNS ---
     status = db.Column(db.String(20), default="Pending")
     
     hr_status = db.Column(db.String(20), default="Pending")
@@ -445,47 +444,4 @@ class ATARequest(db.Model):
                 "HO": self.ho_status
             },
             "created_at": format_date(self.created_at)
-        }
-
-
-# Tambahkan ini di Backend/app/models.py
-
-class Manpower(db.Model):
-    __tablename__ = 'manpower'
-
-    id = db.Column(db.Integer, primary_key=True)
-    position_title = db.Column(db.String(200), nullable=False)
-    level = db.Column(db.String(100), nullable=False)
-    grade = db.Column(db.String(50), nullable=False)
-    
-    # --- TAMBAHAN KEDALAMAN STRUKTUR (Sesuai GitHub) ---
-    division = db.Column(db.String(150), nullable=True)
-    department = db.Column(db.String(150), nullable=False)
-    section = db.Column(db.String(150), nullable=True)
-    work_location = db.Column(db.String(200), nullable=True, default='Makassar')
-    local_non_local = db.Column(db.String(50), nullable=True, default='Local')
-    
-    # --- RELASI DATABASE (Sangat Penting) ---
-    # Menghubungkan 1 formasi ke banyak karyawan yang mendudukinya
-    karyawan_list = db.relationship('Employee', backref='posisi_manpower', lazy=True)
-    manpower_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True)
-
-    # Fungsi untuk mengirim data JSON ke Frontend dengan struktur lengkap
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "position_title": self.position_title,
-            "level": self.level,
-            "grade": self.grade,
-            "division": self.division,
-            "department": self.department,
-            "section": self.section,
-            "work_location": self.work_location,
-            "local_non_local": self.local_non_local,
-            # Menghitung otomatis jumlah karyawan di posisi ini
-            "employee_count": len(self.karyawan_list), 
-            # Jika karyawannya > 0, berarti terisi
-            "is_filled": len(self.karyawan_list) > 0,
-            # (Opsional) Mengirim data nama karyawan untuk Org Chart
-            "employees": [{"id": k.id, "nama": k.nama_lengkap} for k in self.karyawan_list]
         }
