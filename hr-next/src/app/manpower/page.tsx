@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { 
   Search, ChevronUp, ChevronDown, ChevronsUpDown, 
   ChevronLeft, ChevronRight, Filter, X, Network, 
-  MapPin, User 
+  MapPin 
 } from 'lucide-react'
 
 // Menambahkan optional property untuk mengantisipasi update backend
@@ -48,7 +48,7 @@ export default function ManpowerPage() {
     work_location: ''  
   })
 
-  // State Parameter untuk dikirim ke Server
+  // State Parameter untuk dikirim ke Server / Frontend Filtering
   const [query, setQuery] = useState({
     search: '',
     department: '',
@@ -90,7 +90,7 @@ export default function ManpowerPage() {
     fetchFilterOptions();
   }, []);
 
-  // --- SERVER-SIDE FETCHING LOGIC TABEL ---
+  // --- SERVER-SIDE FETCHING & SMART FRONTEND PARSING LOGIC ---
   const fetchVacantManpower = async () => {
     setTableLoading(true);
     try {
@@ -106,9 +106,14 @@ export default function ManpowerPage() {
         sort_dir: query.sortDir
       });
 
-      const response = await fetch(`${baseUrl}/manpower/vacant?${params.toString()}`, { 
+      // Coba fetch endpoint vacant, jika error 404 (endpoint belum ada), fallback ke endpoint /all
+      let response = await fetch(`${baseUrl}/manpower/vacant?${params.toString()}`, { 
         headers: getAuthHeaders() 
       });
+
+      if (response.status === 404) {
+         response = await fetch(`${baseUrl}/manpower/all`, { headers: getAuthHeaders() });
+      }
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -117,9 +122,47 @@ export default function ManpowerPage() {
       
       const data = await response.json();
       
-      setVacantSlots(data.items || []);
-      setTotalItems(data.total || 0);
-      setTotalPages(data.total_pages || 1);
+      // 💡 PERBAIKAN: Jika backend mengirimkan ARRAY MURNI (seperti di OrgChart)
+      if (Array.isArray(data)) {
+        let filteredData = data;
+
+        // Proses search/filter manual jika backend belum support query params
+        if (query.search) {
+          filteredData = filteredData.filter((item: Manpower) => 
+            (item.position_title || '').toLowerCase().includes(query.search.toLowerCase()) ||
+            (item.department || '').toLowerCase().includes(query.search.toLowerCase())
+          );
+        }
+        if (query.department) {
+          filteredData = filteredData.filter((item: Manpower) => item.department === query.department);
+        }
+        if (query.level) {
+          filteredData = filteredData.filter((item: Manpower) => item.level === query.level);
+        }
+
+        // Sorting manual
+        filteredData.sort((a: any, b: any) => {
+          let valA = a[query.sortBy] || '';
+          let valB = b[query.sortBy] || '';
+          if (valA < valB) return query.sortDir === 'asc' ? -1 : 1;
+          if (valA > valB) return query.sortDir === 'asc' ? 1 : -1;
+          return 0;
+        });
+
+        // Pagination manual
+        const startIndex = (query.page - 1) * query.pageSize;
+        const paginatedItems = filteredData.slice(startIndex, startIndex + query.pageSize);
+
+        setVacantSlots(paginatedItems);
+        setTotalItems(filteredData.length);
+        setTotalPages(Math.ceil(filteredData.length / query.pageSize) || 1);
+
+      } else {
+        // 💡 NORMAL: Jika backend sudah mengirim format objek pagination { items: [...], total: X }
+        setVacantSlots(data.items || []);
+        setTotalItems(data.total || 0);
+        setTotalPages(data.total_pages || 1);
+      }
       
     } catch (error: any) {
       console.error('Error fetching manpower:', error);
@@ -136,6 +179,7 @@ export default function ManpowerPage() {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]); 
 
   // --- FORM LOGIC ---
@@ -197,10 +241,9 @@ export default function ManpowerPage() {
         <Header title="Manpower Planning" subtitle="Kelola ketersediaan formasi dan slot posisi" />
         
         <main className="flex-1 p-4 md:p-6 lg:p-8 w-full">
-          {/* Wrapper utama dengan items-start untuk mencegah elemen stretch secara aneh */}
           <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
             
-            {/* KOLOM KIRI: Form Input (Dibuat Sticky agar saat scroll tabel, form tetap terlihat di layar desktop) */}
+            {/* KOLOM KIRI: Form Input */}
             <div className="xl:col-span-4 w-full flex flex-col gap-6 xl:sticky xl:top-24 z-10">
               <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl p-6 border border-slate-200/60">
                 <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5">
@@ -272,7 +315,7 @@ export default function ManpowerPage() {
               </div>
             </div>
 
-            {/* KOLOM KANAN: Tabel Canggih ala SaaS (min-w-0 untuk mencegah overflow grid) */}
+            {/* KOLOM KANAN: Tabel Data */}
             <div className="xl:col-span-8 w-full min-w-0 flex flex-col gap-6">
               <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl border border-slate-200/60 flex flex-col relative overflow-hidden">
                 
@@ -290,7 +333,7 @@ export default function ManpowerPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h2 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
-                        Daftar Formasi Kosong
+                        Daftar Formasi
                       </h2>
                       <p className="text-sm text-slate-500 mt-1">Kelola dan pantau seluruh slot posisi yang tersedia.</p>
                     </div>
@@ -318,10 +361,10 @@ export default function ManpowerPage() {
                       <input 
                         type="text" placeholder="Cari posisi atau departemen..." 
                         className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
-                        value={query.search} onChange={e => updateQuery({ search: e.target.value })}
+                        value={query.search} onChange={e => updateQuery({ search: e.target.value, page: 1 })}
                       />
                       {query.search && (
-                        <button onClick={() => updateQuery({ search: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-200 rounded-full p-1 transition-colors">
+                        <button onClick={() => updateQuery({ search: '', page: 1 })} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-200 rounded-full p-1 transition-colors">
                           <X size={12} />
                         </button>
                       )}
@@ -338,7 +381,7 @@ export default function ManpowerPage() {
 
                       <select 
                         className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm font-semibold text-slate-700 cursor-pointer"
-                        value={query.pageSize} onChange={e => updateQuery({ pageSize: Number(e.target.value) })}
+                        value={query.pageSize} onChange={e => updateQuery({ pageSize: Number(e.target.value), page: 1 })}
                       >
                         <option value={5}>5 Baris</option>
                         <option value={10}>10 Baris</option>
@@ -347,26 +390,26 @@ export default function ManpowerPage() {
                     </div>
                   </div>
 
-                  {/* Filter Dropdowns (Grid Flexibel) */}
+                  {/* Filter Dropdowns */}
                   {showFilters && (
                     <div className="pt-4 pb-1 border-t border-slate-100 flex flex-col sm:flex-row flex-wrap gap-4 animate-in fade-in slide-in-from-top-2">
                       <div className="flex-1 min-w-[200px]">
                         <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wider">Department</label>
-                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.department} onChange={e => updateQuery({ department: e.target.value })}>
+                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.department} onChange={e => updateQuery({ department: e.target.value, page: 1 })}>
                           <option value="">Semua Department</option>
                           {filterOptions.departments.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                       </div>
                       <div className="flex-1 min-w-[200px]">
                         <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wider">Level</label>
-                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.level} onChange={e => updateQuery({ level: e.target.value })}>
+                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.level} onChange={e => updateQuery({ level: e.target.value, page: 1 })}>
                           <option value="">Semua Level</option>
                           {filterOptions.levels.map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
                       </div>
                       {(query.department || query.level) && (
                         <div className="flex items-end pb-1.5 w-full sm:w-auto mt-2 sm:mt-0">
-                          <button onClick={() => updateQuery({ department: '', level: '' })} className="text-xs text-red-600 font-semibold hover:text-red-700 hover:bg-red-50 px-4 py-2.5 rounded-xl border border-red-100 transition-colors flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                          <button onClick={() => updateQuery({ department: '', level: '', page: 1 })} className="text-xs text-red-600 font-semibold hover:text-red-700 hover:bg-red-50 px-4 py-2.5 rounded-xl border border-red-100 transition-colors flex items-center justify-center gap-1.5 w-full sm:w-auto">
                             <X size={14} /> Reset Filter
                           </button>
                         </div>
@@ -375,12 +418,11 @@ export default function ManpowerPage() {
                   )}
                 </div>
                 
-                {/* ── Area Tabel (Responsive Horizontal Scroll) ── */}
+                {/* ── Area Tabel ── */}
                 <div className="w-full overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-sm border-b border-slate-200">
                       <tr>
-                        {/* Kolom Posisi */}
                         <th onClick={() => handleSort('position_title')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-2/6">
                           <div className="flex items-center gap-2">
                             Posisi
@@ -389,7 +431,6 @@ export default function ManpowerPage() {
                             ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
                           </div>
                         </th>
-                        {/* Kolom Level & Grade */}
                         <th onClick={() => handleSort('level')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-1/6">
                           <div className="flex items-center gap-2">
                             Level & Grade
@@ -398,7 +439,6 @@ export default function ManpowerPage() {
                             ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
                           </div>
                         </th>
-                        {/* Kolom Departemen */}
                         <th onClick={() => handleSort('department')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-1/6">
                           <div className="flex items-center gap-2">
                             Departemen
@@ -407,11 +447,9 @@ export default function ManpowerPage() {
                             ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
                           </div>
                         </th>
-                        {/* Kolom Lokasi */}
                         <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none w-1/6">
                           Lokasi
                         </th>
-                        {/* Kolom Staff */}
                         <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none text-center w-[10%]">
                           Kebutuhan
                         </th>
@@ -421,8 +459,6 @@ export default function ManpowerPage() {
                       {vacantSlots.length > 0 ? (
                         vacantSlots.map((slot) => (
                           <tr key={slot.id} className="hover:bg-slate-50/80 transition-colors group">
-                            
-                            {/* Posisi */}
                             <td className="px-6 py-4 align-top">
                               <p className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors cursor-pointer line-clamp-2">
                                 {slot.position_title}
@@ -438,8 +474,6 @@ export default function ManpowerPage() {
                                 )}
                               </div>
                             </td>
-
-                            {/* Level & Grade */}
                             <td className="px-6 py-4 align-top">
                               <div className="flex flex-col gap-1.5 items-start">
                                 <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md tracking-wide whitespace-nowrap">
@@ -450,30 +484,23 @@ export default function ManpowerPage() {
                                 </span>
                               </div>
                             </td>
-
-                            {/* Departemen */}
                             <td className="px-6 py-4 align-top">
                               <span className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-teal-400 transition-colors flex-shrink-0"></span>
                                 <span className="line-clamp-2">{slot.department}</span>
                               </span>
                             </td>
-
-                            {/* Lokasi */}
                             <td className="px-6 py-4 align-top">
                               <div className="flex items-center gap-1.5 text-slate-500 text-sm">
                                 <MapPin size={14} className="text-slate-400 flex-shrink-0" /> 
                                 <span className="line-clamp-2">{slot.work_location || 'Kantor Pusat - Makassar'}</span>
                               </div>
                             </td>
-
-                            {/* Staff Badge */}
                             <td className="px-6 py-4 align-top text-center">
                               <div className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold bg-slate-50 text-slate-600 border border-slate-200 group-hover:bg-teal-50 group-hover:text-teal-700 group-hover:border-teal-200 transition-colors shadow-sm cursor-help" title="Kebutuhan SDM">
                                 {slot.employee_count || 0}
                               </div>
                             </td>
-                            
                           </tr>
                         ))
                       ) : !tableLoading && (
