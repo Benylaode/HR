@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # KITA HANYA IMPORT STRUKTUR TABEL (MODEL), TIDAK IMPORT FLASK/APP
-from app.models import Manpower, Karyawan
+from app.models import Manpower, Employee
 
 # ==========================================
 # 1. KONEKSI LANGSUNG KE POSTGRESQL
@@ -77,18 +77,18 @@ def seed():
         # Tarik semua ID Manpower yang baru saja dibuat
         id_list = [m.id for m in session.query(Manpower).order_by(Manpower.id.asc()).all()]
 
-        # 2. Simpan Karyawan
+        # 2. Simpan Employee
         total_employees = 0
         for idx, emp_list in EMPLOYEES:
             if idx <= len(id_list):
                 position_id = id_list[idx - 1]
                 for emp_data in emp_list:
-                    emp = Karyawan(manpower_id=position_id, **emp_data)
+                    emp = Employee(manpower_id=position_id, **emp_data)
                     session.add(emp)
                     total_employees += 1
         
         session.commit()
-        print(f"✅ Selesai! {len(POSITIONS)} posisi dan {total_employees} karyawan berhasil disuntikkan murni ke PostgreSQL.")
+        print(f"✅ Selesai! {len(POSITIONS)} posisi dan {total_employees} Employee berhasil disuntikkan murni ke PostgreSQL.")
 
     except Exception as e:
         session.rollback()
