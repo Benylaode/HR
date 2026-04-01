@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from sqlalchemy import or_, asc, desc
 from app import db
-from app.models import Manpower
+from app.models import Manpower, Employee, Candidate, JobApplication
 
 manpower_bp = Blueprint('manpower', __name__)
 
@@ -118,3 +118,90 @@ def get_all_manpower():
         return jsonify([slot.to_dict() for slot in slots]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# ==========================================
+# 4. Ambil Daftar Karyawan Kosong & Kandidat
+# ==========================================
+@manpower_bp.route('/available-persons', methods=['GET'])
+def get_available_persons():
+    try:
+        # 1. Ambil Karyawan aktif yang belum punya jabatan
+        unassigned_emps = Employee.query.filter(
+            Employee.manpower_id.is_(None),
+            Employee.employee_status == 'Active'
+        ).order_by(Employee.full_name.asc()).all()
+        
+        emps_data = [{"id": e.id, "name": e.full_name, "type": "employee"} for e in unassigned_emps]
+        
+        # 2. Ambil Semua Kandidat
+        cands = Candidate.query.order_by(Candidate.full_name.asc()).all()
+        cands_data = [{"id": c.id, "name": c.full_name, "type": "candidate"} for c in cands]
+        
+        return jsonify({
+            "employees": emps_data,
+            "candidates": cands_data
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ==========================================
+# 5. Assign Karyawan / Ubah Kandidat Jadi Karyawan
+# ==========================================
+@manpower_bp.route('/<int:manpower_id>/assign', methods=['POST'])
+def assign_manpower(manpower_id):
+    data = request.json
+    person_type = data.get("type") # Isinya: 'employee' atau 'candidate'
+    person_id = data.get("id")
+    
+    manpower = Manpower.query.get(manpower_id)
+    if not manpower:
+        return jsonify({"error": "Formasi tidak ditemukan"}), 404
+        
+    try:
+        if person_type == "employee":
+            # Jika yang dipilih adalah Karyawan, cukup update manpower_id-nya
+            emp = Employee.query.get(person_id)
+            if not emp: return jsonify({"error": "Karyawan tidak ditemukan"}), 404
+            emp.manpower_id = manpower_id
+            
+        elif person_type == "candidate":
+            # Jika yang dipilih adalah Kandidat, KITA JADIKAN KARYAWAN BARU!
+            cand = Candidate.query.get(person_id)
+            if not cand: return jsonify({"error": "Kandidat tidak ditemukan"}), 404
+            
+            # Duplikasi data dari Kandidat ke Karyawan baru
+            new_emp = Employee(
+                full_name=cand.full_name,
+                email=cand.email,
+                whatsapp=cand.whatsapp,
+                gender=cand.gender,
+                birth_date=cand.birth_date,
+                birth_place=cand.birth_place,
+                religion=cand.religion,
+                address=cand.address,
+                city=cand.city,
+                province=cand.province,
+                education=cand.education,
+                university=cand.university,
+                major=cand.major,
+                gpa=cand.gpa,
+                manpower_id=manpower_id,
+                employee_status="Active"
+            )
+            db.session.add(new_emp)
+            
+            # (Opsional) Ubah status JobApplication kandidat tersebut menjadi "Hired"
+            applications = JobApplication.query.filter_by(candidate_id=cand.id).all()
+            for app in applications:
+                app.status = "Hired"
+                
+        else:
+            return jsonify({"error": "Tipe person tidak valid"}), 400
+            
+        db.session.commit()
+        return jsonify({"message": "Berhasil mengisi slot formasi!"}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Gagal assign: {str(e)}"}), 500

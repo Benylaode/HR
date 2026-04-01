@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { 
   Search, ChevronUp, ChevronDown, ChevronsUpDown, 
   ChevronLeft, ChevronRight, Filter, X, Network, 
-  MapPin, User // Ditambahkan import User
+  MapPin, User 
 } from 'lucide-react'
 
 interface Manpower {
@@ -60,13 +60,20 @@ export default function ManpowerPage() {
   
   const [showFilters, setShowFilters] = useState(false)
 
-  // --- STATE UNTUK MODAL ASSIGN KARYAWAN ---
+  // --- STATE UNTUK MODAL ASSIGN KARYAWAN & KANDIDAT ---
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [assignLoading, setAssignLoading] = useState(false)
   const [selectedManpowerId, setSelectedManpowerId] = useState<string | number | null>(null)
   const [selectedManpowerTitle, setSelectedManpowerTitle] = useState('')
-  const [availableEmployees, setAvailableEmployees] = useState<{id: string, full_name: string}[]>([])
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
+  
+  // Mengelompokkan Karyawan dan Kandidat
+  const [availablePersons, setAvailablePersons] = useState<{
+    employees: {id: string, name: string, type: string}[],
+    candidates: {id: string, name: string, type: string}[]
+  }>({ employees: [], candidates: [] })
+  
+  // Menyimpan format string: "type|id" (contoh: "candidate|1234")
+  const [selectedPerson, setSelectedPerson] = useState('')
 
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
@@ -94,6 +101,7 @@ export default function ManpowerPage() {
 
   useEffect(() => {
     fetchFilterOptions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- FETCHING TABEL (Dari endpoint /all agar semua terlihat) ---
@@ -213,42 +221,56 @@ export default function ManpowerPage() {
     })
   }
 
-  // --- LOGIKA ASSIGN KARYAWAN (ISI SLOT) ---
+  // --- LOGIKA ASSIGN KARYAWAN & KANDIDAT (ISI SLOT) ---
   const handleOpenAssignModal = async (manpowerId: string | number, title: string) => {
     setSelectedManpowerId(manpowerId)
     setSelectedManpowerTitle(title)
     setIsAssignModalOpen(true)
+    setSelectedPerson('') // Reset form dropdown
     
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-      const response = await fetch(`${baseUrl}/employees/unassigned`, { headers: getAuthHeaders() })
+      // Endpoint yang baru dibuat yang mengembalikan employees dan candidates
+      const response = await fetch(`${baseUrl}/manpower/available-persons`, { headers: getAuthHeaders() })
       if (response.ok) {
         const data = await response.json()
-        setAvailableEmployees(data)
+        setAvailablePersons({
+          employees: data.employees || [],
+          candidates: data.candidates || []
+        })
       }
     } catch (error) {
-      toast.error("Gagal mengambil data karyawan kosong")
+      toast.error("Gagal mengambil data orang yang tersedia")
     }
   }
 
   const handleAssignSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedEmployeeId || !selectedManpowerId) return
+    if (!selectedPerson || !selectedManpowerId) return
+
+    // Memecah format "type|id" (contoh: "candidate|1234")
+    const [personType, personId] = selectedPerson.split('|')
 
     setAssignLoading(true)
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-      const response = await fetch(`${baseUrl}/employees/${selectedEmployeeId}/assign`, {
-        method: 'PUT',
+      const response = await fetch(`${baseUrl}/manpower/${selectedManpowerId}/assign`, {
+        method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ manpower_id: selectedManpowerId })
+        body: JSON.stringify({ 
+          type: personType, 
+          id: personId 
+        })
       })
 
-      if (!response.ok) throw new Error("Gagal memproses data")
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Gagal memproses data")
+      }
 
-      toast.success("Karyawan berhasil masuk ke formasi!")
+      toast.success("Posisi berhasil diisi!")
       setIsAssignModalOpen(false)
-      setSelectedEmployeeId('')
+      setSelectedPerson('')
       
       // Auto-refresh tabel
       fetchVacantManpower() 
@@ -614,7 +636,7 @@ export default function ManpowerPage() {
         </main>
       </div>
 
-      {/* --- MODAL ASSIGN KARYAWAN (POP UP) --- */}
+      {/* --- MODAL ASSIGN KARYAWAN & KANDIDAT --- */}
       {isAssignModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
@@ -636,21 +658,46 @@ export default function ManpowerPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Karyawan *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Orang *</label>
                 <select 
                   required
-                  value={selectedEmployeeId} 
-                  onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                  value={selectedPerson} 
+                  onChange={(e) => setSelectedPerson(e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm"
                 >
-                  <option value="" disabled>-- Daftar Karyawan Kosong (Tanpa Jabatan) --</option>
-                  {availableEmployees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.full_name}</option>
-                  ))}
+                  <option value="" disabled>-- Pilih Karyawan atau Kandidat --</option>
+                  
+                  {availablePersons.employees.length > 0 && (
+                    <optgroup label="🏢 Karyawan Internal (Tanpa Jabatan)">
+                      {availablePersons.employees.map(emp => (
+                        <option key={`emp-${emp.id}`} value={`employee|${emp.id}`}>
+                          {emp.name} (Karyawan)
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+
+                  {availablePersons.candidates.length > 0 && (
+                    <optgroup label="📝 Kandidat Pelamar">
+                      {availablePersons.candidates.map(cand => (
+                        <option key={`cand-${cand.id}`} value={`candidate|${cand.id}`}>
+                          {cand.name} (Kandidat)
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
-                {availableEmployees.length === 0 && (
+
+                {(availablePersons.employees.length === 0 && availablePersons.candidates.length === 0) && (
                   <p className="text-xs text-red-500 mt-2 font-medium">
-                    Tidak ada karyawan yang menganggur saat ini.
+                    Tidak ada Kandidat maupun Karyawan yang tersedia saat ini.
+                  </p>
+                )}
+                
+                {selectedPerson.includes('candidate') && (
+                  <p className="text-[11px] text-teal-600 mt-2 flex items-center gap-1 bg-teal-50 p-2 rounded-lg border border-teal-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block animate-pulse"></span>
+                    Kandidat terpilih akan otomatis diangkat menjadi Karyawan!
                   </p>
                 )}
               </div>
@@ -659,7 +706,7 @@ export default function ManpowerPage() {
                 <button type="button" onClick={() => setIsAssignModalOpen(false)} className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-colors">
                   Batal
                 </button>
-                <button type="submit" disabled={assignLoading || availableEmployees.length === 0} className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md flex justify-center items-center">
+                <button type="submit" disabled={assignLoading || !selectedPerson} className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md flex justify-center items-center">
                   {assignLoading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div> : 'Simpan Posisi'}
                 </button>
               </div>
