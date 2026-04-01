@@ -8,10 +8,9 @@ import Link from 'next/link'
 import { 
   Search, ChevronUp, ChevronDown, ChevronsUpDown, 
   ChevronLeft, ChevronRight, Filter, X, Network, 
-  MapPin 
+  MapPin, User // Ditambahkan import User
 } from 'lucide-react'
 
-// Menambahkan optional property untuk mengantisipasi update backend
 interface Manpower {
   id: number | string
   position_title: string
@@ -27,18 +26,18 @@ export default function ManpowerPage() {
   const [loading, setLoading] = useState(false)
   const [tableLoading, setTableLoading] = useState(false)
   
-  // State Data dari Backend Baru
+  // State Data Manpower
   const [vacantSlots, setVacantSlots] = useState<Manpower[]>([])
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   
-  // State untuk Opsi Dropdown Filter yang lengkap
+  // State untuk Filter Dropdown
   const [filterOptions, setFilterOptions] = useState<{ departments: string[], levels: string[] }>({ 
     departments: [], 
     levels: [] 
   });
   
-  // State division dan work_location
+  // State Form Tambah Formasi
   const [formData, setFormData] = useState({
     position_title: '',
     level: '',
@@ -48,7 +47,7 @@ export default function ManpowerPage() {
     work_location: ''  
   })
 
-  // State Parameter untuk dikirim ke Server / Frontend Filtering
+  // State Parameter
   const [query, setQuery] = useState({
     search: '',
     department: '',
@@ -61,6 +60,14 @@ export default function ManpowerPage() {
   
   const [showFilters, setShowFilters] = useState(false)
 
+  // --- STATE UNTUK MODAL ASSIGN KARYAWAN ---
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
+  const [assignLoading, setAssignLoading] = useState(false)
+  const [selectedManpowerId, setSelectedManpowerId] = useState<string | number | null>(null)
+  const [selectedManpowerTitle, setSelectedManpowerTitle] = useState('')
+  const [availableEmployees, setAvailableEmployees] = useState<{id: string, full_name: string}[]>([])
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
+
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
     return {
@@ -69,7 +76,7 @@ export default function ManpowerPage() {
     };
   };
 
-  // --- MENGAMBIL OPSI FILTER MASTER DARI BACKEND ---
+  // --- MENGAMBIL OPSI FILTER MASTER ---
   const fetchFilterOptions = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -78,7 +85,6 @@ export default function ManpowerPage() {
         const allData = await response.json();
         const depts = Array.from(new Set(allData.map((s: any) => s.department))) as string[];
         const lvls = Array.from(new Set(allData.map((s: any) => s.level))) as string[];
-        
         setFilterOptions({ departments: depts, levels: lvls });
       }
     } catch (error) {
@@ -90,7 +96,7 @@ export default function ManpowerPage() {
     fetchFilterOptions();
   }, []);
 
-  // --- SERVER-SIDE FETCHING & SMART FRONTEND PARSING LOGIC ---
+  // --- FETCHING TABEL (Dari endpoint /all agar semua terlihat) ---
   const fetchVacantManpower = async () => {
     setTableLoading(true);
     try {
@@ -106,14 +112,10 @@ export default function ManpowerPage() {
         sort_dir: query.sortDir
       });
 
-      // Coba fetch endpoint vacant, jika error 404 (endpoint belum ada), fallback ke endpoint /all
-      let response = await fetch(`${baseUrl}/manpower/vacant?${params.toString()}`, { 
+      // Panggil endpoint all untuk dapat semua data
+      const response = await fetch(`${baseUrl}/manpower/all?${params.toString()}`, { 
         headers: getAuthHeaders() 
       });
-
-      if (response.status === 404) {
-         response = await fetch(`${baseUrl}/manpower/all`, { headers: getAuthHeaders() });
-      }
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -122,11 +124,8 @@ export default function ManpowerPage() {
       
       const data = await response.json();
       
-      // 💡 PERBAIKAN: Jika backend mengirimkan ARRAY MURNI (seperti di OrgChart)
       if (Array.isArray(data)) {
         let filteredData = data;
-
-        // Proses search/filter manual jika backend belum support query params
         if (query.search) {
           filteredData = filteredData.filter((item: Manpower) => 
             (item.position_title || '').toLowerCase().includes(query.search.toLowerCase()) ||
@@ -139,8 +138,6 @@ export default function ManpowerPage() {
         if (query.level) {
           filteredData = filteredData.filter((item: Manpower) => item.level === query.level);
         }
-
-        // Sorting manual
         filteredData.sort((a: any, b: any) => {
           let valA = a[query.sortBy] || '';
           let valB = b[query.sortBy] || '';
@@ -149,21 +146,17 @@ export default function ManpowerPage() {
           return 0;
         });
 
-        // Pagination manual
         const startIndex = (query.page - 1) * query.pageSize;
         const paginatedItems = filteredData.slice(startIndex, startIndex + query.pageSize);
 
         setVacantSlots(paginatedItems);
         setTotalItems(filteredData.length);
         setTotalPages(Math.ceil(filteredData.length / query.pageSize) || 1);
-
       } else {
-        // 💡 NORMAL: Jika backend sudah mengirim format objek pagination { items: [...], total: X }
         setVacantSlots(data.items || []);
         setTotalItems(data.total || 0);
         setTotalPages(data.total_pages || 1);
       }
-      
     } catch (error: any) {
       console.error('Error fetching manpower:', error);
       toast.error('Gagal memuat formasi', { description: error.message });
@@ -177,12 +170,11 @@ export default function ManpowerPage() {
     const delayDebounceFn = setTimeout(() => {
       fetchVacantManpower();
     }, 300);
-
     return () => clearTimeout(delayDebounceFn);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]); 
 
-  // --- FORM LOGIC ---
+  // --- FORM TAMBAH FORMASI ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -203,7 +195,6 @@ export default function ManpowerPage() {
       if (!response.ok) throw new Error(data.error || 'Terjadi kesalahan')
 
       setFormData({ position_title: '', level: '', grade: '', department: '', division: '', work_location: '' })
-      
       await fetchFilterOptions();
 
       if (query.page !== 1) {
@@ -220,6 +211,52 @@ export default function ManpowerPage() {
       error: (err) => `Gagal: ${err.message}`,
       finally: () => setLoading(false)
     })
+  }
+
+  // --- LOGIKA ASSIGN KARYAWAN (ISI SLOT) ---
+  const handleOpenAssignModal = async (manpowerId: string | number, title: string) => {
+    setSelectedManpowerId(manpowerId)
+    setSelectedManpowerTitle(title)
+    setIsAssignModalOpen(true)
+    
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+      const response = await fetch(`${baseUrl}/employees/unassigned`, { headers: getAuthHeaders() })
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableEmployees(data)
+      }
+    } catch (error) {
+      toast.error("Gagal mengambil data karyawan kosong")
+    }
+  }
+
+  const handleAssignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedEmployeeId || !selectedManpowerId) return
+
+    setAssignLoading(true)
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+      const response = await fetch(`${baseUrl}/employees/${selectedEmployeeId}/assign`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ manpower_id: selectedManpowerId })
+      })
+
+      if (!response.ok) throw new Error("Gagal memproses data")
+
+      toast.success("Karyawan berhasil masuk ke formasi!")
+      setIsAssignModalOpen(false)
+      setSelectedEmployeeId('')
+      
+      // Auto-refresh tabel
+      fetchVacantManpower() 
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setAssignLoading(false)
+    }
   }
 
   const updateQuery = (patch: Partial<typeof query>) => {
@@ -256,54 +293,48 @@ export default function ManpowerPage() {
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* BLOK 1 - STRUKTUR ORGANISASI */}
+                  {/* BLOK 1 */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
-                      Organisasi & Jabatan
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Organisasi & Jabatan
                     </h3>
-                    
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Nama Posisi *</label>
-                        <input type="text" name="position_title" required value={formData.position_title} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. Fullstack Developer" />
+                        <input type="text" name="position_title" required value={formData.position_title} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Fullstack Developer" />
                       </div>
-                      
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Divisi</label>
-                          <input type="text" name="division" value={formData.division} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. Technology" />
+                          <input type="text" name="division" value={formData.division} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Technology" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Department *</label>
-                          <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. IT" />
+                          <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. IT" />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* BLOK 2 - KARIR & LOKASI */}
+                  {/* BLOK 2 */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Karir & Lokasi
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Karir & Lokasi
                     </h3>
-                    
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Level *</label>
-                          <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. Staff" />
+                          <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Staff" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Grade *</label>
-                          <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="e.g. 2A" />
+                          <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. 2A" />
                         </div>
                       </div>
-                      
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Lokasi Kerja</label>
-                        <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm placeholder-slate-400" placeholder="Otomatis Makassar jika kosong" />
+                        <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="Otomatis Makassar jika kosong" />
                       </div>
                     </div>
                   </div>
@@ -333,9 +364,9 @@ export default function ManpowerPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h2 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
-                        Daftar Formasi
+                        Daftar Seluruh Formasi
                       </h2>
-                      <p className="text-sm text-slate-500 mt-1">Kelola dan pantau seluruh slot posisi yang tersedia.</p>
+                      <p className="text-sm text-slate-500 mt-1">Kelola dan pantau seluruh slot posisi yang tersedia di perusahaan.</p>
                     </div>
                     
                     <div className="flex items-center gap-3">
@@ -497,9 +528,19 @@ export default function ManpowerPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 align-top text-center">
-                              <div className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold bg-slate-50 text-slate-600 border border-slate-200 group-hover:bg-teal-50 group-hover:text-teal-700 group-hover:border-teal-200 transition-colors shadow-sm cursor-help" title="Kebutuhan SDM">
-                                {slot.employee_count || 0}
-                              </div>
+                              {/* --- TOMBOL ISI SLOT KETIKA KOSONG --- */}
+                              {slot.employee_count === 0 || !slot.employee_count ? (
+                                <button 
+                                  onClick={() => handleOpenAssignModal(slot.id, slot.position_title)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold transition-all border border-indigo-200 shadow-sm"
+                                >
+                                  <User size={14} /> Isi Slot
+                                </button>
+                              ) : (
+                                <div className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm" title="Kebutuhan Terisi">
+                                  {slot.employee_count} Terisi
+                                </div>
+                              )}
                             </td>
                           </tr>
                         ))
@@ -572,6 +613,62 @@ export default function ManpowerPage() {
           </div>
         </main>
       </div>
+
+      {/* --- MODAL ASSIGN KARYAWAN (POP UP) --- */}
+      {isAssignModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/80">
+              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                <User size={18} className="text-indigo-600" />
+                Isi Slot Formasi
+              </h3>
+              <button onClick={() => setIsAssignModalOpen(false)} className="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAssignSubmit} className="p-6 space-y-5">
+              <div className="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl">
+                <p className="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">Formasi Tujuan</p>
+                <p className="font-bold text-slate-800">{selectedManpowerTitle}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Karyawan *</label>
+                <select 
+                  required
+                  value={selectedEmployeeId} 
+                  onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm"
+                >
+                  <option value="" disabled>-- Daftar Karyawan Kosong (Tanpa Jabatan) --</option>
+                  {availableEmployees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+                  ))}
+                </select>
+                {availableEmployees.length === 0 && (
+                  <p className="text-xs text-red-500 mt-2 font-medium">
+                    Tidak ada karyawan yang menganggur saat ini.
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <button type="button" onClick={() => setIsAssignModalOpen(false)} className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-colors">
+                  Batal
+                </button>
+                <button type="submit" disabled={assignLoading || availableEmployees.length === 0} className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md flex justify-center items-center">
+                  {assignLoading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div> : 'Simpan Posisi'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

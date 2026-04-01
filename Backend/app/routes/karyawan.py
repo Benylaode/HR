@@ -221,3 +221,49 @@ def update_employee(employee_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Terjadi kesalahan pada server: {str(e)}"}), 500
+    
+
+# ==========================================
+# ENDPOINT UNTUK FITUR ASSIGN MANPOWER
+# ==========================================
+
+@employees_bp.route("/unassigned", methods=["GET"])
+def get_unassigned_employees():
+    """Mengambil daftar karyawan yang belum memiliki formasi (manpower_id is NULL)"""
+    try:
+        # Cari karyawan aktif yang manpower_id-nya masih kosong
+        unassigned_emps = Employee.query.filter(
+            Employee.manpower_id.is_(None),
+            Employee.employee_status == "Active"
+        ).order_by(Employee.full_name.asc()).all()
+        
+        # Format kembalian ke list dictionary
+        result = [{"id": emp.id, "full_name": emp.full_name} for emp in unassigned_emps]
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": f"Gagal mengambil data karyawan: {str(e)}"}), 500
+
+
+@employees_bp.route("/<employee_id>/assign", methods=["PUT"])
+def assign_employee_to_manpower(employee_id):
+    """Menyambungkan karyawan dengan ID formasi (manpower_id) tertentu"""
+    emp = Employee.query.get(employee_id)
+    if not emp:
+        return jsonify({"error": "Karyawan tidak ditemukan"}), 404
+
+    data = request.get_json(force=True)
+    manpower_id = data.get("manpower_id")
+
+    if not manpower_id:
+        return jsonify({"error": "manpower_id wajib disertakan"}), 400
+
+    try:
+        emp.manpower_id = manpower_id
+        db.session.commit()
+        return jsonify({
+            "message": "Karyawan berhasil ditugaskan ke formasi!",
+            "data": {"employee_id": emp.id, "manpower_id": emp.manpower_id}
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Terjadi kesalahan saat assign: {str(e)}"}), 500
