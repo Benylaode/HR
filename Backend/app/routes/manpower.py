@@ -263,3 +263,19 @@ def assign_manpower(manpower_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Gagal assign: {str(e)}"}), 500
+    
+# --- 8. UNASSIGN KARYAWAN (Keluarkan dari Formasi) ---
+@manpower_bp.route('/<int:manpower_id>/unassign/<int:employee_id>', methods=['POST'])
+def unassign_manpower(manpower_id, employee_id):
+    try:
+        emp = Employee.query.get(employee_id)
+        if not emp or emp.manpower_id != manpower_id:
+            return jsonify({"error": "Karyawan tidak ditemukan atau tidak berada di formasi ini"}), 404
+        
+        # Hapus assign (kembalikan karyawan menjadi "tanpa jabatan")
+        emp.manpower_id = None
+        db.session.commit()
+        return jsonify({"message": "Karyawan berhasil dikeluarkan dari formasi!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Gagal melepas karyawan: {str(e)}"}), 500

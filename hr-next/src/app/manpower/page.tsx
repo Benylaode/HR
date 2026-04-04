@@ -8,8 +8,13 @@ import Link from 'next/link'
 import { 
   Search, ChevronUp, ChevronDown, ChevronsUpDown, 
   ChevronLeft, ChevronRight, Filter, X, Network, 
-  User, Edit, Trash2, UserPlus
+  User, Edit, Trash2, UserPlus, Users
 } from 'lucide-react'
+
+interface Employee {
+  id: number;
+  nama: string;
+}
 
 interface Manpower {
   id: number | string
@@ -21,6 +26,7 @@ interface Manpower {
   division?: string
   work_location?: string
   employee_count?: number
+  employees?: Employee[]
   reports_to_id?: number | string | null
   tingkat_managerial?: number | string | null
   tingkat_divisi?: number | string | null
@@ -51,13 +57,17 @@ export default function ManpowerPage() {
   const [query, setQuery] = useState({ search: '', department: '', level: '', sortBy: 'id', sortDir: 'desc', page: 1, pageSize: 10 })
   const [showFilters, setShowFilters] = useState(false)
 
-  // State Modal Assign
+  // State Modal Assign (Isi Slot)
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [assignLoading, setAssignLoading] = useState(false)
   const [selectedManpowerId, setSelectedManpowerId] = useState<string | number | null>(null)
   const [selectedManpowerTitle, setSelectedManpowerTitle] = useState('')
   const [availablePersons, setAvailablePersons] = useState<{ employees: any[], candidates: any[] }>({ employees: [], candidates: [] })
   const [selectedPerson, setSelectedPerson] = useState('')
+
+  // State Modal Manage (Keluarkan Karyawan)
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false)
+  const [manageSlotData, setManageSlotData] = useState<Manpower | null>(null)
 
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
@@ -76,7 +86,7 @@ export default function ManpowerPage() {
           levels: Array.from(new Set(allData.map((s: any) => s.level))) as string[] 
         });
       }
-    } catch (error) { console.error("Gagal mengambil opsi", error); }
+    } catch (error) { console.error("Gagal mengambil opsi filter", error); }
   }
 
   useEffect(() => { fetchFilterOptions(); }, []);
@@ -91,7 +101,6 @@ export default function ManpowerPage() {
         sort_by: query.sortBy, sort_dir: query.sortDir
       });
 
-      // Menggunakan endpoint /paginated (bukan /vacant lagi agar semua tampil)
       const response = await fetch(`${baseUrl}/manpower/paginated?${params.toString()}`, { headers: getAuthHeaders() });
       if (!response.ok) throw new Error('Gagal memuat data');
       
@@ -148,51 +157,33 @@ export default function ManpowerPage() {
     }
   }
 
-  // --- TRIGGER EDIT ---
   const handleEdit = (slot: Manpower) => {
     setIsEditing(true)
     setEditId(slot.id)
     setFormData({
-      position_title: slot.position_title,
-      level: slot.level,
-      tingkat: slot.tingkat.toString(),
-      grade: slot.grade,
-      department: slot.department,
-      division: slot.division || '',
-      work_location: slot.work_location || '',
+      position_title: slot.position_title, level: slot.level, tingkat: slot.tingkat.toString(),
+      grade: slot.grade, department: slot.department, division: slot.division || '', work_location: slot.work_location || '',
       reports_to_id: slot.reports_to_id ? slot.reports_to_id.toString() : '',
       tingkat_managerial: slot.tingkat_managerial ? slot.tingkat_managerial.toString() : '',
       tingkat_divisi: slot.tingkat_divisi ? slot.tingkat_divisi.toString() : '',
       pointer_divisi: slot.pointer_divisi || ''
     })
-    // Auto-scroll ke form atas
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleCancelEdit = () => {
-    setIsEditing(false)
-    setEditId(null)
-    setFormData(initialForm)
-  }
+  const handleCancelEdit = () => { setIsEditing(false); setEditId(null); setFormData(initialForm); }
 
-  // --- HAPUS FORMASI ---
   const handleDelete = async (id: number | string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus formasi ini? Pastikan slot kosong.")) return;
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
       const response = await fetch(`${baseUrl}/manpower/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
-      if (!response.ok) {
-        const err = await response.json()
-        throw new Error(err.error || "Gagal menghapus formasi")
-      }
-      toast.success("Formasi berhasil dihapus!")
-      fetchManpowerData()
-    } catch (error: any) {
-      toast.error(error.message)
-    }
+      if (!response.ok) throw new Error((await response.json()).error || "Gagal menghapus formasi")
+      toast.success("Formasi berhasil dihapus!"); fetchManpowerData()
+    } catch (error: any) { toast.error(error.message) }
   }
 
-  // --- ASSIGN MODAL ---
+  // --- MODAL ASSIGN ---
   const handleOpenAssignModal = async (manpowerId: string | number, title: string) => {
     setSelectedManpowerId(manpowerId); setSelectedManpowerTitle(title); setIsAssignModalOpen(true); setSelectedPerson('');
     try {
@@ -215,8 +206,31 @@ export default function ManpowerPage() {
         method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ type: personType, id: personId })
       })
       if (!response.ok) throw new Error("Gagal memproses data")
-      toast.success("Berhasil menambah karyawan ke posisi!"); setIsAssignModalOpen(false); setSelectedPerson(''); fetchManpowerData();
+      toast.success("Berhasil menambah karyawan ke posisi!"); setIsAssignModalOpen(false); fetchManpowerData();
     } catch (error: any) { toast.error(error.message) } finally { setAssignLoading(false) }
+  }
+
+  // --- MODAL MANAGE (UNASSIGN) ---
+  const handleOpenManageModal = (slot: Manpower) => {
+    setManageSlotData(slot);
+    setIsManageModalOpen(true);
+  }
+
+  const handleUnassign = async (manpowerId: string | number, employeeId: number) => {
+    if (!confirm("Yakin ingin mengeluarkan karyawan ini dari formasi?")) return;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/manpower/${manpowerId}/unassign/${employeeId}`, {
+        method: 'POST', headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error((await response.json()).error || "Gagal mengeluarkan karyawan");
+      
+      toast.success("Karyawan berhasil dikeluarkan");
+      setIsManageModalOpen(false);
+      fetchManpowerData(); // Refresh data tabel
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   }
 
   const updateQuery = (patch: Partial<typeof query>) => setQuery(prev => ({ ...prev, ...patch, page: patch.page !== undefined ? patch.page : 1 }))
@@ -371,7 +385,6 @@ export default function ManpowerPage() {
                           </td>
                           <td className="px-6 py-4 text-sm font-semibold text-slate-700">{slot.department}</td>
                           <td className="px-6 py-4">
-                            {/* --- STATUS DAN AKSI CRUD --- */}
                             <div className="flex flex-col gap-2 items-center">
                               {/* Indikator Terisi */}
                               <div className={`text-[10px] font-bold px-2 py-1 rounded-md border w-full text-center ${slot.employee_count! > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
@@ -379,7 +392,7 @@ export default function ManpowerPage() {
                               </div>
 
                               <div className="flex gap-2 w-full">
-                                {/* Tombol Isi Slot - SELALU MUNCUL (Dukung Multi-Headcount) */}
+                                {/* Tombol Isi Slot - SELALU MUNCUL */}
                                 <button 
                                   onClick={() => handleOpenAssignModal(slot.id, slot.position_title)} 
                                   className="flex-1 flex justify-center items-center gap-1.5 px-2 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold border border-indigo-200 transition-colors"
@@ -387,14 +400,25 @@ export default function ManpowerPage() {
                                 >
                                   <UserPlus size={14} /> Isi
                                 </button>
+
+                                {/* TOMBOL KELOLA SLOT (UNASSIGN) */}
+                                {slot.employee_count! > 0 && (
+                                  <button 
+                                    onClick={() => handleOpenManageModal(slot)} 
+                                    className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors border border-transparent hover:border-emerald-200 bg-emerald-50" 
+                                    title="Lihat & Keluarkan Karyawan"
+                                  >
+                                    <Users size={16} />
+                                  </button>
+                                )}
                                 
                                 {/* Tombol Edit */}
-                                <button onClick={() => handleEdit(slot)} className="p-1.5 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors border border-transparent hover:border-amber-200" title="Edit Formasi">
+                                <button onClick={() => handleEdit(slot)} className="p-1.5 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors border border-transparent hover:border-amber-200 bg-amber-50" title="Edit Formasi">
                                   <Edit size={16} />
                                 </button>
 
                                 {/* Tombol Hapus */}
-                                <button onClick={() => handleDelete(slot.id)} className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors border border-transparent hover:border-rose-200" title="Hapus Formasi">
+                                <button onClick={() => handleDelete(slot.id)} className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors border border-transparent hover:border-rose-200 bg-rose-50" title="Hapus Formasi">
                                   <Trash2 size={16} />
                                 </button>
                               </div>
@@ -421,12 +445,12 @@ export default function ManpowerPage() {
         </main>
       </div>
 
-      {/* --- MODAL ASSIGN --- */}
+      {/* --- MODAL ASSIGN (TAMBAH KARYAWAN) --- */}
       {isAssignModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-5 border-b flex justify-between items-center bg-slate-50">
-              <h3 className="font-bold flex items-center gap-2"><User size={18} className="text-indigo-600" /> Isi Slot Formasi</h3>
+              <h3 className="font-bold flex items-center gap-2"><UserPlus size={18} className="text-indigo-600" /> Isi Slot Formasi</h3>
               <button onClick={() => setIsAssignModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
             </div>
             <form onSubmit={handleAssignSubmit} className="p-6 space-y-5">
@@ -450,6 +474,48 @@ export default function ManpowerPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL KELOLA / UNASSIGN KARYAWAN --- */}
+      {isManageModalOpen && manageSlotData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-5 border-b flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold flex items-center gap-2"><Users size={18} className="text-emerald-600" /> Kelola Penghuni Formasi</h3>
+              <button onClick={() => setIsManageModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
+            </div>
+            <div className="p-6">
+              <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 mb-5">
+                <p className="text-xs text-emerald-600 font-semibold mb-1 uppercase">Formasi Saat Ini</p>
+                <p className="font-bold text-slate-800">{manageSlotData.position_title}</p>
+              </div>
+              
+              <h4 className="text-sm font-semibold mb-3 text-slate-700">Daftar Karyawan ({manageSlotData.employees?.length || 0}):</h4>
+              {manageSlotData.employees && manageSlotData.employees.length > 0 ? (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                  {manageSlotData.employees.map(emp => (
+                    <div key={emp.id} className="flex justify-between items-center p-3 border border-slate-200 rounded-xl hover:border-rose-300 transition-colors bg-white">
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{emp.nama}</p>
+                        <p className="text-xs text-slate-500">ID Karyawan: {emp.id}</p>
+                      </div>
+                      <button 
+                        onClick={() => handleUnassign(manageSlotData.id, emp.id)}
+                        className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg text-[11px] font-bold transition-colors border border-rose-200"
+                      >
+                        Keluarkan
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 border-2 border-dashed border-slate-200 rounded-xl text-center">
+                  <p className="text-sm text-slate-500 font-medium">Formasi ini sedang kosong.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
