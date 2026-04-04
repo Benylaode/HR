@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import get_jwt, verify_jwt_in_request
 from sqlalchemy import or_, asc, desc
 from app import db
@@ -23,8 +23,13 @@ def restrict_access_by_role():
     # --- PERBAIKAN CORS PREFLIGHT ---
     # Kembalikan HTTP Status 200 OK secara eksplisit untuk request OPTIONS
     if request.method == "OPTIONS":
-        return jsonify({"status": "ok"}), 200
-    # --------------------------------
+            response = make_response()
+            # Berikan izin ke domain yang me-request (contoh: localhost:3000)
+            origin = request.headers.get("Origin", "*")
+            response.headers.add("Access-Control-Allow-Origin", origin)
+            response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-Title")
+            response.headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            return response, 200
     try:
         verify_jwt_in_request()
     except Exception as e:
