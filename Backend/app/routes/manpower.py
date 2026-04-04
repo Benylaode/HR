@@ -24,7 +24,6 @@ def restrict_access_by_role():
     # Kembalikan HTTP Status 200 OK secara eksplisit untuk request OPTIONS
     if request.method == "OPTIONS":
             response = make_response()
-            # Berikan izin ke domain yang me-request (contoh: localhost:3000)
             origin = request.headers.get("Origin", "*")
             response.headers.add("Access-Control-Allow-Origin", origin)
             response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-Title")
@@ -299,7 +298,7 @@ def assign_manpower(manpower_id):
     
 
 # --- 8. UNASSIGN KARYAWAN (Keluarkan dari Formasi) ---
-@manpower_bp.route('/<int:manpower_id>/unassign/<int:employee_id>', methods=['POST'])
+@manpower_bp.route('/<int:manpower_id>/unassign/<employee_id>', methods=['POST'])
 def unassign_manpower(manpower_id, employee_id):
     try:
         emp = Employee.query.get(employee_id)
