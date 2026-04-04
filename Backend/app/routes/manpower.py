@@ -20,8 +20,11 @@ def parse_int_or_none(value, default=None):
 
 @manpower_bp.before_request
 def restrict_access_by_role():
+    # --- PERBAIKAN CORS PREFLIGHT ---
+    # Kembalikan HTTP Status 200 OK secara eksplisit untuk request OPTIONS
     if request.method == "OPTIONS":
-        return
+        return jsonify({"status": "ok"}), 200
+    # --------------------------------
     try:
         verify_jwt_in_request()
     except Exception as e:
@@ -31,7 +34,6 @@ def restrict_access_by_role():
     role = claims.get("role")
     if role not in ["HR", "SUPER_USER", "HO", "USER"]:
         return jsonify({"status": 403, "message": f"Akses ditolak untuk role: {role}"}), 403
-
 
 # --- 1. GET ALL (Tanpa Paginasi - Untuk Org Chart & Dropdown) ---
 @manpower_bp.route('/all', methods=['GET'])
