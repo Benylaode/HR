@@ -6,6 +6,18 @@ from app.models import Manpower, Employee, Candidate, JobApplication
 
 manpower_bp = Blueprint('manpower', __name__)
 
+# ==========================================
+# FUNGSI HELPER: Mencegah Error String Kosong ("") dari Frontend
+# ==========================================
+def parse_int_or_none(value, default=None):
+    if value in [None, "", "null", "None"]:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
 @manpower_bp.before_request
 def restrict_access_by_role():
     if request.method == "OPTIONS":
@@ -60,10 +72,8 @@ def get_paginated_manpower():
         sort_by = request.args.get('sort_by', 'id', type=str)
         sort_dir = request.args.get('sort_dir', 'desc', type=str)
 
-        # QUERY DASAR: Ambil SEMUA (Tidak memfilter yang kosong lagi)
         query = Manpower.query
 
-        # RLS Filter
         if role not in ["SUPER_USER", "HR", "HO"]:
             if user_department:
                 query = query.filter(or_(
@@ -73,7 +83,6 @@ def get_paginated_manpower():
             else:
                 return jsonify({"items": [], "total": 0}), 200
 
-        # Pencarian
         if search:
             search_term = f"%{search}%"
             query = query.filter(or_(
@@ -82,11 +91,9 @@ def get_paginated_manpower():
                 Manpower.division.ilike(search_term) 
             ))
 
-        # Filter Departemen Tambahan (dari dropdown Frontend)
         if department:
             query = query.filter(Manpower.department == department)
 
-        # Sorting
         if hasattr(Manpower, sort_by):
             sort_column = getattr(Manpower, sort_by)
             query = query.order_by(asc(sort_column)) if sort_dir == 'asc' else query.order_by(desc(sort_column))
@@ -117,8 +124,12 @@ def create_manpower():
     if not position_title or not department:
         return jsonify({"error": "Position Title dan Department wajib diisi"}), 400
 
-    reports_to_id = data.get('reports_to_id')
-    tingkat_bawahan = int(data.get('tingkat', 99))
+    # Gunakan fungsi parse aman untuk menghindari ValueError saat string kosong ""
+    reports_to_id = parse_int_or_none(data.get('reports_to_id'))
+    tingkat_bawahan = parse_int_or_none(data.get('tingkat'), 99)
+    tingkat_managerial = parse_int_or_none(data.get('tingkat_managerial'))
+    tingkat_divisi = parse_int_or_none(data.get('tingkat_divisi'))
+    pointer_divisi = data.get('pointer_divisi') if data.get('pointer_divisi') != "" else None
     
     if reports_to_id:
         boss = Manpower.query.get(reports_to_id)
@@ -133,14 +144,14 @@ def create_manpower():
             level=data.get('level', '-'),
             tingkat=tingkat_bawahan,
             grade=data.get('grade', '-'),
-            division=data.get('division', 'General'), 
+            division=data.get('division') if data.get('division') != "" else None, 
             department=department,
             section=data.get('section', ''), 
             work_location=data.get('work_location', 'Kantor Pusat - Makassar'),
             reports_to_id=reports_to_id,
-            tingkat_managerial=data.get('tingkat_managerial'),
-            tingkat_divisi=data.get('tingkat_divisi'),
-            pointer_divisi=data.get('pointer_divisi')
+            tingkat_managerial=tingkat_managerial,
+            tingkat_divisi=tingkat_divisi,
+            pointer_divisi=pointer_divisi
         )
         db.session.add(new_slot)
         db.session.commit()
@@ -159,9 +170,12 @@ def update_manpower(id):
 
     data = request.json
     
-    # Validasi tingkat jika reports_to diubah
-    reports_to_id = data.get('reports_to_id')
-    tingkat_bawahan = int(data.get('tingkat', slot.tingkat))
+    # Parse aman
+    reports_to_id = parse_int_or_none(data.get('reports_to_id'))
+    tingkat_bawahan = parse_int_or_none(data.get('tingkat'), slot.tingkat)
+    tingkat_managerial = parse_int_or_none(data.get('tingkat_managerial'))
+    tingkat_divisi = parse_int_or_none(data.get('tingkat_divisi'))
+    pointer_divisi = data.get('pointer_divisi') if data.get('pointer_divisi') != "" else None
     
     if reports_to_id and reports_to_id != slot.reports_to_id:
         boss = Manpower.query.get(reports_to_id)
@@ -179,9 +193,9 @@ def update_manpower(id):
         slot.department = data.get('department', slot.department)
         slot.work_location = data.get('work_location', slot.work_location)
         slot.reports_to_id = reports_to_id
-        slot.tingkat_managerial = data.get('tingkat_managerial')
-        slot.tingkat_divisi = data.get('tingkat_divisi')
-        slot.pointer_divisi = data.get('pointer_divisi')
+        slot.tingkat_managerial = tingkat_managerial
+        slot.tingkat_divisi = tingkat_divisi
+        slot.pointer_divisi = pointer_divisi
 
         db.session.commit()
         return jsonify({"message": "Formasi berhasil diperbarui!"}), 200
@@ -213,10 +227,21 @@ def delete_manpower(id):
 @manpower_bp.route('/available-persons', methods=['GET'])
 def get_available_persons():
     try:
-        unassigned_emps = Employee.query.filter(Employee.manpower_id.is_(None), Employee.employee_status == 'Active').order_by(Employee.full_name.asc()).all()
+        # Karyawan aktif yang belum punya jabatan
+        unassigned_emps = Employee.query.filter(
+            Employee.manpower_id.is_(None), 
+            Employee.employee_status == 'Active'
+        ).order_by(Employee.full_name.asc()).all()
         emps_data = [{"id": e.id, "name": e.full_name, "type": "employee"} for e in unassigned_emps]
         
-        cands = Candidate.query.order_by(Candidate.full_name.asc()).all()
+        # PERBAIKAN: Filter Kandidat agar yang sudah 'Hired' tidak muncul lagi
+        hired_candidate_ids = [app.candidate_id for app in JobApplication.query.filter_by(status="Hired").all()]
+        
+        candidate_query = Candidate.query
+        if hired_candidate_ids:
+            candidate_query = candidate_query.filter(~Candidate.id.in_(hired_candidate_ids))
+            
+        cands = candidate_query.order_by(Candidate.full_name.asc()).all()
         cands_data = [{"id": c.id, "name": c.full_name, "type": "candidate"} for c in cands]
         
         return jsonify({"employees": emps_data, "candidates": cands_data}), 200
@@ -232,7 +257,8 @@ def assign_manpower(manpower_id):
     person_id = data.get("id")
     
     manpower = Manpower.query.get(manpower_id)
-    if not manpower: return jsonify({"error": "Formasi tidak ditemukan"}), 404
+    if not manpower: 
+        return jsonify({"error": "Formasi tidak ditemukan"}), 404
         
     try:
         if person_type == "employee":
@@ -264,6 +290,7 @@ def assign_manpower(manpower_id):
         db.session.rollback()
         return jsonify({"error": f"Gagal assign: {str(e)}"}), 500
     
+
 # --- 8. UNASSIGN KARYAWAN (Keluarkan dari Formasi) ---
 @manpower_bp.route('/<int:manpower_id>/unassign/<int:employee_id>', methods=['POST'])
 def unassign_manpower(manpower_id, employee_id):
