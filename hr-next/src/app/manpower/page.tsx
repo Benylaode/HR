@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { 
   Search, ChevronUp, ChevronDown, ChevronsUpDown, 
   ChevronLeft, ChevronRight, Filter, X, Network, 
-  User, Edit, Trash2, UserPlus, Users
+  Edit, Trash2, UserPlus, Users, MapPin, Calendar, Globe
 } from 'lucide-react'
 
 interface Employee {
@@ -24,7 +24,10 @@ interface Manpower {
   grade: string
   department: string
   division?: string
+  section?: string
   work_location?: string
+  local_non_local?: string
+  first_join_month?: string
   employee_count?: number
   employees?: Employee[]
   reports_to_id?: number | string | null
@@ -32,6 +35,28 @@ interface Manpower {
   tingkat_divisi?: number | string | null
   pointer_divisi?: string | null
 }
+
+const getBaseUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  return url.replace(/\/$/, ""); 
+}
+
+// --- HELPER UNTUK MENGUBAH ANGKA MENJADI LABEL ---
+const divisiLabels: Record<number, string> = {
+  0: 'Top Management', // Ditambahkan sebagai pengaman untuk Direksi/Puncak
+  1: 'Manager',
+  2: 'Assisten Manager',
+  3: 'Supervisor',
+  4: 'Officer',
+  5: 'Non Staff',
+  6: 'Labor Supply'
+};
+
+const managerialLabels: Record<number, string> = {
+  1: 'General Manager',
+  2: 'Senior Manager',
+  3: 'Manager'
+};
 
 export default function ManpowerPage() {
   const [loading, setLoading] = useState(false)
@@ -44,11 +69,10 @@ export default function ManpowerPage() {
   
   const [filterOptions, setFilterOptions] = useState<{ departments: string[], levels: string[] }>({ departments: [], levels: [] });
   
-  // State Form Tambah/Edit
   const initialForm = {
     position_title: '', level: '', tingkat: '', grade: '', department: '', 
-    division: '', work_location: '', reports_to_id: '', 
-    tingkat_managerial: '', tingkat_divisi: '', pointer_divisi: ''
+    division: '', section: '', work_location: '', local_non_local: 'Local', first_join_month: '',
+    reports_to_id: '', tingkat_managerial: '', tingkat_divisi: '', pointer_divisi: ''
   }
   const [formData, setFormData] = useState(initialForm)
   const [isEditing, setIsEditing] = useState(false)
@@ -57,7 +81,6 @@ export default function ManpowerPage() {
   const [query, setQuery] = useState({ search: '', department: '', level: '', sortBy: 'id', sortDir: 'desc', page: 1, pageSize: 10 })
   const [showFilters, setShowFilters] = useState(false)
 
-  // State Modal Assign (Isi Slot)
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [assignLoading, setAssignLoading] = useState(false)
   const [selectedManpowerId, setSelectedManpowerId] = useState<string | number | null>(null)
@@ -65,7 +88,6 @@ export default function ManpowerPage() {
   const [availablePersons, setAvailablePersons] = useState<{ employees: any[], candidates: any[] }>({ employees: [], candidates: [] })
   const [selectedPerson, setSelectedPerson] = useState('')
 
-  // State Modal Manage (Keluarkan Karyawan)
   const [isManageModalOpen, setIsManageModalOpen] = useState(false)
   const [manageSlotData, setManageSlotData] = useState<Manpower | null>(null)
 
@@ -76,8 +98,7 @@ export default function ManpowerPage() {
 
   const fetchFilterOptions = async () => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      const response = await fetch(`${baseUrl}/manpower/all`, { headers: getAuthHeaders() });
+      const response = await fetch(`${getBaseUrl()}/manpower/all`, { headers: getAuthHeaders() });
       if (response.ok) {
         const allData = await response.json();
         setAllPositions(allData); 
@@ -94,14 +115,13 @@ export default function ManpowerPage() {
   const fetchManpowerData = async () => {
     setTableLoading(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
       const params = new URLSearchParams({
         page: query.page.toString(), page_size: query.pageSize.toString(),
         search: query.search, department: query.department, level: query.level,
         sort_by: query.sortBy, sort_dir: query.sortDir
       });
 
-      const response = await fetch(`${baseUrl}/manpower/paginated?${params.toString()}`, { headers: getAuthHeaders() });
+      const response = await fetch(`${getBaseUrl()}/manpower/paginated?${params.toString()}`, { headers: getAuthHeaders() });
       if (!response.ok) throw new Error('Gagal memuat data');
       
       const data = await response.json();
@@ -123,7 +143,6 @@ export default function ManpowerPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // --- SUBMIT (TAMBAH & EDIT) ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -137,9 +156,8 @@ export default function ManpowerPage() {
       pointer_divisi: formData.pointer_divisi || null
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
     const method = isEditing ? 'PUT' : 'POST'
-    const url = isEditing ? `${baseUrl}/manpower/${editId}` : `${baseUrl}/manpower/`
+    const url = isEditing ? `${getBaseUrl()}/manpower/${editId}` : `${getBaseUrl()}/manpower/`
 
     try {
       const response = await fetch(url, { method, headers: getAuthHeaders(), body: JSON.stringify(payload) })
@@ -161,8 +179,16 @@ export default function ManpowerPage() {
     setIsEditing(true)
     setEditId(slot.id)
     setFormData({
-      position_title: slot.position_title, level: slot.level, tingkat: slot.tingkat.toString(),
-      grade: slot.grade, department: slot.department, division: slot.division || '', work_location: slot.work_location || '',
+      position_title: slot.position_title, 
+      level: slot.level, 
+      tingkat: slot.tingkat.toString(),
+      grade: slot.grade, 
+      department: slot.department, 
+      division: slot.division || '', 
+      section: slot.section || '',
+      work_location: slot.work_location || '',
+      local_non_local: slot.local_non_local || 'Local',
+      first_join_month: slot.first_join_month || '',
       reports_to_id: slot.reports_to_id ? slot.reports_to_id.toString() : '',
       tingkat_managerial: slot.tingkat_managerial ? slot.tingkat_managerial.toString() : '',
       tingkat_divisi: slot.tingkat_divisi ? slot.tingkat_divisi.toString() : '',
@@ -176,19 +202,16 @@ export default function ManpowerPage() {
   const handleDelete = async (id: number | string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus formasi ini? Pastikan slot kosong.")) return;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-      const response = await fetch(`${baseUrl}/manpower/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
+      const response = await fetch(`${getBaseUrl()}/manpower/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
       if (!response.ok) throw new Error((await response.json()).error || "Gagal menghapus formasi")
       toast.success("Formasi berhasil dihapus!"); fetchManpowerData()
     } catch (error: any) { toast.error(error.message) }
   }
 
-  // --- MODAL ASSIGN ---
   const handleOpenAssignModal = async (manpowerId: string | number, title: string) => {
     setSelectedManpowerId(manpowerId); setSelectedManpowerTitle(title); setIsAssignModalOpen(true); setSelectedPerson('');
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-      const response = await fetch(`${baseUrl}/manpower/available-persons`, { headers: getAuthHeaders() })
+      const response = await fetch(`${getBaseUrl()}/manpower/available-persons`, { headers: getAuthHeaders() })
       if (response.ok) {
         const data = await response.json()
         setAvailablePersons({ employees: data.employees || [], candidates: data.candidates || [] })
@@ -197,40 +220,33 @@ export default function ManpowerPage() {
   }
 
   const handleAssignSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); if (!selectedPerson || !selectedManpowerId) return;
+    e.preventDefault(); 
+    if (!selectedPerson || !selectedManpowerId) return;
+    
     const [personType, personId] = selectedPerson.split('|')
     setAssignLoading(true)
+    
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-      const response = await fetch(`${baseUrl}/manpower/${selectedManpowerId}/assign`, {
-        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ type: personType, id: personId })
+      const response = await fetch(`${getBaseUrl()}/manpower/${selectedManpowerId}/assign`, {
+        method: 'POST', 
+        headers: getAuthHeaders(), 
+        body: JSON.stringify({ type: personType, id: personId })
       })
-      if (!response.ok) throw new Error("Gagal memproses data")
-      toast.success("Berhasil menambah karyawan ke posisi!"); setIsAssignModalOpen(false); fetchManpowerData();
+      if (!response.ok) throw new Error((await response.json()).error || "Gagal memproses data")
+      toast.success("Berhasil menambah karyawan ke posisi!"); 
+      setIsAssignModalOpen(false); setSelectedPerson(''); fetchManpowerData();
     } catch (error: any) { toast.error(error.message) } finally { setAssignLoading(false) }
   }
 
-  // --- MODAL MANAGE (UNASSIGN) ---
-  const handleOpenManageModal = (slot: Manpower) => {
-    setManageSlotData(slot);
-    setIsManageModalOpen(true);
-  }
+  const handleOpenManageModal = (slot: Manpower) => { setManageSlotData(slot); setIsManageModalOpen(true); }
 
   const handleUnassign = async (manpowerId: string | number, employeeId: number) => {
     if (!confirm("Yakin ingin mengeluarkan karyawan ini dari formasi?")) return;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      const response = await fetch(`${baseUrl}/manpower/${manpowerId}/unassign/${employeeId}`, {
-        method: 'POST', headers: getAuthHeaders()
-      });
+      const response = await fetch(`${getBaseUrl()}/manpower/${manpowerId}/unassign/${employeeId}`, { method: 'POST', headers: getAuthHeaders() });
       if (!response.ok) throw new Error((await response.json()).error || "Gagal mengeluarkan karyawan");
-      
-      toast.success("Karyawan berhasil dikeluarkan");
-      setIsManageModalOpen(false);
-      fetchManpowerData(); // Refresh data tabel
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+      toast.success("Karyawan berhasil dikeluarkan"); setIsManageModalOpen(false); fetchManpowerData(); 
+    } catch (error: any) { toast.error(error.message); }
   }
 
   const updateQuery = (patch: Partial<typeof query>) => setQuery(prev => ({ ...prev, ...patch, page: patch.page !== undefined ? patch.page : 1 }))
@@ -242,8 +258,8 @@ export default function ManpowerPage() {
       <div className="lg:ml-64 min-h-screen flex flex-col bg-slate-50/50">
         <Header title="Manpower Planning" subtitle="Kelola seluruh formasi, slot, dan struktur rantai komando" />
         
-        <main className="flex-1 p-4 md:p-6 lg:p-8 w-full">
-          <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 w-full overflow-hidden">
+          <div className="max-w-[1800px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
             
             {/* --- FORM KIRI --- */}
             <div className="xl:col-span-4 w-full flex flex-col gap-6 xl:sticky xl:top-24 z-10">
@@ -256,12 +272,12 @@ export default function ManpowerPage() {
                     {isEditing ? 'Edit Formasi' : 'Tambah Formasi'}
                   </h2>
                   {isEditing && (
-                    <button onClick={handleCancelEdit} className="text-sm text-slate-500 hover:text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg font-semibold">Batal</button>
+                    <button type="button" onClick={handleCancelEdit} className="text-sm text-slate-500 hover:text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg font-semibold">Batal</button>
                   )}
                 </div>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* BLOK 1 */}
+                  {/* BLOK 1: ORGANISASI */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Organisasi & Jabatan</h3>
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
@@ -279,16 +295,20 @@ export default function ManpowerPage() {
                           <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                       </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Section (Seksi)</label>
+                        <input type="text" name="section" value={formData.section} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" placeholder="Opsional" />
+                      </div>
                     </div>
                   </div>
 
-                  {/* BLOK 2 */}
+                  {/* BLOK 2: KARIR & ATRIBUT */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Karir & Tingkat</h3>
+                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Karir, Lokasi & Atribut</h3>
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Level</label>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Level *</label>
                           <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                         <div>
@@ -296,45 +316,81 @@ export default function ManpowerPage() {
                           <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                       </div>
+                      
+                      {/* --- TINGKAT DIVISI DROPDOWN --- */}
+                      <div>
+                        <label className="block text-xs font-semibold text-indigo-600 mb-1.5 uppercase">Tingkat Divisi (Operasional) *</label>
+                        <select name="tingkat" required value={formData.tingkat} onChange={handleChange} className="w-full px-4 py-2.5 bg-indigo-50/50 border border-indigo-200 rounded-xl outline-none text-sm shadow-sm font-semibold text-indigo-800 cursor-pointer">
+                          <option value="" disabled>-- Pilih Tingkat Jabatan --</option>
+                          <option value="0">0 - Top Management / Direksi</option>
+                          <option value="1">1 - Manager</option>
+                          <option value="2">2 - Assisten Manager</option>
+                          <option value="3">3 - Supervisor</option>
+                          <option value="4">4 - Officer</option>
+                          <option value="5">5 - Non Staff</option>
+                          <option value="6">6 - Labor Supply</option>
+                        </select>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-indigo-600 mb-1.5 uppercase">Tingkat (0,1,2) *</label>
-                          <input type="number" name="tingkat" required value={formData.tingkat} onChange={handleChange} className="w-full px-4 py-2.5 bg-indigo-50/50 border border-indigo-200 rounded-xl outline-none text-sm shadow-sm" />
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Status Kedaerahan</label>
+                          <select name="local_non_local" value={formData.local_non_local} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm cursor-pointer">
+                            <option value="Local">Lokal</option>
+                            <option value="Non-Local">Non-Lokal</option>
+                          </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Lokasi</label>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Lokasi Kerja</label>
                           <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* BLOK 3 */}
+                  {/* BLOK 3: KOMANDO */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Rantai Komando & Managerial</h3>
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Atasan (Reports To)</label>
-                        <select name="reports_to_id" value={formData.reports_to_id} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm">
+                        <select name="reports_to_id" value={formData.reports_to_id} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm cursor-pointer">
                           <option value="">-- Puncak / Tanpa Atasan --</option>
                           {allPositions.map(pos => <option key={pos.id} value={pos.id}>[{pos.department}] {pos.position_title}</option>)}
                         </select>
                       </div>
+                      
                       <div className="pt-3 border-t border-slate-200">
-                        <p className="text-[11px] font-bold text-slate-700 mb-3 uppercase">Khusus Managerial (Opsional):</p>
+                        <p className="text-[11px] font-bold text-slate-700 mb-3 uppercase">Khusus Posisi Managerial (Opsional):</p>
                         <div className="grid grid-cols-2 gap-4 mb-3">
+                          {/* --- TINGKAT MANAGERIAL DROPDOWN --- */}
                           <div>
                             <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Tk. Managerial</label>
-                            <input type="number" name="tingkat_managerial" value={formData.tingkat_managerial} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                            <select name="tingkat_managerial" value={formData.tingkat_managerial} onChange={handleChange} className="w-full px-2 py-2 border rounded-lg text-xs cursor-pointer bg-white">
+                              <option value="">- Bukan Managerial -</option>
+                              <option value="1">1 - General Manager</option>
+                              <option value="2">2 - Senior Manager</option>
+                              <option value="3">3 - Manager</option>
+                            </select>
                           </div>
+                          {/* --- TINGKAT DIVISI (BAYANGAN) DROPDOWN --- */}
                           <div>
-                            <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Tk. Divisi</label>
-                            <input type="number" name="tingkat_divisi" value={formData.tingkat_divisi} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                            <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Tk. Tampil Divisi</label>
+                            <select name="tingkat_divisi" value={formData.tingkat_divisi} onChange={handleChange} className="w-full px-2 py-2 border rounded-lg text-xs cursor-pointer bg-white">
+                              <option value="">- Bebas -</option>
+                              <option value="0">0 - Top Mgt</option>
+                              <option value="1">1 - Manager</option>
+                              <option value="2">2 - Asst Manager</option>
+                              <option value="3">3 - Supervisor</option>
+                              <option value="4">4 - Officer</option>
+                              <option value="5">5 - Non Staff</option>
+                              <option value="6">6 - Labor Supply</option>
+                            </select>
                           </div>
                         </div>
                         <div>
                           <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Pointer Divisi</label>
-                          <input type="text" name="pointer_divisi" value={formData.pointer_divisi} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                          <input type="text" name="pointer_divisi" value={formData.pointer_divisi} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="Tampil di divisi mana?" />
                         </div>
                       </div>
                     </div>
@@ -358,66 +414,82 @@ export default function ManpowerPage() {
                       <h2 className="text-xl font-bold text-slate-900">Daftar Seluruh Formasi</h2>
                       <p className="text-sm text-slate-500">Kelola seluruh slot posisi yang ada dalam struktur.</p>
                     </div>
-                    <Link href="/manpower/org-chart" className="flex items-center gap-2 bg-white border px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 shadow-sm"><Network size={16} className="text-indigo-500" /> Lihat Org Chart</Link>
+                    <div className="flex gap-2">
+                      <Link href="/manpower/org-chart" className="flex items-center gap-2 bg-white border px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 shadow-sm"><Network size={16} className="text-indigo-500" /> Lihat Org Chart</Link>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="w-full overflow-x-auto min-h-[400px]">
-                  <table className="w-full text-left border-collapse min-w-[800px]">
+                <div className="w-full overflow-x-auto min-h-[400px] custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[1200px]">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
-                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase w-[30%]">Posisi</th>
-                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase w-[20%]">Level & Tingkat</th>
-                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase w-[20%]">Departemen</th>
-                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase text-center w-[30%]">Status & Aksi</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-[11px] uppercase w-[30%] tracking-wider">Posisi & Karir</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-[11px] uppercase w-[20%] tracking-wider">Struktur Organisasi</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-[11px] uppercase w-[25%] tracking-wider">Lokasi & Atribut</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-[11px] uppercase text-center w-[25%] tracking-wider">Status & Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {tableData.length > 0 ? tableData.map((slot) => (
                         <tr key={slot.id} className="hover:bg-slate-50/80 transition-colors">
+                          {/* KOLOM 1: POSISI */}
                           <td className="px-6 py-4">
-                            <p className="font-bold text-slate-900">{slot.position_title}</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-1">ID: {slot.id}</p>
+                            <p className="font-bold text-slate-900 text-sm">{slot.position_title}</p>
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">{slot.level}</span>
+                              <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">Gr: {slot.grade}</span>
+                            </div>
+                            {/* --- TAMPILAN TINGKAT YANG DIPERBAIKI (MENGGUNAKAN LABEL) --- */}
+                            <div className="mt-2 text-[10px] text-slate-500">
+                              <span className="font-mono bg-slate-100 px-1 rounded border">ID: {slot.id}</span> 
+                              <span className="ml-2 font-semibold text-indigo-600 bg-indigo-50 px-1.5 rounded border border-indigo-100">
+                                Tk: {divisiLabels[slot.tingkat] || `Tingkat ${slot.tingkat}`} ({slot.tingkat})
+                              </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="text-[11px] font-bold bg-slate-100 px-2 py-1 rounded-md">{slot.level}</span>
-                            <br/><span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-mono mt-1 inline-block">Tk: {slot.tingkat}</span>
+
+                          {/* KOLOM 2: STRUKTUR */}
+                          <td className="px-6 py-4 align-top">
+                            <div className="flex flex-col gap-1 text-xs">
+                              {slot.division && <p><span className="text-slate-400">Div:</span> <span className="font-semibold text-slate-800">{slot.division}</span></p>}
+                              <p><span className="text-slate-400">Dept:</span> <span className="font-semibold text-slate-800">{slot.department}</span></p>
+                              {slot.section && <p><span className="text-slate-400">Sect:</span> <span className="font-semibold text-slate-800">{slot.section}</span></p>}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm font-semibold text-slate-700">{slot.department}</td>
-                          <td className="px-6 py-4">
+
+                          {/* KOLOM 3: LOKASI & ATRIBUT */}
+                          <td className="px-6 py-4 align-top">
+                            <div className="flex flex-col gap-2 text-xs">
+                              <div className="flex items-start gap-1.5 text-slate-700">
+                                <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                                <span className="line-clamp-2 leading-tight">{slot.work_location || 'Makassar'}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-slate-700">
+                                <Globe size={14} className="text-slate-400 shrink-0" />
+                                <span className={`font-semibold ${slot.local_non_local === 'Local' ? 'text-teal-600' : 'text-amber-600'}`}>{slot.local_non_local || 'Local'}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* KOLOM 4: STATUS & AKSI */}
+                          <td className="px-6 py-4 align-top">
                             <div className="flex flex-col gap-2 items-center">
-                              {/* Indikator Terisi */}
                               <div className={`text-[10px] font-bold px-2 py-1 rounded-md border w-full text-center ${slot.employee_count! > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
                                 {slot.employee_count! > 0 ? `${slot.employee_count} Orang Terisi` : 'Kosong (0 Terisi)'}
                               </div>
-
-                              <div className="flex gap-2 w-full">
-                                {/* Tombol Isi Slot - SELALU MUNCUL */}
-                                <button 
-                                  onClick={() => handleOpenAssignModal(slot.id, slot.position_title)} 
-                                  className="flex-1 flex justify-center items-center gap-1.5 px-2 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold border border-indigo-200 transition-colors"
-                                  title="Tambah Karyawan ke Formasi ini"
-                                >
+                              <div className="flex gap-2 w-full justify-center">
+                                <button onClick={() => handleOpenAssignModal(slot.id, slot.position_title)} className="flex-1 flex justify-center items-center gap-1.5 px-2 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold border border-indigo-200 transition-colors" title="Tambah Karyawan">
                                   <UserPlus size={14} /> Isi
                                 </button>
-
-                                {/* TOMBOL KELOLA SLOT (UNASSIGN) */}
                                 {slot.employee_count! > 0 && (
-                                  <button 
-                                    onClick={() => handleOpenManageModal(slot)} 
-                                    className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors border border-transparent hover:border-emerald-200 bg-emerald-50" 
-                                    title="Lihat & Keluarkan Karyawan"
-                                  >
+                                  <button onClick={() => handleOpenManageModal(slot)} className="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors border border-transparent hover:border-emerald-200 bg-emerald-50" title="Kelola Karyawan">
                                     <Users size={16} />
                                   </button>
                                 )}
-                                
-                                {/* Tombol Edit */}
                                 <button onClick={() => handleEdit(slot)} className="p-1.5 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors border border-transparent hover:border-amber-200 bg-amber-50" title="Edit Formasi">
                                   <Edit size={16} />
                                 </button>
-
-                                {/* Tombol Hapus */}
                                 <button onClick={() => handleDelete(slot.id)} className="p-1.5 text-rose-500 hover:bg-rose-100 rounded-lg transition-colors border border-transparent hover:border-rose-200 bg-rose-50" title="Hapus Formasi">
                                   <Trash2 size={16} />
                                 </button>
@@ -445,19 +517,18 @@ export default function ManpowerPage() {
         </main>
       </div>
 
-      {/* --- MODAL ASSIGN (TAMBAH KARYAWAN) --- */}
+      {/* --- MODAL ASSIGN --- */}
       {isAssignModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-5 border-b flex justify-between items-center bg-slate-50">
               <h3 className="font-bold flex items-center gap-2"><UserPlus size={18} className="text-indigo-600" /> Isi Slot Formasi</h3>
-              <button onClick={() => setIsAssignModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
+              <button type="button" onClick={() => setIsAssignModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
             </div>
             <form onSubmit={handleAssignSubmit} className="p-6 space-y-5">
               <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
                 <p className="text-xs text-slate-500 font-semibold mb-1 uppercase">Formasi Tujuan</p>
                 <p className="font-bold text-slate-800">{selectedManpowerTitle}</p>
-                <p className="text-[10px] text-indigo-600 mt-1">*Bisa diisi oleh lebih dari 1 orang.</p>
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-2">Pilih Orang *</label>
@@ -484,7 +555,7 @@ export default function ManpowerPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-5 border-b flex justify-between items-center bg-slate-50">
               <h3 className="font-bold flex items-center gap-2"><Users size={18} className="text-emerald-600" /> Kelola Penghuni Formasi</h3>
-              <button onClick={() => setIsManageModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
+              <button type="button" onClick={() => setIsManageModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
             </div>
             <div className="p-6">
               <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 mb-5">
@@ -501,10 +572,7 @@ export default function ManpowerPage() {
                         <p className="text-sm font-bold text-slate-800">{emp.nama}</p>
                         <p className="text-xs text-slate-500">ID Karyawan: {emp.id}</p>
                       </div>
-                      <button 
-                        onClick={() => handleUnassign(manageSlotData.id, emp.id)}
-                        className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg text-[11px] font-bold transition-colors border border-rose-200"
-                      >
+                      <button onClick={() => handleUnassign(manageSlotData.id, emp.id)} className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg text-[11px] font-bold transition-colors border border-rose-200">
                         Keluarkan
                       </button>
                     </div>
