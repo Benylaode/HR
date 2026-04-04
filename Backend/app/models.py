@@ -260,35 +260,49 @@ class Manpower(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     position_title = db.Column(db.String(200), nullable=False)
-    level = db.Column(db.String(100), nullable=False)
     grade = db.Column(db.String(50), nullable=False)
     
+    # --- STRUKTUR ADMINISTRATIF ---
     division = db.Column(db.String(150), nullable=True)
     department = db.Column(db.String(150), nullable=False)
-    section = db.Column(db.String(150), nullable=True)
+    section = db.Column(db.String(150), nullable=True) # Data ada, tapi bypass di UI
+    
     work_location = db.Column(db.String(200), nullable=True, default='Makassar')
     local_non_local = db.Column(db.String(50), nullable=True, default='Local')
     
-    # Relasi ke Karyawan
+    # --- LOGIKA CHART & RANTAI KOMANDO BARU ---
+    level = db.Column(db.String(100), nullable=True) 
+    tingkat = db.Column(db.Integer, nullable=False, default=99) # Kunci baris/layout
+    reports_to_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True) # BOS (Garis pelaporan nyata)
+    
+    # --- 3 KOLOM KHUSUS MANAGERIAL ---
+    tingkat_managerial = db.Column(db.Integer, nullable=True) 
+    tingkat_divisi = db.Column(db.Integer, nullable=True)     
+    pointer_divisi = db.Column(db.String(150), nullable=True) 
+
+    # Relasi Karyawan & Atasan-Bawahan
     karyawan_list = db.relationship('Employee', backref='posisi_manpower', lazy=True)
+    subordinates = db.relationship('Manpower', backref=db.backref('boss', remote_side=[id]), lazy=True)
 
     def to_dict(self):
         return {
             "id": self.id,
             "position_title": self.position_title,
             "level": self.level,
+            "tingkat": self.tingkat,
             "grade": self.grade,
             "division": self.division,
             "department": self.department,
             "section": self.section,
-            "work_location": self.work_location,
-            "local_non_local": self.local_non_local,
+            "reports_to_id": self.reports_to_id,
+            "boss_name": self.boss.position_title if self.boss else None,
+            "tingkat_managerial": self.tingkat_managerial,
+            "tingkat_divisi": self.tingkat_divisi,
+            "pointer_divisi": self.pointer_divisi,
             "employee_count": len(self.karyawan_list), 
             "is_filled": len(self.karyawan_list) > 0,
-            # 🌟 PERBAIKAN: Menggunakan k.full_name dari ProfileMixin
             "employees": [{"id": k.id, "nama": k.full_name} for k in self.karyawan_list]
         }
-
 # ==========================================
 # 6. JOB APPLICATION (PIVOT) & TESTS
 # ==========================================

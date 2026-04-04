@@ -15,6 +15,7 @@ interface Manpower {
   id: number | string
   position_title: string
   level: string
+  tingkat: number
   grade: string
   department: string
   division?: string
@@ -26,163 +27,88 @@ export default function ManpowerPage() {
   const [loading, setLoading] = useState(false)
   const [tableLoading, setTableLoading] = useState(false)
   
-  // State Data Manpower
+  // State Data
   const [vacantSlots, setVacantSlots] = useState<Manpower[]>([])
+  const [allPositions, setAllPositions] = useState<Manpower[]>([]) // Untuk Dropdown Atasan
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   
-  // State untuk Filter Dropdown
-  const [filterOptions, setFilterOptions] = useState<{ departments: string[], levels: string[] }>({ 
-    departments: [], 
-    levels: [] 
-  });
+  const [filterOptions, setFilterOptions] = useState<{ departments: string[], levels: string[] }>({ departments: [], levels: [] });
   
-  // State Form Tambah Formasi
+  // State Form Tambah Formasi (DENGAN KOLOM BARU)
   const [formData, setFormData] = useState({
-    position_title: '',
-    level: '',
-    grade: '',
-    department: '',
-    division: '',      
-    work_location: ''  
+    position_title: '', level: '', tingkat: '', grade: '', department: '', 
+    division: '', work_location: '', reports_to_id: '', 
+    tingkat_managerial: '', tingkat_divisi: '', pointer_divisi: ''
   })
 
-  // State Parameter
   const [query, setQuery] = useState({
-    search: '',
-    department: '',
-    level: '',
-    sortBy: 'id',
-    sortDir: 'desc',
-    page: 1,
-    pageSize: 10
+    search: '', department: '', level: '', sortBy: 'id', sortDir: 'desc', page: 1, pageSize: 10
   })
   
   const [showFilters, setShowFilters] = useState(false)
 
-  // --- STATE UNTUK MODAL ASSIGN KARYAWAN & KANDIDAT ---
+  // Modal Assign Karyawan/Kandidat
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [assignLoading, setAssignLoading] = useState(false)
   const [selectedManpowerId, setSelectedManpowerId] = useState<string | number | null>(null)
   const [selectedManpowerTitle, setSelectedManpowerTitle] = useState('')
-  
-  // Mengelompokkan Karyawan dan Kandidat
   const [availablePersons, setAvailablePersons] = useState<{
     employees: {id: string, name: string, type: string}[],
     candidates: {id: string, name: string, type: string}[]
   }>({ employees: [], candidates: [] })
-  
-  // Menyimpan format string: "type|id" (contoh: "candidate|1234")
   const [selectedPerson, setSelectedPerson] = useState('')
 
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
-    return {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
+    return { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
   };
 
-  // --- MENGAMBIL OPSI FILTER MASTER ---
   const fetchFilterOptions = async () => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
       const response = await fetch(`${baseUrl}/manpower/all`, { headers: getAuthHeaders() });
       if (response.ok) {
         const allData = await response.json();
-        const depts = Array.from(new Set(allData.map((s: any) => s.department))) as string[];
-        const lvls = Array.from(new Set(allData.map((s: any) => s.level))) as string[];
-        setFilterOptions({ departments: depts, levels: lvls });
+        setAllPositions(allData); // Simpan semua posisi untuk form dropdown "Reports To"
+        setFilterOptions({ 
+          departments: Array.from(new Set(allData.map((s: any) => s.department))) as string[], 
+          levels: Array.from(new Set(allData.map((s: any) => s.level))) as string[] 
+        });
       }
-    } catch (error) {
-      console.error("Gagal mengambil opsi filter", error);
-    }
+    } catch (error) { console.error("Gagal mengambil opsi", error); }
   }
 
-  useEffect(() => {
-    fetchFilterOptions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { fetchFilterOptions(); }, []);
 
-  // --- FETCHING TABEL (Dari endpoint /all agar semua terlihat) ---
   const fetchVacantManpower = async () => {
     setTableLoading(true);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      
       const params = new URLSearchParams({
-        page: query.page.toString(),
-        page_size: query.pageSize.toString(),
-        search: query.search,
-        department: query.department,
-        level: query.level,
-        sort_by: query.sortBy,
-        sort_dir: query.sortDir
+        page: query.page.toString(), page_size: query.pageSize.toString(),
+        search: query.search, department: query.department, level: query.level,
+        sort_by: query.sortBy, sort_dir: query.sortDir
       });
 
-      // Panggil endpoint all untuk dapat semua data
-      const response = await fetch(`${baseUrl}/manpower/all?${params.toString()}`, { 
-        headers: getAuthHeaders() 
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || 'Gagal memuat data');
-      }
+      const response = await fetch(`${baseUrl}/manpower/vacant?${params.toString()}`, { headers: getAuthHeaders() });
+      if (!response.ok) throw new Error('Gagal memuat data');
       
       const data = await response.json();
-      
-      if (Array.isArray(data)) {
-        let filteredData = data;
-        if (query.search) {
-          filteredData = filteredData.filter((item: Manpower) => 
-            (item.position_title || '').toLowerCase().includes(query.search.toLowerCase()) ||
-            (item.department || '').toLowerCase().includes(query.search.toLowerCase())
-          );
-        }
-        if (query.department) {
-          filteredData = filteredData.filter((item: Manpower) => item.department === query.department);
-        }
-        if (query.level) {
-          filteredData = filteredData.filter((item: Manpower) => item.level === query.level);
-        }
-        filteredData.sort((a: any, b: any) => {
-          let valA = a[query.sortBy] || '';
-          let valB = b[query.sortBy] || '';
-          if (valA < valB) return query.sortDir === 'asc' ? -1 : 1;
-          if (valA > valB) return query.sortDir === 'asc' ? 1 : -1;
-          return 0;
-        });
-
-        const startIndex = (query.page - 1) * query.pageSize;
-        const paginatedItems = filteredData.slice(startIndex, startIndex + query.pageSize);
-
-        setVacantSlots(paginatedItems);
-        setTotalItems(filteredData.length);
-        setTotalPages(Math.ceil(filteredData.length / query.pageSize) || 1);
-      } else {
-        setVacantSlots(data.items || []);
-        setTotalItems(data.total || 0);
-        setTotalPages(data.total_pages || 1);
-      }
+      setVacantSlots(data.items || []);
+      setTotalItems(data.total || 0);
+      setTotalPages(data.total_pages || 1);
     } catch (error: any) {
-      console.error('Error fetching manpower:', error);
       toast.error('Gagal memuat formasi', { description: error.message });
       setVacantSlots([]);
-    } finally {
-      setTableLoading(false);
-    }
+    } finally { setTableLoading(false); }
   }
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchVacantManpower();
-    }, 300);
+    const delayDebounceFn = setTimeout(() => { fetchVacantManpower(); }, 300);
     return () => clearTimeout(delayDebounceFn);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]); 
 
-  // --- FORM TAMBAH FORMASI ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
@@ -192,106 +118,62 @@ export default function ManpowerPage() {
     setLoading(true)
 
     const submitTask = async () => {
+      const payload = {
+        ...formData,
+        tingkat: formData.tingkat ? parseInt(formData.tingkat) : 99,
+        reports_to_id: formData.reports_to_id ? parseInt(formData.reports_to_id) : null,
+        tingkat_managerial: formData.tingkat_managerial ? parseInt(formData.tingkat_managerial) : null,
+        tingkat_divisi: formData.tingkat_divisi ? parseInt(formData.tingkat_divisi) : null,
+        pointer_divisi: formData.pointer_divisi || null
+      }
+
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
       const response = await fetch(`${baseUrl}/manpower/`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(formData),
+        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(payload),
       })
 
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Terjadi kesalahan')
 
-      setFormData({ position_title: '', level: '', grade: '', department: '', division: '', work_location: '' })
+      setFormData({ position_title: '', level: '', tingkat: '', grade: '', department: '', division: '', work_location: '', reports_to_id: '', tingkat_managerial: '', tingkat_divisi: '', pointer_divisi: '' })
       await fetchFilterOptions();
-
-      if (query.page !== 1) {
-        updateQuery({ page: 1 });
-      } else {
-        await fetchVacantManpower();
-      }
+      query.page !== 1 ? updateQuery({ page: 1 }) : await fetchVacantManpower();
       return data;
     }
 
     toast.promise(submitTask(), {
-      loading: 'Menyimpan formasi baru...',
-      success: 'Formasi berhasil ditambahkan!',
-      error: (err) => `Gagal: ${err.message}`,
-      finally: () => setLoading(false)
+      loading: 'Menyimpan formasi baru...', success: 'Formasi ditambahkan!', error: (err) => `Gagal: ${err.message}`, finally: () => setLoading(false)
     })
   }
 
-  // --- LOGIKA ASSIGN KARYAWAN & KANDIDAT (ISI SLOT) ---
   const handleOpenAssignModal = async (manpowerId: string | number, title: string) => {
-    setSelectedManpowerId(manpowerId)
-    setSelectedManpowerTitle(title)
-    setIsAssignModalOpen(true)
-    setSelectedPerson('') // Reset form dropdown
-    
+    setSelectedManpowerId(manpowerId); setSelectedManpowerTitle(title); setIsAssignModalOpen(true); setSelectedPerson('');
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-      // Endpoint yang baru dibuat yang mengembalikan employees dan candidates
       const response = await fetch(`${baseUrl}/manpower/available-persons`, { headers: getAuthHeaders() })
       if (response.ok) {
         const data = await response.json()
-        setAvailablePersons({
-          employees: data.employees || [],
-          candidates: data.candidates || []
-        })
+        setAvailablePersons({ employees: data.employees || [], candidates: data.candidates || [] })
       }
-    } catch (error) {
-      toast.error("Gagal mengambil data orang yang tersedia")
-    }
+    } catch (error) { toast.error("Gagal mengambil data orang") }
   }
 
   const handleAssignSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedPerson || !selectedManpowerId) return
-
-    // Memecah format "type|id" (contoh: "candidate|1234")
+    e.preventDefault(); if (!selectedPerson || !selectedManpowerId) return;
     const [personType, personId] = selectedPerson.split('|')
-
     setAssignLoading(true)
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
       const response = await fetch(`${baseUrl}/manpower/${selectedManpowerId}/assign`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ 
-          type: personType, 
-          id: personId 
-        })
+        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ type: personType, id: personId })
       })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Gagal memproses data")
-      }
-
-      toast.success("Posisi berhasil diisi!")
-      setIsAssignModalOpen(false)
-      setSelectedPerson('')
-      
-      // Auto-refresh tabel
-      fetchVacantManpower() 
-    } catch (error: any) {
-      toast.error(error.message)
-    } finally {
-      setAssignLoading(false)
-    }
+      if (!response.ok) throw new Error("Gagal memproses data")
+      toast.success("Posisi berhasil diisi!"); setIsAssignModalOpen(false); setSelectedPerson(''); fetchVacantManpower();
+    } catch (error: any) { toast.error(error.message) } finally { setAssignLoading(false) }
   }
 
-  const updateQuery = (patch: Partial<typeof query>) => {
-    setQuery(prev => ({ ...prev, ...patch, page: patch.page !== undefined ? patch.page : 1 }))
-  }
-
-  const handleSort = (key: string) => {
-    if (query.sortBy === key) {
-      updateQuery({ sortDir: query.sortDir === 'asc' ? 'desc' : 'asc' })
-    } else {
-      updateQuery({ sortBy: key, sortDir: 'asc' })
-    }
-  }
+  const updateQuery = (patch: Partial<typeof query>) => setQuery(prev => ({ ...prev, ...patch, page: patch.page !== undefined ? patch.page : 1 }))
+  const handleSort = (key: string) => updateQuery(query.sortBy === key ? { sortDir: query.sortDir === 'asc' ? 'desc' : 'asc' } : { sortBy: key, sortDir: 'asc' })
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -302,37 +184,31 @@ export default function ManpowerPage() {
         <main className="flex-1 p-4 md:p-6 lg:p-8 w-full">
           <div className="max-w-[1600px] mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
             
-            {/* KOLOM KIRI: Form Input */}
+            {/* --- FORM KIRI --- */}
             <div className="xl:col-span-4 w-full flex flex-col gap-6 xl:sticky xl:top-24 z-10">
-              <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl p-6 border border-slate-200/60">
-                <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5">
-                  <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
+              <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl p-6 border border-slate-200/60 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5 sticky top-0 bg-white z-10">
+                  <div className="p-2 bg-teal-50 rounded-lg text-teal-600"><Network size={20} /></div>
                   Tambah Formasi
                 </h2>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* BLOK 1 */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Organisasi & Jabatan
-                    </h3>
+                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Organisasi & Jabatan</h3>
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Nama Posisi *</label>
-                        <input type="text" name="position_title" required value={formData.position_title} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Fullstack Developer" />
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Nama Posisi *</label>
+                        <input type="text" name="position_title" required value={formData.position_title} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Divisi</label>
-                          <input type="text" name="division" value={formData.division} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Technology" />
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Divisi</label>
+                          <input type="text" name="division" value={formData.division} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Department *</label>
-                          <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. IT" />
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Department *</label>
+                          <input type="text" name="department" required value={formData.department} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                       </div>
                     </div>
@@ -340,293 +216,115 @@ export default function ManpowerPage() {
 
                   {/* BLOK 2 */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Karir & Lokasi
-                    </h3>
+                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Karir & Tingkat</h3>
                     <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Level *</label>
-                          <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. Staff" />
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Level</label>
+                          <input type="text" name="level" required value={formData.level} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Grade *</label>
-                          <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="e.g. 2A" />
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Grade *</label>
+                          <input type="text" name="grade" required value={formData.grade} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Lokasi Kerja</label>
-                        <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none text-sm transition-all shadow-sm" placeholder="Otomatis Makassar jika kosong" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-indigo-600 mb-1.5 uppercase">Tingkat (0,1,2) *</label>
+                          <input type="number" name="tingkat" required value={formData.tingkat} onChange={handleChange} className="w-full px-4 py-2.5 bg-indigo-50/50 border border-indigo-200 rounded-xl outline-none text-sm shadow-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Lokasi</label>
+                          <input type="text" name="work_location" value={formData.work_location} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm" />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <button type="submit" disabled={loading} className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-800 transition-all shadow-md hover:shadow-lg disabled:opacity-70 flex items-center justify-center gap-2 mt-2">
+                  {/* BLOK 3 */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Rantai Komando & Managerial</h3>
+                    <div className="space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase">Atasan (Reports To)</label>
+                        <select name="reports_to_id" value={formData.reports_to_id} onChange={handleChange} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-sm shadow-sm">
+                          <option value="">-- Puncak / Tanpa Atasan --</option>
+                          {allPositions.map(pos => <option key={pos.id} value={pos.id}>[{pos.department}] {pos.position_title}</option>)}
+                        </select>
+                      </div>
+                      <div className="pt-3 border-t border-slate-200">
+                        <p className="text-[11px] font-bold text-slate-700 mb-3 uppercase">Khusus Managerial (Opsional):</p>
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Tk. Managerial</label>
+                            <input type="number" name="tingkat_managerial" value={formData.tingkat_managerial} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Tk. Divisi</label>
+                            <input type="number" name="tingkat_divisi" value={formData.tingkat_divisi} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-slate-500 mb-1 uppercase">Pointer Divisi</label>
+                          <input type="text" name="pointer_divisi" value={formData.pointer_divisi} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" disabled={loading} className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-800 transition-all flex justify-center items-center">
                     {loading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div> : 'Simpan Formasi'}
                   </button>
                 </form>
               </div>
             </div>
 
-            {/* KOLOM KANAN: Tabel Data */}
+            {/* --- TABEL KANAN --- */}
             <div className="xl:col-span-8 w-full min-w-0 flex flex-col gap-6">
               <div className="bg-white shadow-lg shadow-slate-200/50 rounded-2xl border border-slate-200/60 flex flex-col relative overflow-hidden">
-                
-                {tableLoading && (
-                  <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20 flex items-center justify-center rounded-2xl">
-                    <div className="flex flex-col items-center gap-3 bg-white p-4 rounded-2xl shadow-xl border border-slate-100">
-                      <div className="animate-spin w-8 h-8 border-4 border-teal-100 border-t-teal-600 rounded-full"></div>
-                      <span className="text-sm font-semibold text-slate-600">Memuat data...</span>
-                    </div>
-                  </div>
-                )}
+                {tableLoading && <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-20 flex justify-center items-center"><div className="animate-spin w-8 h-8 border-4 border-teal-100 border-t-teal-600 rounded-full"></div></div>}
 
-                {/* ── Controls & Filters Header ── */}
                 <div className="p-5 md:p-6 border-b border-slate-100 bg-white space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div>
-                      <h2 className="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
-                        Daftar Seluruh Formasi
-                      </h2>
-                      <p className="text-sm text-slate-500 mt-1">Kelola dan pantau seluruh slot posisi yang tersedia di perusahaan.</p>
+                      <h2 className="text-xl font-bold text-slate-900">Daftar Formasi Kosong</h2>
+                      <p className="text-sm text-slate-500">Kelola slot formasi yang belum terisi.</p>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <Link 
-                        href="/manpower/org-chart" 
-                        className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm"
-                      >
-                        <Network size={16} className="text-indigo-500" />
-                        <span className="hidden sm:inline">Org Chart</span>
-                      </Link>
-
-                      <div className="bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-2 shadow-sm">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        {totalItems} Formasi
-                      </div>
-                    </div>
+                    <Link href="/manpower/org-chart" className="flex items-center gap-2 bg-white border px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 shadow-sm"><Network size={16} className="text-indigo-500" /> Lihat Org Chart</Link>
                   </div>
-
-                  {/* Search Bar & Toggles */}
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <div className="relative flex-1 group">
-                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-                      <input 
-                        type="text" placeholder="Cari posisi atau departemen..." 
-                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
-                        value={query.search} onChange={e => updateQuery({ search: e.target.value, page: 1 })}
-                      />
-                      {query.search && (
-                        <button onClick={() => updateQuery({ search: '', page: 1 })} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-200 rounded-full p-1 transition-colors">
-                          <X size={12} />
-                        </button>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`px-4 py-2.5 border rounded-xl text-sm font-semibold flex items-center gap-2 transition-all ${showFilters || query.department || query.level ? 'bg-teal-50 border-teal-200 text-teal-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
-                      >
-                        <Filter size={16} /> <span className="hidden sm:inline">Filter</span>
-                        {(query.department || query.level) && <span className="w-4 h-4 rounded-full bg-teal-500 text-white text-[10px] flex items-center justify-center font-bold">!</span>}
-                      </button>
-
-                      <select 
-                        className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm font-semibold text-slate-700 cursor-pointer"
-                        value={query.pageSize} onChange={e => updateQuery({ pageSize: Number(e.target.value), page: 1 })}
-                      >
-                        <option value={5}>5 Baris</option>
-                        <option value={10}>10 Baris</option>
-                        <option value={25}>25 Baris</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Filter Dropdowns */}
-                  {showFilters && (
-                    <div className="pt-4 pb-1 border-t border-slate-100 flex flex-col sm:flex-row flex-wrap gap-4 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex-1 min-w-[200px]">
-                        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wider">Department</label>
-                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.department} onChange={e => updateQuery({ department: e.target.value, page: 1 })}>
-                          <option value="">Semua Department</option>
-                          {filterOptions.departments.map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex-1 min-w-[200px]">
-                        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wider">Level</label>
-                        <select className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all shadow-sm" value={query.level} onChange={e => updateQuery({ level: e.target.value, page: 1 })}>
-                          <option value="">Semua Level</option>
-                          {filterOptions.levels.map(l => <option key={l} value={l}>{l}</option>)}
-                        </select>
-                      </div>
-                      {(query.department || query.level) && (
-                        <div className="flex items-end pb-1.5 w-full sm:w-auto mt-2 sm:mt-0">
-                          <button onClick={() => updateQuery({ department: '', level: '', page: 1 })} className="text-xs text-red-600 font-semibold hover:text-red-700 hover:bg-red-50 px-4 py-2.5 rounded-xl border border-red-100 transition-colors flex items-center justify-center gap-1.5 w-full sm:w-auto">
-                            <X size={14} /> Reset Filter
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
                 
-                {/* ── Area Tabel ── */}
                 <div className="w-full overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[800px]">
-                    <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-sm border-b border-slate-200">
+                    <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
-                        <th onClick={() => handleSort('position_title')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-2/6">
-                          <div className="flex items-center gap-2">
-                            Posisi
-                            {query.sortBy === 'position_title' ? (
-                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-slate-800"/> : <ChevronDown size={14} className="text-slate-800"/>
-                            ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
-                          </div>
-                        </th>
-                        <th onClick={() => handleSort('level')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-1/6">
-                          <div className="flex items-center gap-2">
-                            Level & Grade
-                            {query.sortBy === 'level' ? (
-                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-slate-800"/> : <ChevronDown size={14} className="text-slate-800"/>
-                            ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
-                          </div>
-                        </th>
-                        <th onClick={() => handleSort('department')} className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider cursor-pointer hover:bg-slate-100/80 transition-colors select-none w-1/6">
-                          <div className="flex items-center gap-2">
-                            Departemen
-                            {query.sortBy === 'department' ? (
-                              query.sortDir === 'asc' ? <ChevronUp size={14} className="text-slate-800"/> : <ChevronDown size={14} className="text-slate-800"/>
-                            ) : <ChevronsUpDown size={14} className="text-slate-300"/>}
-                          </div>
-                        </th>
-                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none w-1/6">
-                          Lokasi
-                        </th>
-                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase tracking-wider select-none text-center w-[10%]">
-                          Kebutuhan
-                        </th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase w-2/6">Posisi</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase w-1/6">Level & Tingkat</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase w-1/6">Departemen</th>
+                        <th className="px-6 py-4 font-bold text-slate-600 text-xs uppercase text-center w-[15%]">Aksi</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white">
-                      {vacantSlots.length > 0 ? (
-                        vacantSlots.map((slot) => (
-                          <tr key={slot.id} className="hover:bg-slate-50/80 transition-colors group">
-                            <td className="px-6 py-4 align-top">
-                              <p className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors cursor-pointer line-clamp-2">
-                                {slot.position_title}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1.5">
-                                <span className="text-[10px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                                  ID: {slot.id}
-                                </span>
-                                {slot.division && (
-                                  <span className="text-[11px] text-slate-500 font-medium line-clamp-1">
-                                    • {slot.division}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 align-top">
-                              <div className="flex flex-col gap-1.5 items-start">
-                                <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md tracking-wide whitespace-nowrap">
-                                  {slot.level}
-                                </span>
-                                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-mono whitespace-nowrap">
-                                  Grade: {slot.grade}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 align-top">
-                              <span className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-teal-400 transition-colors flex-shrink-0"></span>
-                                <span className="line-clamp-2">{slot.department}</span>
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 align-top">
-                              <div className="flex items-center gap-1.5 text-slate-500 text-sm">
-                                <MapPin size={14} className="text-slate-400 flex-shrink-0" /> 
-                                <span className="line-clamp-2">{slot.work_location || 'Kantor Pusat - Makassar'}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 align-top text-center">
-                              {/* --- TOMBOL ISI SLOT KETIKA KOSONG --- */}
-                              {slot.employee_count === 0 || !slot.employee_count ? (
-                                <button 
-                                  onClick={() => handleOpenAssignModal(slot.id, slot.position_title)}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold transition-all border border-indigo-200 shadow-sm"
-                                >
-                                  <User size={14} /> Isi Slot
-                                </button>
-                              ) : (
-                                <div className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm" title="Kebutuhan Terisi">
-                                  {slot.employee_count} Terisi
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      ) : !tableLoading && (
-                        <tr>
-                          <td colSpan={5} className="py-20 text-center">
-                            <div className="flex flex-col items-center justify-center text-slate-400 space-y-4">
-                              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
-                                <Search size={28} className="text-slate-300" />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-bold text-slate-700">Tidak ada formasi ditemukan</h3>
-                                <p className="text-slate-500 mt-1 text-sm max-w-sm mx-auto">Coba sesuaikan kata kunci pencarian, atau reset filter yang sedang aktif.</p>
-                              </div>
-                            </div>
+                    <tbody className="divide-y divide-slate-100">
+                      {vacantSlots.length > 0 ? vacantSlots.map((slot) => (
+                        <tr key={slot.id} className="hover:bg-slate-50/80">
+                          <td className="px-6 py-4"><p className="font-bold text-slate-900">{slot.position_title}</p></td>
+                          <td className="px-6 py-4"><span className="text-[11px] font-bold bg-slate-100 px-2 py-1 rounded-md">{slot.level}</span> <br/><span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-mono mt-1 inline-block">Tk: {slot.tingkat}</span></td>
+                          <td className="px-6 py-4 text-sm font-semibold text-slate-700">{slot.department}</td>
+                          <td className="px-6 py-4 text-center">
+                            <button onClick={() => handleOpenAssignModal(slot.id, slot.position_title)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg text-xs font-bold border border-indigo-200"><User size={14} /> Isi Slot</button>
                           </td>
                         </tr>
-                      )}
+                      )) : <tr><td colSpan={4} className="py-20 text-center text-slate-500">Tidak ada formasi kosong.</td></tr>}
                     </tbody>
                   </table>
                 </div>
 
-                {/* ── Pagination Footer ── */}
                 {totalItems > 0 && (
-                  <div className="p-4 md:p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
-                    <p className="text-sm text-slate-500 text-center sm:text-left">
-                      Menampilkan <span className="font-bold text-slate-900">{Math.min((query.page - 1) * query.pageSize + 1, totalItems)}</span> - <span className="font-bold text-slate-900">{Math.min(query.page * query.pageSize, totalItems)}</span> dari <span className="font-bold text-slate-900">{totalItems}</span> data
-                    </p>
-                    
-                    <div className="flex items-center gap-1">
-                      <button 
-                        disabled={query.page === 1} 
-                        onClick={() => updateQuery({ page: query.page - 1 })} 
-                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm mr-1"
-                      >
-                        <ChevronLeft size={16} />
-                      </button>
-                      
-                      <div className="flex items-center overflow-x-auto max-w-[200px] sm:max-w-none scrollbar-hide">
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                          let pageNum = query.page;
-                          if (totalPages <= 5) pageNum = i + 1;
-                          else if (query.page <= 3) pageNum = i + 1;
-                          else if (query.page >= totalPages - 2) pageNum = totalPages - 4 + i;
-                          else pageNum = query.page - 2 + i;
-
-                          return (
-                            <button 
-                              key={pageNum} onClick={() => updateQuery({ page: pageNum })} 
-                              className={`min-w-[36px] h-9 mx-0.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center ${pageNum === query.page ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-200/50 bg-transparent'}`}
-                            >
-                              {pageNum}
-                            </button>
-                          )
-                        })}
-                      </div>
-
-                      <button 
-                        disabled={query.page === totalPages} 
-                        onClick={() => updateQuery({ page: query.page + 1 })} 
-                        className="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm ml-1"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
+                  <div className="p-4 md:p-5 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <p className="text-sm text-slate-500">Total {totalItems} data</p>
+                    <div className="flex items-center gap-2">
+                      <button disabled={query.page === 1} onClick={() => updateQuery({ page: query.page - 1 })} className="p-2 border rounded-lg bg-white disabled:opacity-50"><ChevronLeft size={16} /></button>
+                      <button disabled={query.page === totalPages} onClick={() => updateQuery({ page: query.page + 1 })} className="p-2 border rounded-lg bg-white disabled:opacity-50"><ChevronRight size={16} /></button>
                     </div>
                   </div>
                 )}
@@ -636,86 +334,37 @@ export default function ManpowerPage() {
         </main>
       </div>
 
-      {/* --- MODAL ASSIGN KARYAWAN & KANDIDAT --- */}
+      {/* --- MODAL ASSIGN --- */}
       {isAssignModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            
-            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/80">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <User size={18} className="text-indigo-600" />
-                Isi Slot Formasi
-              </h3>
-              <button onClick={() => setIsAssignModalOpen(false)} className="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg transition-colors">
-                <X size={18} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-5 border-b flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold flex items-center gap-2"><User size={18} className="text-indigo-600" /> Isi Slot Formasi</h3>
+              <button onClick={() => setIsAssignModalOpen(false)} className="text-slate-400 hover:bg-slate-200 rounded p-1"><X size={18} /></button>
             </div>
-
             <form onSubmit={handleAssignSubmit} className="p-6 space-y-5">
-              <div className="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl">
-                <p className="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">Formasi Tujuan</p>
+              <div className="bg-indigo-50 p-4 rounded-xl">
+                <p className="text-xs text-slate-500 font-semibold mb-1 uppercase">Formasi Tujuan</p>
                 <p className="font-bold text-slate-800">{selectedManpowerTitle}</p>
               </div>
-
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Orang *</label>
-                <select 
-                  required
-                  value={selectedPerson} 
-                  onChange={(e) => setSelectedPerson(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm transition-all shadow-sm"
-                >
-                  <option value="" disabled>-- Pilih Karyawan atau Kandidat --</option>
-                  
-                  {availablePersons.employees.length > 0 && (
-                    <optgroup label="🏢 Karyawan Internal (Tanpa Jabatan)">
-                      {availablePersons.employees.map(emp => (
-                        <option key={`emp-${emp.id}`} value={`employee|${emp.id}`}>
-                          {emp.name} (Karyawan)
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-
-                  {availablePersons.candidates.length > 0 && (
-                    <optgroup label="📝 Kandidat Pelamar">
-                      {availablePersons.candidates.map(cand => (
-                        <option key={`cand-${cand.id}`} value={`candidate|${cand.id}`}>
-                          {cand.name} (Kandidat)
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
+                <label className="block text-sm font-semibold mb-2">Pilih Orang *</label>
+                <select required value={selectedPerson} onChange={(e) => setSelectedPerson(e.target.value)} className="w-full px-4 py-3 border rounded-xl text-sm">
+                  <option value="" disabled>-- Pilih Karyawan/Kandidat --</option>
+                  {availablePersons.employees.length > 0 && <optgroup label="🏢 Karyawan Internal">{availablePersons.employees.map(emp => <option key={emp.id} value={`employee|${emp.id}`}>{emp.name}</option>)}</optgroup>}
+                  {availablePersons.candidates.length > 0 && <optgroup label="📝 Kandidat Pelamar">{availablePersons.candidates.map(cand => <option key={cand.id} value={`candidate|${cand.id}`}>{cand.name}</option>)}</optgroup>}
                 </select>
-
-                {(availablePersons.employees.length === 0 && availablePersons.candidates.length === 0) && (
-                  <p className="text-xs text-red-500 mt-2 font-medium">
-                    Tidak ada Kandidat maupun Karyawan yang tersedia saat ini.
-                  </p>
-                )}
-                
-                {selectedPerson.includes('candidate') && (
-                  <p className="text-[11px] text-teal-600 mt-2 flex items-center gap-1 bg-teal-50 p-2 rounded-lg border border-teal-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block animate-pulse"></span>
-                    Kandidat terpilih akan otomatis diangkat menjadi Karyawan!
-                  </p>
-                )}
               </div>
-
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={() => setIsAssignModalOpen(false)} className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-colors">
-                  Batal
-                </button>
-                <button type="submit" disabled={assignLoading || !selectedPerson} className="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-md flex justify-center items-center">
-                  {assignLoading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div> : 'Simpan Posisi'}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsAssignModalOpen(false)} className="flex-1 py-2.5 border rounded-xl font-semibold">Batal</button>
+                <button type="submit" disabled={assignLoading || !selectedPerson} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold flex justify-center items-center">
+                  {assignLoading ? <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full"></div> : 'Simpan'}
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
-
     </div>
   )
 }

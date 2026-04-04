@@ -22,15 +22,105 @@ def restrict_access_by_role():
     claims = get_jwt()
     role = claims.get("role")
     
-    allowed_roles = ["HR", "SUPER_USER", "HO"] 
+    allowed_roles = ["HR", "SUPER_USER", "HO", "USER"] # Sesuaikan "USER" jika manager biasa boleh akses
     if role not in allowed_roles:
         return jsonify({"status": 403, "message": f"Akses ditolak untuk role: {role}"}), 403
 
-# ==========================================
-# ENDPOINTS MANPOWER
-# ==========================================
 
-# 1. Ambil slot Manpower dengan Paginasi, Search, Filter & Sort
+# ==========================================
+# 1. Ambil SEMUA slot Manpower (Org Chart & Dropdown) - DENGAN RLS
+# ==========================================
+@manpower_bp.route('/all', methods=['GET'])
+def get_all_manpower():
+    try:
+        claims = get_jwt()
+        role = claims.get("role")
+        user_department = claims.get("department") # Pastikan payload JWT Anda menyimpan data department
+        
+        query = Manpower.query
+        
+        # RLS (Row-Level Security): Isolasi Departemen
+        # Jika bukan Super User / HR / HO, mereka hanya boleh melihat departemen mereka sendiri
+        if role not in ["SUPER_USER", "HR", "HO"]:
+            if user_department:
+                query = query.filter(
+                    or_(
+                        Manpower.department == user_department,
+                        Manpower.pointer_divisi == user_department # Jika dia manajer yang menunjuk ke divisi/dept ini
+                    )
+                )
+            else:
+                return jsonify([]), 200 # Kembalikan kosong jika tidak punya departemen
+                
+        slots = query.order_by(desc(Manpower.id)).all()
+        return jsonify([slot.to_dict() for slot in slots]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ==========================================
+# 2. Tambah Data Manpower Baru (Validasi Atasan & Bawahan)
+# ==========================================
+@manpower_bp.route('/', methods=['POST'])
+def create_manpower():
+    data = request.json
+    position_title = data.get('position_title')
+    department = data.get('department')
+    
+    if not position_title or not department:
+        return jsonify({"error": "Position Title dan Department wajib diisi"}), 400
+
+    # VALIDASI TINGKAT: Bawahan tidak boleh lebih tinggi / sejajar dengan Bos
+    reports_to_id = data.get('reports_to_id')
+    tingkat_bawahan = int(data.get('tingkat', 99))
+    
+    if reports_to_id:
+        boss = Manpower.query.get(reports_to_id)
+        if boss:
+            tingkat_bos = boss.tingkat
+            
+            # Jika bos adalah manajer dan dia sedang berada di ranah divisi, pakai tingkat divisinya
+            if boss.tingkat_divisi is not None:
+                tingkat_bos = boss.tingkat_divisi
+                
+            # Semakin kecil angka tingkat, semakin tinggi posisinya (0 = Top, 1 = Bawahnya)
+            if tingkat_bawahan <= tingkat_bos:
+                return jsonify({
+                    "error": f"Tingkat bawahan ({tingkat_bawahan}) tidak boleh lebih tinggi atau sama dengan Bosnya ({tingkat_bos})!"
+                }), 400
+
+    try:
+        new_slot = Manpower(
+            position_title=position_title,
+            level=data.get('level', '-'),
+            tingkat=tingkat_bawahan,
+            grade=data.get('grade', '-'),
+            division=data.get('division', 'General'), 
+            department=department,
+            section=data.get('section', ''), 
+            work_location=data.get('work_location', 'Kantor Pusat - Makassar'),
+            local_non_local=data.get('local_non_local', 'Local'),
+            
+            # Relasi Atasan (Skip-Level Line)
+            reports_to_id=reports_to_id,
+            
+            # 3 Kolom Khusus Managerial
+            tingkat_managerial=data.get('tingkat_managerial'),
+            tingkat_divisi=data.get('tingkat_divisi'),
+            pointer_divisi=data.get('pointer_divisi')
+        )
+        db.session.add(new_slot)
+        db.session.commit()
+        return jsonify({"message": "Formasi berhasil ditambahkan!", "data": new_slot.to_dict()}), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Gagal menyimpan data: {str(e)}"}), 500
+
+
+# ==========================================
+# 3. Ambil slot Manpower dengan Paginasi & Search (Untuk Tabel HR)
+# ==========================================
 @manpower_bp.route('/vacant', methods=['GET'])
 def get_vacant_manpower():
     try:
@@ -38,7 +128,6 @@ def get_vacant_manpower():
         page_size = request.args.get('page_size', 10, type=int)
         search = request.args.get('search', '', type=str)
         department = request.args.get('department', '', type=str)
-        level = request.args.get('level', '', type=str)
         sort_by = request.args.get('sort_by', 'id', type=str)
         sort_dir = request.args.get('sort_dir', 'desc', type=str)
 
@@ -55,8 +144,6 @@ def get_vacant_manpower():
 
         if department:
             query = query.filter(Manpower.department == department)
-        if level:
-            query = query.filter(Manpower.level == level)
 
         if hasattr(Manpower, sort_by):
             sort_column = getattr(Manpower, sort_by)
@@ -81,44 +168,6 @@ def get_vacant_manpower():
         return jsonify({"error": f"Terjadi kesalahan sistem: {str(e)}"}), 500
 
 
-# 2. Tambah Data Manpower Baru dengan struktur hierarki lengkap
-@manpower_bp.route('/', methods=['POST'])
-def create_manpower():
-    data = request.json
-    position_title = data.get('position_title')
-    department = data.get('department')
-    
-    if not position_title or not department:
-        return jsonify({"error": "Position Title dan Department wajib diisi"}), 400
-
-    try:
-        new_slot = Manpower(
-            position_title=position_title,
-            level=data.get('level', '-'),
-            grade=data.get('grade', '-'),
-            division=data.get('division', 'General'), 
-            department=department,
-            section=data.get('section', ''), 
-            work_location=data.get('work_location', 'Kantor Pusat - Makassar'),
-            local_non_local=data.get('local_non_local', 'Local')
-        )
-        db.session.add(new_slot)
-        db.session.commit()
-        return jsonify({"message": "Formasi berhasil ditambahkan!", "data": new_slot.to_dict()}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": f"Gagal menyimpan data: {str(e)}"}), 500
-
-
-# 3. Ambil SEMUA slot Manpower untuk Org Chart & Filter Dropdown
-@manpower_bp.route('/all', methods=['GET'])
-def get_all_manpower():
-    try:
-        slots = Manpower.query.order_by(desc(Manpower.id)).all()
-        return jsonify([slot.to_dict() for slot in slots]), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
 # ==========================================
 # 4. Ambil Daftar Karyawan Kosong & Kandidat
 # ==========================================
@@ -146,7 +195,7 @@ def get_available_persons():
 
 
 # ==========================================
-# 5. Assign Karyawan / Ubah Kandidat Jadi Karyawan
+# 5. Assign Karyawan / Ubah Kandidat Jadi Karyawan ke Posisi
 # ==========================================
 @manpower_bp.route('/<int:manpower_id>/assign', methods=['POST'])
 def assign_manpower(manpower_id):
@@ -160,17 +209,16 @@ def assign_manpower(manpower_id):
         
     try:
         if person_type == "employee":
-            # Jika yang dipilih adalah Karyawan, cukup update manpower_id-nya
+            # Update karyawan yang sudah ada
             emp = Employee.query.get(person_id)
             if not emp: return jsonify({"error": "Karyawan tidak ditemukan"}), 404
             emp.manpower_id = manpower_id
             
         elif person_type == "candidate":
-            # Jika yang dipilih adalah Kandidat, KITA JADIKAN KARYAWAN BARU!
+            # Kandidat dijadikan Karyawan Baru!
             cand = Candidate.query.get(person_id)
             if not cand: return jsonify({"error": "Kandidat tidak ditemukan"}), 404
             
-            # Duplikasi data dari Kandidat ke Karyawan baru
             new_emp = Employee(
                 full_name=cand.full_name,
                 email=cand.email,
@@ -191,7 +239,7 @@ def assign_manpower(manpower_id):
             )
             db.session.add(new_emp)
             
-            # (Opsional) Ubah status JobApplication kandidat tersebut menjadi "Hired"
+            # Ubah status lamaran menjadi Hired
             applications = JobApplication.query.filter_by(candidate_id=cand.id).all()
             for app in applications:
                 app.status = "Hired"
