@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation";
 import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; // <-- Import Server Actions
 import { toast } from "sonner";
 import {
@@ -38,6 +40,8 @@ import {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 // --- 1. INTERFACES ---
+
+const [evalCandidateId, setEvalCandidateId] = useState("");
 
 export interface Candidate {
   id: string;
@@ -118,7 +122,7 @@ const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
   { id: 4, name: "Subtes 4: Kondisi Titik", code: "cfit_conditions", description: "Menentukan komposisi peletakan titik", instruction: "Pilih gambar dimana posisi titik tidak berbeda komposisinya dengan gambar contoh.", optionCount: 5, questions: [] },
 ];
 
-type TabType = "test-links" | "categories" | "submissions";
+type TabType = "test-links" | "categories" | "submissions" | "evaluation";
 
 // --- FUNGSI INTERPRETASI PAPI KOSTICK ---
 const getPapiAspectName = (aspect: string) => {
@@ -177,7 +181,7 @@ const getPapiInterpretation = (aspect: string, score: number) => {
 
 export default function TestManagementPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("categories");
   
   // Data State
@@ -816,7 +820,8 @@ export default function TestManagementPage() {
                {[
                  { id: "categories", label: "Soal & Kategori" },
                  { id: "test-links", label: "Link Tes Aktif" },
-                 { id: "submissions", label: "Hasil Submission" }
+                 { id: "submissions", label: "Hasil Submission" },
+                 { id: "evaluation", label: "Form Penilaian" }
                ].map((tab) => (
                  <button
                    key={tab.id}
@@ -1290,6 +1295,43 @@ export default function TestManagementPage() {
                      <div className="p-8 text-center text-[var(--secondary)] bg-[var(--secondary-50)] rounded-xl border border-dashed border-[var(--secondary-200)]">Belum ada data submission.</div>
                  )}
               </div>
+            </div>
+          )}
+          {/* === TAB 4: FORM PENILAIAN === */}
+          {activeTab === "evaluation" && (
+            <div className="space-y-6">
+              {/* Box Pemilihan Kandidat */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)]">
+                <h3 className="font-bold text-[var(--primary-900)] mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-[var(--primary)]" />
+                  Pilih Kandidat untuk Dinilai
+                </h3>
+                <select
+                  value={evalCandidateId}
+                  onChange={(e) => setEvalCandidateId(e.target.value)}
+                  className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white font-medium"
+                >
+                  <option value="">-- Pilih Kandidat --</option>
+                  {candidatesList.map(c => (
+                    <option key={c.id} value={c.id}>{c.fullName}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Render Komponen Form Penilaian jika kandidat sudah dipilih */}
+              {evalCandidateId ? (
+                <CandidateEvaluation 
+                  candidateId={evalCandidateId}
+                  candidateName={candidatesList.find(c => c.id === evalCandidateId)?.fullName || "Unknown"}
+                  // Sekarang TypeScript mengenali user.role dengan benar
+                  currentUserRole={user?.role || "HR"} 
+                />
+              ) : (
+                <div className="p-10 text-center bg-white rounded-2xl border border-dashed border-[var(--secondary-300)] text-[var(--secondary-500)] flex flex-col items-center justify-center">
+                  <FileCheck className="w-12 h-12 mb-3 text-[var(--secondary-200)]" />
+                  <p className="font-medium">Silakan pilih kandidat dari dropdown di atas untuk mulai memberikan penilaian.</p>
+                </div>
+              )}
             </div>
           )}
 

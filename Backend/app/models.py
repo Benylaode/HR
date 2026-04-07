@@ -220,6 +220,8 @@ class Candidate(db.Model, ProfileMixin):
     resume = db.relationship("Resume", back_populates="candidate")
     test_link = db.relationship("TestLink", back_populates="candidate", uselist=False, cascade="all, delete-orphan")
     applications = db.relationship("JobApplication", back_populates="candidate", cascade="all, delete-orphan")
+    # Di dalam class Candidate, tambahkan:
+    evaluations = db.relationship("InterviewEvaluation", backref="candidate_info", cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -458,4 +460,64 @@ class ATARequest(db.Model):
                 "HO": self.ho_status
             },
             "created_at": format_date(self.created_at)
+        }
+    
+# ==========================================
+# 7. INTERVIEW EVALUATION (HR & USER)
+# ==========================================
+class InterviewEvaluation(db.Model):
+    __tablename__ = 'interview_evaluations'
+
+    # Menggunakan string untuk UUID agar konsisten dengan Candidate dan User
+    id = db.Column(db.String, primary_key=True, default=uuid_str)
+    candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), nullable=False)
+    
+    # Opsional: Bisa diisi ID user yang login (HR/User), atau cukup namanya saja
+    evaluator_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=True) 
+    evaluator_name = db.Column(db.String(100), nullable=True)
+    
+    # 'HR', 'USER_1', 'USER_2' -> Ini untuk membatasi kuota
+    role_type = db.Column(db.String(20), nullable=False) 
+    stage = db.Column(db.String(50), default="Interview")
+    overall_notes = db.Column(db.Text, nullable=True)
+    total_score = db.Column(db.Float, default=0.0)
+    status = db.Column(db.String(20), default='DRAFT') # DRAFT atau SUBMITTED
+    
+    created_at = db.Column(db.DateTime, default=now_utc)
+    updated_at = db.Column(db.DateTime, default=now_utc, onupdate=now_utc)
+    
+    # Relationship ke tabel detail nilai
+    scores = db.relationship('EvaluationScore', backref='evaluation', lazy=True, cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "candidate_id": self.candidate_id,
+            "evaluator_name": self.evaluator_name,
+            "role_type": self.role_type,
+            "overall_notes": self.overall_notes,
+            "total_score": self.total_score,
+            "status": self.status,
+            "updated_at": format_date(self.updated_at),
+            "scores": [s.to_dict() for s in self.scores]
+        }
+
+class EvaluationScore(db.Model):
+    __tablename__ = 'evaluation_scores'
+
+    id = db.Column(db.Integer, primary_key=True)
+    # FK mengarah ke id string milik InterviewEvaluation
+    evaluation_id = db.Column(db.String, db.ForeignKey('interview_evaluations.id'), nullable=False)
+    category = db.Column(db.String(50), nullable=False) # 'COMPETENCY' atau 'BEHAVIOR'
+    criteria_name = db.Column(db.String(100), nullable=False)
+    score = db.Column(db.Integer, nullable=False)
+    notes = db.Column(db.Text, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "category": self.category,
+            "criteria_name": self.criteria_name,
+            "score": self.score,
+            "notes": self.notes
         }

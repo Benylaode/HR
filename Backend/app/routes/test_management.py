@@ -3,7 +3,8 @@ from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 from app import db
 from app.models import (
     PapiQuestion, CfitQuestion, KraepelinConfig, 
-    PapiScoringMap, CfitNorma, TestSubmission, TestLink, Candidate, Employee
+    PapiScoringMap, CfitNorma, TestSubmission, TestLink, Candidate, Employee,
+    InterviewEvaluation, EvaluationScore
 )
 from sqlalchemy.exc import IntegrityError
 import numpy as np
@@ -545,6 +546,74 @@ def seed_cfit_questions():
             
         db.session.commit()
         return jsonify({"message": f"Berhasil seed {len(data)} soal CFIT"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+# ==========================================
+# ENDPOINT PENILAIAN WAWANCARA (HR & USER)
+# ==========================================
+
+@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["GET"])
+def get_evaluations(candidate_id):
+    """Mengambil semua form penilaian untuk satu kandidat"""
+    evaluations = InterviewEvaluation.query.filter_by(candidate_id=candidate_id).all()
+    return jsonify([e.to_dict() for e in evaluations])
+
+@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["POST"])
+def save_evaluation(candidate_id):
+    """Menyimpan atau mengupdate form penilaian HR/User"""
+    data = request.get_json()
+    
+    # role_type sangat penting: harus 'HR', 'USER_1', atau 'USER_2'
+    role_type = data.get("role_type") 
+    if not role_type:
+        return jsonify({"error": "role_type harus diisi (HR / USER_1 / USER_2)"}), 400
+
+    # Cek apakah form dengan role tersebut sudah ada untuk kandidat ini
+    evaluation = InterviewEvaluation.query.filter_by(candidate_id=candidate_id, role_type=role_type).first()
+    
+    # Jika belum ada, buat form baru
+    if not evaluation:
+        evaluation = InterviewEvaluation(candidate_id=candidate_id, role_type=role_type)
+        db.session.add(evaluation)
+        db.session.flush() # Mendapatkan ID untuk tabel scores
+    
+    # Update data utama form
+    evaluation.evaluator_name = data.get("evaluator_name", "Unknown Assessor")
+    evaluation.overall_notes = data.get("overall_notes", "")
+    evaluation.status = data.get("status", "SUBMITTED") # DRAFT atau SUBMITTED
+    
+    # Hapus scores lama jika ini adalah proses update (Replace with new scores)
+    if evaluation.id:
+        EvaluationScore.query.filter_by(evaluation_id=evaluation.id).delete()
+    
+    # Simpan detail nilai
+    scores_data = data.get("scores", [])
+    total_score = 0
+    
+    for s in scores_data:
+        score_val = float(s.get("score", 0))
+        total_score += score_val
+        
+        score_entry = EvaluationScore(
+            evaluation_id=evaluation.id,
+            category=s.get("category"),          # COMPETENCY / BEHAVIOR
+            criteria_name=s.get("criteria_name"), # Misal: "Problem Solving"
+            score=score_val,
+            notes=s.get("notes", "")
+        )
+        db.session.add(score_entry)
+    
+    # Simpan total nilai ke tabel master
+    evaluation.total_score = total_score
+    
+    try:
+        db.session.commit()
+        return jsonify({
+            "message": f"Penilaian {role_type} berhasil disimpan", 
+            "data": evaluation.to_dict()
+        }), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
