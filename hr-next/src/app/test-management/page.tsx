@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation";
-import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; // <-- Import Server Actions
+import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; 
 import { toast } from "sonner";
+import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation"; // <-- Import Komponen Form
 import {
   CheckCircle,
   Plus,
@@ -40,8 +39,6 @@ import {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 // --- 1. INTERFACES ---
-
-const [evalCandidateId, setEvalCandidateId] = useState("");
 
 export interface Candidate {
   id: string;
@@ -122,31 +119,13 @@ const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
   { id: 4, name: "Subtes 4: Kondisi Titik", code: "cfit_conditions", description: "Menentukan komposisi peletakan titik", instruction: "Pilih gambar dimana posisi titik tidak berbeda komposisinya dengan gambar contoh.", optionCount: 5, questions: [] },
 ];
 
+// DITAMBAHKAN "evaluation" KE DALAM TAB TYPE
 type TabType = "test-links" | "categories" | "submissions" | "evaluation";
 
 // --- FUNGSI INTERPRETASI PAPI KOSTICK ---
 const getPapiAspectName = (aspect: string) => {
   const names: Record<string, string> = {
-      G: "Hard Intense Worked (Pekerja Keras)",
-      L: "Leadership Role (Peran Kepemimpinan)",
-      I: "Ease in Decision Making (Pembuat Keputusan)",
-      T: "Pace (Tingkat Kecepatan/Sibuk)",
-      V: "Vigorous Type (Aktif & Penuh Semangat)",
-      S: "Social Extension (Perluasan Sosial)",
-      R: "Theoretical Type (Tipe Teoritis)",
-      D: "Interest in Details (Bekerja Detail)",
-      C: "Organized Type (Keteraturan)",
-      E: "Emotional Resistant (Daya Tahan Emosi)",
-      N: "Need to Finish Task (Penyelesaian Tugas)",
-      A: "Need to Achieve (Kebutuhan Berprestasi)",
-      P: "Need to Control Others (Kebutuhan Mengontrol)",
-      X: "Need to be Noticed (Kebutuhan Diperhatikan)",
-      B: "Need to Belong to Groups (Kebutuhan Diterima Kelompok)",
-      O: "Need for Closeness (Kebutuhan Kedekatan & Kasih Sayang)",
-      Z: "Need for Change (Kebutuhan Akan Perubahan)",
-      K: "Need to be Forceful (Kebutuhan Bertindak Tegas/Agresif)",
-      F: "Need to Support Authority (Kebutuhan Mendukung Otoritas)",
-      W: "Need for Rules & Supervision (Kebutuhan Aturan & Arahan)"
+      G: "Hard Intense Worked (Pekerja Keras)", L: "Leadership Role (Peran Kepemimpinan)", I: "Ease in Decision Making (Pembuat Keputusan)", T: "Pace (Tingkat Kecepatan/Sibuk)", V: "Vigorous Type (Aktif & Penuh Semangat)", S: "Social Extension (Perluasan Sosial)", R: "Theoretical Type (Tipe Teoritis)", D: "Interest in Details (Bekerja Detail)", C: "Organized Type (Keteraturan)", E: "Emotional Resistant (Daya Tahan Emosi)", N: "Need to Finish Task (Penyelesaian Tugas)", A: "Need to Achieve (Kebutuhan Berprestasi)", P: "Need to Control Others (Kebutuhan Mengontrol)", X: "Need to be Noticed (Kebutuhan Diperhatikan)", B: "Need to Belong to Groups (Kebutuhan Diterima Kelompok)", O: "Need for Closeness (Kebutuhan Kedekatan & Kasih Sayang)", Z: "Need for Change (Kebutuhan Akan Perubahan)", K: "Need to be Forceful (Kebutuhan Bertindak Tegas/Agresif)", F: "Need to Support Authority (Kebutuhan Mendukung Otoritas)", W: "Need for Rules & Supervision (Kebutuhan Aturan & Arahan)"
   };
   return names[aspect] || aspect;
 };
@@ -181,8 +160,14 @@ const getPapiInterpretation = (aspect: string, score: number) => {
 
 export default function TestManagementPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  
+  // TIPE USER DIPERBAIKI (Ditambahkan role: string)
+  const [user, setUser] = useState<{ name: string; role?: string } | null>(null);
+  
   const [activeTab, setActiveTab] = useState<TabType>("categories");
+  
+  // STATE KANDIDAT UNTUK FORM EVALUASI (Ditaruh di paling atas, sejajar dg hook lain)
+  const [evalCandidateId, setEvalCandidateId] = useState("");
   
   // Data State
   const [localCategories, setLocalCategories] = useState<Category[]>(STATIC_CATEGORIES);
@@ -192,11 +177,11 @@ export default function TestManagementPage() {
   
   // Candidates, Karyawan & Jobs List for Dropdown
   const [candidatesList, setCandidatesList] = useState<Candidate[]>([]);
-  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]); // Data Karyawan
+  const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
   const [jobsList, setJobsList] = useState<JobPosition[]>([]);
   
   // Form State
-  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate"); // Tipe Peserta
+  const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate");
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [selectedKaryawanId, setSelectedKaryawanId] = useState("");
   const [selectedJobId, setSelectedJobId] = useState(""); 
@@ -214,8 +199,8 @@ export default function TestManagementPage() {
 
   // Form Inputs
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State untuk file asli
-  const [correctAnswer, setCorrectAnswer] = useState<string | string[]>(""); // Mendukung array string
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [correctAnswer, setCorrectAnswer] = useState<string | string[]>("");
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
 
@@ -224,14 +209,9 @@ export default function TestManagementPage() {
   const [kraepelinTimePerColumn, setKraepelinTimePerColumn] = useState("15");
 
   const [cfitDurations, setCfitDurations] = useState({
-    sub1: "180", // 3 Menit
-    sub2: "240", // 4 Menit
-    sub3: "180", // 3 Menit
-    sub4: "150", // 2.5 Menit
+    sub1: "180", sub2: "240", sub3: "180", sub4: "150", 
   });
-  
   const [papiDuration, setPapiDuration] = useState("1800");
-
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -249,9 +229,9 @@ export default function TestManagementPage() {
       router.push("/");
       return;
     }
+    // Set User yang telah memiliki struktur role
     setUser(JSON.parse(userData));
     
-    // --- LOAD DURASI DARI JSON VIA SERVER ACTION ---
     const loadConfig = async () => {
       const config = await getTestConfig();
       if (config) {
@@ -261,12 +241,10 @@ export default function TestManagementPage() {
           sub3: String(config.cfit_sub3 || 180),
           sub4: String(config.cfit_sub4 || 150),
         });
-        setPapiDuration(String(config.papi || 1800)); // Set papi dari config JSON
+        setPapiDuration(String(config.papi || 1800));
       }
     };
     loadConfig();
-    // -----------------------------------------------
-    
     fetchData(); 
   }, [router]);
 
@@ -274,7 +252,6 @@ export default function TestManagementPage() {
 
   const fetchData = async () => {
     try {
-      // Tambah cache: 'no-store' agar Next.js tidak nge-cache data lama
       const fetchOptions: RequestInit = { headers: getAuthHeaders(), cache: "no-store" };
 
       const resLinks = await fetch(`${API_BASE_URL}/management/links`, fetchOptions);
@@ -283,15 +260,12 @@ export default function TestManagementPage() {
       const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, fetchOptions); 
       if (resSubs.ok) setSubmissions(await resSubs.json());
 
-      // Fetch Kandidat
       const resCandidates = await fetch(`${API_BASE_URL}/candidates`, fetchOptions);
       if (resCandidates.ok) setCandidatesList(await resCandidates.json());
 
-      // Fetch Karyawan
       const resKaryawan = await fetch(`${API_BASE_URL}/employees`, fetchOptions);
       if (resKaryawan.ok) setKaryawanList(await resKaryawan.json());
       
-      // Fetch Jobs
       const resJobs = await fetch(`${API_BASE_URL}/job-positions?status=active`, fetchOptions);
       if (resJobs.ok) setJobsList(await resJobs.json());
 
@@ -365,13 +339,9 @@ export default function TestManagementPage() {
       });
       
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Gagal membuat link tes");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Gagal membuat link tes");
-      }
-
-      fetchData(); // Reload from server
-      
+      fetchData();
       setShowCreateLinkModal(false);
       setSelectedCandidateId(""); 
       setSelectedKaryawanId("");
@@ -410,7 +380,6 @@ export default function TestManagementPage() {
     });
   };
 
-  // --- MENGGUNAKAN SERVER ACTIONS UNTUK SIMPAN DURASI ---
   const handleSaveTestDuration = async () => {
     let payload = {};
 
@@ -428,9 +397,7 @@ export default function TestManagementPage() {
     }
 
     const saveTask = async () => {
-      // Panggil Server Action
       const response = await saveTestConfig(payload);
-      
       if (!response.success) throw new Error(response.error || "Gagal menyimpan konfigurasi JSON.");
       return "Pengaturan waktu berhasil disimpan secara global!";
     };
@@ -482,15 +449,9 @@ export default function TestManagementPage() {
       setIsSubmitting(true);
       const saveTask = async () => {
         const formData = new FormData();
-        
-        const headers: HeadersInit = {
-           ...(localStorage.getItem("hr_token") ? { Authorization: `Bearer ${localStorage.getItem("hr_token")}` } : {}),
-        };
+        const headers: HeadersInit = { ...(localStorage.getItem("hr_token") ? { Authorization: `Bearer ${localStorage.getItem("hr_token")}` } : {}) };
 
-        if (selectedFile) {
-            formData.append("image", selectedFile);
-        }
-        
+        if (selectedFile) formData.append("image", selectedFile);
         formData.append("subtest", String(selectedCfitSubtype?.id));
         formData.append("instruction", selectedCfitSubtype?.instruction || "");
         
@@ -502,12 +463,7 @@ export default function TestManagementPage() {
         }
         formData.append("correctAnswer", answerToSubmit);
         
-        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { 
-          method: "POST", 
-          body: formData, 
-          headers: headers 
-        });
-        
+        const res = await fetch(`${API_BASE_URL}/management/questions/cfit`, { method: "POST", body: formData, headers: headers });
         if (!res.ok) throw new Error("Gagal menyimpan soal CFIT");
         
         setShowQuestionModal(false); 
@@ -528,22 +484,13 @@ export default function TestManagementPage() {
 
   const handleDeleteQuestion = async (endpoint: 'cfit' | 'papi', id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus soal ini?")) return;
-    
     const deleteTask = async () => {
-      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { 
-        method: "DELETE", 
-        headers: getAuthHeaders() 
-      });
+      const res = await fetch(`${API_BASE_URL}/management/questions/${endpoint}/${id}`, { method: "DELETE", headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Gagal menghapus soal");
       fetchData();
       return "Soal berhasil dihapus";
     };
-
-    toast.promise(deleteTask(), {
-      loading: 'Menghapus...',
-      success: (msg) => msg,
-      error: (err) => err.message
-    });
+    toast.promise(deleteTask(), { loading: 'Menghapus...', success: (msg) => msg, error: (err) => err.message });
   };
 
   // --- UTILS ---
@@ -559,7 +506,6 @@ export default function TestManagementPage() {
 
   const getOptionLabels = (count: number) => Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
   const labelToIndex = (label: string) => label.charCodeAt(0) - 65;
-  
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -572,8 +518,6 @@ export default function TestManagementPage() {
 
   const isCfitCategory = selectedCategory?.code === "cfit";
   const isKraepelinCategory = selectedCategory?.code === "kraepelin";
-
-  // --- RENDER HELPERS FOR BEAUTIFUL SUBMISSIONS ---
 
   const getTestBadgeColor = (type: string) => {
     switch (type) {
@@ -686,11 +630,8 @@ export default function TestManagementPage() {
     </div>
   );
 
-  // --- RENDER MODAL CONTENT (DASHBOARD) ---
   const renderDetailContent = (sub: Submission) => {
-    if (!sub.scores || Object.keys(sub.scores).length === 0) {
-        return <div className="p-8 text-center text-[var(--secondary)] italic">Data hasil belum diproses atau kosong.</div>;
-    }
+    if (!sub.scores || Object.keys(sub.scores).length === 0) return <div className="p-8 text-center text-[var(--secondary)] italic">Data hasil belum diproses.</div>;
 
     if (sub.test_type === 'cfit') {
         const iq = sub.scores.iq || 0;
@@ -709,10 +650,6 @@ export default function TestManagementPage() {
                         <div className="text-xs text-[var(--secondary-500)] uppercase font-bold mb-1">Raw Score</div>
                         <div className="text-2xl font-bold text-[var(--primary-900)]">{sub.scores.raw_score} <span className="text-sm text-[var(--secondary)] font-normal">/ 50</span></div>
                     </div>
-                    <div className="p-4 border border-[var(--secondary-200)] rounded-xl bg-gray-50/50">
-                        <div className="text-xs text-[var(--secondary-500)] uppercase font-bold mb-1">Detail Jawaban</div>
-                        <div className="text-sm text-[var(--secondary-700)]">Lihat breakdown jawaban di database (JSON).</div>
-                    </div>
                 </div>
             </div>
         );
@@ -727,28 +664,14 @@ export default function TestManagementPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 border border-[var(--secondary-200)] rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Zap className="w-4 h-4 text-yellow-500"/>
-                            <span className="text-xs font-bold uppercase text-[var(--secondary-500)]">Kecepatan (Panker)</span>
-                        </div>
+                        <div className="flex items-center gap-2 mb-2"><Zap className="w-4 h-4 text-yellow-500"/><span className="text-xs font-bold uppercase text-[var(--secondary-500)]">Kecepatan (Panker)</span></div>
                         <div className="text-2xl font-bold text-[var(--primary-900)]">{sub.scores.panker}</div>
                         <div className="text-xs mt-1 text-[var(--secondary)] bg-[var(--secondary-50)] px-2 py-0.5 rounded w-fit">{sub.scores.gradeSpeed || '-'}</div>
                     </div>
                     <div className="p-4 border border-[var(--secondary-200)] rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Target className="w-4 h-4 text-green-500"/>
-                            <span className="text-xs font-bold uppercase text-[var(--secondary-500)]">Ketelitian (Janker)</span>
-                        </div>
+                        <div className="flex items-center gap-2 mb-2"><Target className="w-4 h-4 text-green-500"/><span className="text-xs font-bold uppercase text-[var(--secondary-500)]">Ketelitian (Janker)</span></div>
                         <div className="text-2xl font-bold text-[var(--primary-900)]">{sub.scores.janker}</div>
                         <div className="text-xs mt-1 text-[var(--secondary)] bg-[var(--secondary-50)] px-2 py-0.5 rounded w-fit">{sub.scores.gradeStability || '-'}</div>
-                    </div>
-                    <div className="p-4 border border-[var(--secondary-200)] rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Activity className="w-4 h-4 text-red-500"/>
-                            <span className="text-xs font-bold uppercase text-[var(--secondary-500)]">Total Errors</span>
-                        </div>
-                        <div className="text-2xl font-bold text-[var(--primary-900)]">{sub.scores.totalErrors}</div>
-                        <div className="text-xs mt-1 text-[var(--secondary)] bg-[var(--secondary-50)] px-2 py-0.5 rounded w-fit">{sub.scores.gradeAccuracy || '-'}</div>
                     </div>
                 </div>
             </div>
@@ -761,7 +684,6 @@ export default function TestManagementPage() {
             <div className="space-y-4">
                 <div className="bg-orange-50 border border-orange-100 p-5 rounded-xl mb-4">
                     <h4 className="font-bold text-orange-900 text-lg flex items-center gap-2"><CheckCircle className="w-5 h-5"/> PAPI Kostick Profile</h4>
-                    <p className="text-sm text-orange-700 mt-1">Berikut adalah interpretasi kepribadian berdasarkan skor 20 aspek (Range 0-9).</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
                     {aspects.map(([key, value]: any) => {
@@ -776,18 +698,9 @@ export default function TestManagementPage() {
                                         <span className="font-bold text-xs bg-gray-100 px-2 py-1 rounded-md text-[var(--secondary-600)]">Skor: {score}/9</span>
                                     </div>
                                     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                        <div 
-                                            className={`h-full rounded-full ${score >= 6 ? 'bg-green-500' : (score <= 3 ? 'bg-red-400' : 'bg-yellow-400')}`} 
-                                            style={{ width: `${(score / 9) * 100}%` }}
-                                        />
+                                        <div className={`h-full rounded-full ${score >= 6 ? 'bg-green-500' : (score <= 3 ? 'bg-red-400' : 'bg-yellow-400')}`} style={{ width: `${(score / 9) * 100}%` }}/>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                <p className="text-xs text-gray-700 leading-relaxed">
-                                    <span className="font-bold text-gray-500 mr-1">Interpretasi:</span> 
-                                    {getPapiInterpretation(key, score)}
-                                </p>
                             </div>
                         </div>
                     )})}
@@ -795,10 +708,8 @@ export default function TestManagementPage() {
             </div>
         );
     }
-
     return <pre className="text-xs text-[var(--secondary-600)]">{JSON.stringify(sub.scores, null, 2)}</pre>;
   };
-
 
   if (!user) return null;
 
@@ -809,19 +720,16 @@ export default function TestManagementPage() {
         
         {/* HEADER */}
         <div className="sticky top-0 z-30 bg-[var(--background)]/90 backdrop-blur-md">
-           <Header
-             title="Manajemen Test"
-             subtitle="Kelola soal, link tes, dan lihat hasil submission"
-             onRefresh={fetchData}
-           />
-           {/* Tab Navigation - Modern Pill Style */}
+           <Header title="Manajemen Test" subtitle="Kelola soal, link tes, dan lihat hasil submission" onRefresh={fetchData} />
+           
+           {/* Tab Navigation - TERMASUK TAB EVALUATION BARU */}
            <div className="px-4 md:px-8 pb-4 pt-1 flex overflow-x-auto scrollbar-hide">
              <div className="flex p-1 bg-[var(--secondary-100)] rounded-xl whitespace-nowrap">
                {[
                  { id: "categories", label: "Soal & Kategori" },
                  { id: "test-links", label: "Link Tes Aktif" },
                  { id: "submissions", label: "Hasil Submission" },
-                 { id: "evaluation", label: "Form Penilaian" }
+                 { id: "evaluation", label: "Form Penilaian" } // <-- TAB MENU BARU
                ].map((tab) => (
                  <button
                    key={tab.id}
@@ -889,8 +797,6 @@ export default function TestManagementPage() {
                     </div>
                     {!selectedCfitSubtype ? (
                       <div className="space-y-6">
-                        
-                        {/* --- PERUBAHAN UI: KONFIGURASI DURASI CFIT PER SUBTES --- */}
                         <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
                           <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                             <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes CFIT</h3>
@@ -899,81 +805,27 @@ export default function TestManagementPage() {
                           
                           <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {/* Subtes 1 */}
                               <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 1 (DETIK)
-                                </label>
-                                <input 
-                                  type="number" 
-                                  value={cfitDurations.sub1} 
-                                  onChange={e => setCfitDurations({...cfitDurations, sub1: e.target.value})} 
-                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                                />
-                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
-                                  = {(parseInt(cfitDurations.sub1 || "0") / 60).toFixed(1)} menit (Standar: 3 mnt)
-                                </p>
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> WAKTU SUBTES 1 (DETIK)</label>
+                                <input type="number" value={cfitDurations.sub1} onChange={e => setCfitDurations({...cfitDurations, sub1: e.target.value})} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" />
                               </div>
-                              
-                              {/* Subtes 2 */}
                               <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 2 (DETIK)
-                                </label>
-                                <input 
-                                  type="number" 
-                                  value={cfitDurations.sub2} 
-                                  onChange={e => setCfitDurations({...cfitDurations, sub2: e.target.value})} 
-                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                                />
-                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
-                                  = {(parseInt(cfitDurations.sub2 || "0") / 60).toFixed(1)} menit (Standar: 4 mnt)
-                                </p>
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> WAKTU SUBTES 2 (DETIK)</label>
+                                <input type="number" value={cfitDurations.sub2} onChange={e => setCfitDurations({...cfitDurations, sub2: e.target.value})} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" />
                               </div>
-
-                              {/* Subtes 3 */}
                               <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 3 (DETIK)
-                                </label>
-                                <input 
-                                  type="number" 
-                                  value={cfitDurations.sub3} 
-                                  onChange={e => setCfitDurations({...cfitDurations, sub3: e.target.value})} 
-                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                                />
-                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
-                                  = {(parseInt(cfitDurations.sub3 || "0") / 60).toFixed(1)} menit (Standar: 3 mnt)
-                                </p>
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> WAKTU SUBTES 3 (DETIK)</label>
+                                <input type="number" value={cfitDurations.sub3} onChange={e => setCfitDurations({...cfitDurations, sub3: e.target.value})} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" />
                               </div>
-
-                              {/* Subtes 4 */}
                               <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                                  <Clock className="w-3 h-3"/> WAKTU SUBTES 4 (DETIK)
-                                </label>
-                                <input 
-                                  type="number" 
-                                  value={cfitDurations.sub4} 
-                                  onChange={e => setCfitDurations({...cfitDurations, sub4: e.target.value})} 
-                                  className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                                />
-                                <p className="text-[10px] text-[var(--primary-600)] mt-2">
-                                  = {(parseInt(cfitDurations.sub4 || "0") / 60).toFixed(1)} menit (Standar: 2.5 mnt)
-                                </p>
+                                <label className="block text-[10px] font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> WAKTU SUBTES 4 (DETIK)</label>
+                                <input type="number" value={cfitDurations.sub4} onChange={e => setCfitDurations({...cfitDurations, sub4: e.target.value})} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" />
                               </div>
                             </div>
-
-                            <button 
-                              onClick={handleSaveTestDuration} 
-                              className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
-                            >
-                              <CheckCircle className="w-5 h-5" /> Simpan Durasi CFIT
-                            </button>
+                            <button onClick={handleSaveTestDuration} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"><CheckCircle className="w-5 h-5" /> Simpan Durasi CFIT</button>
                           </div>
                         </div>
 
-                        {/* Grid Subtypes */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {cfitSubtypes.map((st) => (
                           <div key={st.id} onClick={() => { setSelectedCfitSubtype(st); setCorrectAnswer(st.id === 2 ? [] : ""); }} className="bg-white p-5 rounded-xl border border-[var(--secondary-200)] hover:border-[var(--primary-300)] hover:shadow-md cursor-pointer group transition-all">
@@ -991,9 +843,7 @@ export default function TestManagementPage() {
                       <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm">
                         <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-white">
                           <div><h3 className="font-bold text-[var(--primary-900)] text-lg">{selectedCfitSubtype.name}</h3></div>
-                          <button onClick={() => setShowQuestionModal(true)} className="bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-colors shadow-sm">
-                            <Plus className="w-3 h-3 mr-2" /> Tambah Soal
-                          </button>
+                          <button onClick={() => setShowQuestionModal(true)} className="bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-colors shadow-sm"><Plus className="w-3 h-3 mr-2" /> Tambah Soal</button>
                         </div>
                         <div className="p-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                           {selectedCfitSubtype.questions.map((q, idx) => (
@@ -1003,18 +853,10 @@ export default function TestManagementPage() {
                                 <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 font-bold rounded">#{idx + 1}</div>
                                 <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] px-2 py-0.5 font-bold rounded shadow-sm">{q.correctAnswer}</div>
                               </div>
-                              <button onClick={() => handleDeleteQuestion('cfit', q.id)} className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[1px]">
-                                <div className="bg-red-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                                  <Trash2 className="w-4 h-4" />
-                                </div>
-                              </button>
+                              <button onClick={() => handleDeleteQuestion('cfit', q.id)} className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[1px]"><div className="bg-red-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform"><Trash2 className="w-4 h-4" /></div></button>
                             </div>
                           ))}
-                          {selectedCfitSubtype.questions.length === 0 && (
-                            <div className="col-span-full py-10 text-center text-[var(--secondary)] italic bg-[var(--secondary-50)] rounded-xl border border-dashed border-[var(--secondary-200)]">
-                               Belum ada soal untuk kategori ini.
-                            </div>
-                          )}
+                          {selectedCfitSubtype.questions.length === 0 && <div className="col-span-full py-10 text-center text-[var(--secondary)] italic bg-[var(--secondary-50)] rounded-xl border border-dashed border-[var(--secondary-200)]">Belum ada soal untuk kategori ini.</div>}
                         </div>
                       </div>
                     )}
@@ -1023,70 +865,29 @@ export default function TestManagementPage() {
                   <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6 space-y-6">
                     <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
                       <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Tes Kraepelin</h3>
-                      <p className="text-[var(--secondary)] text-sm">Konfigurasi parameter grid angka dan durasi perpindahan.</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                        <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">JUMLAH KOLOM</label><input type="number" value={kraepelinColumns} onChange={e => setKraepelinColumns(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)] transition-all" /></div>
                        <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">JUMLAH BARIS</label><input type="number" value={kraepelinRows} onChange={e => setKraepelinRows(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary-200)] focus:border-[var(--primary)] transition-all" /></div>
                        <div className="bg-[var(--primary-50)] p-3 rounded-xl border border-[var(--primary-100)]"><label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> DURASI PINDAH (DETIK)</label><input type="number" value={kraepelinTimePerColumn} onChange={e => setKraepelinTimePerColumn(e.target.value)} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" /></div>
                     </div>
-                    {/* Live Preview Kraepelin Grid */}
-                    <div className="bg-[#1e293b] rounded-xl p-6 border border-gray-700 mt-6 shadow-inner">
-                        <div className="flex items-center justify-between mb-4">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Preview Grid Angka</p>
-                          <span className="text-[10px] bg-[var(--primary)]/20 text-[var(--primary-300)] px-2 py-1 rounded font-mono font-bold tracking-tighter border border-[var(--primary)]/30">EST: ~{Math.ceil((parseInt(kraepelinColumns) || 0) * (parseInt(kraepelinTimePerColumn) || 0) / 60)} MENIT</span>
-                        </div>
-                        <div className="bg-[#0f172a] p-4 border border-gray-700 overflow-x-auto shadow-inner rounded-lg scrollbar-hide">
-                          <div className="flex gap-1.5 justify-start">
-                            {Array.from({ length: Math.min(parseInt(kraepelinColumns) || 10, 20) }).map((_, colIdx) => (
-                              <div key={colIdx} className="flex flex-col gap-1">
-                                {Array.from({ length: Math.min(parseInt(kraepelinRows) || 10, 12) }).map((_, rowIdx) => (
-                                  <div key={rowIdx} className="w-6 h-6 bg-[#1e293b] border border-gray-700 flex items-center justify-center text-xs font-mono font-bold text-[var(--primary-300)] shadow-sm rounded-sm">{Math.floor(Math.random() * 10)}</div>
-                                ))}
-                                <div className="text-[8px] text-center text-gray-600 font-bold mt-1 uppercase">C{colIdx + 1}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                    </div>
                     <button onClick={handleSaveKraepelin} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"><CheckCircle className="w-5 h-5" /> Simpan Konfigurasi</button>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {/* Konfigurasi Durasi Tes PAPI */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm p-6">
-                      <div className="border-b border-[var(--secondary-100)] pb-4 mb-4">
-                        <h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes</h3>
-                        <p className="text-[var(--secondary)] text-sm">Konfigurasi durasi untuk tes {selectedCategory.name}</p>
-                      </div>
-                      
+                      <div className="border-b border-[var(--secondary-100)] pb-4 mb-4"><h3 className="font-bold text-[var(--primary-900)] text-lg">Pengaturan Durasi Tes</h3></div>
                       {selectedCategory.code === 'papi' ? (
                         <div className="space-y-4">
                           <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)]">
-                            <label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1">
-                              <Clock className="w-3 h-3"/> DURASI TES PAPI (DETIK)
-                            </label>
-                            <input 
-                              type="number" 
-                              value={papiDuration} 
-                              onChange={e => setPapiDuration(e.target.value)} 
-                              className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" 
-                            />
-                            <p className="text-[10px] text-[var(--primary-600)] mt-2">
-                              = {(parseInt(papiDuration || "0") / 60).toFixed(1)} menit
-                            </p>
+                            <label className="block text-xs font-bold text-[var(--primary-700)] uppercase mb-2 flex items-center gap-1"><Clock className="w-3 h-3"/> DURASI TES PAPI (DETIK)</label>
+                            <input type="number" value={papiDuration} onChange={e => setPapiDuration(e.target.value)} className="w-full border border-[var(--primary-200)] p-3 rounded-lg outline-none font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary-200)]" />
                           </div>
-                          <button 
-                            onClick={handleSaveTestDuration} 
-                            className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"
-                          >
-                            <CheckCircle className="w-5 h-5" /> Simpan Durasi
-                          </button>
+                          <button onClick={handleSaveTestDuration} className="w-full bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99]"><CheckCircle className="w-5 h-5" /> Simpan Durasi</button>
                         </div>
                       ) : null}
                     </div>
 
-                    {/* List Soal */}
                     <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
                       <div className="p-6 border-b border-[var(--secondary-100)] flex justify-between items-center bg-white">
                         <h3 className="font-bold text-[var(--primary-900)] text-lg">{selectedCategory.name}</h3>
@@ -1119,94 +920,37 @@ export default function TestManagementPage() {
               <div className="p-4 md:p-6 border-b border-[var(--secondary-100)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[var(--background)]">
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-bold text-[var(--primary-900)]">Active Links</h3>
-                  <div className="text-xs font-bold bg-white border border-[var(--secondary-200)] px-3 py-1 rounded-full text-[var(--secondary-600)]">
-                    {localTestLinks.length} Links Total
-                  </div>
+                  <div className="text-xs font-bold bg-white border border-[var(--secondary-200)] px-3 py-1 rounded-full text-[var(--secondary-600)]">{localTestLinks.length} Links Total</div>
                 </div>
-
-                <button 
-                  onClick={() => setShowCreateLinkModal(true)} 
-                  className="w-full md:w-auto bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center transition-colors shadow-sm"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Buat Link Baru
-                </button>
+                <button onClick={() => setShowCreateLinkModal(true)} className="w-full md:w-auto bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center transition-colors shadow-sm"><Plus className="w-4 h-4 mr-2" /> Buat Link Baru</button>
               </div>
 
-              {/* Desktop View */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
-                    <tr>
-                      <th className="p-4">Peserta</th>
-                      <th className="p-4">Token</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4 text-right">Aksi</th>
-                    </tr>
+                    <tr><th className="p-4">Peserta</th><th className="p-4">Token</th><th className="p-4">Status</th><th className="p-4 text-right">Aksi</th></tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--secondary-50)]">
                     {localTestLinks.map(link => (
                       <tr key={link.id} className="hover:bg-[var(--primary-50)]/30 transition-colors">
                         <td className="p-4 font-bold text-[var(--primary-900)]">{link.candidateName}</td>
-                        <td className="p-4">
-                          <span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-1 rounded ">
-                            {link.token}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                            {link.status}
-                          </span>
-                        </td>
+                        <td className="p-4"><span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-1 rounded ">{link.token}</span></td>
+                        <td className="p-4"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>{link.status}</span></td>
                         <td className="p-4 text-right">
                           <div className="flex justify-end gap-2">
-                             <button onClick={() => copyLink(link.token)} className="text-[var(--secondary-400)] hover:text-[var(--primary)] p-2 hover:bg-[var(--primary-50)] rounded-lg transition-colors" title="Copy Link"><Copy className="w-4 h-4"/></button>
-                             <button className="text-[var(--secondary-400)] hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Revoke"><X className="w-4 h-4"/></button>
+                             <button onClick={() => copyLink(link.token)} className="text-[var(--secondary-400)] hover:text-[var(--primary)] p-2 hover:bg-[var(--primary-50)] rounded-lg transition-colors"><Copy className="w-4 h-4"/></button>
+                             <button className="text-[var(--secondary-400)] hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"><X className="w-4 h-4"/></button>
                           </div>
                         </td>
                       </tr>
                     ))}
-                    {localTestLinks.length === 0 && (
-                      <tr><td colSpan={4} className="p-8 text-center text-[var(--secondary)] italic">Belum ada link aktif.</td></tr>
-                    )}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="md:hidden divide-y divide-[var(--secondary-100)]">
-                  {localTestLinks.map(link => (
-                    <div key={link.id} className="p-4 hover:bg-[var(--secondary-50)] transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                         <div className="font-bold text-[var(--primary-900)]">{link.candidateName}</div>
-                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${link.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                            {link.status}
-                         </span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-3">
-                         <span className="text-xs text-[var(--secondary)]">Token:</span>
-                         <span className="font-mono text-[var(--secondary-600)] text-xs bg-[var(--secondary-50)] border border-[var(--secondary-200)] px-2 py-0.5 rounded ">
-                            {link.token}
-                         </span>
-                      </div>
-                      <div className="flex gap-2">
-                         <button onClick={() => copyLink(link.token)} className="flex-1 py-2 bg-[var(--primary-50)] text-[var(--primary)] text-xs font-bold rounded-lg flex items-center justify-center gap-1 active:scale-95 transition-transform">
-                            <Copy className="w-3 h-3"/> Salin Link
-                         </button>
-                         <button className="flex-1 py-2 bg-red-50 text-red-600 text-xs font-bold rounded-lg flex items-center justify-center gap-1 active:scale-95 transition-transform">
-                            <X className="w-3 h-3"/> Revoke
-                         </button>
-                      </div>
-                    </div>
-                  ))}
-                  {localTestLinks.length === 0 && (
-                    <div className="p-8 text-center text-[var(--secondary)] italic">Belum ada link aktif.</div>
-                  )}
               </div>
             </div>
           )}
           
-          {/* === TAB 3: SUBMISSIONS (IMPROVED UI) === */}
+          {/* === TAB 3: SUBMISSIONS === */}
           {activeTab === "submissions" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1223,95 +967,25 @@ export default function TestManagementPage() {
                   <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.filter(s => s.test_type === 'kraepelin').length}</div><div className="text-sm text-[var(--secondary)]">Kraepelin Completed</div></div>
                 </div>
               </div>
-              {/* Desktop Table View */}
-              <div className="hidden md:block">
-                 {renderSubmissionTable()}
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="md:hidden space-y-4">
-                 {submissions.map((sub) => {
-                    let scoreBadge = <span className="text-[var(--secondary)] italic text-xs">Menunggu...</span>;
-                    if (sub.scores && Object.keys(sub.scores).length > 0) {
-                      if (sub.test_type === 'cfit') {
-                        const iq = sub.scores.iq || 0;
-                        const color = iq >= 110 ? 'text-green-600 bg-green-50 border-green-200' : (iq >= 90 ? 'text-[var(--primary)] bg-[var(--primary-50)] border-[var(--primary-200)]' : 'text-red-600 bg-red-50 border-red-200');
-                        scoreBadge = (
-                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border ${color}`}>
-                            <span className="font-bold text-xs">IQ: {iq}</span>
-                            <span className="text-[10px] uppercase opacity-80 border-l border-current pl-2">{sub.scores.classification}</span>
-                          </div>
-                        );
-                      } else if (sub.test_type === 'kraepelin') {
-                           scoreBadge = (
-                              <div className="flex flex-wrap gap-2 text-xs">
-                                <span className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200">Speed: <b>{sub.scores.panker}</b></span>
-                                <span className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200">Acc: <b>{sub.scores.janker}</b></span>
-                              </div>
-                           );
-                      } else if (sub.test_type === 'papi') {
-                        scoreBadge = (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 text-orange-700 text-xs border border-orange-100 font-medium">
-                            <CheckCircle className="w-3 h-3"/> Ready
-                          </span>
-                        );
-                      }
-                    }
-
-                    return (
-                        <div key={sub.id} className="card-static bg-white border border-[var(--secondary-200)] rounded-xl p-4 shadow-sm">
-                           <div className="flex justify-between items-start mb-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[var(--secondary-100)] flex items-center justify-center text-[var(--secondary-600)] font-bold text-sm">
-                                  {sub.candidate_name ? sub.candidate_name.charAt(0).toUpperCase() : "?"}
-                                </div>
-                                <div>
-                                   <div className="font-bold text-[var(--primary-900)] text-sm">{sub.candidate_name}</div>
-                                   <div className="text-[10px] text-[var(--secondary)] flex items-center gap-1">
-                                      <Calendar size={10}/> {new Date(sub.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} • {new Date(sub.submitted_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                   </div>
-                                </div>
-                              </div>
-                              <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide border ${getTestBadgeColor(sub.test_type)}`}>
-                                {sub.test_type}
-                              </span>
-                           </div>
-                           
-                           <div className="mb-4 bg-[var(--secondary-50)] p-3 rounded-lg border border-[var(--secondary-100)]">
-                              <span className="text-[10px] font-bold text-[var(--secondary-500)] uppercase block mb-1">Result Summary</span>
-                              {scoreBadge}
-                           </div>
-
-                           <button 
-                             onClick={() => setShowDetailModal(sub)}
-                             className="w-full py-2.5 bg-white border border-[var(--secondary-200)] text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
-                           >
-                             <Eye className="w-3.5 h-3.5"/> Lihat Detail Lengkap
-                           </button>
-                        </div>
-                    );
-                 })}
-                 {submissions.length === 0 && (
-                     <div className="p-8 text-center text-[var(--secondary)] bg-[var(--secondary-50)] rounded-xl border border-dashed border-[var(--secondary-200)]">Belum ada data submission.</div>
-                 )}
-              </div>
+              <div className="hidden md:block">{renderSubmissionTable()}</div>
             </div>
           )}
-          {/* === TAB 4: FORM PENILAIAN === */}
+
+          {/* === TAB 4: FORM EVALUATION (TAB BARU) === */}
           {activeTab === "evaluation" && (
             <div className="space-y-6">
               {/* Box Pemilihan Kandidat */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)]">
                 <h3 className="font-bold text-[var(--primary-900)] mb-4 flex items-center gap-2">
                   <User className="w-5 h-5 text-[var(--primary)]" />
-                  Pilih Kandidat untuk Dinilai
+                  Pilih Kandidat untuk Penilaian Interview
                 </h3>
                 <select
                   value={evalCandidateId}
                   onChange={(e) => setEvalCandidateId(e.target.value)}
-                  className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white font-medium"
+                  className="w-full p-4 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-gray-50 font-medium"
                 >
-                  <option value="">-- Pilih Kandidat --</option>
+                  <option value="">-- Silakan Pilih Kandidat --</option>
                   {candidatesList.map(c => (
                     <option key={c.id} value={c.id}>{c.fullName}</option>
                   ))}
@@ -1320,16 +994,19 @@ export default function TestManagementPage() {
 
               {/* Render Komponen Form Penilaian jika kandidat sudah dipilih */}
               {evalCandidateId ? (
-                <CandidateEvaluation 
-                  candidateId={evalCandidateId}
-                  candidateName={candidatesList.find(c => c.id === evalCandidateId)?.fullName || "Unknown"}
-                  // Sekarang TypeScript mengenali user.role dengan benar
-                  currentUserRole={user?.role || "HR"} 
-                />
+                <div className="animate-in slide-in-from-bottom-4 duration-500">
+                  <CandidateEvaluation 
+                    candidateId={evalCandidateId}
+                    candidateName={candidatesList.find(c => c.id === evalCandidateId)?.fullName || "Unknown"}
+                    // TypeScript kini aman membaca user.role berkat perbaikan Interface di atas
+                    currentUserRole={user?.role || "HR"} 
+                  />
+                </div>
               ) : (
                 <div className="p-10 text-center bg-white rounded-2xl border border-dashed border-[var(--secondary-300)] text-[var(--secondary-500)] flex flex-col items-center justify-center">
                   <FileCheck className="w-12 h-12 mb-3 text-[var(--secondary-200)]" />
-                  <p className="font-medium">Silakan pilih kandidat dari dropdown di atas untuk mulai memberikan penilaian.</p>
+                  <p className="font-medium text-lg text-[var(--primary-900)]">Belum Ada Kandidat Dipilih</p>
+                  <p className="text-sm mt-1">Pilih kandidat dari *dropdown* di atas untuk memunculkan Form Assesment STAR Method dan Value Behavior.</p>
                 </div>
               )}
             </div>
@@ -1348,75 +1025,36 @@ export default function TestManagementPage() {
                 <button onClick={() => setShowCreateLinkModal(false)}><X className="text-[var(--secondary-400)] hover:text-red-500 transition-colors" /></button>
               </div>
               <div className="p-6 space-y-4">
-                
-                {/* PILIHAN TIPE PESERTA (TOGGLE) */}
                 <div className="flex gap-2 mb-2 p-1 bg-[var(--secondary-50)] rounded-lg w-full">
-                  <button 
-                    onClick={() => setParticipantType("candidate")}
-                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${participantType === "candidate" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}
-                  >
-                    Kandidat Baru
-                  </button>
-                  <button 
-                    onClick={() => setParticipantType("karyawan")}
-                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${participantType === "karyawan" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}
-                  >
-                    Karyawan Internal
-                  </button>
+                  <button onClick={() => setParticipantType("candidate")} className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${participantType === "candidate" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}>Kandidat Baru</button>
+                  <button onClick={() => setParticipantType("karyawan")} className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${participantType === "karyawan" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}>Karyawan Internal</button>
                 </div>
-
                 <div>
-                   <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">
-                     Pilih {participantType === "candidate" ? "Kandidat" : "Karyawan"}
-                   </label>
+                   <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Pilih {participantType === "candidate" ? "Kandidat" : "Karyawan"}</label>
                    {participantType === "candidate" ? (
-                     <select 
-                       value={selectedCandidateId} 
-                       onChange={(e) => setSelectedCandidateId(e.target.value)}
-                       className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
-                     >
+                     <select value={selectedCandidateId} onChange={(e) => setSelectedCandidateId(e.target.value)} className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white">
                        <option value="">-- Pilih Kandidat --</option>
                        {candidatesList.map(c => <option key={c.id} value={c.id}>{c.fullName}</option>)}
                      </select>
                    ) : (
-                     <select 
-                       value={selectedKaryawanId} 
-                       onChange={(e) => setSelectedKaryawanId(e.target.value)}
-                       className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
-                     >
+                     <select value={selectedKaryawanId} onChange={(e) => setSelectedKaryawanId(e.target.value)} className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white">
                        <option value="">-- Pilih Karyawan --</option>
                        {karyawanList.map(k => <option key={k.id} value={k.id}>{k.fullName}</option>)}
                      </select>
                    )}
                 </div>
-
                 <div>
                    <label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Posisi (Opsional)</label>
-                   <select 
-                     value={selectedJobId} 
-                     onChange={(e) => setSelectedJobId(e.target.value)}
-                     className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white"
-                   >
+                   <select value={selectedJobId} onChange={(e) => setSelectedJobId(e.target.value)} className="w-full p-3 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-white">
                      <option value="">-- Tidak Spesifik --</option>
                      {jobsList.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
                    </select>
                 </div>
-                <div className="bg-[var(--primary-50)] p-4 rounded-xl border border-[var(--primary-100)] flex gap-3">
-                   <AlertCircle className="w-5 h-5 text-[var(--primary)] flex-shrink-0" />
-                   <p className="text-xs text-[var(--primary-800)] leading-relaxed">
-                      Link akan otomatis berisi 3 paket tes (CFIT, PAPI, Kraepelin). Token unik akan di-generate untuk akses ujian.
-                   </p>
-                </div>
               </div>
               <div className="p-6 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-gray-50">
                  <button onClick={() => setShowCreateLinkModal(false)} className="px-5 py-2.5 text-[var(--secondary-600)] font-bold text-sm hover:bg-gray-100 rounded-xl transition-colors">Batal</button>
-                 <button 
-                   onClick={handleGenerateLink} 
-                   disabled={isGeneratingLink}
-                   className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white font-bold text-sm rounded-xl transition-colors flex items-center shadow-lg shadow-teal-500/20 disabled:opacity-50"
-                 >
-                   {isGeneratingLink ? <RefreshCw className="animate-spin w-4 h-4 mr-2"/> : <Zap className="w-4 h-4 mr-2"/>}
-                   Generate Link
+                 <button onClick={handleGenerateLink} disabled={isGeneratingLink} className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white font-bold text-sm rounded-xl transition-colors flex items-center shadow-lg shadow-[var(--primary)]/20 disabled:opacity-50">
+                   {isGeneratingLink ? <RefreshCw className="animate-spin w-4 h-4 mr-2"/> : <Zap className="w-4 h-4 mr-2"/>} Generate Link
                  </button>
               </div>
             </div>
@@ -1448,21 +1086,16 @@ export default function TestManagementPage() {
                         const isSubtest2 = selectedCfitSubtype?.id === 2;
                         const isSelected = isSubtest2 ? Array.isArray(correctAnswer) && correctAnswer.includes(lbl) : correctAnswer === lbl;
                         return (
-                          <button 
-                            key={lbl} 
-                            onClick={() => {
+                          <button key={lbl} onClick={() => {
                               if (isSubtest2) {
                                 setCorrectAnswer((prev: any) => {
                                   const arr = Array.isArray(prev) ? [...prev] : [];
-                                  if (arr.includes(lbl)) return arr.filter((a: string) => a !== lbl); // Unselect
-                                  if (arr.length < 2) return [...arr, lbl].sort(); // Select
+                                  if (arr.includes(lbl)) return arr.filter((a: string) => a !== lbl);
+                                  if (arr.length < 2) return [...arr, lbl].sort();
                                   toast.warning("Maksimal 2 kunci jawaban."); return arr;
                                 });
-                              } else {
-                                setCorrectAnswer(lbl);
-                              }
-                            }} 
-                            className={`w-10 h-10 rounded-lg font-bold border transition-all ${isSelected ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md' : 'text-[var(--secondary-400)] border-[var(--secondary-200)] hover:bg-[var(--secondary-50)]'}`}
+                              } else setCorrectAnswer(lbl);
+                            }} className={`w-10 h-10 rounded-lg font-bold border transition-all ${isSelected ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-md' : 'text-[var(--secondary-400)] border-[var(--secondary-200)] hover:bg-[var(--secondary-50)]'}`}
                           >{lbl}</button>
                         );
                       })}
@@ -1471,16 +1104,13 @@ export default function TestManagementPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                   <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Opsi A (Pernyataan 1)</label><textarea value={optionA} onChange={e => setOptionA(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)]/20 outline-none" rows={2} placeholder="Saya suka bekerja keras..." /></div>
-                   <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Opsi B (Pernyataan 2)</label><textarea value={optionB} onChange={e => setOptionB(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl text-sm focus:ring-2 focus:ring-[var(--primary)]/20 outline-none" rows={2} placeholder="Saya suka menjadi pemimpin..." /></div>
+                   <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Opsi A (Pernyataan 1)</label><textarea value={optionA} onChange={e => setOptionA(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl text-sm outline-none" rows={2} /></div>
+                   <div><label className="block text-xs font-bold text-[var(--secondary-500)] uppercase mb-2">Opsi B (Pernyataan 2)</label><textarea value={optionB} onChange={e => setOptionB(e.target.value)} className="w-full border border-[var(--secondary-200)] p-3 rounded-xl text-sm outline-none" rows={2} /></div>
                 </div>
               )}
-              
               <div className="flex gap-2 pt-4">
-                 <button onClick={() => setShowQuestionModal(false)} className="flex-1 py-3 text-[var(--secondary-600)] font-bold hover:bg-[var(--secondary-50)] rounded-xl border border-[var(--secondary-200)] transition-colors">Batal</button>
-                 <button onClick={isCfitCategory ? handleAddCfitQuestion : handleAddPapiQuestion} disabled={isSubmitting} className="flex-[2] bg-[var(--primary)] text-white py-3 rounded-xl font-bold hover:bg-[var(--primary-700)] disabled:bg-[var(--secondary-200)] disabled:text-[var(--secondary-400)] transition-colors shadow-sm text-sm">
-                   {isSubmitting ? 'Menyimpan...' : 'Simpan Soal'}
-                 </button>
+                 <button onClick={() => setShowQuestionModal(false)} className="flex-1 py-3 text-[var(--secondary-600)] font-bold hover:bg-[var(--secondary-50)] rounded-xl border border-[var(--secondary-200)]">Batal</button>
+                 <button onClick={isCfitCategory ? handleAddCfitQuestion : handleAddPapiQuestion} disabled={isSubmitting} className="flex-[2] bg-[var(--primary)] text-white py-3 rounded-xl font-bold hover:bg-[var(--primary-700)] shadow-sm text-sm">{isSubmitting ? 'Menyimpan...' : 'Simpan Soal'}</button>
               </div>
             </div>
           </div>

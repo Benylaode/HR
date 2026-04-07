@@ -34,6 +34,7 @@ const menuItems: MenuItem[] = [
   { name: "ATA Tracking", href: "/ata-tracking", icon: ClipboardCheck, roles: ["SUPER_USER", "HR"] },
   { name: "Kandidat", href: "/candidates", icon: Users, roles: ["SUPER_USER"] },
   { name: "Test Management", href: "/test-management", icon: ClipboardList, roles: ["SUPER_USER"] },
+  { name: "Form Wawancara", href: "/wawancara", icon: ClipboardList, roles: ["HR"] },
   { name: 'Manpower Planning', href: '/manpower', icon: UserPlus },
   { name: "Karyawan", href: "/karyawan", icon: UserCheck, roles: ["SUPER_USER", "HR"] },
   { name: "Input Pelamar", href: "/apply", icon: UserPlus, roles: ["SUPER_USER"] }, 

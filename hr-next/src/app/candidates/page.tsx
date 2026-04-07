@@ -7,6 +7,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { toast } from "sonner";
 import TestReportPDF from '@/components/test/TestReportPDF';
+import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport';
 import { 
   Plus, 
   Search, 
@@ -565,7 +566,7 @@ const EditModal = memo(({
 });
 EditModal.displayName = 'EditModal';
 // ==========================================
-// MODAL HASIL TES UNTUK KANDIDAT
+// MODAL HASIL TES UNTUK KANDIDAT (UPDATED DENGAN FINAL REPORT)
 // ==========================================
 const TestResultModal = memo(({ 
   candidate, 
@@ -577,7 +578,21 @@ const TestResultModal = memo(({
   onClose: () => void;
 }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
+  const finalReportRef = useRef<HTMLDivElement>(null); // Ref untuk Final Report Wawancara
+  
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [evaluations, setEvaluations] = useState<any[]>([]); // State untuk simpan nilai wawancara
+
+  // Fetch data evaluasi wawancara saat modal dibuka
+  useEffect(() => {
+    if (candidate?.id) {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+      fetch(`${API_BASE_URL}/api/management/evaluations/${candidate.id}`)
+        .then(res => res.ok ? res.json() : [])
+        .then(data => setEvaluations(Array.isArray(data) ? data : []))
+        .catch(err => console.error("Gagal mengambil data evaluasi:", err));
+    }
+  }, [candidate]);
 
   if (!candidate) return null;
 
@@ -586,9 +601,9 @@ const TestResultModal = memo(({
   const kraepelin = candSubs.find(s => s.test_type === "kraepelin");
   const papi = candSubs.find(s => s.test_type === "papi");
 
-  // Hitung Total Errors Kraepelin
   const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
 
+  // Fungsi Cetak PDF Psikotes Lama
   const handleDownloadPDF = async () => {
     if (!pdfRef.current) return;
     setIsGeneratingPDF(true);
@@ -596,7 +611,7 @@ const TestResultModal = memo(({
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
         margin: 0,
-        filename: `Hasil_Psikotes_Kandidat_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
+        filename: `Sertifikat_Psikotes_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
@@ -605,6 +620,28 @@ const TestResultModal = memo(({
     } catch (error) {
       console.error("Gagal mencetak PDF:", error);
       alert("Terjadi kesalahan saat mengunduh PDF.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // Fungsi Cetak Final Report (Wawancara + Psikotes)
+  const handleDownloadFinalReport = async () => {
+    if (!finalReportRef.current) return;
+    setIsGeneratingPDF(true);
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const opt = {
+        margin: 0,
+        filename: `Final_Report_Assesment_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+      await html2pdf().set(opt).from(finalReportRef.current).save();
+    } catch (error) {
+      console.error("Gagal mencetak PDF:", error);
+      alert("Terjadi kesalahan saat mengunduh Final Report.");
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -639,7 +676,6 @@ const TestResultModal = memo(({
 
         {/* Body Modal */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-8">
-          
           {/* SEKSI: CFIT */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
@@ -663,7 +699,7 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes CFIT.</p>}
           </div>
 
-          {/* SEKSI: KRAEPELIN (Diperbarui jadi 3 Kotak) */}
+          {/* SEKSI: KRAEPELIN */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
@@ -702,25 +738,48 @@ const TestResultModal = memo(({
                 </div>
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes PAPI.</p>}
           </div>
-
         </div>
         
-        {/* Footer Modal */}
+        {/* Footer Modal DENGAN DUA TOMBOL DOWNLOAD */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
             Tutup
           </button>
-          <button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className={`px-5 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
-            <Download size={16} /> {isGeneratingPDF ? 'Memproses PDF...' : 'Download Sertifikat'}
+          <button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+            <Download size={16} /> Sertifikat Psikotes
+          </button>
+          
+          {/* TOMBOL BARU: FINAL REPORT */}
+          <button onClick={handleDownloadFinalReport} disabled={isGeneratingPDF} className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'}`}>
+            <Download size={16} /> Final Report (Wawancara)
           </button>
         </div>
       </div>
+      
+      {/* ========================================================= */}
+      {/* AREA RENDER PDF (DISEMBUNYIKAN DI BALIK LAYAR) */}
+      {/* ========================================================= */}
+      
+      {/* 1. PDF Sertifikat Psikotes (Lama) */}
       <TestReportPDF ref={pdfRef} data={pdfData as any} />
+
+      {/* 2. PDF Final Report Terpadu (Baru) */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', overflow: 'hidden' }}>
+        <div ref={finalReportRef}>
+            <CandidateFinalReport 
+              candidateName={candidate.fullName}
+              candidateNik={`CAND-${candidate.id.substring(0, 5).toUpperCase()}`}
+              jobPosition={candidate.top_position || "Unassigned"}
+              evaluations={evaluations}
+              submissions={candSubs} // Hanya kirim submission milik kandidat ini
+            />
+        </div>
+      </div>
+
     </div>
   );
 });
 TestResultModal.displayName = 'TestResultModal';
-
 
 export default function CandidatesPage() {
   const router = useRouter();

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, UserCheck, AlertCircle, Award, Target } from 'lucide-react'; 
+import { Save, UserCheck, AlertCircle, Award, Target, User } from 'lucide-react'; 
 
 // ==========================================
 // 1. DATA KOMPETENSI (Sesuai Gambar 1 - STAR)
@@ -93,13 +93,17 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
   const [activeTab, setActiveTab] = useState<'HR' | 'USER_1' | 'USER_2'>(currentUserRole === 'SUPER_USER' ? 'HR' : 'USER_1');
   const [scores, setScores] = useState<Record<string, number>>({});
   const [overallNotes, setOverallNotes] = useState('');
+  
+  // STATE BARU UNTUK INPUT NAMA ASSESOR
+  const [assessorName, setAssessorName] = useState('');
+  
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setActiveTab(currentUserRole === 'SUPER_USER' ? 'HR' : 'USER_1');
   }, [currentUserRole]);
 
-  // Load Data
+  // Load Data dari Backend
   useEffect(() => {
     if (!candidateId) return;
 
@@ -112,17 +116,35 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
       })
       .then((data: any[]) => {
         const currentForm = data.find(f => f.role_type === activeTab);
-        if (currentForm && currentForm.scores) {
-          const loadedScores: Record<string, number> = {};
-          currentForm.scores.forEach((s: any) => { loadedScores[s.criteria_name] = s.score; });
-          setScores(loadedScores);
+        if (currentForm) {
+          if (currentForm.scores) {
+            const loadedScores: Record<string, number> = {};
+            currentForm.scores.forEach((s: any) => { loadedScores[s.criteria_name] = s.score; });
+            setScores(loadedScores);
+          }
           setOverallNotes(currentForm.overall_notes || '');
+          // Set nama assesor yang tersimpan di DB ke dalam input form
+          setAssessorName(currentForm.evaluator_name || '');
         } else {
+          // Reset form jika belum ada data
           setScores({});
           setOverallNotes('');
+          
+          // Auto-fill nama dari LocalStorage (jika belum pernah disubmit)
+          try {
+             const userData = localStorage.getItem("hr_user");
+             if(userData) setAssessorName(JSON.parse(userData).name);
+             else setAssessorName('');
+          } catch (e) {
+             setAssessorName('');
+          }
         }
       })
-      .catch(() => { setScores({}); setOverallNotes(''); });
+      .catch(() => { 
+          setScores({}); 
+          setOverallNotes(''); 
+          setAssessorName('');
+      });
   }, [candidateId, activeTab]);
 
   // Kalkulasi Skor
@@ -133,15 +155,14 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
 
   // Handler Simpan
   const handleSave = async () => {
+    if (!assessorName.trim()) {
+        alert("Mohon isi Nama Assesor / Pewawancara terlebih dahulu!");
+        return;
+    }
+
     setIsSaving(true);
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
     
-    let evaluatorName = currentUserRole === "SUPER_USER" ? "Super Admin" : "User/HR";
-    try {
-        const userData = localStorage.getItem("hr_user");
-        if(userData) evaluatorName = JSON.parse(userData).name;
-    } catch (e) {}
-
     const flatCompetencyScores = COMPETENCY_CATEGORIES.flatMap(cat => 
         cat.questions.map(q => ({
             category: "COMPETENCY",
@@ -153,7 +174,7 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
 
     const payload = {
       role_type: activeTab,
-      evaluator_name: evaluatorName,
+      evaluator_name: assessorName, // Menggunakan nilai dari input text
       overall_notes: overallNotes,
       status: "SUBMITTED",
       scores: [
@@ -202,6 +223,8 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
       
       {/* HEADER & TABS */}
       <div className="p-5 border-b border-[var(--secondary-100)] bg-[var(--background)] flex flex-col gap-4">
+        
+        {/* ROW 1: Info Kandidat & Persentase */}
         <div className="flex justify-between items-start">
             <div>
                 <h3 className="font-bold text-[var(--primary-900)] text-lg">Assesment Interview</h3>
@@ -213,7 +236,26 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
             </div>
         </div>
 
-        {/* ROLE TABS (MENGGUNAKAN DESIGN SYSTEM) */}
+        {/* ROW 2: Input Nama Assesor */}
+        <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
+          <div className="bg-[var(--primary-50)] p-2 rounded-lg">
+             <User className="w-5 h-5 text-[var(--primary)]" />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">
+              Nama Assesor / Pewawancara
+            </label>
+            <input 
+              type="text" 
+              placeholder="Ketik nama pewawancara di sini..."
+              value={assessorName}
+              onChange={(e) => setAssessorName(e.target.value)}
+              className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
+            />
+          </div>
+        </div>
+
+        {/* ROW 3: ROLE TABS */}
         <div className="flex gap-2 bg-[var(--secondary-50)] p-1.5 rounded-xl border border-[var(--secondary-200)] w-fit">
           {currentUserRole === 'SUPER_USER' ? (
             <button onClick={() => setActiveTab('HR')} className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'HR' ? 'bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]' : 'text-[var(--secondary-500)] hover:text-[var(--primary-700)]'}`}>Form Penilaian HR</button>
