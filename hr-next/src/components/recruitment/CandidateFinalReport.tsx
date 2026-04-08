@@ -37,7 +37,6 @@ export default function CandidateFinalReport({
       competencyScore = Math.round((compTotal / 80) * 100) || 0; 
       behaviorScore = Math.round((behavTotal / 75) * 100) || 0;  
   }
-  console.log(hrEval)
   if (!hrEval) {
       competencyScore = 52;
       behaviorScore = 79;
