@@ -462,31 +462,29 @@ class ATARequest(db.Model):
             "created_at": format_date(self.created_at)
         }
     
-# ==========================================
-# 7. INTERVIEW EVALUATION (HR & USER)
-# ==========================================
 class InterviewEvaluation(db.Model):
     __tablename__ = 'interview_evaluations'
 
-    # Menggunakan string untuk UUID agar konsisten dengan Candidate dan User
     id = db.Column(db.String, primary_key=True, default=uuid_str)
     candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), nullable=False)
     
-    # Opsional: Bisa diisi ID user yang login (HR/User), atau cukup namanya saja
     evaluator_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=True) 
     evaluator_name = db.Column(db.String(100), nullable=True)
     
-    # 'HR', 'USER_1', 'USER_2' -> Ini untuk membatasi kuota
+    # --- KOLOM BARU (JABATAN & TANGGAL) ---
+    evaluator_position = db.Column(db.String(100), nullable=True)
+    evaluation_date = db.Column(db.Date, nullable=True)
+    # ---------------------------------------
+
     role_type = db.Column(db.String(20), nullable=False) 
     stage = db.Column(db.String(50), default="Interview")
     overall_notes = db.Column(db.Text, nullable=True)
     total_score = db.Column(db.Float, default=0.0)
-    status = db.Column(db.String(20), default='DRAFT') # DRAFT atau SUBMITTED
+    status = db.Column(db.String(20), default='DRAFT')
     
     created_at = db.Column(db.DateTime, default=now_utc)
     updated_at = db.Column(db.DateTime, default=now_utc, onupdate=now_utc)
     
-    # Relationship ke tabel detail nilai
     scores = db.relationship('EvaluationScore', backref='evaluation', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
@@ -494,11 +492,13 @@ class InterviewEvaluation(db.Model):
             "id": self.id,
             "candidate_id": self.candidate_id,
             "evaluator_name": self.evaluator_name,
+            "evaluator_position": self.evaluator_position, 
+            "evaluation_date": self.evaluation_date.isoformat() if self.evaluation_date else None, 
             "role_type": self.role_type,
             "overall_notes": self.overall_notes,
             "total_score": self.total_score,
             "status": self.status,
-            "updated_at": format_date(self.updated_at),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "scores": [s.to_dict() for s in self.scores]
         }
 
@@ -510,7 +510,11 @@ class EvaluationScore(db.Model):
     evaluation_id = db.Column(db.String, db.ForeignKey('interview_evaluations.id'), nullable=False)
     category = db.Column(db.String(50), nullable=False) # 'COMPETENCY' atau 'BEHAVIOR'
     criteria_name = db.Column(db.String(100), nullable=False)
-    score = db.Column(db.Integer, nullable=False)
+    
+    # --- UPDATE: Ubah ke Float agar selaras dengan total_score dan Backend ---
+    score = db.Column(db.Float, nullable=False) 
+    # -------------------------------------------------------------------------
+    
     notes = db.Column(db.Text, nullable=True)
 
     def to_dict(self):

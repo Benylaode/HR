@@ -553,67 +553,84 @@ def seed_cfit_questions():
 # ==========================================
 # ENDPOINT PENILAIAN WAWANCARA (HR & USER)
 # ==========================================
-
-@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["GET"])
+@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["GET", "OPTIONS"])
 def get_evaluations(candidate_id):
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+        
     """Mengambil semua form penilaian untuk satu kandidat"""
     evaluations = InterviewEvaluation.query.filter_by(candidate_id=candidate_id).all()
     return jsonify([e.to_dict() for e in evaluations])
 
-@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["POST"])
+@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["POST", "OPTIONS"])
 def save_evaluation(candidate_id):
-    """Menyimpan atau mengupdate form penilaian HR/User"""
+    # Handle preflight CORS request secara manual jika diperlukan
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+
     data = request.get_json()
     
-    # role_type sangat penting: harus 'HR', 'USER_1', atau 'USER_2'
     role_type = data.get("role_type") 
     if not role_type:
         return jsonify({"error": "role_type harus diisi (HR / USER_1 / USER_2)"}), 400
 
-    # Cek apakah form dengan role tersebut sudah ada untuk kandidat ini
-    evaluation = InterviewEvaluation.query.filter_by(candidate_id=candidate_id, role_type=role_type).first()
-    
-    # Jika belum ada, buat form baru
-    if not evaluation:
-        evaluation = InterviewEvaluation(candidate_id=candidate_id, role_type=role_type)
-        db.session.add(evaluation)
-        db.session.flush() # Mendapatkan ID untuk tabel scores
-    
-    # Update data utama form
-    evaluation.evaluator_name = data.get("evaluator_name", "Unknown Assessor")
-    evaluation.overall_notes = data.get("overall_notes", "")
-    evaluation.status = data.get("status", "SUBMITTED") # DRAFT atau SUBMITTED
-    
-    # Hapus scores lama jika ini adalah proses update (Replace with new scores)
-    if evaluation.id:
-        EvaluationScore.query.filter_by(evaluation_id=evaluation.id).delete()
-    
-    # Simpan detail nilai
-    scores_data = data.get("scores", [])
-    total_score = 0
-    
-    for s in scores_data:
-        score_val = float(s.get("score", 0))
-        total_score += score_val
-        
-        score_entry = EvaluationScore(
-            evaluation_id=evaluation.id,
-            category=s.get("category"),          # COMPETENCY / BEHAVIOR
-            criteria_name=s.get("criteria_name"), # Misal: "Problem Solving"
-            score=score_val,
-            notes=s.get("notes", "")
-        )
-        db.session.add(score_entry)
-    
-    # Simpan total nilai ke tabel master
-    evaluation.total_score = total_score
-    
+    # MASUKKAN SEMUA LOGIK DB KE DALAM TRY...EXCEPT
     try:
+        evaluation = InterviewEvaluation.query.filter_by(candidate_id=candidate_id, role_type=role_type).first()
+        
+        if not evaluation:
+            evaluation = InterviewEvaluation(candidate_id=candidate_id, role_type=role_type)
+            db.session.add(evaluation)
+            db.session.flush() # Sekarang aman jika gagal, akan dilempar ke except
+        
+        # Update data utama form
+        evaluation.evaluator_name = data.get("evaluator_name", "Unknown Assessor")
+        
+        # Tangkap Jabatan & Tanggal (Gunakan hasattr agar tidak error jika model belum di-migrate)
+        if hasattr(evaluation, 'evaluator_position'):
+            evaluation.evaluator_position = data.get("evaluator_position", "")
+            
+        if hasattr(evaluation, 'evaluation_date'):
+            date_str = data.get("evaluation_date")
+            if date_str:
+                try:
+                    evaluation.evaluation_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                except ValueError:
+                    pass
+
+        evaluation.overall_notes = data.get("overall_notes", "")
+        evaluation.status = data.get("status", "SUBMITTED")
+        
+        if evaluation.id:
+            EvaluationScore.query.filter_by(evaluation_id=evaluation.id).delete()
+        
+        scores_data = data.get("scores", [])
+        total_score = 0
+        
+        for s in scores_data:
+            # Gunakan float karena kita menyimpan persentase / nilai angka
+            score_val = float(s.get("score", 0))
+            total_score += score_val
+            
+            score_entry = EvaluationScore(
+                evaluation_id=evaluation.id,
+                category=s.get("category"), 
+                criteria_name=s.get("criteria_name"),
+                score=score_val,
+                notes=s.get("notes", "")
+            )
+            db.session.add(score_entry)
+        
+        evaluation.total_score = total_score
         db.session.commit()
+        
         return jsonify({
             "message": f"Penilaian {role_type} berhasil disimpan", 
             "data": evaluation.to_dict()
         }), 200
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        # Print error ke terminal server agar mudah dilacak jika terjadi bug
+        print(f"[ERROR] Save Evaluation Failed for {candidate_id}:", str(e))
+        return jsonify({"error": "Gagal menyimpan ke database. Detail: " + str(e)}), 500
