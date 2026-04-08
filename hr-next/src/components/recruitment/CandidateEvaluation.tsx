@@ -82,7 +82,7 @@ const BEHAVIOR_QUESTIONS = [
   { id: "behav_15", value: "Sustainability", sub: "Keberlanjutan", indikator: "Mengakui hak asasi manusia dan menghormati orang lain selain itu dapat mempromosikan nilai-nilai serta berkontribusi secara aktif untuk kesejahteraan seluruh pemangku kepentingan." }
 ];
 
-// INTERFACE YANG FLEKSIBEL (Mengakomodasi Form sekaligus Report)
+// INTERFACE
 interface CandidateEvaluationProps {
   candidateId?: string; 
   candidateName: string;
@@ -105,12 +105,20 @@ export default function CandidateEvaluation({
   const [scores, setScores] = useState<Record<string, number>>({});
   const [overallNotes, setOverallNotes] = useState('');
   
-  // STATE BARU: Nama, Jabatan, Tanggal
   const [assessorName, setAssessorName] = useState('');
   const [assessorPosition, setAssessorPosition] = useState('');
-  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]); // Default hari ini
+  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]); 
   
   const [isSaving, setIsSaving] = useState(false);
+
+  // Helper untuk Autentikasi Headers
+  const getAuthHeaders = (): HeadersInit => {
+    const token = localStorage.getItem("hr_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
 
   useEffect(() => {
     setActiveTab(currentUserRole === 'SUPER_USER' ? 'HR' : 'USER_1');
@@ -118,13 +126,15 @@ export default function CandidateEvaluation({
 
   // Load Data dari Backend
   useEffect(() => {
-    // Membaca ID dari candidateId atau fallback ke candidateNik
     const fetchId = candidateId || candidateNik;
     if (!fetchId) return;
 
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
-    fetch(`${API_BASE_URL}/api/management/evaluations/${fetchId}`)
+    // MENGHAPUS /api DARI URL DAN MENAMBAHKAN AUTH HEADERS
+    fetch(`${API_BASE_URL}/management/evaluations/${fetchId}`, {
+      headers: getAuthHeaders()
+    })
       .then(res => {
           if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           return res.json();
@@ -139,20 +149,15 @@ export default function CandidateEvaluation({
           }
           setOverallNotes(currentForm.overall_notes || '');
           setAssessorName(currentForm.evaluator_name || '');
-          
-          // Set Jabatan dan Tanggal jika ada dari database
           setAssessorPosition(currentForm.evaluator_position || '');
           if(currentForm.evaluation_date) {
             setEvaluationDate(currentForm.evaluation_date);
           }
-
         } else {
-          // Reset form jika belum ada data
           setScores({});
           setOverallNotes('');
           setAssessorPosition('');
           setEvaluationDate(new Date().toISOString().split('T')[0]);
-          
           try {
              const userData = localStorage.getItem("hr_user");
              if(userData) setAssessorName(JSON.parse(userData).name);
@@ -166,8 +171,6 @@ export default function CandidateEvaluation({
           console.error("Fetch Data Gagal:", error);
           setScores({}); 
           setOverallNotes(''); 
-          setAssessorName('');
-          setAssessorPosition('');
       });
   }, [candidateId, candidateNik, activeTab]);
 
@@ -185,14 +188,10 @@ export default function CandidateEvaluation({
         setScores(newScores);
         return;
     }
-    
     let num = parseInt(value);
     if (isNaN(num)) return;
-
-    // Lock angka hanya di 1, 2, 3, 4, 5
     if (num > 5) num = 5;
     if (num < 1) num = 1;
-
     setScores(prev => ({...prev, [id]: num}));
   };
 
@@ -224,8 +223,8 @@ export default function CandidateEvaluation({
     const payload = {
       role_type: activeTab,
       evaluator_name: assessorName, 
-      evaluator_position: assessorPosition, // Menambahkan Jabatan ke Payload
-      evaluation_date: evaluationDate,       // Menambahkan Tanggal ke Payload
+      evaluator_position: assessorPosition, 
+      evaluation_date: evaluationDate,       
       overall_notes: overallNotes,
       status: "SUBMITTED",
       scores: [
@@ -240,9 +239,10 @@ export default function CandidateEvaluation({
     };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/management/evaluations/${fetchId}`, {
+      // MENGHAPUS /api DARI URL DAN MENAMBAHKAN AUTH HEADERS
+      const res = await fetch(`${API_BASE_URL}/management/evaluations/${fetchId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
       
@@ -253,14 +253,13 @@ export default function CandidateEvaluation({
           alert(`Gagal menyimpan penilaian: ${errData.error || 'Server error'}`);
       }
     } catch (error: any) {
-      alert(`Terjadi kesalahan jaringan: ${error.message}. Pastikan URL API HTTPS sudah benar.`);
+      alert(`Terjadi kesalahan jaringan: ${error.message}. Pastikan URL API HTTPS sudah benar dan terkoneksi.`);
       console.error(error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Menentukan UI jika tidak ada candidate ID yang dipilih
   const displayId = candidateId || candidateNik;
   if (!displayId) {
     return (
@@ -395,10 +394,7 @@ export default function CandidateEvaluation({
                                         value={scores[q.id] || ''}
                                         onChange={(e) => handleScoreChange(q.id, e.target.value)}
                                         onKeyDown={(e) => {
-                                            // Memblokir ketikan huruf 'e', '-', '+' di input number
-                                            if (['e', 'E', '+', '-'].includes(e.key)) {
-                                                e.preventDefault();
-                                            }
+                                            if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault();
                                         }}
                                     />
                                 </td>
@@ -420,7 +416,6 @@ export default function CandidateEvaluation({
             </h4>
           </div>
           
-          {/* Legenda Proficiency */}
           <div className="p-4 bg-white border-b border-[var(--secondary-100)] text-xs grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 text-[var(--secondary-600)]">
               <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-red-100 text-red-700 font-bold flex items-center justify-center shrink-0">1</span> Tidak Pernah muncul</div>
               <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-orange-100 text-orange-700 font-bold flex items-center justify-center shrink-0">2</span> Jarang muncul</div>
