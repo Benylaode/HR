@@ -7,9 +7,37 @@ interface ReportProps {
   candidateName: string;
   candidateNik?: string;
   jobPosition?: string;
-  evaluations: any[]; // Data dari Form Penilaian (HR/User)
-  submissions: any[]; // Data dari Hasil Tes (CFIT, PAPI, Kraepelin)
+  evaluations: any[]; 
+  submissions: any[]; 
 }
+
+// Konstanta warna HEX untuk menghindari error 'lab' atau 'oklch' dari Tailwind
+const C = {
+  white: '#ffffff',
+  gray50: '#f9fafb',
+  gray100: '#f3f4f6',
+  gray200: '#e5e7eb',
+  gray300: '#cbd5e1',
+  gray400: '#94a3b8',
+  gray500: '#64748b',
+  gray600: '#475569',
+  gray800: '#1e293b',
+  gray900: '#0f172a',
+  teal50: '#f0fdf4',
+  teal700: '#0f766e',
+  teal800: '#115e59',
+  teal900: '#134e4a',
+  yellow200: '#fef08a',
+  blue500: '#3b82f6',
+  blue800: '#1e40af',
+  green500: '#10b981',
+  purple500: '#8b5cf6',
+  purple800: '#6b21a8',
+  purple900: '#581c87',
+  orange800: '#9a3412',
+  green800: '#166534',
+  red800: '#991b1b',
+};
 
 export default function CandidateFinalReport({ 
   candidateName, 
@@ -23,15 +51,11 @@ export default function CandidateFinalReport({
   // KALKULASI HALAMAN 1 (INTERVIEW & VALUE)
   // =====================================
   
-  // Mengambil form HR sebagai acuan utama
   const hrEval = evaluations.find(e => e.role_type === 'HR') || evaluations[0] || null;
-  
-  // MENGAMBIL DATA NAMA, JABATAN & TANGGAL ASSESOR
   const assessorName = hrEval?.evaluator_name || "-";
   const assessorPosition = hrEval?.evaluator_position || "HR Department";
   const evaluationDateRaw = hrEval?.evaluation_date;
   
-  // Format Tanggal (Jika ada, format ke Indonesia. Jika tidak, gunakan tanggal cetak)
   const evaluationDate = evaluationDateRaw 
       ? new Date(evaluationDateRaw).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
       : "-";
@@ -46,29 +70,11 @@ export default function CandidateFinalReport({
       const compTotal = compScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
       const behavTotal = behavScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
       
-      // Max score kompetensi (16 soal * 5) = 80, Value Behavior (15 soal * 5) = 75
       competencyScore = Math.round((compTotal / 80) * 100) || 0;
       behaviorScore = Math.round((behavTotal / 75) * 100) || 0;
   }
 
   const totalScore = (competencyScore + behaviorScore) / 2;
-
-  // Menentukan Kategori
-  let categoryRemarks = "";
-  let categoryStatus = "";
-  let categoryReadyness = "";
-
-  if (totalScore < 50) {
-      categoryRemarks = "Unacceptable"; categoryStatus = "Not Recommended"; categoryReadyness = "-";
-  } else if (totalScore < 70) {
-      categoryRemarks = "Below Expectation"; categoryStatus = "Considered"; categoryReadyness = "R3";
-  } else if (totalScore < 80) {
-      categoryRemarks = "Fully Successful"; categoryStatus = "Recommended"; categoryReadyness = "R1";
-  } else if (totalScore < 90) {
-      categoryRemarks = "Above Expectation"; categoryStatus = "Highly Recommended"; categoryReadyness = "R1";
-  } else {
-      categoryRemarks = "Outstanding"; categoryStatus = "Highly Recommended"; categoryReadyness = "R1";
-  }
 
   // =====================================
   // DATA HALAMAN 2 (HASIL PSIKOTES)
@@ -76,8 +82,8 @@ export default function CandidateFinalReport({
   const cfitSub = submissions.find(s => s.test_type === 'cfit');
   const kraepelinSub = submissions.find(s => s.test_type === 'kraepelin');
   const papiSub = submissions.find(s => s.test_type === 'papi');
+  const totalErrors = kraepelinSub ? (Number(kraepelinSub.scores?.salah || 0) + Number(kraepelinSub.scores?.terlewat || 0)) : '-';
 
-  // Helper untuk PAPI
   const getPapiName = (key: string) => {
       const names: Record<string, string> = {
           G: "Pekerja Keras", L: "Kepemimpinan", I: "Pembuat Keputusan", T: "Kecepatan/Sibuk", 
@@ -94,251 +100,258 @@ export default function CandidateFinalReport({
 
   // REUSABLE FOOTER COMPONENT
   const FooterSignature = () => (
-    <div style={{ position: 'absolute', bottom: '30px', left: '40px', right: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+    <div style={{ position: 'absolute', bottom: '30px', left: '40px', right: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontFamily: 'Arial, sans-serif' }}>
       <div>
-         <p style={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold', margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
-         <p style={{ fontSize: '10px', color: '#94a3b8', margin: 0 }}>ID: DOC-{candidateNik} | Dicetak: {printDate}</p>
+         <p style={{ fontSize: '10px', color: C.gray500, fontWeight: 'bold', margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
+         <p style={{ fontSize: '10px', color: C.gray400, margin: 0 }}>ID: DOC-{candidateNik} | Dicetak: {printDate}</p>
       </div>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontSize: '11px', margin: '0 0 35px 0', color: '#64748b' }}>Authorized Assessor,</p>
-        <p style={{ fontSize: '13px', fontWeight: 'bold', margin: 0, color: '#0f172a', textDecoration: 'underline' }}>{assessorName}</p>
-        <p style={{ fontSize: '10px', color: '#64748b', margin: '2px 0 0 0' }}>{assessorPosition}</p>
+        <p style={{ fontSize: '11px', margin: '0 0 35px 0', color: C.gray500 }}>Authorized Assessor,</p>
+        <p style={{ fontSize: '13px', fontWeight: 'bold', margin: 0, color: C.gray900, textDecoration: 'underline' }}>{assessorName}</p>
+        <p style={{ fontSize: '10px', color: C.gray500, margin: '2px 0 0 0' }}>{assessorPosition}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-gray-200 py-8 flex justify-center w-full min-h-screen">
+    <div style={{ backgroundColor: C.gray200, padding: '32px 0', display: 'flex', justifyContent: 'center', width: '100%', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
+        
         {/* WADAH PDF: 2 Halaman A4 */}
-        <div id="pdf-content" className="bg-white flex flex-col gap-12" style={{ width: '210mm' }}>
+        <div id="pdf-content" style={{ backgroundColor: C.white, display: 'flex', flexDirection: 'column', gap: '48px', width: '210mm' }}>
             
             {/* ========================================================= */}
             {/* HALAMAN 1: REKAPITULASI INTERVIEW & VALUE */}
             {/* ========================================================= */}
-            <div className="w-[210mm] min-h-[297mm] p-10 bg-white relative break-after-page shadow-xl">
+            <div style={{ width: '210mm', minHeight: '297mm', padding: '40px', backgroundColor: C.white, position: 'relative', boxSizing: 'border-box', border: `1px solid ${C.gray300}` }}>
                 
-                <h1 className="text-2xl font-bold text-center text-teal-800 mb-8 border-b-2 border-teal-800 pb-2 uppercase tracking-widest">
+                <h1 style={{ fontSize: '24px', fontWeight: 'bold', textAlign: 'center', color: C.teal800, marginBottom: '32px', borderBottom: `2px solid ${C.teal800}`, paddingBottom: '8px', textTransform: 'uppercase', letterSpacing: '2px' }}>
                     Rekapitulasi Final Evaluation
                 </h1>
 
                 {/* Identitas Assesi */}
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 border-l-4 border-teal-700">Identitas Assesi</h2>
-                    <span className="text-xs text-gray-500 font-semibold bg-gray-50 px-3 py-1 rounded border border-gray-200">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h2 style={{ fontWeight: 'bold', color: C.teal700, backgroundColor: C.teal50, padding: '4px 12px', borderLeft: `4px solid ${C.teal700}`, margin: 0, fontSize: '16px' }}>Identitas Assesi</h2>
+                    <span style={{ fontSize: '12px', color: C.gray500, fontWeight: 'bold', backgroundColor: C.gray50, padding: '4px 12px', borderRadius: '4px', border: `1px solid ${C.gray200}` }}>
                         Tanggal Evaluasi: {evaluationDate}
                     </span>
                 </div>
 
-                <table className="w-full text-sm border-collapse border border-gray-300 mb-8">
+                <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse', border: `1px solid ${C.gray300}`, marginBottom: '32px' }}>
                     <tbody>
-                        <tr className="border-b border-gray-300">
-                            <td className="w-1/3 p-2 font-bold bg-gray-50 border-r border-gray-300">NIK</td>
-                            <td className="p-2">{candidateNik}</td>
+                        <tr style={{ borderBottom: `1px solid ${C.gray300}` }}>
+                            <td style={{ width: '33%', padding: '8px', fontWeight: 'bold', backgroundColor: C.gray50, borderRight: `1px solid ${C.gray300}` }}>NIK</td>
+                            <td style={{ padding: '8px' }}>{candidateNik}</td>
                         </tr>
-                        <tr className="border-b border-gray-300">
-                            <td className="w-1/3 p-2 font-bold bg-gray-50 border-r border-gray-300">Nama Assesi</td>
-                            <td className="p-2">{candidateName}</td>
+                        <tr style={{ borderBottom: `1px solid ${C.gray300}` }}>
+                            <td style={{ width: '33%', padding: '8px', fontWeight: 'bold', backgroundColor: C.gray50, borderRight: `1px solid ${C.gray300}` }}>Nama Assesi</td>
+                            <td style={{ padding: '8px' }}>{candidateName}</td>
                         </tr>
                         <tr>
-                            <td className="w-1/3 p-2 font-bold bg-gray-50 border-r border-gray-300">Posisi Assesi</td>
-                            <td className="p-2">{jobPosition}</td>
+                            <td style={{ width: '33%', padding: '8px', fontWeight: 'bold', backgroundColor: C.gray50, borderRight: `1px solid ${C.gray300}` }}>Posisi Assesi</td>
+                            <td style={{ padding: '8px' }}>{jobPosition}</td>
                         </tr>
                     </tbody>
                 </table>
 
                 {/* Interview / Kompetensi */}
-                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Interview (Kompetensi)</h2>
-                <table className="w-full text-sm border-collapse border border-gray-300 text-center mb-8">
-                    <thead className="bg-teal-700 text-white">
+                <h2 style={{ fontWeight: 'bold', color: C.teal700, backgroundColor: C.teal50, padding: '4px 12px', marginBottom: '8px', borderLeft: `4px solid ${C.teal700}`, fontSize: '16px' }}>Interview (Kompetensi)</h2>
+                <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse', border: `1px solid ${C.gray300}`, textAlign: 'center', marginBottom: '32px' }}>
+                    <thead style={{ backgroundColor: C.teal800, color: C.white }}>
                         <tr>
-                            <th className="p-2 border border-teal-800 w-1/4">Assesor</th>
-                            <th className="p-2 border border-teal-800">Nama Assesor</th>
-                            <th className="p-2 border border-teal-800 w-1/4">Score</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, width: '25%' }}>Assesor</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}` }}>Nama Assesor</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, width: '25%' }}>Score</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="p-2 border border-gray-300 font-bold bg-gray-50">HR / Interviewer</td>
-                            <td className="p-2 border border-gray-300">
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold', backgroundColor: C.gray50 }}>HR / Interviewer</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>
                                 {assessorName} <br/> 
-                                <span className="text-xs text-gray-500 font-normal">{assessorPosition}</span>
+                                <span style={{ fontSize: '12px', color: C.gray500, fontWeight: 'normal' }}>{assessorPosition}</span>
                             </td>
-                            <td className="p-2 border border-gray-300 font-bold text-lg">{competencyScore}%</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold', fontSize: '18px' }}>{competencyScore}%</td>
                         </tr>
                     </tbody>
                 </table>
 
                 {/* Value Behaviour */}
-                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Value Behaviour</h2>
-                <table className="w-full text-sm border-collapse border border-gray-300 text-center mb-8">
-                    <thead className="bg-teal-700 text-white">
+                <h2 style={{ fontWeight: 'bold', color: C.teal700, backgroundColor: C.teal50, padding: '4px 12px', marginBottom: '8px', borderLeft: `4px solid ${C.teal700}`, fontSize: '16px' }}>Value Behaviour</h2>
+                <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse', border: `1px solid ${C.gray300}`, textAlign: 'center', marginBottom: '32px' }}>
+                    <thead style={{ backgroundColor: C.teal800, color: C.white }}>
                         <tr>
-                            <th className="p-2 border border-teal-800 w-1/4">Assesor</th>
-                            <th className="p-2 border border-teal-800">Nama Assesor</th>
-                            <th className="p-2 border border-teal-800 w-1/4">Score</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, width: '25%' }}>Assesor</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}` }}>Nama Assesor</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, width: '25%' }}>Score</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="p-2 border border-gray-300 font-bold bg-gray-50">HR / Interviewer</td>
-                            <td className="p-2 border border-gray-300">
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold', backgroundColor: C.gray50 }}>HR / Interviewer</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>
                                 {assessorName} <br/> 
-                                <span className="text-xs text-gray-500 font-normal">{assessorPosition}</span>
+                                <span style={{ fontSize: '12px', color: C.gray500, fontWeight: 'normal' }}>{assessorPosition}</span>
                             </td>
-                            <td className="p-2 border border-gray-300 font-bold text-lg">{behaviorScore}%</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold', fontSize: '18px' }}>{behaviorScore}%</td>
                         </tr>
                     </tbody>
                 </table>
 
                 {/* Summary */}
-                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Summary</h2>
-                <table className="w-full text-sm border-collapse border border-gray-300 mb-8 text-center">
-                    <thead className="bg-teal-700 text-white">
+                <h2 style={{ fontWeight: 'bold', color: C.teal700, backgroundColor: C.teal50, padding: '4px 12px', marginBottom: '8px', borderLeft: `4px solid ${C.teal700}`, fontSize: '16px' }}>Summary</h2>
+                <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse', border: `1px solid ${C.gray300}`, textAlign: 'center', marginBottom: '32px' }}>
+                    <thead style={{ backgroundColor: C.teal800, color: C.white }}>
                         <tr>
-                            <th className="p-2 border border-teal-800 w-16">No</th>
-                            <th className="p-2 border border-teal-800 text-left">Jenis Assesment</th>
-                            <th className="p-2 border border-teal-800 w-1/4">Score</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, width: '60px' }}>No</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, textAlign: 'left' }}>Jenis Assesment</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.teal800}`, width: '25%' }}>Score</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="p-2 border border-gray-300 bg-gray-50">1</td>
-                            <td className="p-2 border border-gray-300 text-left">Assesment - Kompetensi</td>
-                            <td className="p-2 border border-gray-300 font-bold">{competencyScore}%</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, backgroundColor: C.gray50 }}>1</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, textAlign: 'left' }}>Assesment - Kompetensi</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold' }}>{competencyScore}%</td>
                         </tr>
                         <tr>
-                            <td className="p-2 border border-gray-300 bg-gray-50">2</td>
-                            <td className="p-2 border border-gray-300 text-left">Assesment - Value Behavior</td>
-                            <td className="p-2 border border-gray-300 font-bold">{behaviorScore}%</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, backgroundColor: C.gray50 }}>2</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, textAlign: 'left' }}>Assesment - Value Behavior</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold' }}>{behaviorScore}%</td>
                         </tr>
-                        <tr className="bg-teal-50">
-                            <td colSpan={2} className="p-2 border border-gray-300 font-bold text-right text-teal-800">Total Score</td>
-                            <td className="p-2 border border-gray-300 font-black text-teal-800 text-lg">{totalScore.toFixed(2)}%</td>
+                        <tr style={{ backgroundColor: C.teal50 }}>
+                            <td colSpan={2} style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: 'bold', textAlign: 'right', color: C.teal800 }}>Total Score</td>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}`, fontWeight: '900', color: C.teal800, fontSize: '18px' }}>{totalScore.toFixed(2)}%</td>
                         </tr>
                     </tbody>
                 </table>
 
                 {/* Kategori Keputusan */}
-                <table className="w-full text-xs border-collapse border border-gray-300 text-center mb-8">
-                    <thead className="bg-gray-100">
+                <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse', border: `1px solid ${C.gray300}`, textAlign: 'center', marginBottom: '8px' }}>
+                    <thead style={{ backgroundColor: C.gray100 }}>
                         <tr>
-                            <th className="p-2 border border-gray-300">Skor</th>
-                            <th className="p-2 border border-gray-300">Remarks</th>
-                            <th className="p-2 border border-gray-300">Status</th>
-                            <th className="p-2 border border-gray-300">Readyness</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Skor</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Remarks</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Status</th>
+                            <th style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Readyness</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr className={totalScore < 50 ? 'bg-yellow-200 font-bold' : ''}>
-                            <td className="p-2 border border-gray-300">&lt;50%</td><td className="p-2 border border-gray-300">Unacceptable</td><td className="p-2 border border-gray-300">Not Recommended</td><td className="p-2 border border-gray-300">-</td>
+                        <tr style={totalScore < 50 ? { backgroundColor: C.yellow200, fontWeight: 'bold' } : {}}>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>&lt;50%</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Unacceptable</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Not Recommended</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>-</td>
                         </tr>
-                        <tr className={totalScore >= 50 && totalScore < 70 ? 'bg-yellow-200 font-bold' : ''}>
-                            <td className="p-2 border border-gray-300">≥50 - &lt;70%</td><td className="p-2 border border-gray-300">Below Expectation</td><td className="p-2 border border-gray-300">Considered</td><td className="p-2 border border-gray-300">R3</td>
+                        <tr style={totalScore >= 50 && totalScore < 70 ? { backgroundColor: C.yellow200, fontWeight: 'bold' } : {}}>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>≥50 - &lt;70%</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Below Expectation</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Considered</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>R3</td>
                         </tr>
-                        <tr className={totalScore >= 70 && totalScore < 80 ? 'bg-yellow-200 font-bold' : ''}>
-                            <td className="p-2 border border-gray-300">≥70% - &lt;80%</td><td className="p-2 border border-gray-300">Fully Successful</td><td className="p-2 border border-gray-300">Recommended</td><td className="p-2 border border-gray-300">R1</td>
+                        <tr style={totalScore >= 70 && totalScore < 80 ? { backgroundColor: C.yellow200, fontWeight: 'bold' } : {}}>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>≥70% - &lt;80%</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Fully Successful</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Recommended</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>R1</td>
                         </tr>
-                        <tr className={totalScore >= 80 && totalScore < 90 ? 'bg-yellow-200 font-bold' : ''}>
-                            <td className="p-2 border border-gray-300">≥80% - &lt;90%</td><td className="p-2 border border-gray-300">Above Expectation</td><td className="p-2 border border-gray-300">Highly Recommended</td><td className="p-2 border border-gray-300">R1</td>
+                        <tr style={totalScore >= 80 && totalScore < 90 ? { backgroundColor: C.yellow200, fontWeight: 'bold' } : {}}>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>≥80% - &lt;90%</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Above Expectation</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Highly Recommended</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>R1</td>
                         </tr>
-                        <tr className={totalScore >= 90 ? 'bg-yellow-200 font-bold' : ''}>
-                            <td className="p-2 border border-gray-300">≥90%</td><td className="p-2 border border-gray-300">Outstanding</td><td className="p-2 border border-gray-300">Highly Recommended</td><td className="p-2 border border-gray-300">R1</td>
+                        <tr style={totalScore >= 90 ? { backgroundColor: C.yellow200, fontWeight: 'bold' } : {}}>
+                            <td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>≥90%</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Outstanding</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>Highly Recommended</td><td style={{ padding: '8px', border: `1px solid ${C.gray300}` }}>R1</td>
                         </tr>
                     </tbody>
                 </table>
-                <p className="text-xs text-gray-500 italic mt-[-20px] mb-8">*Recommended dengan kategori minimal Fully Successful (FS)</p>
+                <p style={{ fontSize: '10px', color: C.gray500, fontStyle: 'italic', marginTop: 0, marginBottom: '32px' }}>*Recommended dengan kategori minimal Fully Successful (FS)</p>
 
                 {/* DOKUMENTASI WAWANCARA (Sesuai Screenshot/Foto) */}
-                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Dokumentasi Wawancara</h2>
-                <div className="w-full h-32 border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400 rounded-lg">
-                    <Camera className="w-8 h-8 mb-2" />
-                    <span className="text-sm">Lampirkan Foto / Screenshot Interview di Sini</span>
+                <h2 style={{ fontWeight: 'bold', color: C.teal700, backgroundColor: C.teal50, padding: '4px 12px', marginBottom: '8px', borderLeft: `4px solid ${C.teal700}`, fontSize: '16px' }}>Dokumentasi Wawancara</h2>
+                <div style={{ width: '100%', height: '160px', border: `2px dashed ${C.gray300}`, backgroundColor: C.gray50, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: C.gray400, borderRadius: '8px' }}>
+                    <Camera size={32} color={C.gray400} style={{ marginBottom: '8px' }} />
+                    <span style={{ fontSize: '14px' }}>Lampirkan Foto / Screenshot Interview di Sini</span>
                 </div>
 
-                {/* FOOTER HALAMAN 1 */}
                 <FooterSignature />
-
             </div>
 
+            {/* ========================================================= */}
+            {/* FORCE PAGE BREAK */}
+            {/* ========================================================= */}
+            <div className="html2pdf__page-break" style={{ pageBreakBefore: 'always', height: 0, overflow: 'hidden' }}></div>
 
             {/* ========================================================= */}
             {/* HALAMAN 2: PSYCHOLOGICAL ASSESSMENT REPORT (TES) */}
             {/* ========================================================= */}
-            <div className="w-[210mm] min-h-[297mm] p-10 bg-white relative shadow-xl">
+            <div style={{ width: '210mm', minHeight: '297mm', padding: '40px', backgroundColor: C.white, position: 'relative', boxSizing: 'border-box', border: `1px solid ${C.gray300}` }}>
                 
                 {/* Kop Surat / Header */}
-                <div className="flex justify-between items-center mb-6 pb-4 border-b-4 border-teal-800">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: `4px solid ${C.teal800}` }}>
                     <div>
-                        <h2 className="text-lg font-black text-gray-800 tracking-tighter">MERDEKA BATTERY</h2>
-                        <h2 className="text-lg font-black text-teal-700 tracking-tighter mt-[-5px]">MATERIALS</h2>
+                        <h2 style={{ fontSize: '18px', fontWeight: '900', color: C.gray800, margin: 0, letterSpacing: '-0.5px' }}>MERDEKA BATTERY</h2>
+                        <h2 style={{ fontSize: '18px', fontWeight: '900', color: C.teal700, margin: 0, letterSpacing: '-0.5px', marginTop: '-4px' }}>MATERIALS</h2>
                     </div>
-                    <div className="text-right">
-                        <h3 className="font-bold text-gray-600 text-sm">PT. SULAWESI CAHAYA MINERAL</h3>
+                    <div style={{ textAlign: 'right' }}>
+                        <h3 style={{ fontWeight: 'bold', color: C.gray600, fontSize: '14px', margin: 0 }}>PT. SULAWESI CAHAYA MINERAL</h3>
                     </div>
                 </div>
 
-                <div className="text-center mb-8">
-                    <h1 className="text-2xl font-black text-gray-900 uppercase tracking-widest">Psychological Assessment Report</h1>
-                    <p className="text-sm text-gray-500 mt-1">Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan</p>
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <h1 style={{ fontSize: '24px', fontWeight: '900', color: C.gray900, textTransform: 'uppercase', letterSpacing: '2px', margin: '0 0 4px 0' }}>Psychological Assessment Report</h1>
+                    <p style={{ fontSize: '14px', color: C.gray500, margin: 0 }}>Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan</p>
                 </div>
 
                 {/* Nama Peserta */}
-                <div className="bg-gray-100 p-4 rounded-lg flex justify-between items-center mb-8 border border-gray-300">
+                <div style={{ backgroundColor: C.gray100, padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', border: `1px solid ${C.gray300}` }}>
                     <div>
-                        <span className="text-xs text-gray-500 font-bold uppercase block mb-1">Nama Peserta</span>
-                        <span className="text-xl font-bold text-teal-900">{candidateNik} - {candidateName.toUpperCase()}</span>
+                        <span style={{ fontSize: '12px', color: C.gray500, fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Nama Peserta</span>
+                        <span style={{ fontSize: '20px', fontWeight: 'bold', color: C.teal900 }}>{candidateNik} - {candidateName.toUpperCase()}</span>
                     </div>
-                    <div className="text-right">
-                        <span className="text-xs text-gray-500 font-bold uppercase block mb-1">Tipe Peserta</span>
-                        <span className="text-sm font-bold bg-white px-3 py-1 rounded border border-gray-300">Kandidat / Pelamar</span>
+                    <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '12px', color: C.gray500, fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Tipe Peserta</span>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', backgroundColor: C.white, padding: '4px 12px', borderRadius: '4px', border: `1px solid ${C.gray300}` }}>Kandidat / Pelamar</span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-8 mb-8">
+                <div style={{ display: 'flex', gap: '32px', marginBottom: '32px' }}>
                     {/* 1. KOGNITIF (CFIT) */}
-                    <div>
-                        <h3 className="font-bold text-white bg-teal-800 px-3 py-1.5 mb-3 inline-block">1. Kecerdasan Kognitif (CFIT)</h3>
-                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 text-center">
+                    <div style={{ flex: 1 }}>
+                        <h3 style={{ fontWeight: 'bold', color: C.white, backgroundColor: C.teal800, padding: '6px 12px', marginBottom: '12px', display: 'inline-block', fontSize: '14px' }}>1. Kecerdasan Kognitif (CFIT)</h3>
+                        <div style={{ border: `1px solid ${C.gray300}`, borderRadius: '8px', padding: '16px', backgroundColor: C.gray50, textAlign: 'center' }}>
                             {cfitSub?.scores ? (
                                 <>
-                                    <div className="text-xs text-gray-500 font-bold uppercase mb-1">SKOR IQ</div>
-                                    <div className="text-4xl font-black text-teal-700 mb-2">{cfitSub.scores.iq}</div>
-                                    <div className="grid grid-cols-2 gap-2 mt-4">
-                                        <div className="bg-white border border-gray-300 p-2 rounded">
-                                            <div className="text-[10px] text-gray-500 uppercase">Klasifikasi</div>
-                                            <div className="font-bold text-sm text-gray-800">{cfitSub.scores.classification}</div>
+                                    <div style={{ fontSize: '12px', color: C.gray500, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '4px' }}>SKOR IQ</div>
+                                    <div style={{ fontSize: '36px', fontWeight: '900', color: C.teal700, marginBottom: '8px' }}>{cfitSub.scores.iq}</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '16px' }}>
+                                        <div style={{ backgroundColor: C.white, border: `1px solid ${C.gray300}`, padding: '8px', borderRadius: '4px' }}>
+                                            <div style={{ fontSize: '10px', color: C.gray500, textTransform: 'uppercase' }}>Klasifikasi</div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '14px', color: C.gray800, marginTop: '2px' }}>{cfitSub.scores.classification}</div>
                                         </div>
-                                        <div className="bg-white border border-gray-300 p-2 rounded">
-                                            <div className="text-[10px] text-gray-500 uppercase">Jwb Benar</div>
-                                            <div className="font-bold text-sm text-gray-800">{cfitSub.scores.raw_score} / 50</div>
+                                        <div style={{ backgroundColor: C.white, border: `1px solid ${C.gray300}`, padding: '8px', borderRadius: '4px' }}>
+                                            <div style={{ fontSize: '10px', color: C.gray500, textTransform: 'uppercase' }}>Jwb Benar</div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '14px', color: C.gray800, marginTop: '2px' }}>{cfitSub.scores.raw_score} / 50</div>
                                         </div>
                                     </div>
                                 </>
                             ) : (
-                                <div className="text-sm text-gray-400 py-6 italic">Belum ada hasil CFIT</div>
+                                <div style={{ fontSize: '14px', color: C.gray400, padding: '24px 0', fontStyle: 'italic' }}>Belum ada hasil CFIT</div>
                             )}
                         </div>
                     </div>
 
                     {/* 2. KRAEPELIN */}
-                    <div>
-                        <h3 className="font-bold text-white bg-teal-800 px-3 py-1.5 mb-3 inline-block">2. Performa Kerja (Kraepelin)</h3>
-                        <div className="border border-gray-300 rounded-lg overflow-hidden text-center">
+                    <div style={{ flex: 1 }}>
+                        <h3 style={{ fontWeight: 'bold', color: C.white, backgroundColor: C.teal800, padding: '6px 12px', marginBottom: '12px', display: 'inline-block', fontSize: '14px' }}>2. Performa Kerja (Kraepelin)</h3>
+                        <div style={{ border: `1px solid ${C.gray300}`, borderRadius: '8px', overflow: 'hidden', textAlign: 'center' }}>
                             {kraepelinSub?.scores ? (
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-100 border-b border-gray-300 text-xs text-gray-600">
-                                        <tr><th className="p-2 border-r border-gray-300">Kecepatan</th><th className="p-2 border-r border-gray-300">Ketelitian</th><th className="p-2">Total Errors</th></tr>
+                                <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
+                                    <thead style={{ backgroundColor: C.gray100, borderBottom: `1px solid ${C.gray300}`, fontSize: '12px', color: C.gray600 }}>
+                                        <tr>
+                                            <th style={{ padding: '8px', borderRight: `1px solid ${C.gray300}` }}>Kecepatan</th>
+                                            <th style={{ padding: '8px', borderRight: `1px solid ${C.gray300}` }}>Ketelitian</th>
+                                            <th style={{ padding: '8px' }}>Total Errors</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="font-bold text-teal-900 text-lg">
-                                            <td className="p-4 border-r border-gray-300">{kraepelinSub.scores.panker}</td>
-                                            <td className="p-4 border-r border-gray-300">{kraepelinSub.scores.janker}</td>
-                                            <td className="p-4">0</td>
+                                        <tr style={{ fontWeight: 'bold', color: C.teal900, fontSize: '18px' }}>
+                                            <td style={{ padding: '16px', borderRight: `1px solid ${C.gray300}` }}>{kraepelinSub.scores.panker}</td>
+                                            <td style={{ padding: '16px', borderRight: `1px solid ${C.gray300}` }}>{kraepelinSub.scores.janker}</td>
+                                            <td style={{ padding: '16px' }}>{totalErrors}</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             ) : (
-                                <div className="text-sm text-gray-400 py-10 italic">Belum ada hasil Kraepelin</div>
+                                <div style={{ fontSize: '14px', color: C.gray400, padding: '40px 0', fontStyle: 'italic' }}>Belum ada hasil Kraepelin</div>
                             )}
                         </div>
                     </div>
@@ -346,29 +359,27 @@ export default function CandidateFinalReport({
 
                 {/* 3. PAPI KOSTICK */}
                 <div>
-                    <h3 className="font-bold text-white bg-teal-800 px-3 py-1.5 mb-4 inline-block">3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
+                    <h3 style={{ fontWeight: 'bold', color: C.white, backgroundColor: C.teal800, padding: '6px 12px', marginBottom: '16px', display: 'inline-block', fontSize: '14px' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
                     {papiSub?.scores ? (
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '24px', rowGap: '8px', fontSize: '12px' }}>
                             {Object.entries(papiSub.scores)
                                 .filter(([k]) => /^[A-Z]$/.test(k))
                                 .map(([key, val]: any) => (
-                                <div key={key} className="flex justify-between items-center border-b border-gray-200 py-1.5">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-black text-teal-800 w-4">{key}</span>
-                                        <span className="text-gray-700">{getPapiName(key)}</span>
+                                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.gray200}`, paddingBottom: '6px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontWeight: '900', color: C.teal800, width: '16px' }}>{key}</span>
+                                        <span style={{ color: C.gray500 }}>{getPapiName(key)}</span>
                                     </div>
-                                    <span className="font-bold bg-gray-100 border border-gray-300 px-2 py-0.5 rounded">{val}</span>
+                                    <span style={{ fontWeight: 'bold', backgroundColor: C.gray100, border: `1px solid ${C.gray300}`, padding: '2px 8px', borderRadius: '4px', color: C.gray900 }}>{val}</span>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-sm text-gray-400 py-6 italic text-center border border-gray-300 rounded-lg bg-gray-50">Belum ada profil PAPI Kostick</div>
+                        <div style={{ fontSize: '14px', color: C.gray400, padding: '24px 0', fontStyle: 'italic', textAlign: 'center', border: `1px solid ${C.gray300}`, borderRadius: '8px', backgroundColor: C.gray50 }}>Belum ada profil PAPI Kostick</div>
                     )}
                 </div>
 
-                {/* FOOTER HALAMAN 2 */}
                 <FooterSignature />
-
             </div>
         </div>
     </div>
