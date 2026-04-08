@@ -51,19 +51,33 @@ def candidate_to_dict(candidate: Candidate):
     status = best_app.status if best_app else "New Candidate"
     test_status = candidate.test_link.status.capitalize() if candidate.test_link else "Pending"
 
+    # --- TAMBAHAN BARU: Ambil data Psikotes (Submissions) ---
+    submissions_data = []
+    if candidate.test_link and candidate.test_link.submissions:
+        submissions_data = [
+            {
+                "test_type": sub.test_type,
+                "scores": sub.scores,
+                "submitted_at": sub.submitted_at.isoformat() if sub.submitted_at else None
+            } for sub in candidate.test_link.submissions
+        ]
+        
+    # --- TAMBAHAN BARU: Ambil data Wawancara (Evaluations) ---
+    evaluations_data = [e.to_dict() for e in candidate.evaluations] if candidate.evaluations else []
+
     return {
         "id": candidate.id,
         "resume_id": candidate.resume_id, 
         "has_cv": True if candidate.resume else False,
-        # 1. Biodata (Disesuaikan dengan ProfileMixin Gabungan di models.py)
+        # 1. Biodata
         "fullName": candidate.full_name,
         "email": candidate.email,
         "whatsapp": candidate.whatsapp,
         "gender": candidate.gender,
         "birthDate": candidate.birth_date.isoformat() if candidate.birth_date else None,
-        "domicileProvince": candidate.province,  # Sesuai field mixin baru
-        "domicileCity": candidate.city,          # Sesuai field mixin baru
-        "totalExperience": candidate.total_experience_years, # Sesuai field mixin baru
+        "domicileProvince": candidate.province,
+        "domicileCity": candidate.city,
+        "totalExperience": candidate.total_experience_years,
         
         # 2. Pendidikan
         "degree": candidate.degree,
@@ -72,7 +86,7 @@ def candidate_to_dict(candidate: Candidate):
         "university": candidate.university,
         "gpa": candidate.gpa,
         
-        # 3. Data JSONB (Dikembalikan agar FE bisa render profil lengkap)
+        # 3. Data JSONB
         "socialMedia": candidate.social_media or {},
         "workExperiences": candidate.work_experiences or [],
         "trainings": candidate.trainings or [],
@@ -100,9 +114,12 @@ def candidate_to_dict(candidate: Candidate):
             for app in candidate.applications
         ] if candidate.applications else [],
 
+        # --- DATA FINAL REPORT ---
+        "evaluations": evaluations_data,
+        "submissions": submissions_data,
+
         "created_at": candidate.created_at.isoformat() if candidate.created_at else None
     }
-
 
 @candidates_bp.route("", methods=["POST"])
 def create_candidate():
