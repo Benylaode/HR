@@ -7,39 +7,18 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; 
 import { toast } from "sonner";
-import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation"; // <-- Import Komponen Form
+import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation"; 
 import {
-  CheckCircle,
-  Plus,
-  RefreshCw,
-  Trash2,
-  X,
-  FolderOpen,
-  HelpCircle,
-  Upload,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Copy,
-  Clock,
-  FileCheck,
-  Eye,
-  Activity,
-  Grid3X3,
-  Layers,
-  Settings,
-  User,
-  Calendar,
-  BarChart2,
-  Zap,
-  Target,
-  AlertCircle
+  CheckCircle, Plus, RefreshCw, Trash2, X, FolderOpen, 
+  HelpCircle, Upload, Image as ImageIcon, Link as LinkIcon, 
+  Copy, Clock, FileCheck, Eye, Activity, Grid3X3, Layers, 
+  Settings, User, Calendar, BarChart2, Zap, Target, AlertCircle
 } from "lucide-react";
 
 // --- 0. CONFIG ---
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 // --- 1. INTERFACES ---
-
 export interface Candidate {
   id: string;
   fullName: string;
@@ -105,7 +84,6 @@ interface CfitQuestion {
 }
 
 // --- 2. STATIC DATA ---
-
 const STATIC_CATEGORIES: Category[] = [
   { id: 1, name: "CFIT (Culture Fair Intelligence Test)", code: "cfit", question_count: 0 },
   { id: 2, name: "PAPI Kostick (Personality)", code: "papi", question_count: 0 },
@@ -119,10 +97,8 @@ const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
   { id: 4, name: "Subtes 4: Kondisi Titik", code: "cfit_conditions", description: "Menentukan komposisi peletakan titik", instruction: "Pilih gambar dimana posisi titik tidak berbeda komposisinya dengan gambar contoh.", optionCount: 5, questions: [] },
 ];
 
-// DITAMBAHKAN "evaluation" KE DALAM TAB TYPE
 type TabType = "test-links" | "categories" | "submissions" | "evaluation";
 
-// --- FUNGSI INTERPRETASI PAPI KOSTICK ---
 const getPapiAspectName = (aspect: string) => {
   const names: Record<string, string> = {
       G: "Hard Intense Worked (Pekerja Keras)", L: "Leadership Role (Peran Kepemimpinan)", I: "Ease in Decision Making (Pembuat Keputusan)", T: "Pace (Tingkat Kecepatan/Sibuk)", V: "Vigorous Type (Aktif & Penuh Semangat)", S: "Social Extension (Perluasan Sosial)", R: "Theoretical Type (Tipe Teoritis)", D: "Interest in Details (Bekerja Detail)", C: "Organized Type (Keteraturan)", E: "Emotional Resistant (Daya Tahan Emosi)", N: "Need to Finish Task (Penyelesaian Tugas)", A: "Need to Achieve (Kebutuhan Berprestasi)", P: "Need to Control Others (Kebutuhan Mengontrol)", X: "Need to be Noticed (Kebutuhan Diperhatikan)", B: "Need to Belong to Groups (Kebutuhan Diterima Kelompok)", O: "Need for Closeness (Kebutuhan Kedekatan & Kasih Sayang)", Z: "Need for Change (Kebutuhan Akan Perubahan)", K: "Need to be Forceful (Kebutuhan Bertindak Tegas/Agresif)", F: "Need to Support Authority (Kebutuhan Mendukung Otoritas)", W: "Need for Rules & Supervision (Kebutuhan Aturan & Arahan)"
@@ -130,74 +106,36 @@ const getPapiAspectName = (aspect: string) => {
   return names[aspect] || aspect;
 };
 
-const getPapiInterpretation = (aspect: string, score: number) => {
-  switch(aspect) {
-      case 'L': return score >= 5 ? "Sangat tinggi dimana seseorang memproyeksikan dirinya sebagai pemimpin, ia mencoba menggunakan orang lain untuk mencapai tujuannya." : "Cenderung tidak secara aktif menggunakan orang lain dalam bekerja.";
-      case 'P': return score >= 5 ? "Tingkat kebutuhan yang tinggi untuk menerima tanggung jawab dan menjadi pengontrol orang lain." : "Menurunnya keinginan untuk bertanggung jawab pada pekerjaan dan tindakan orang lain.";
-      case 'I': return score >= 8 ? "Tidak ragu dalam mengambil keputusan, cenderung terburu-buru." : score >= 5 ? "Lancar dan mudah mengambil keputusan." : score >= 3 ? "Berhati-hati membuat keputusan." : "Ragu - menolak mengambil keputusan.";
-      case 'F': return score >= 6 ? "Bersikap setia dan membantu, kemungkinan bantuannya bersifat politis." : score >= 4 ? "Setia terhadap otoritas." : score >= 2 ? "Mandiri." : "Cenderung egois, kemungkinan bisa memberontak.";
-      case 'W': return score >= 6 ? "Meningkatnya orientasi terhadap tugas dan membutuhkan instruksi yang jelas." : score >= 4 ? "Kebutuhan akan pengarahan dan harapan yang dirumuskan untuknya." : "Berorientasi pada tujuan, mandiri.";
-      case 'T': return score >= 4 ? "Tergolong aktif secara internal dan mental." : "Melakukan segala sesuatu menurut kemauan dan kecepatannya sendiri.";
-      case 'V': return score >= 5 ? "Aktif secara fisik, cenderung sportif." : "Cenderung pasif.";
-      case 'R': return score >= 5 ? "Nilai pendirian tergolong tinggi." : "Bersifat praktis.";
-      case 'D': return score >= 4 ? "Minat tinggi untuk bekerja secara detail." : "Menyadari kebutuhan akan kecermatan, tetapi tidak berminat bekerja detail.";
-      case 'C': return score >= 6 ? "Keteraturan tinggi cenderung kaku." : score >= 3 ? "Teratur tetapi tergolong fleksibel." : "Tidak teratur.";
-      case 'X': return score >= 6 ? "Benar-benar membutuhkan perhatian." : score >= 4 ? "Memiliki pola perilaku yang unik." : score >= 2 ? "Rendah hati, tulus." : "Cenderung pemalu.";
-      case 'B': return score >= 6 ? "Butuh disukai dan diakui, mudah dipengaruhi." : score >= 4 ? "Butuh diterima, tapi tidak mudah dipengaruhi kelompok." : "Selektif.";
-      case 'S': return score >= 6 ? "Kepercayaan tinggi dalam berhubungan sosial, suka interaksi sosial." : "Perhatian rendah terhadap hubungan sosial, kurang percaya pada orang lain.";
-      case 'O': return score >= 5 ? "Sangat tergantung, butuh penerimaan diri." : score >= 3 ? "Sadar akan hubungan perorangan, tapi tidak terlalu tergantung." : "Tidak suka hubungan perorangan.";
-      case 'N': return score >= 6 ? "Tekun, tanggung jawab tinggi." : score >= 4 ? "Cukup bertanggung jawab pada pekerjaan." : score >= 3 ? "Delegator." : "Komitmen rendah, tapi ada kemungkinan dapat memegang banyak pekerjaan dalam satu waktu.";
-      case 'A': return score >= 6 ? "Tujuan jelas, kebutuhan sukses dan ambisi tinggi." : "Ketidakpastian tujuan, tidak ada usaha lebih.";
-      case 'G': return score >= 4 ? "Kemauan bekerja keras tinggi." : "Bekerja untuk kesenangan saja, bukan hasil optimal.";
-      case 'Z': return score >= 8 ? "Mudah gelisah, frustasi, karena segala sesuatu tidak berjalan dengan cepat, mudah berubah-ubah." : score >= 6 ? "Membuat perubahan tertentu, berfikir jauh kedepan." : score >= 5 ? "Mudah menyesuaikan diri." : score >= 3 ? "Meremehkan atau mengacuhkan apabila dipaksa berubah." : "Tidak suka berubah, tradisional.";
-      case 'K': return score >= 8 ? "Agresif yang cenderung defensive." : score >= 6 ? "Menyalurkan agresi personal ke dalam pekerjaan, drive dan persaingan." : score === 5 ? "Keras kepala." : score >= 3 ? "Suka lingkungan yang tenang, menghindari konflik, biasanya menunda penyelesaian konflik." : "Menghindari masalah, menolak, mengelak adanya masalah.";
-      case 'E': return score >= 7 ? "Sangat normatif, kebutuhan pengendalian diri yang berlebihan, kecenderungan defensif." : score >= 4 ? "Punya pendekatan emosional seimbang, mampu mengendalikan." : score >= 2 ? "Agen bola terka." : "Terlalu cepat bereaksi, tidak normatif, ekspresi berlebihan.";
-      default: return "Tidak ada interpretasi spesifik.";
-  }
-};
-
 // --- 3. MAIN COMPONENT ---
-
 export default function TestManagementPage() {
   const router = useRouter();
   
-  // TIPE USER DIPERBAIKI (Ditambahkan role: string)
   const [user, setUser] = useState<{ name: string; role?: string } | null>(null);
-  
   const [activeTab, setActiveTab] = useState<TabType>("categories");
-  
-  // STATE KANDIDAT UNTUK FORM EVALUASI (Ditaruh di paling atas, sejajar dg hook lain)
   const [evalCandidateId, setEvalCandidateId] = useState("");
   
-  // Data State
   const [localCategories, setLocalCategories] = useState<Category[]>(STATIC_CATEGORIES);
   const [localQuestions, setLocalQuestions] = useState<Record<number, Question[]>>({});
   const [localTestLinks, setLocalTestLinks] = useState<TestLink[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]); 
   
-  // Candidates, Karyawan & Jobs List for Dropdown
   const [candidatesList, setCandidatesList] = useState<Candidate[]>([]);
   const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
   const [jobsList, setJobsList] = useState<JobPosition[]>([]);
   
-  // Form State
   const [participantType, setParticipantType] = useState<"candidate" | "karyawan">("candidate");
   const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [selectedKaryawanId, setSelectedKaryawanId] = useState("");
   const [selectedJobId, setSelectedJobId] = useState(""); 
 
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  
-  // CFIT State
   const [cfitSubtypes, setCfitSubtypes] = useState<CfitSubtype[]>(INITIAL_CFIT_SUBTYPES);
   const [selectedCfitSubtype, setSelectedCfitSubtype] = useState<CfitSubtype | null>(null);
   
-  // Modals
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showCreateLinkModal, setShowCreateLinkModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState<Submission | null>(null);
 
-  // Form Inputs
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [correctAnswer, setCorrectAnswer] = useState<string | string[]>("");
@@ -229,7 +167,6 @@ export default function TestManagementPage() {
       router.push("/");
       return;
     }
-    // Set User yang telah memiliki struktur role
     setUser(JSON.parse(userData));
     
     const loadConfig = async () => {
@@ -247,8 +184,6 @@ export default function TestManagementPage() {
     loadConfig();
     fetchData(); 
   }, [router]);
-
-  // --- API FETCH FUNCTIONS ---
 
   const fetchData = async () => {
     try {
@@ -312,7 +247,6 @@ export default function TestManagementPage() {
       toast.error("Gagal memuat data", { description: "Periksa koneksi internet atau server Anda." });
     }
   };
-
 
   const handleGenerateLink = async () => { 
     if (participantType === "candidate" && !selectedCandidateId) { 
@@ -493,7 +427,6 @@ export default function TestManagementPage() {
     toast.promise(deleteTask(), { loading: 'Menghapus...', success: (msg) => msg, error: (err) => err.message });
   };
 
-  // --- UTILS ---
   const copyLink = async (token: string) => {
     try {
       const url = `${window.location.origin}/test/${token}`;
@@ -995,12 +928,17 @@ export default function TestManagementPage() {
               {/* Render Komponen Form Penilaian jika kandidat sudah dipilih */}
               {evalCandidateId ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
-                  <CandidateEvaluation 
-                    candidateId={evalCandidateId}
-                    candidateName={candidatesList.find(c => c.id === evalCandidateId)?.fullName || "Unknown"}
-                    // TypeScript kini aman membaca user.role berkat perbaikan Interface di atas
-                    currentUserRole={user?.role || "HR"} 
-                  />
+                  {(() => {
+                    const selectedCand = candidatesList.find(c => c.id === evalCandidateId);
+                    return (
+                      <CandidateEvaluation 
+                        candidateId={evalCandidateId}
+                        candidateName={selectedCand?.fullName || "Unknown"}
+                        jobPosition={selectedCand?.top_position || "Belum Ditentukan"}
+                        currentUserRole={user?.role || "HR"} 
+                      />
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="p-10 text-center bg-white rounded-2xl border border-dashed border-[var(--secondary-300)] text-[var(--secondary-500)] flex flex-col items-center justify-center">

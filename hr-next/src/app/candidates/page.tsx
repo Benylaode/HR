@@ -565,8 +565,9 @@ const EditModal = memo(({
   );
 });
 EditModal.displayName = 'EditModal';
+
 // ==========================================
-// MODAL HASIL TES UNTUK KANDIDAT (UPDATED DENGAN FINAL REPORT)
+// MODAL HASIL TES UNTUK KANDIDAT (UPDATED)
 // ==========================================
 const TestResultModal = memo(({ 
   candidate, 
@@ -578,10 +579,10 @@ const TestResultModal = memo(({
   onClose: () => void;
 }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
-  const finalReportRef = useRef<HTMLDivElement>(null); // Ref untuk Final Report Wawancara
+  const finalReportRef = useRef<HTMLDivElement>(null); 
   
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [evaluations, setEvaluations] = useState<any[]>([]); // State untuk simpan nilai wawancara
+  const [evaluations, setEvaluations] = useState<any[]>([]); 
 
   // Fetch data evaluasi wawancara saat modal dibuka
   useEffect(() => {
@@ -625,18 +626,19 @@ const TestResultModal = memo(({
     }
   };
 
-  // Fungsi Cetak Final Report (Wawancara + Psikotes)
+  // Fungsi Cetak Final Report (Wawancara + Psikotes) -> UPDATE MARGIN & PAGEBREAK
   const handleDownloadFinalReport = async () => {
     if (!finalReportRef.current) return;
     setIsGeneratingPDF(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
-        margin: 0,
+        margin: 0, // PENTING: Margin harus 0 agar height presisi
         filename: `Final_Report_Assesment_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // PENTING: Membaca class page-break
       };
       await html2pdf().set(opt).from(finalReportRef.current).save();
     } catch (error) {
@@ -749,7 +751,7 @@ const TestResultModal = memo(({
             <Download size={16} /> Sertifikat Psikotes
           </button>
           
-          {/* TOMBOL BARU: FINAL REPORT */}
+          {/* TOMBOL FINAL REPORT */}
           <button onClick={handleDownloadFinalReport} disabled={isGeneratingPDF} className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'}`}>
             <Download size={16} /> Final Report (Wawancara)
           </button>
@@ -760,10 +762,8 @@ const TestResultModal = memo(({
       {/* AREA RENDER PDF (DISEMBUNYIKAN DI BALIK LAYAR) */}
       {/* ========================================================= */}
       
-      {/* 1. PDF Sertifikat Psikotes (Lama) */}
       <TestReportPDF ref={pdfRef} data={pdfData as any} />
 
-      {/* 2. PDF Final Report Terpadu (Baru) */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', overflow: 'hidden' }}>
         <div ref={finalReportRef}>
             <CandidateFinalReport 
@@ -771,7 +771,7 @@ const TestResultModal = memo(({
               candidateNik={`CAND-${candidate.id.substring(0, 5).toUpperCase()}`}
               jobPosition={candidate.top_position || "Unassigned"}
               evaluations={evaluations}
-              submissions={candSubs} // Hanya kirim submission milik kandidat ini
+              submissions={candSubs}
             />
         </div>
       </div>
@@ -809,7 +809,7 @@ export default function CandidatesPage() {
     setUser(JSON.parse(userData));
     fetchCandidates();
     fetchJobs();
-    fetchSubmissions(); // Fetch hasil tes
+    fetchSubmissions(); 
   }, [router]);
 
   const getAuthHeaders = (): HeadersInit => {
@@ -844,7 +844,6 @@ export default function CandidatesPage() {
     }
   };
 
-  // Mengambil data hasil tes untuk semua kandidat
   const fetchSubmissions = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() });
@@ -934,7 +933,7 @@ export default function CandidatesPage() {
       (c.fullName || "").toLowerCase().includes(searchLower) || 
       (c.email || "").toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
-    const matchesJob = jobFilter === "all" || c.top_position === jobFilter; // Job filter dipertahankan
+    const matchesJob = jobFilter === "all" || c.top_position === jobFilter; 
     return matchesSearch && matchesStatus && matchesJob;
   });
 

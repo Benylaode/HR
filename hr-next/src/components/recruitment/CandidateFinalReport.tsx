@@ -1,483 +1,376 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Save, UserCheck, Award, Target, User, Briefcase, Calendar } from 'lucide-react'; 
+import React from 'react';
+import { Camera } from 'lucide-react';
 
-// ==========================================
-// 1. DATA KOMPETENSI (Sesuai Gambar 1 - STAR)
-// ==========================================
-const COMPETENCY_CATEGORIES = [
-  {
-    category: "Communication Skill",
-    bobot: "15%",
-    questions: [
-      { id: "comp_1", question: "Ceritakan pengalaman Anda menyampaikan informasi penting kepada tim atau atasan", indikator: "Struktur penyampaian jelas (alur logis)" },
-      { id: "comp_2", question: "Ceritakan pengalaman terjadi miskomunikasi dan bagaimana Anda menanganinya", indikator: "Mengidentifikasi sumber masalah & Perbaikan komunikasi" },
-      { id: "comp_3", question: "Ceritakan pengalaman Anda berkomunikasi dengan Department lain yang berbeda level", indikator: "Menyesuaikan gaya komunikasi" }
-    ]
-  },
-  {
-    category: "Teamwork Skill",
-    bobot: "10%",
-    questions: [
-      { id: "comp_4", question: "Ceritakan pengalaman menghadapi konflik dalam tim", indikator: "Mencari solusi win-win serta bersikap Objektif & netral" },
-      { id: "comp_5", question: "Ceritakan pengalaman kerja dalam membantu anggota tim & lintas departemen", indikator: "Inisiatif membantu & Koordinasi efektif" }
-    ]
-  },
-  {
-    category: "Problem Solving",
-    bobot: "25%",
-    questions: [
-      { id: "comp_6", question: "Ceritakan masalah kompleks yang pernah Anda hadapi", indikator: "Struktur berpikir jelas & Solusi relevan" },
-      { id: "comp_7", question: "Ceritakan bagaimana cara anda menemukan akar masalah", indikator: "Identifikasi root cause & melakukan pendekatan logis" },
-      { id: "comp_8", question: "Ceritakan keputusan yang anda ambil berbasis data", indikator: "Menggunakan data valid & Analisa evidence-based" }
-    ]
-  },
-  {
-    category: "Adaptability",
-    bobot: "10%",
-    questions: [
-      { id: "comp_9", question: "Ceritakan pengalaman menghadapi perubahan mendadak dalam suatu organisasi yang sangat dinamis", indikator: "Tetap produktif & Respon Cepat" },
-      { id: "comp_10", question: "Ceritakan saat anda harus belajar hal baru dengan cepat", indikator: "Inisiatif belajar & Implementasi langsung" },
-      { id: "comp_11", question: "Ceritakan pengalaman anda keluar dari zona nyaman", indikator: "Growth mindset & Proaktif" }
-    ]
-  },
-  {
-    category: "Integrity",
-    bobot: "30%",
-    questions: [
-      { id: "comp_12", question: "Ceritakan saat Anda menolak melakukan hal yang tidak sesuai aturan", indikator: "Tegas, Berani & Profesional" },
-      { id: "comp_13", question: "Ceritakan saat menghadapi tekanan untuk melanggar aturan", indikator: "Tidak terpengaruh, Teguh prinsip & Etis" },
-      { id: "comp_14", question: "Ceritakan saat Anda jujur meskipun berisiko", indikator: "Transparansi, Konsistensi, & Dampak positif" }
-    ]
-  },
-  {
-    category: "Safety Awareness",
-    bobot: "10%",
-    questions: [
-      { id: "comp_15", question: "Ceritakan saat Anda mengidentifikasi potensi bahaya", indikator: "Hazard awareness, Observasi tajam & Preventif" },
-      { id: "comp_16", question: "Ceritakan saat Anda mencegah kecelakaan kerja", indikator: "Tindakan cepat, Proaktif & Dampak nyata" }
-    ]
-  }
-];
-
-// ==========================================
-// 2. DATA VALUE BEHAVIOR (Sesuai Gambar 2)
-// ==========================================
-const BEHAVIOR_QUESTIONS = [
-  { id: "behav_1", value: "Growth", sub: "Rasa ingin Berkembang", indikator: "Aktif berpartisipasi memunculkan ide ide untuk menumbuhkan produktivitas" },
-  { id: "behav_2", value: "Growth", sub: "Evaluasi diri", indikator: "Melakukan evaluasi, memberikan rekomendasi perbaikan dan mengimplementasikannya" },
-  { id: "behav_3", value: "Respect", sub: "Rasa Hormat", indikator: "Menghargai keberagaman dalam tim kerja, dan mampu bekerjasama meraih target-target melampaui standar kinerja." },
-  { id: "behav_4", value: "Respect", sub: "Menghargai pendapat", indikator: "Mampu memberikan dan menerima umpan balik secara terbuka dan penuh penghargaan." },
-  { id: "behav_5", value: "Accountability", sub: "Komprehensif", indikator: "Menyelesaikan semua tugas pekerjaan secara komprehensif" },
-  { id: "behav_6", value: "Accountability", sub: "Akuntabilitas", indikator: "Selalu focus dalam mencari solusi dari pada terpaku dalam permasalahan." },
-  { id: "behav_7", value: "Collaboration", sub: "Kolaborasi", indikator: "Menempatkan prioritas yang lebih tinggi pada tujuan tim dan organisasi daripada tujuan kami sendiri." },
-  { id: "behav_8", value: "Collaboration", sub: "Komunikasi", indikator: "Aktif menjalin koordinasi dan komunikasi dengan baik antar anggota tim maupun lintas department" },
-  { id: "behav_9", value: "Excellent", sub: "Keunggulan", indikator: "Menawarkan saran-saran yang sesuai serta mengambil tindakan yang relevan Ketika menghadapi situasi yang tidak diharapkan." },
-  { id: "behav_10", value: "Excellent", sub: "Kepedulian", indikator: "Perduli biaya dan memastikan sumberdaya dipakai secara efisien dan pemborosan berkurang." },
-  { id: "behav_11", value: "Safety", sub: "Proaktif", indikator: "Secara proaktif mengidentifikasi dan melaporkan adanya bahaya atau masalah sebelum terjadi kecelakaan." },
-  { id: "behav_12", value: "Safety", sub: "Keamanan", indikator: "Memimpin budaya aman dengan menunjukkan perilaku selamat, menyediakan intruksi yang jelas, serta memastikan ketaatan terhadap control dan prosedur yang berlaku." },
-  { id: "behav_13", value: "Safety", sub: "Regulasi", indikator: "Mentaati standard dan prosedur yang ada, sambil selalu mencari cara yang lebih baik." },
-  { id: "behav_14", value: "Sustainability", sub: "Keberlanjutan", indikator: "Berusaha keras untuk mengurangi jejak karbon dan dampak lingkungan dari apa yang telah di lakukan melalui konsumsi listrik, bahan bakar fosil, perlengkapan kantor dan bahan kimia secara hati-hati serta metode kerja yang efektif dan efisien." },
-  { id: "behav_15", value: "Sustainability", sub: "Keberlanjutan", indikator: "Mengakui hak asasi manusia dan menghormati orang lain selain itu dapat mempromosikan nilai-nilai serta berkontribusi secara aktif untuk kesejahteraan seluruh pemangku kepentingan." }
-];
-
-interface CandidateEvaluationProps {
-  candidateId: string;
+interface ReportProps {
   candidateName: string;
-  currentUserRole?: string; 
+  candidateNik?: string;
+  jobPosition?: string;
+  evaluations: any[]; // Data dari Form Penilaian (HR/User)
+  submissions: any[]; // Data dari Hasil Tes (CFIT, PAPI, Kraepelin)
 }
 
-export default function CandidateEvaluation({ candidateId, candidateName, currentUserRole = 'SUPER_USER' }: CandidateEvaluationProps) {
+export default function CandidateFinalReport({ 
+  candidateName, 
+  candidateNik = "PUS-0000", 
+  jobPosition = "Staff", 
+  evaluations, 
+  submissions 
+}: ReportProps) {
   
-  const [activeTab, setActiveTab] = useState<'HR' | 'USER_1' | 'USER_2'>(currentUserRole === 'SUPER_USER' ? 'HR' : 'USER_1');
-  const [scores, setScores] = useState<Record<string, number>>({});
-  const [overallNotes, setOverallNotes] = useState('');
+  // =====================================
+  // KALKULASI HALAMAN 1 (INTERVIEW & VALUE)
+  // =====================================
   
-  // STATE BARU: Nama, Jabatan, Tanggal
-  const [assessorName, setAssessorName] = useState('');
-  const [assessorPosition, setAssessorPosition] = useState('');
-  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]); // Default hari ini
+  // Mengambil form HR sebagai acuan utama
+  const hrEval = evaluations.find(e => e.role_type === 'HR') || evaluations[0] || null;
   
-  const [isSaving, setIsSaving] = useState(false);
+  // MENGAMBIL DATA NAMA, JABATAN & TANGGAL ASSESOR
+  const assessorName = hrEval?.evaluator_name || "-";
+  const assessorPosition = hrEval?.evaluator_position || "HR Department";
+  const evaluationDateRaw = hrEval?.evaluation_date;
+  
+  // Format Tanggal (Jika ada, format ke Indonesia. Jika tidak, gunakan tanggal cetak)
+  const evaluationDate = evaluationDateRaw 
+      ? new Date(evaluationDateRaw).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+      : "-";
 
-  useEffect(() => {
-    setActiveTab(currentUserRole === 'SUPER_USER' ? 'HR' : 'USER_1');
-  }, [currentUserRole]);
+  let competencyScore = 0;
+  let behaviorScore = 0;
 
-  // Load Data dari Backend
-  useEffect(() => {
-    if (!candidateId) return;
-
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
-    fetch(`${API_BASE_URL}/api/management/evaluations/${candidateId}`)
-      .then(res => {
-          if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          return res.json();
-      })
-      .then((data: any[]) => {
-        const currentForm = data.find(f => f.role_type === activeTab);
-        if (currentForm) {
-          if (currentForm.scores) {
-            const loadedScores: Record<string, number> = {};
-            currentForm.scores.forEach((s: any) => { loadedScores[s.criteria_name] = s.score; });
-            setScores(loadedScores);
-          }
-          setOverallNotes(currentForm.overall_notes || '');
-          setAssessorName(currentForm.evaluator_name || '');
-          
-          // Set Jabatan dan Tanggal jika ada dari database
-          setAssessorPosition(currentForm.evaluator_position || '');
-          if(currentForm.evaluation_date) {
-            setEvaluationDate(currentForm.evaluation_date);
-          }
-
-        } else {
-          // Reset form jika belum ada data
-          setScores({});
-          setOverallNotes('');
-          setAssessorPosition('');
-          setEvaluationDate(new Date().toISOString().split('T')[0]);
-          
-          try {
-             const userData = localStorage.getItem("hr_user");
-             if(userData) setAssessorName(JSON.parse(userData).name);
-             else setAssessorName('');
-          } catch (e) {
-             setAssessorName('');
-          }
-        }
-      })
-      .catch((error) => { 
-          console.error("Fetch Data Gagal:", error);
-          setScores({}); 
-          setOverallNotes(''); 
-          setAssessorName('');
-          setAssessorPosition('');
-      });
-  }, [candidateId, activeTab]);
-
-  // Kalkulasi Skor
-  const totalScore = Object.values(scores).reduce((acc, curr) => acc + (curr || 0), 0);
-  const totalQuestions = 16 + 15; 
-  const maxPossibleScore = totalQuestions * 5;
-  const percentageScore = Math.round((totalScore / maxPossibleScore) * 100) || 0;
-
-  // Fungsi mengamankan input skor (Lock 1-5)
-  const handleScoreChange = (id: string, value: string) => {
-    if (value === '') {
-        const newScores = {...scores};
-        delete newScores[id];
-        setScores(newScores);
-        return;
-    }
-    
-    let num = parseInt(value);
-    if (isNaN(num)) return;
-
-    // Lock angka hanya di 1, 2, 3, 4, 5
-    if (num > 5) num = 5;
-    if (num < 1) num = 1;
-
-    setScores(prev => ({...prev, [id]: num}));
-  };
-
-  // Handler Simpan
-  const handleSave = async () => {
-    if (!assessorName.trim()) {
-        alert("Mohon isi Nama Assesor terlebih dahulu!");
-        return;
-    }
-
-    setIsSaving(true);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-    
-    const flatCompetencyScores = COMPETENCY_CATEGORIES.flatMap(cat => 
-        cat.questions.map(q => ({
-            category: "COMPETENCY",
-            criteria_name: q.id, 
-            notes: q.indikator,
-            score: scores[q.id] || 0
-        }))
-    );
-
-    const payload = {
-      role_type: activeTab,
-      evaluator_name: assessorName, 
-      evaluator_position: assessorPosition, // Menambahkan Jabatan ke Payload
-      evaluation_date: evaluationDate,       // Menambahkan Tanggal ke Payload
-      overall_notes: overallNotes,
-      status: "SUBMITTED",
-      scores: [
-        ...flatCompetencyScores,
-        ...BEHAVIOR_QUESTIONS.map(q => ({
-          category: "BEHAVIOR",
-          criteria_name: q.id,
-          notes: q.indikator,
-          score: scores[q.id] || 0
-        }))
-      ]
-    };
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/management/evaluations/${candidateId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+  if (hrEval && hrEval.scores) {
+      const compScores = hrEval.scores.filter((s: any) => s.category === 'COMPETENCY');
+      const behavScores = hrEval.scores.filter((s: any) => s.category === 'BEHAVIOR');
       
-      if (res.ok) {
-          alert('Penilaian berhasil disimpan!');
-      } else {
-          const errData = await res.json();
-          alert(`Gagal menyimpan penilaian: ${errData.error || 'Server error'}`);
-      }
-    } catch (error: any) {
-      alert(`Terjadi kesalahan jaringan: ${error.message}. Pastikan URL API HTTPS sudah benar.`);
-      console.error(error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  if (!candidateId) {
-    return (
-      <div className="p-8 bg-white border border-dashed border-[var(--secondary-300)] rounded-2xl text-center flex flex-col items-center justify-center h-[500px]">
-        <UserCheck className="w-16 h-16 mb-4 text-[var(--secondary-200)]" />
-        <p className="font-bold text-[var(--primary-900)] text-lg">Pilih Kandidat Terlebih Dahulu</p>
-        <p className="text-[var(--secondary-500)] text-sm mt-1">Silakan pilih kandidat dari dropdown di menu untuk memulai form penilaian.</p>
-      </div>
-    );
+      const compTotal = compScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
+      const behavTotal = behavScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
+      
+      // Max score kompetensi (16 soal * 5) = 80, Value Behavior (15 soal * 5) = 75
+      competencyScore = Math.round((compTotal / 80) * 100) || 0;
+      behaviorScore = Math.round((behavTotal / 75) * 100) || 0;
   }
 
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[var(--secondary-200)] flex flex-col h-full max-h-[850px] overflow-hidden">
-      
-      {/* HEADER & TABS */}
-      <div className="p-5 border-b border-[var(--secondary-100)] bg-[var(--background)] flex flex-col gap-4">
-        
-        <div className="flex justify-between items-start">
-            <div>
-                <h3 className="font-bold text-[var(--primary-900)] text-lg">Assesment Interview</h3>
-                <p className="text-sm text-[var(--secondary-600)] mt-1">Kandidat: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
-            </div>
-            <div className="text-right bg-white px-4 py-2 rounded-xl border border-[var(--secondary-200)] shadow-sm">
-                <div className="text-[10px] font-bold text-[var(--secondary-400)] uppercase tracking-widest">Persentase</div>
-                <div className={`text-2xl font-black ${percentageScore >= 70 ? 'text-green-600' : 'text-orange-500'}`}>{percentageScore}%</div>
-            </div>
-        </div>
+  const totalScore = (competencyScore + behaviorScore) / 2;
 
-        {/* INPUT NAMA, JABATAN, DAN TANGGAL */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
-             <div className="bg-[var(--primary-50)] p-2 rounded-lg">
-                <User className="w-5 h-5 text-[var(--primary)]" />
-             </div>
-             <div className="flex-1 flex flex-col">
-               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Nama Assesor</label>
-               <input 
-                 type="text" 
-                 placeholder="Ketik nama..."
-                 value={assessorName}
-                 onChange={(e) => setAssessorName(e.target.value)}
-                 className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
-               />
-             </div>
-          </div>
+  // Menentukan Kategori
+  let categoryRemarks = "";
+  let categoryStatus = "";
+  let categoryReadyness = "";
 
-          <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
-             <div className="bg-[var(--primary-50)] p-2 rounded-lg">
-                <Briefcase className="w-5 h-5 text-[var(--primary)]" />
-             </div>
-             <div className="flex-1 flex flex-col">
-               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Jabatan Assesor</label>
-               <input 
-                 type="text" 
-                 placeholder="Ketik jabatan..."
-                 value={assessorPosition}
-                 onChange={(e) => setAssessorPosition(e.target.value)}
-                 className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
-               />
-             </div>
-          </div>
+  if (totalScore < 50) {
+      categoryRemarks = "Unacceptable"; categoryStatus = "Not Recommended"; categoryReadyness = "-";
+  } else if (totalScore < 70) {
+      categoryRemarks = "Below Expectation"; categoryStatus = "Considered"; categoryReadyness = "R3";
+  } else if (totalScore < 80) {
+      categoryRemarks = "Fully Successful"; categoryStatus = "Recommended"; categoryReadyness = "R1";
+  } else if (totalScore < 90) {
+      categoryRemarks = "Above Expectation"; categoryStatus = "Highly Recommended"; categoryReadyness = "R1";
+  } else {
+      categoryRemarks = "Outstanding"; categoryStatus = "Highly Recommended"; categoryReadyness = "R1";
+  }
 
-          <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
-             <div className="bg-[var(--primary-50)] p-2 rounded-lg">
-                <Calendar className="w-5 h-5 text-[var(--primary)]" />
-             </div>
-             <div className="flex-1 flex flex-col">
-               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Tanggal Interview</label>
-               <input 
-                 type="date" 
-                 value={evaluationDate}
-                 onChange={(e) => setEvaluationDate(e.target.value)}
-                 className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
-               />
-             </div>
-          </div>
-        </div>
+  // =====================================
+  // DATA HALAMAN 2 (HASIL PSIKOTES)
+  // =====================================
+  const cfitSub = submissions.find(s => s.test_type === 'cfit');
+  const kraepelinSub = submissions.find(s => s.test_type === 'kraepelin');
+  const papiSub = submissions.find(s => s.test_type === 'papi');
 
-        {/* ROLE TABS */}
-        <div className="flex gap-2 bg-[var(--secondary-50)] p-1.5 rounded-xl border border-[var(--secondary-200)] w-fit">
-          {currentUserRole === 'SUPER_USER' ? (
-            <button onClick={() => setActiveTab('HR')} className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'HR' ? 'bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]' : 'text-[var(--secondary-500)] hover:text-[var(--primary-700)]'}`}>Form Penilaian HR</button>
-          ) : (
-            <>
-              <button onClick={() => setActiveTab('USER_1')} className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'USER_1' ? 'bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]' : 'text-[var(--secondary-500)] hover:text-[var(--primary-700)]'}`}>Form User 1</button>
-              <button onClick={() => setActiveTab('USER_2')} className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'USER_2' ? 'bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]' : 'text-[var(--secondary-500)] hover:text-[var(--primary-700)]'}`}>Form User 2</button>
-            </>
-          )}
-        </div>
+  // Helper untuk PAPI
+  const getPapiName = (key: string) => {
+      const names: Record<string, string> = {
+          G: "Pekerja Keras", L: "Kepemimpinan", I: "Pembuat Keputusan", T: "Kecepatan/Sibuk", 
+          V: "Penuh Semangat", S: "Perluasan Sosial", R: "Tipe Teoritis", D: "Bekerja Detail", 
+          C: "Keteraturan", E: "Daya Tahan Emosi", N: "Penyelesaian Tugas", A: "Kebutuhan Berprestasi", 
+          P: "Mengontrol Orang Lain", X: "Kebutuhan Diperhatikan", B: "Diterima Kelompok", 
+          O: "Kebutuhan Kedekatan", Z: "Kebutuhan Perubahan", K: "Bertindak Tegas/Agresif", 
+          F: "Mendukung Otoritas", W: "Aturan & Arahan"
+      };
+      return names[key] || key;
+  };
+
+  const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // REUSABLE FOOTER COMPONENT
+  const FooterSignature = () => (
+    <div style={{ position: 'absolute', bottom: '30px', left: '40px', right: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <div>
+         <p style={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold', margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
+         <p style={{ fontSize: '10px', color: '#94a3b8', margin: 0 }}>ID: DOC-{candidateNik} | Dicetak: {printDate}</p>
       </div>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: '11px', margin: '0 0 35px 0', color: '#64748b' }}>Authorized Assessor,</p>
+        <p style={{ fontSize: '13px', fontWeight: 'bold', margin: 0, color: '#0f172a', textDecoration: 'underline' }}>{assessorName}</p>
+        <p style={{ fontSize: '10px', color: '#64748b', margin: '2px 0 0 0' }}>{assessorPosition}</p>
+      </div>
+    </div>
+  );
 
-      {/* FORM CONTENT (SCROLLABLE) */}
-      <div className="flex-1 overflow-y-auto p-5 bg-gray-50/50 space-y-8">
-        
-        {/* BAGIAN A: KOMPETENSI */}
-        <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
-          <div className="p-4 bg-[var(--primary-50)] border-b border-[var(--secondary-100)] flex items-center gap-2">
-            <Award className="w-5 h-5 text-[var(--primary)]" />
-            <h4 className="font-bold text-[var(--primary-900)] text-sm uppercase tracking-wide">
-              Scoring Assessment: Kompetensi
-            </h4>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm bg-white">
-              <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
-                  <tr>
-                      <th className="p-3 w-1/3">Kompetensi (STAR Method)</th>
-                      <th className="p-3 w-1/2">Perilaku / Indikator</th>
-                      <th className="p-3 text-center w-24">Skala (1-5)</th>
-                  </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--secondary-100)]">
-                {COMPETENCY_CATEGORIES.map((cat, catIdx) => (
-                    <React.Fragment key={catIdx}>
-                        {/* Kategori Header */}
-                        <tr className="bg-[var(--secondary-50)]/50">
-                            <td className="p-3 font-bold text-[var(--primary-800)]">{cat.category}</td>
-                            <td className="p-3 text-xs text-[var(--secondary-500)] italic">[S:Situation, T:Task, A:Action, R:Result]</td>
-                            <td className="p-3 text-center text-[10px] font-bold text-[var(--primary-600)]">BOBOT {cat.bobot}</td>
+  return (
+    <div className="bg-gray-200 py-8 flex justify-center w-full min-h-screen">
+        {/* WADAH PDF: 2 Halaman A4 */}
+        <div id="pdf-content" className="bg-white flex flex-col gap-12" style={{ width: '210mm' }}>
+            
+            {/* ========================================================= */}
+            {/* HALAMAN 1: REKAPITULASI INTERVIEW & VALUE */}
+            {/* ========================================================= */}
+            <div className="w-[210mm] min-h-[297mm] p-10 bg-white relative break-after-page shadow-xl">
+                
+                <h1 className="text-2xl font-bold text-center text-teal-800 mb-8 border-b-2 border-teal-800 pb-2 uppercase tracking-widest">
+                    Rekapitulasi Final Evaluation
+                </h1>
+
+                {/* Identitas Assesi */}
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 border-l-4 border-teal-700">Identitas Assesi</h2>
+                    <span className="text-xs text-gray-500 font-semibold bg-gray-50 px-3 py-1 rounded border border-gray-200">
+                        Tanggal Evaluasi: {evaluationDate}
+                    </span>
+                </div>
+
+                <table className="w-full text-sm border-collapse border border-gray-300 mb-8">
+                    <tbody>
+                        <tr className="border-b border-gray-300">
+                            <td className="w-1/3 p-2 font-bold bg-gray-50 border-r border-gray-300">NIK</td>
+                            <td className="p-2">{candidateNik}</td>
                         </tr>
-                        {/* Soal per Kategori */}
-                        {cat.questions.map((q) => (
-                            <tr key={q.id} className="hover:bg-[var(--primary-50)]/30 transition-colors">
-                                <td className="p-3 text-[var(--secondary-700)] leading-relaxed pr-4">{q.question}</td>
-                                <td className="p-3 text-[var(--secondary-600)]">{q.indikator}</td>
-                                <td className="p-3 align-middle">
-                                    <input 
-                                        type="number" min="1" max="5" placeholder="1-5"
-                                        className="w-full h-10 border border-[var(--secondary-200)] rounded-lg text-center font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none transition-all"
-                                        value={scores[q.id] || ''}
-                                        onChange={(e) => handleScoreChange(q.id, e.target.value)}
-                                        onKeyDown={(e) => {
-                                            // Memblokir ketikan huruf 'e', '-', '+' di input number
-                                            if (['e', 'E', '+', '-'].includes(e.key)) {
-                                                e.preventDefault();
-                                            }
-                                        }}
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                        <tr className="border-b border-gray-300">
+                            <td className="w-1/3 p-2 font-bold bg-gray-50 border-r border-gray-300">Nama Assesi</td>
+                            <td className="p-2">{candidateName}</td>
+                        </tr>
+                        <tr>
+                            <td className="w-1/3 p-2 font-bold bg-gray-50 border-r border-gray-300">Posisi Assesi</td>
+                            <td className="p-2">{jobPosition}</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-        {/* BAGIAN B: VALUE BEHAVIOR */}
-        <div className="card-static bg-white rounded-2xl border border-[var(--secondary-200)] shadow-sm overflow-hidden">
-          <div className="p-4 bg-emerald-50 border-b border-[var(--secondary-100)] flex items-center gap-2">
-            <Target className="w-5 h-5 text-emerald-600" />
-            <h4 className="font-bold text-emerald-900 text-sm uppercase tracking-wide">
-              Value Behaviour
-            </h4>
-          </div>
-          
-          {/* Legenda Proficiency */}
-          <div className="p-4 bg-white border-b border-[var(--secondary-100)] text-xs grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 text-[var(--secondary-600)]">
-              <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-red-100 text-red-700 font-bold flex items-center justify-center shrink-0">1</span> Tidak Pernah muncul</div>
-              <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-orange-100 text-orange-700 font-bold flex items-center justify-center shrink-0">2</span> Jarang muncul</div>
-              <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-yellow-100 text-yellow-700 font-bold flex items-center justify-center shrink-0">3</span> Kadang-Kadang muncul</div>
-              <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-[var(--primary-50)] text-[var(--primary-700)] font-bold flex items-center justify-center shrink-0">4</span> Sering muncul</div>
-              <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-green-100 text-green-700 font-bold flex items-center justify-center shrink-0">5</span> Selalu muncul di setiap situasi</div>
-          </div>
+                {/* Interview / Kompetensi */}
+                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Interview (Kompetensi)</h2>
+                <table className="w-full text-sm border-collapse border border-gray-300 text-center mb-8">
+                    <thead className="bg-teal-700 text-white">
+                        <tr>
+                            <th className="p-2 border border-teal-800 w-1/4">Assesor</th>
+                            <th className="p-2 border border-teal-800">Nama Assesor</th>
+                            <th className="p-2 border border-teal-800 w-1/4">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="p-2 border border-gray-300 font-bold bg-gray-50">HR / Interviewer</td>
+                            <td className="p-2 border border-gray-300">
+                                {assessorName} <br/> 
+                                <span className="text-xs text-gray-500 font-normal">{assessorPosition}</span>
+                            </td>
+                            <td className="p-2 border border-gray-300 font-bold text-lg">{competencyScore}%</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm bg-white">
-               <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
-                  <tr>
-                      <th className="p-3 w-10 text-center">No</th>
-                      <th className="p-3 w-28">Value</th>
-                      <th className="p-3 w-36">Sub Value</th>
-                      <th className="p-3 min-w-[200px]">Indikator Perilaku</th>
-                      <th className="p-3 text-center w-40">Proficiency (1-5)</th>
-                  </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--secondary-100)]">
-                {BEHAVIOR_QUESTIONS.map((q, idx) => (
-                  <tr key={q.id} className="hover:bg-[var(--primary-50)]/30 transition-colors">
-                    <td className="p-3 text-center text-[var(--secondary-500)] font-medium">{idx + 1}</td>
-                    <td className="p-3 font-bold text-[var(--primary-900)]">{q.value}</td>
-                    <td className="p-3 text-[var(--secondary-700)] font-medium">{q.sub}</td>
-                    <td className="p-3 text-[var(--secondary-600)] leading-relaxed">{q.indikator}</td>
-                    <td className="p-3 align-middle bg-[var(--secondary-50)]/30">
-                        <div className="flex justify-between items-center w-full px-2">
-                            {[1, 2, 3, 4, 5].map((val) => (
-                                <button
-                                    key={val}
-                                    onClick={() => handleScoreChange(q.id, String(val))}
-                                    className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold border transition-all ${
-                                        scores[q.id] === val 
-                                        ? 'bg-[var(--primary)] border-[var(--primary)] text-white scale-110 shadow-md shadow-[var(--primary)]/30' 
-                                        : 'bg-white border-[var(--secondary-300)] text-[var(--secondary-400)] hover:border-[var(--primary-400)] hover:text-[var(--primary-600)]'
-                                    }`}
-                                >
-                                    {val}
-                                </button>
+                {/* Value Behaviour */}
+                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Value Behaviour</h2>
+                <table className="w-full text-sm border-collapse border border-gray-300 text-center mb-8">
+                    <thead className="bg-teal-700 text-white">
+                        <tr>
+                            <th className="p-2 border border-teal-800 w-1/4">Assesor</th>
+                            <th className="p-2 border border-teal-800">Nama Assesor</th>
+                            <th className="p-2 border border-teal-800 w-1/4">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="p-2 border border-gray-300 font-bold bg-gray-50">HR / Interviewer</td>
+                            <td className="p-2 border border-gray-300">
+                                {assessorName} <br/> 
+                                <span className="text-xs text-gray-500 font-normal">{assessorPosition}</span>
+                            </td>
+                            <td className="p-2 border border-gray-300 font-bold text-lg">{behaviorScore}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                {/* Summary */}
+                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Summary</h2>
+                <table className="w-full text-sm border-collapse border border-gray-300 mb-8 text-center">
+                    <thead className="bg-teal-700 text-white">
+                        <tr>
+                            <th className="p-2 border border-teal-800 w-16">No</th>
+                            <th className="p-2 border border-teal-800 text-left">Jenis Assesment</th>
+                            <th className="p-2 border border-teal-800 w-1/4">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="p-2 border border-gray-300 bg-gray-50">1</td>
+                            <td className="p-2 border border-gray-300 text-left">Assesment - Kompetensi</td>
+                            <td className="p-2 border border-gray-300 font-bold">{competencyScore}%</td>
+                        </tr>
+                        <tr>
+                            <td className="p-2 border border-gray-300 bg-gray-50">2</td>
+                            <td className="p-2 border border-gray-300 text-left">Assesment - Value Behavior</td>
+                            <td className="p-2 border border-gray-300 font-bold">{behaviorScore}%</td>
+                        </tr>
+                        <tr className="bg-teal-50">
+                            <td colSpan={2} className="p-2 border border-gray-300 font-bold text-right text-teal-800">Total Score</td>
+                            <td className="p-2 border border-gray-300 font-black text-teal-800 text-lg">{totalScore.toFixed(2)}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                {/* Kategori Keputusan */}
+                <table className="w-full text-xs border-collapse border border-gray-300 text-center mb-8">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="p-2 border border-gray-300">Skor</th>
+                            <th className="p-2 border border-gray-300">Remarks</th>
+                            <th className="p-2 border border-gray-300">Status</th>
+                            <th className="p-2 border border-gray-300">Readyness</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr className={totalScore < 50 ? 'bg-yellow-200 font-bold' : ''}>
+                            <td className="p-2 border border-gray-300">&lt;50%</td><td className="p-2 border border-gray-300">Unacceptable</td><td className="p-2 border border-gray-300">Not Recommended</td><td className="p-2 border border-gray-300">-</td>
+                        </tr>
+                        <tr className={totalScore >= 50 && totalScore < 70 ? 'bg-yellow-200 font-bold' : ''}>
+                            <td className="p-2 border border-gray-300">≥50 - &lt;70%</td><td className="p-2 border border-gray-300">Below Expectation</td><td className="p-2 border border-gray-300">Considered</td><td className="p-2 border border-gray-300">R3</td>
+                        </tr>
+                        <tr className={totalScore >= 70 && totalScore < 80 ? 'bg-yellow-200 font-bold' : ''}>
+                            <td className="p-2 border border-gray-300">≥70% - &lt;80%</td><td className="p-2 border border-gray-300">Fully Successful</td><td className="p-2 border border-gray-300">Recommended</td><td className="p-2 border border-gray-300">R1</td>
+                        </tr>
+                        <tr className={totalScore >= 80 && totalScore < 90 ? 'bg-yellow-200 font-bold' : ''}>
+                            <td className="p-2 border border-gray-300">≥80% - &lt;90%</td><td className="p-2 border border-gray-300">Above Expectation</td><td className="p-2 border border-gray-300">Highly Recommended</td><td className="p-2 border border-gray-300">R1</td>
+                        </tr>
+                        <tr className={totalScore >= 90 ? 'bg-yellow-200 font-bold' : ''}>
+                            <td className="p-2 border border-gray-300">≥90%</td><td className="p-2 border border-gray-300">Outstanding</td><td className="p-2 border border-gray-300">Highly Recommended</td><td className="p-2 border border-gray-300">R1</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p className="text-xs text-gray-500 italic mt-[-20px] mb-8">*Recommended dengan kategori minimal Fully Successful (FS)</p>
+
+                {/* DOKUMENTASI WAWANCARA (Sesuai Screenshot/Foto) */}
+                <h2 className="font-bold text-teal-700 bg-teal-50 px-3 py-1 mb-2 border-l-4 border-teal-700">Dokumentasi Wawancara</h2>
+                <div className="w-full h-32 border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400 rounded-lg">
+                    <Camera className="w-8 h-8 mb-2" />
+                    <span className="text-sm">Lampirkan Foto / Screenshot Interview di Sini</span>
+                </div>
+
+                {/* FOOTER HALAMAN 1 */}
+                <FooterSignature />
+
+            </div>
+
+
+            {/* ========================================================= */}
+            {/* HALAMAN 2: PSYCHOLOGICAL ASSESSMENT REPORT (TES) */}
+            {/* ========================================================= */}
+            <div className="w-[210mm] min-h-[297mm] p-10 bg-white relative shadow-xl">
+                
+                {/* Kop Surat / Header */}
+                <div className="flex justify-between items-center mb-6 pb-4 border-b-4 border-teal-800">
+                    <div>
+                        <h2 className="text-lg font-black text-gray-800 tracking-tighter">MERDEKA BATTERY</h2>
+                        <h2 className="text-lg font-black text-teal-700 tracking-tighter mt-[-5px]">MATERIALS</h2>
+                    </div>
+                    <div className="text-right">
+                        <h3 className="font-bold text-gray-600 text-sm">PT. SULAWESI CAHAYA MINERAL</h3>
+                    </div>
+                </div>
+
+                <div className="text-center mb-8">
+                    <h1 className="text-2xl font-black text-gray-900 uppercase tracking-widest">Psychological Assessment Report</h1>
+                    <p className="text-sm text-gray-500 mt-1">Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan</p>
+                </div>
+
+                {/* Nama Peserta */}
+                <div className="bg-gray-100 p-4 rounded-lg flex justify-between items-center mb-8 border border-gray-300">
+                    <div>
+                        <span className="text-xs text-gray-500 font-bold uppercase block mb-1">Nama Peserta</span>
+                        <span className="text-xl font-bold text-teal-900">{candidateNik} - {candidateName.toUpperCase()}</span>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-xs text-gray-500 font-bold uppercase block mb-1">Tipe Peserta</span>
+                        <span className="text-sm font-bold bg-white px-3 py-1 rounded border border-gray-300">Kandidat / Pelamar</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8 mb-8">
+                    {/* 1. KOGNITIF (CFIT) */}
+                    <div>
+                        <h3 className="font-bold text-white bg-teal-800 px-3 py-1.5 mb-3 inline-block">1. Kecerdasan Kognitif (CFIT)</h3>
+                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 text-center">
+                            {cfitSub?.scores ? (
+                                <>
+                                    <div className="text-xs text-gray-500 font-bold uppercase mb-1">SKOR IQ</div>
+                                    <div className="text-4xl font-black text-teal-700 mb-2">{cfitSub.scores.iq}</div>
+                                    <div className="grid grid-cols-2 gap-2 mt-4">
+                                        <div className="bg-white border border-gray-300 p-2 rounded">
+                                            <div className="text-[10px] text-gray-500 uppercase">Klasifikasi</div>
+                                            <div className="font-bold text-sm text-gray-800">{cfitSub.scores.classification}</div>
+                                        </div>
+                                        <div className="bg-white border border-gray-300 p-2 rounded">
+                                            <div className="text-[10px] text-gray-500 uppercase">Jwb Benar</div>
+                                            <div className="font-bold text-sm text-gray-800">{cfitSub.scores.raw_score} / 50</div>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-sm text-gray-400 py-6 italic">Belum ada hasil CFIT</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 2. KRAEPELIN */}
+                    <div>
+                        <h3 className="font-bold text-white bg-teal-800 px-3 py-1.5 mb-3 inline-block">2. Performa Kerja (Kraepelin)</h3>
+                        <div className="border border-gray-300 rounded-lg overflow-hidden text-center">
+                            {kraepelinSub?.scores ? (
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-100 border-b border-gray-300 text-xs text-gray-600">
+                                        <tr><th className="p-2 border-r border-gray-300">Kecepatan</th><th className="p-2 border-r border-gray-300">Ketelitian</th><th className="p-2">Total Errors</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className="font-bold text-teal-900 text-lg">
+                                            <td className="p-4 border-r border-gray-300">{kraepelinSub.scores.panker}</td>
+                                            <td className="p-4 border-r border-gray-300">{kraepelinSub.scores.janker}</td>
+                                            <td className="p-4">0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="text-sm text-gray-400 py-10 italic">Belum ada hasil Kraepelin</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. PAPI KOSTICK */}
+                <div>
+                    <h3 className="font-bold text-white bg-teal-800 px-3 py-1.5 mb-4 inline-block">3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
+                    {papiSub?.scores ? (
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                            {Object.entries(papiSub.scores)
+                                .filter(([k]) => /^[A-Z]$/.test(k))
+                                .map(([key, val]: any) => (
+                                <div key={key} className="flex justify-between items-center border-b border-gray-200 py-1.5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-black text-teal-800 w-4">{key}</span>
+                                        <span className="text-gray-700">{getPapiName(key)}</span>
+                                    </div>
+                                    <span className="font-bold bg-gray-100 border border-gray-300 px-2 py-0.5 rounded">{val}</span>
+                                </div>
                             ))}
                         </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                    ) : (
+                        <div className="text-sm text-gray-400 py-6 italic text-center border border-gray-300 rounded-lg bg-gray-50">Belum ada profil PAPI Kostick</div>
+                    )}
+                </div>
 
-        {/* CATATAN KESELURUHAN */}
-        <div className="bg-white p-5 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
-          <label className="block text-sm font-bold text-[var(--primary-900)] mb-2">Catatan Tambahan & Rekomendasi (Opsional)</label>
-          <textarea 
-            placeholder="Tuliskan kesimpulan, poin plus, atau evaluasi mendalam terkait kandidat..."
-            className="w-full p-4 border border-[var(--secondary-200)] rounded-xl text-sm h-28 focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none resize-none transition-all"
-            value={overallNotes}
-            onChange={(e) => setOverallNotes(e.target.value)}
-          ></textarea>
-        </div>
-      </div>
+                {/* FOOTER HALAMAN 2 */}
+                <FooterSignature />
 
-      {/* FOOTER */}
-      <div className="p-5 border-t border-[var(--secondary-200)] bg-white flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-4">
-            <div className="bg-[var(--primary-50)] px-4 py-2 rounded-xl border border-[var(--primary-100)] flex flex-col items-center">
-                <span className="text-[10px] font-bold text-[var(--primary-600)] uppercase tracking-wide block mb-1">Total Poin</span>
-                <span className="font-black text-2xl text-[var(--primary-900)] leading-none">{totalScore}</span>
             </div>
         </div>
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-8 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--primary)]/20 disabled:opacity-50 flex items-center gap-2 transition-all active:scale-95"
-        >
-          {isSaving ? 'Menyimpan...' : <><Save className="w-5 h-5"/> Submit Penilaian</>}
-        </button>
-      </div>
-
     </div>
   );
 }

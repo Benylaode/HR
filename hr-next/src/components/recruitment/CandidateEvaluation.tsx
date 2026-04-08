@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, UserCheck, AlertCircle, Award, Target, User } from 'lucide-react'; 
+import { Save, UserCheck, Award, Target, User, Briefcase, Calendar } from 'lucide-react'; 
 
 // ==========================================
 // 1. DATA KOMPETENSI (Sesuai Gambar 1 - STAR)
@@ -82,20 +82,33 @@ const BEHAVIOR_QUESTIONS = [
   { id: "behav_15", value: "Sustainability", sub: "Keberlanjutan", indikator: "Mengakui hak asasi manusia dan menghormati orang lain selain itu dapat mempromosikan nilai-nilai serta berkontribusi secara aktif untuk kesejahteraan seluruh pemangku kepentingan." }
 ];
 
+// INTERFACE YANG FLEKSIBEL (Mengakomodasi Form sekaligus Report)
 interface CandidateEvaluationProps {
-  candidateId: string;
+  candidateId?: string; 
   candidateName: string;
+  candidateNik?: string; 
+  jobPosition?: string;  
+  evaluations?: any[];   
+  submissions?: any[];   
   currentUserRole?: string; 
 }
 
-export default function CandidateEvaluation({ candidateId, candidateName, currentUserRole = 'SUPER_USER' }: CandidateEvaluationProps) {
+export default function CandidateEvaluation({ 
+  candidateId, 
+  candidateName, 
+  candidateNik,
+  jobPosition,
+  currentUserRole = 'SUPER_USER' 
+}: CandidateEvaluationProps) {
   
   const [activeTab, setActiveTab] = useState<'HR' | 'USER_1' | 'USER_2'>(currentUserRole === 'SUPER_USER' ? 'HR' : 'USER_1');
   const [scores, setScores] = useState<Record<string, number>>({});
   const [overallNotes, setOverallNotes] = useState('');
   
-  // STATE BARU UNTUK INPUT NAMA ASSESOR
+  // STATE BARU: Nama, Jabatan, Tanggal
   const [assessorName, setAssessorName] = useState('');
+  const [assessorPosition, setAssessorPosition] = useState('');
+  const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]); // Default hari ini
   
   const [isSaving, setIsSaving] = useState(false);
 
@@ -105,13 +118,15 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
 
   // Load Data dari Backend
   useEffect(() => {
-    if (!candidateId) return;
+    // Membaca ID dari candidateId atau fallback ke candidateNik
+    const fetchId = candidateId || candidateNik;
+    if (!fetchId) return;
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
-    fetch(`${API_BASE_URL}/api/management/evaluations/${candidateId}`)
+    fetch(`${API_BASE_URL}/api/management/evaluations/${fetchId}`)
       .then(res => {
-          if(!res.ok) throw new Error("No data");
+          if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           return res.json();
       })
       .then((data: any[]) => {
@@ -123,14 +138,21 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
             setScores(loadedScores);
           }
           setOverallNotes(currentForm.overall_notes || '');
-          // Set nama assesor yang tersimpan di DB ke dalam input form
           setAssessorName(currentForm.evaluator_name || '');
+          
+          // Set Jabatan dan Tanggal jika ada dari database
+          setAssessorPosition(currentForm.evaluator_position || '');
+          if(currentForm.evaluation_date) {
+            setEvaluationDate(currentForm.evaluation_date);
+          }
+
         } else {
           // Reset form jika belum ada data
           setScores({});
           setOverallNotes('');
+          setAssessorPosition('');
+          setEvaluationDate(new Date().toISOString().split('T')[0]);
           
-          // Auto-fill nama dari LocalStorage (jika belum pernah disubmit)
           try {
              const userData = localStorage.getItem("hr_user");
              if(userData) setAssessorName(JSON.parse(userData).name);
@@ -140,12 +162,14 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
           }
         }
       })
-      .catch(() => { 
+      .catch((error) => { 
+          console.error("Fetch Data Gagal:", error);
           setScores({}); 
           setOverallNotes(''); 
           setAssessorName('');
+          setAssessorPosition('');
       });
-  }, [candidateId, activeTab]);
+  }, [candidateId, candidateNik, activeTab]);
 
   // Kalkulasi Skor
   const totalScore = Object.values(scores).reduce((acc, curr) => acc + (curr || 0), 0);
@@ -153,15 +177,40 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
   const maxPossibleScore = totalQuestions * 5;
   const percentageScore = Math.round((totalScore / maxPossibleScore) * 100) || 0;
 
+  // Fungsi mengamankan input skor (Lock 1-5)
+  const handleScoreChange = (id: string, value: string) => {
+    if (value === '') {
+        const newScores = {...scores};
+        delete newScores[id];
+        setScores(newScores);
+        return;
+    }
+    
+    let num = parseInt(value);
+    if (isNaN(num)) return;
+
+    // Lock angka hanya di 1, 2, 3, 4, 5
+    if (num > 5) num = 5;
+    if (num < 1) num = 1;
+
+    setScores(prev => ({...prev, [id]: num}));
+  };
+
   // Handler Simpan
   const handleSave = async () => {
     if (!assessorName.trim()) {
-        alert("Mohon isi Nama Assesor / Pewawancara terlebih dahulu!");
+        alert("Mohon isi Nama Assesor terlebih dahulu!");
+        return;
+    }
+
+    const fetchId = candidateId || candidateNik;
+    if (!fetchId) {
+        alert("Gagal menyimpan: ID Kandidat tidak valid!");
         return;
     }
 
     setIsSaving(true);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
     
     const flatCompetencyScores = COMPETENCY_CATEGORIES.flatMap(cat => 
         cat.questions.map(q => ({
@@ -174,7 +223,9 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
 
     const payload = {
       role_type: activeTab,
-      evaluator_name: assessorName, // Menggunakan nilai dari input text
+      evaluator_name: assessorName, 
+      evaluator_position: assessorPosition, // Menambahkan Jabatan ke Payload
+      evaluation_date: evaluationDate,       // Menambahkan Tanggal ke Payload
       overall_notes: overallNotes,
       status: "SUBMITTED",
       scores: [
@@ -189,26 +240,29 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
     };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/management/evaluations/${candidateId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/management/evaluations/${fetchId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       
-      if (res.ok) alert('Penilaian berhasil disimpan!');
-      else alert('Gagal menyimpan penilaian.');
-    } catch (error) {
-      alert('Terjadi kesalahan jaringan.');
+      if (res.ok) {
+          alert('Penilaian berhasil disimpan!');
+      } else {
+          const errData = await res.json();
+          alert(`Gagal menyimpan penilaian: ${errData.error || 'Server error'}`);
+      }
+    } catch (error: any) {
+      alert(`Terjadi kesalahan jaringan: ${error.message}. Pastikan URL API HTTPS sudah benar.`);
+      console.error(error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const setScore = (id: string, val: number) => {
-      setScores(prev => ({...prev, [id]: val}));
-  };
-
-  if (!candidateId) {
+  // Menentukan UI jika tidak ada candidate ID yang dipilih
+  const displayId = candidateId || candidateNik;
+  if (!displayId) {
     return (
       <div className="p-8 bg-white border border-dashed border-[var(--secondary-300)] rounded-2xl text-center flex flex-col items-center justify-center h-[500px]">
         <UserCheck className="w-16 h-16 mb-4 text-[var(--secondary-200)]" />
@@ -224,11 +278,11 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
       {/* HEADER & TABS */}
       <div className="p-5 border-b border-[var(--secondary-100)] bg-[var(--background)] flex flex-col gap-4">
         
-        {/* ROW 1: Info Kandidat & Persentase */}
         <div className="flex justify-between items-start">
             <div>
                 <h3 className="font-bold text-[var(--primary-900)] text-lg">Assesment Interview</h3>
                 <p className="text-sm text-[var(--secondary-600)] mt-1">Kandidat: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
+                {jobPosition && <p className="text-xs text-[var(--secondary-500)]">Posisi: {jobPosition}</p>}
             </div>
             <div className="text-right bg-white px-4 py-2 rounded-xl border border-[var(--secondary-200)] shadow-sm">
                 <div className="text-[10px] font-bold text-[var(--secondary-400)] uppercase tracking-widest">Persentase</div>
@@ -236,26 +290,57 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
             </div>
         </div>
 
-        {/* ROW 2: Input Nama Assesor */}
-        <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
-          <div className="bg-[var(--primary-50)] p-2 rounded-lg">
-             <User className="w-5 h-5 text-[var(--primary)]" />
+        {/* INPUT NAMA, JABATAN, DAN TANGGAL */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
+             <div className="bg-[var(--primary-50)] p-2 rounded-lg">
+                <User className="w-5 h-5 text-[var(--primary)]" />
+             </div>
+             <div className="flex-1 flex flex-col">
+               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Nama Assesor</label>
+               <input 
+                 type="text" 
+                 placeholder="Ketik nama..."
+                 value={assessorName}
+                 onChange={(e) => setAssessorName(e.target.value)}
+                 className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
+               />
+             </div>
           </div>
-          <div className="flex-1 flex flex-col">
-            <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">
-              Nama Assesor / Pewawancara
-            </label>
-            <input 
-              type="text" 
-              placeholder="Ketik nama pewawancara di sini..."
-              value={assessorName}
-              onChange={(e) => setAssessorName(e.target.value)}
-              className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
-            />
+
+          <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
+             <div className="bg-[var(--primary-50)] p-2 rounded-lg">
+                <Briefcase className="w-5 h-5 text-[var(--primary)]" />
+             </div>
+             <div className="flex-1 flex flex-col">
+               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Jabatan Assesor</label>
+               <input 
+                 type="text" 
+                 placeholder="Ketik jabatan..."
+                 value={assessorPosition}
+                 onChange={(e) => setAssessorPosition(e.target.value)}
+                 className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
+               />
+             </div>
+          </div>
+
+          <div className="bg-white p-3 rounded-xl border border-[var(--secondary-200)] flex items-center gap-3">
+             <div className="bg-[var(--primary-50)] p-2 rounded-lg">
+                <Calendar className="w-5 h-5 text-[var(--primary)]" />
+             </div>
+             <div className="flex-1 flex flex-col">
+               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Tanggal Interview</label>
+               <input 
+                 type="date" 
+                 value={evaluationDate}
+                 onChange={(e) => setEvaluationDate(e.target.value)}
+                 className="w-full bg-transparent text-sm font-bold text-[var(--primary-900)] outline-none border-b border-transparent focus:border-[var(--primary)] transition-colors py-1"
+               />
+             </div>
           </div>
         </div>
 
-        {/* ROW 3: ROLE TABS */}
+        {/* ROLE TABS */}
         <div className="flex gap-2 bg-[var(--secondary-50)] p-1.5 rounded-xl border border-[var(--secondary-200)] w-fit">
           {currentUserRole === 'SUPER_USER' ? (
             <button onClick={() => setActiveTab('HR')} className={`px-5 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'HR' ? 'bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]' : 'text-[var(--secondary-500)] hover:text-[var(--primary-700)]'}`}>Form Penilaian HR</button>
@@ -305,10 +390,16 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
                                 <td className="p-3 text-[var(--secondary-600)]">{q.indikator}</td>
                                 <td className="p-3 align-middle">
                                     <input 
-                                        type="number" min="1" max="5" placeholder="0"
+                                        type="number" min="1" max="5" placeholder="1-5"
                                         className="w-full h-10 border border-[var(--secondary-200)] rounded-lg text-center font-bold text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none transition-all"
                                         value={scores[q.id] || ''}
-                                        onChange={(e) => setScore(q.id, parseInt(e.target.value) || 0)}
+                                        onChange={(e) => handleScoreChange(q.id, e.target.value)}
+                                        onKeyDown={(e) => {
+                                            // Memblokir ketikan huruf 'e', '-', '+' di input number
+                                            if (['e', 'E', '+', '-'].includes(e.key)) {
+                                                e.preventDefault();
+                                            }
+                                        }}
                                     />
                                 </td>
                             </tr>
@@ -329,7 +420,7 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
             </h4>
           </div>
           
-          {/* Legenda Proficiency dengan Design System */}
+          {/* Legenda Proficiency */}
           <div className="p-4 bg-white border-b border-[var(--secondary-100)] text-xs grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 text-[var(--secondary-600)]">
               <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-red-100 text-red-700 font-bold flex items-center justify-center shrink-0">1</span> Tidak Pernah muncul</div>
               <div className="flex gap-2 items-center"><span className="w-5 h-5 rounded-md bg-orange-100 text-orange-700 font-bold flex items-center justify-center shrink-0">2</span> Jarang muncul</div>
@@ -357,12 +448,11 @@ export default function CandidateEvaluation({ candidateId, candidateName, curren
                     <td className="p-3 text-[var(--secondary-700)] font-medium">{q.sub}</td>
                     <td className="p-3 text-[var(--secondary-600)] leading-relaxed">{q.indikator}</td>
                     <td className="p-3 align-middle bg-[var(--secondary-50)]/30">
-                        {/* 5 Radio Buttons / Pilihan Skala */}
                         <div className="flex justify-between items-center w-full px-2">
                             {[1, 2, 3, 4, 5].map((val) => (
                                 <button
                                     key={val}
-                                    onClick={() => setScore(q.id, val)}
+                                    onClick={() => handleScoreChange(q.id, String(val))}
                                     className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold border transition-all ${
                                         scores[q.id] === val 
                                         ? 'bg-[var(--primary)] border-[var(--primary)] text-white scale-110 shadow-md shadow-[var(--primary)]/30' 
