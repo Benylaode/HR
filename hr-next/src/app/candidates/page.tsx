@@ -47,12 +47,13 @@ interface Candidate {
   test_status: string;
   created_at: string;
   match_score: number;
+  evaluations?: any[]; // Ditambahkan untuk menampung data dari backend
+  submissions?: any[]; // Ditambahkan untuk menampung data dari backend
 }
 
-// Interface disesuaikan dengan struktur JSONB dari Backend baru
 interface CandidateDetail extends Candidate {
   resume_id?: string;
-  has_cv?: boolean; // <-- DITAMBAHKAN: Untuk mengecek ketersediaan CV
+  has_cv?: boolean; 
   gender?: string;
   birthDate?: string;
   domicileProvince?: string;
@@ -61,7 +62,6 @@ interface CandidateDetail extends Candidate {
   appliedPosition2?:string;
   appliedPosition1?:string;
   
-  // Pendidikan (Flat dari backend)
   degree?: string;
   major?: string;
   studyProgram?: string;
@@ -71,13 +71,11 @@ interface CandidateDetail extends Candidate {
   startYear?: string;
   gradYear?: string;
 
-  // Arrays (JSONB)
   workExperiences?: Array<{ position: string; company: string; start: string; end: string; desc?: string }>;
   internships?: Array<{ position: string; company: string; start: string; end: string }>;
   trainings?: Array<{ name: string; organizer: string; year: string }>;
   organizations?: Array<{ name: string; position: string; start: string; end: string }>;
   
-  // Ekspektasi
   expectedSalary?: number;
   noticePeriod?: string;
 }
@@ -87,14 +85,7 @@ interface JobPosition {
   title: string;
 }
 
-const DetailModal = memo(({ 
-  candidate, 
-  onClose 
-}: { 
-  candidate: CandidateDetail | null; 
-  onClose: () => void;
-}) => {
-  // <-- DITAMBAHKAN: State untuk loading saat fetch file CV
+const DetailModal = memo(({ candidate, onClose }: { candidate: CandidateDetail | null; onClose: () => void; }) => {
   const [loadingCV, setLoadingCV] = useState(false);
 
   if (!candidate) return null;
@@ -115,28 +106,21 @@ const DetailModal = memo(({
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
   };
 
-  // <-- DITAMBAHKAN: Fungsi untuk hit API CV dan membuka PDF di tab baru
   const handleViewCV = async () => {
     if (!candidate?.id) return;
-    
     setLoadingCV(true);
     const token = localStorage.getItem("hr_token");
     
     try {
       const res = await fetch(`${API_BASE_URL}/candidates/${candidate.id}/cv`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+        headers: { "Authorization": `Bearer ${token}` }
       });
 
-      if (!res.ok) {
-        throw new Error("Gagal mengambil file CV. File mungkin tidak ditemukan di server.");
-      }
+      if (!res.ok) throw new Error("Gagal mengambil file CV. File mungkin tidak ditemukan di server.");
 
       const blob = await res.blob();
       const fileUrl = window.URL.createObjectURL(blob);
       window.open(fileUrl, '_blank');
-      
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -146,10 +130,7 @@ const DetailModal = memo(({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div 
-        className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] transform transition-all animate-in zoom-in-95 duration-200 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* HEADER MODAL */}
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-4">
@@ -168,18 +149,12 @@ const DetailModal = memo(({
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
-            {/* <-- DITAMBAHKAN: Tombol Lihat CV (Hanya muncul jika has_cv bernilai true) */}
             {candidate.has_cv && (
-              <button 
-                onClick={handleViewCV}
-                disabled={loadingCV}
-                className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 shadow-sm"
-              >
+              <button onClick={handleViewCV} disabled={loadingCV} className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 shadow-sm">
                 {loadingCV ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
                 {loadingCV ? "Membuka..." : "Lihat CV"}
               </button>
             )}
-
             <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors shrink-0">
               <X size={20} className="text-[var(--secondary-400)]" />
             </button>
@@ -188,8 +163,6 @@ const DetailModal = memo(({
 
         {/* BODY MODAL */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-6">
-          
-          {/* 1. INFO UTAMA & KONTAK */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <User size={16} /> Data Pribadi & Kontak
@@ -221,7 +194,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* 2. EKSPEKTASI & POSISI */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <TrendingUp size={16} /> Ekspektasi & Lamaran
@@ -243,7 +215,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* 3. PENDIDIKAN */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <GraduationCap size={16} /> Pendidikan Terakhir
@@ -266,7 +237,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* 4. PENGALAMAN KERJA */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <div className="flex justify-between items-center mb-4 border-b pb-2">
               <h3 className="text-sm font-bold text-[var(--primary)] flex items-center gap-2">
@@ -294,7 +264,6 @@ const DetailModal = memo(({
             )}
           </div>
 
-          {/* 5. ORGANISASI & PELATIHAN (JSONB) */}
           {(candidate.organizations?.length || candidate.trainings?.length) ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {candidate.organizations && candidate.organizations.length > 0 && (
@@ -330,10 +299,8 @@ const DetailModal = memo(({
                )}
             </div>
           ) : null}
-
         </div>
 
-        {/* FOOTER MODAL */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex gap-4">
             <div className="flex items-center gap-2">
@@ -353,15 +320,7 @@ const DetailModal = memo(({
 });
 DetailModal.displayName = 'DetailModal';
 
-const EditModal = memo(({ 
-  candidate, 
-  onClose,
-  onSave 
-}: { 
-  candidate: CandidateDetail | null; 
-  onClose: () => void;
-  onSave: (data: Partial<CandidateDetail>) => Promise<void>;
-}) => {
+const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDetail | null; onClose: () => void; onSave: (data: Partial<CandidateDetail>) => Promise<void>; }) => {
   const [formData, setFormData] = useState({
     fullName: "", email: "", whatsapp: "", gender: "", birthDate: "",
     domicileCity: "", domicileProvince: "",
@@ -401,10 +360,7 @@ const EditModal = memo(({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const submissionData = {
-      ...formData,
-      expectedSalary: formData.expectedSalary ? parseInt(formData.expectedSalary, 10) : undefined
-    };
+    const submissionData = { ...formData, expectedSalary: formData.expectedSalary ? parseInt(formData.expectedSalary, 10) : undefined };
     await onSave(submissionData);
     setSaving(false);
   };
@@ -415,10 +371,7 @@ const EditModal = memo(({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div 
-        className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[var(--primary-50)] flex items-center justify-center">
@@ -436,8 +389,6 @@ const EditModal = memo(({
 
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
           <form id="editCandidateForm" onSubmit={handleSubmit} className="space-y-2">
-            
-            {/* 1. DATA UTAMA & KONTAK */}
             <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Kontak</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -468,7 +419,6 @@ const EditModal = memo(({
               </div>
             </div>
 
-            {/* 2. DOMISILI */}
             <h3 className={sectionTitleClass}>Lokasi & Domisili</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -481,7 +431,6 @@ const EditModal = memo(({
               </div>
             </div>
 
-            {/* 3. PENDIDIKAN */}
             <h3 className={sectionTitleClass}>Pendidikan Terakhir</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid grid-cols-2 gap-4">
@@ -518,7 +467,6 @@ const EditModal = memo(({
               </div>
             </div>
 
-            {/* 4. PENGALAMAN & EKSPEKTASI */}
             <h3 className={sectionTitleClass}>Pengalaman & Ekspektasi Pekerjaan</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -544,7 +492,6 @@ const EditModal = memo(({
                 </div>
               </div>
             </div>
-
           </form>
         </div>
 
@@ -567,7 +514,7 @@ const EditModal = memo(({
 EditModal.displayName = 'EditModal';
 
 // ==========================================
-// MODAL HASIL TES UNTUK KANDIDAT (UPDATED)
+// MODAL HASIL TES UNTUK KANDIDAT (DIPERBAIKI)
 // ==========================================
 const TestResultModal = memo(({ 
   candidate, 
@@ -582,13 +529,15 @@ const TestResultModal = memo(({
   const finalReportRef = useRef<HTMLDivElement>(null); 
   
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [evaluations, setEvaluations] = useState<any[]>([]); 
+  const [evaluations, setEvaluations] = useState<any[]>(candidate?.evaluations || []); 
 
-  // Fetch data evaluasi wawancara saat modal dibuka
+  // Mengambil data evaluasi tambahan jika belum dilampirkan oleh parent
   useEffect(() => {
-    if (candidate?.id) {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-      fetch(`${API_BASE_URL}/api/management/evaluations/${candidate.id}`)
+    if (candidate?.id && (!candidate.evaluations || candidate.evaluations.length === 0)) {
+      const token = localStorage.getItem("hr_token");
+      fetch(`${API_BASE_URL}/management/evaluations/${candidate.id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
         .then(res => res.ok ? res.json() : [])
         .then(data => setEvaluations(Array.isArray(data) ? data : []))
         .catch(err => console.error("Gagal mengambil data evaluasi:", err));
@@ -604,7 +553,6 @@ const TestResultModal = memo(({
 
   const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
 
-  // Fungsi Cetak PDF Psikotes Lama
   const handleDownloadPDF = async () => {
     if (!pdfRef.current) return;
     setIsGeneratingPDF(true);
@@ -626,19 +574,18 @@ const TestResultModal = memo(({
     }
   };
 
-  // Fungsi Cetak Final Report (Wawancara + Psikotes) -> UPDATE MARGIN & PAGEBREAK
   const handleDownloadFinalReport = async () => {
     if (!finalReportRef.current) return;
     setIsGeneratingPDF(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
-        margin: 0, // PENTING: Margin harus 0 agar height presisi
+        margin: 0,
         filename: `Final_Report_Assesment_${candidate.fullName.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // PENTING: Membaca class page-break
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
       await html2pdf().set(opt).from(finalReportRef.current).save();
     } catch (error) {
@@ -678,7 +625,6 @@ const TestResultModal = memo(({
 
         {/* Body Modal */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-8">
-          {/* SEKSI: CFIT */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <BrainCircuit className="text-blue-500" size={20}/> Tes Kecerdasan (CFIT)
@@ -701,7 +647,6 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes CFIT.</p>}
           </div>
 
-          {/* SEKSI: KRAEPELIN */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
@@ -724,7 +669,6 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes Kraepelin.</p>}
           </div>
 
-          {/* SEKSI: PAPI KOSTICK */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <PieChart className="text-purple-500" size={20}/> Tes Kepribadian (PAPI Kostick)
@@ -742,7 +686,7 @@ const TestResultModal = memo(({
           </div>
         </div>
         
-        {/* Footer Modal DENGAN DUA TOMBOL DOWNLOAD */}
+        {/* Footer Modal */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
             Tutup
@@ -750,8 +694,6 @@ const TestResultModal = memo(({
           <button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
             <Download size={16} /> Sertifikat Psikotes
           </button>
-          
-          {/* TOMBOL FINAL REPORT */}
           <button onClick={handleDownloadFinalReport} disabled={isGeneratingPDF} className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingPDF ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'}`}>
             <Download size={16} /> Final Report (Wawancara)
           </button>
@@ -759,20 +701,23 @@ const TestResultModal = memo(({
       </div>
       
       {/* ========================================================= */}
-      {/* AREA RENDER PDF (DISEMBUNYIKAN DI BALIK LAYAR) */}
+      {/* AREA RENDER PDF YANG DIPERBAIKI SINTAKSNYA */}
       {/* ========================================================= */}
       
-      <TestReportPDF ref={pdfRef} data={pdfData as any} />
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
+        <TestReportPDF ref={pdfRef} data={pdfData as any} />
+      </div>
 
-      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', overflow: 'hidden' }}>
+      {/* Pembungkus agar html2pdf bisa membaca lebar dengan presisi tanpa mengacaukan flexbox */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
         <div ref={finalReportRef}>
-            <CandidateFinalReport 
+          <CandidateFinalReport 
               candidateName={candidate.fullName}
-              candidateNik={`CAND-${candidate.id.substring(0, 5).toUpperCase()}`}
-              jobPosition={candidate.top_position || "Unassigned"}
-              evaluations={evaluations}
-              submissions={candSubs}
-            />
+              candidateNik={candidate.id}
+              jobPosition={candidate.top_position}
+              evaluations={evaluations}  
+              submissions={candSubs} 
+          />
         </div>
       </div>
 
@@ -787,17 +732,17 @@ export default function CandidatesPage() {
   
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<JobPosition[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]); // Menyimpan hasil tes
+  const [submissions, setSubmissions] = useState<any[]>([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [jobFilter, setJobFilter] = useState("all"); // Filter Job dipertahankan
+  const [jobFilter, setJobFilter] = useState("all"); 
 
   const [detailModal, setDetailModal] = useState<CandidateDetail | null>(null);
   const [editModal, setEditModal] = useState<CandidateDetail | null>(null);
-  const [testResultModal, setTestResultModal] = useState<Candidate | null>(null); // State Modal Tes
+  const [testResultModal, setTestResultModal] = useState<Candidate | null>(null); 
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
@@ -1104,7 +1049,6 @@ export default function CandidatesPage() {
                             }) : "-"}
                           </td>
                           
-                          {/* Tombol Lihat Hasil Tes Desktop */}
                           <td className="px-6 py-4 text-center">
                              <button 
                                onClick={() => setTestResultModal(candidate)}
@@ -1195,7 +1139,6 @@ export default function CandidatesPage() {
                           </span>
                       </div>
 
-                      {/* Tombol Lihat Hasil Tes Mobile */}
                       <button 
                          onClick={() => setTestResultModal(candidate)} 
                          className="w-full py-2.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
@@ -1251,8 +1194,6 @@ export default function CandidatesPage() {
 
       {detailModal && <DetailModal candidate={detailModal} onClose={() => setDetailModal(null)} />}
       {editModal && <EditModal candidate={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
-      
-      {/* Panggil Modal Hasil Tes */}
       {testResultModal && <TestResultModal candidate={testResultModal} submissions={submissions} onClose={() => setTestResultModal(null)} />}
     </div>
   );
