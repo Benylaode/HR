@@ -1,6 +1,7 @@
 'use client';
 
 import React, { forwardRef } from 'react';
+import { getPapiInterpretation, getPapiTraitName } from '@/utils/papiScoring'; // Pastikan path ini sesuai
 
 // Interface disesuaikan dengan struktur data backend
 export interface TestResultData {
@@ -39,39 +40,17 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
   const { cfit, kraepelin, papi } = data.scores;
 
-  // Fungsi untuk mengambil SEMUA aspek PAPI Kostick (20 Aspek)
+  // Mengambil SEMUA aspek PAPI Kostick (20 Aspek) menggunakan Helper
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
     
-    const meanings: Record<string, string> = {
-      'G': 'Peran Pekerja Keras (Hard Intense Worker)', 
-      'L': 'Peran Kepemimpinan (Leadership Role)', 
-      'I': 'Peran Pembuat Keputusan (Making Decisions)', 
-      'T': 'Peran Sibuk/Kecepatan (Pace)', 
-      'V': 'Peran Penuh Semangat (Vigorous Type)', 
-      'S': 'Peran Hubungan Sosial (Social Extension)',
-      'R': 'Peran Teoritis/Pemikir (Theoretical Type)', 
-      'D': 'Peran Bekerja Detail (Working With Details)', 
-      'C': 'Peran Terorganisir (Organized Type)',
-      'E': 'Peran Pengendalian Emosi (Emotional Restraint)',
-      'N': 'Kebutuhan Menyelesaikan Tugas (Finish Task)',
-      'A': 'Kebutuhan Berprestasi (Need to Achieve)',
-      'P': 'Kebutuhan Mengontrol Orang Lain (Control Others)',
-      'X': 'Kebutuhan Diperhatikan (Need to be Noticed)',
-      'B': 'Kebutuhan Diterima Kelompok (Belong to Groups)',
-      'O': 'Kebutuhan Kedekatan (Closeness & Affection)',
-      'Z': 'Kebutuhan Berubah (Need for Change)',
-      'K': 'Kebutuhan Agresif/Keras Kepala (Forceful)',
-      'F': 'Kebutuhan Mendukung Atasan (Support Authority)',
-      'W': 'Kebutuhan Aturan/Arahan (Rules & Supervision)'
-    };
-
     return Object.entries(papi)
       .sort((a, b) => b[1] - a[1]) // Diurutkan dari skor tertinggi
       .map(([trait, score]) => ({ 
         trait, 
         score, 
-        desc: meanings[trait] || `Aspek ${trait}` 
+        traitName: getPapiTraitName(trait),
+        desc: getPapiInterpretation(trait, score) 
       }));
   };
 
@@ -93,11 +72,11 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
           {/* ================= HEADER KOP SURAT ================= */}
           <div style={{ textAlign: 'center', borderBottom: '3px solid #1e3a8a', paddingBottom: '20px', marginBottom: '25px' }}>
             
-            {/* Logo Berjajar di Tengah dengan Divider menggunakan Relative Path */}
+            {/* Logo Berjajar di Tengah dengan Divider */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '25px', marginBottom: '15px' }}>
               <img src="/images/logos/MBMlogo.png" alt="Logo MBM" style={{ height: '60px', objectFit: 'contain' }} />
               
-              {/* Garis vertikal halus pemisah dua logo agar terlihat profesional */}
+              {/* Garis vertikal pemisah */}
               <div style={{ height: '45px', width: '2px', backgroundColor: '#cbd5e1', borderRadius: '2px' }}></div>
               
               <img src="/images/logos/ptLogoText.png" alt="Logo Partner" style={{ height: '50px', objectFit: 'contain' }} />
@@ -168,23 +147,29 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
           </div>
 
-          {/* 3. HASIL PAPI KOSTICK (20 Aspek dalam 2 Kolom) */}
+          {/* 3. HASIL PAPI KOSTICK (Diubah ke 1 Kolom untuk mengakomodasi kalimat interpretasi yang panjang) */}
           <div style={{ backgroundColor: '#fff', padding: '20px', border: '1px solid #e2e8f0', borderTop: '4px solid #8b5cf6', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <h3 style={{ marginTop: 0, fontSize: '13px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '15px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '40px', rowGap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', rowGap: '12px' }}>
               {allPapi.length > 0 ? allPapi.map((p, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px' }}>
-                  <div style={{ fontSize: '10.5px', color: '#334155' }}>
-                    <strong style={{ color: '#4c1d95', marginRight: '6px', fontSize: '11px' }}>{p.trait}</strong> 
-                    {p.desc}
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#334155' }}>
+                      <span style={{ color: '#4c1d95', marginRight: '6px' }}>[{p.trait}]</span> 
+                      {p.traitName}
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '3px 8px', borderRadius: '4px' }}>
+                      Skor: {p.score}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '3px 8px', borderRadius: '4px' }}>
-                    {p.score}
+                  {/* Bagian Interpretasi dari File Excel */}
+                  <div style={{ fontSize: '10px', color: '#475569', fontStyle: 'italic', lineHeight: '1.4' }}>
+                    Interpretasi: "{p.desc}"
                   </div>
                 </div>
               )) : (
-                <p style={{ fontSize: '12px', color: '#64748b', gridColumn: 'span 2', textAlign: 'center', padding: '20px 0' }}>Data PAPI Kostick belum tersedia untuk peserta ini.</p>
+                <p style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '20px 0' }}>Data PAPI Kostick belum tersedia untuk peserta ini.</p>
               )}
             </div>
           </div>

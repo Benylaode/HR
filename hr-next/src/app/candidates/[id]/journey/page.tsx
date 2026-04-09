@@ -6,10 +6,11 @@ import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import JourneyTimeline from '@/components/recruitment/JourneyTimeline'
+import { getPapiInterpretation, getPapiTraitName } from '@/utils/papiScoring'
 import { toast } from 'sonner'
 import { 
   Loader2, ChevronLeft, Upload, Download, Send, User as UserIcon,
-  Briefcase, TrendingUp
+  Briefcase, TrendingUp, BrainCircuit
 } from 'lucide-react'
 import { 
   getJourneyTimeline, updateStage, uploadDocument, getCandidateApplications,
@@ -264,6 +265,10 @@ export default function CandidateJourneyPage() {
   const allowedNext = getAllowedNextStages(journey.current_stage)
   const isTerminal = isTerminalStage(journey.current_stage)
   const progress = getProgressPercentage(journey.current_stage)
+
+  // Ekstrak skor PAPI dengan aman. 
+  // Sesuaikan properti "papi_scores" jika nama di backend/API Anda berbeda.
+  const papiScores = (journey as any)?.papi_scores || (journey as any)?.metadata?.papi_scores || null;
   
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -322,8 +327,10 @@ export default function CandidateJourneyPage() {
           </div>
           
           <div className="flex flex-col xl:flex-row gap-6">
-            {/* Main Timeline - 60% width */}
-            <div className="flex-1">
+            {/* Main Timeline & Results - 60% width */}
+            <div className="flex-1 flex flex-col gap-6">
+              
+              {/* TIMELINE CARD */}
               <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
@@ -345,6 +352,47 @@ export default function CandidateJourneyPage() {
                   history={journey.history}
                 />
               </div>
+
+              {/* PAPI KOSTICK RESULT CARD (BARU) */}
+              {papiScores && Object.keys(papiScores).length > 0 && (
+                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <BrainCircuit className="text-purple-600" size={22} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900">Hasil PAPI Kostick</h2>
+                      <p className="text-sm text-slate-500 font-medium">Profil Kepribadian & Gaya Kerja Kandidat</p>
+                    </div>
+                  </div>
+
+                  {/* Menggunakan grid 1 atau 2 kolom untuk Journey */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+                    {Object.entries(papiScores)
+                      .sort((a, b) => (b[1] as number) - (a[1] as number))
+                      .map(([trait, score], i) => {
+                        const numericScore = Number(score);
+                        return (
+                          <div key={i} className="flex flex-col border-b border-dashed border-slate-200 pb-3">
+                            <div className="flex justify-between items-center mb-1.5">
+                              <div className="text-sm font-bold text-slate-800">
+                                <span className="text-purple-700 mr-1.5">[{trait}]</span> 
+                                {getPapiTraitName(trait)}
+                              </div>
+                              <div className="text-xs font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded shadow-sm">
+                                Skor: {numericScore}
+                              </div>
+                            </div>
+                            <div className="text-xs text-slate-600 italic">
+                              Interpretasi: "{getPapiInterpretation(trait, numericScore)}"
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </div>
+              )}
+
             </div>
             
             {/* Compact Actions Panel - 40% width */}
