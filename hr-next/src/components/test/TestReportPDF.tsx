@@ -21,7 +21,20 @@ interface Props {
 const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   if (!data || !data.scores) return null;
 
-  const { cfit, kraepelin, papi } = data.scores;
+  // =====================================
+  // PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN FE TEST MANAGEMENT)
+  // =====================================
+  const { cfit = {}, kraepelin = {}, papi = {} } = data.scores;
+
+  // Standardisasi Variabel Tampilan
+  const iqScore = cfit.iq || '-';
+  const cfitClass = cfit.classification || '-';
+  const cfitRaw = cfit.raw_score ?? '-';
+
+  const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
+  const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
+  const hasKraepelinData = Object.keys(kraepelin).length > 0;
+  const totalErrors = hasKraepelinData ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
 
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
@@ -29,7 +42,7 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
     return Object.entries(papi)
       .sort((a, b) => b[1] - a[1]) // Diurutkan dari skor tertinggi
       .map(([trait, score]) => ({ 
-        letter: extractPapiLetter(trait), // Ambil hurufnya
+        letter: extractPapiLetter(trait), 
         score, 
         traitName: getPapiTraitName(trait),
         desc: getPapiInterpretation(trait, score) 
@@ -38,7 +51,6 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
   const allPapi = getAllPapi();
   const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-  const totalErrors = kraepelin ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
 
   return (
     <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', overflow: 'hidden' }}>
@@ -76,46 +88,53 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
             <div style={{ flex: '1', backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #3b82f6', borderRadius: '4px' }}>
               <h3 style={{ marginTop: 0, fontSize: '11px', color: '#1e40af', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>1. Kecerdasan Kognitif (CFIT)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Skor IQ</p><p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{cfit?.iq || '-'}</p></div>
-                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Klasifikasi</p><p style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfit?.classification || '-'}</p></div>
-                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Jwb Benar</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfit?.raw_score ?? '-'}</p></div>
+                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Skor IQ</p><p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{iqScore}</p></div>
+                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Klasifikasi</p><p style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitClass}</p></div>
+                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Jwb Benar</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitRaw}</p></div>
               </div>
             </div>
             <div style={{ flex: '1', backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: '4px' }}>
               <h3 style={{ marginTop: 0, fontSize: '11px', color: '#065f46', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>2. Performa Kerja (Kraepelin)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <div style={{ backgroundColor: '#fcf8ea', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#b45309', margin: 0, fontWeight: 'bold' }}>Kecepatan</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelin?.kecepatan || kraepelin?.panker || '-'}</p></div>
-                <div style={{ backgroundColor: '#f0fdf4', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#15803d', margin: 0, fontWeight: 'bold' }}>Ketelitian</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#14532d' }}>{kraepelin?.ketelitian || kraepelin?.janker || '-'}</p></div>
+                <div style={{ backgroundColor: '#fcf8ea', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#b45309', margin: 0, fontWeight: 'bold' }}>Kecepatan</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelinPanker}</p></div>
+                <div style={{ backgroundColor: '#f0fdf4', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#15803d', margin: 0, fontWeight: 'bold' }}>Ketelitian</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#14532d' }}>{kraepelinJanker}</p></div>
                 <div style={{ backgroundColor: '#fef2f2', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#ef4444', margin: 0, fontWeight: 'bold' }}>Total Errors</p><p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#b91c1c' }}>{totalErrors}</p></div>
               </div>
             </div>
           </div>
 
-          {/* HASIL PAPI KOSTICK (KEMBALI KE 2 KOLOM TAPI SANGAT COMPACT & ANTI TERPOTONG) */}
-          <div style={{ backgroundColor: '#fff', padding: '12px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px' }}>
-            <h3 style={{ marginTop: 0, fontSize: '11px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '20px', rowGap: '6px' }}>
-              {allPapi.length > 0 ? allPapi.map((p, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
-                    <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.2' }}>
-                      <span style={{ color: '#4c1d95', marginRight: '4px' }}>[{p.letter}]</span> 
-                      {p.traitName}
-                    </div>
-                    <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '2px 5px', borderRadius: '3px' }}>
-                      {p.score}
+            {/* 3. HASIL PAPI KOSTICK */}
+                  <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px', flex: 1, overflowY: 'hidden' }}>
+                    <h3 style={{ marginTop: 0, fontSize: '10px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '3px' }}>
+                      {allPapi.length > 0 ? allPapi.map((p, i) => (
+                        /* 👇 INI ADALAH PARENT ELEMENT (Wajib ada pembungkus utama) */
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '3px' }}>
+                          
+                          {/* Baris Atas: Aspek & Skor */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1px' }}>
+                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.1' }}>
+                               <span style={{ color: '#4c1d95', marginRight: '4px' }}>[{p.letter}]</span> 
+                               {p.traitName}
+                             </div>
+                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '1px 4px', borderRadius: '3px' }}>
+                               {String(p.score)}
+                             </div>
+                          </div>
+
+                          {/* Baris Bawah: Teks Interpretasi */}
+                          <div style={{ fontSize: '8px', color: '#475569', fontStyle: 'italic', lineHeight: '1.1' }}>
+                            Interpretasi: "{p.desc}"
+                          </div>
+
+                        </div>
+                        /* 👆 BATAS AKHIR PARENT ELEMENT */
+                      )) : (
+                        <p style={{ fontSize: '9px', color: '#64748b', textAlign: 'center', padding: '10px 0' }}>Data PAPI Kostick belum tersedia.</p>
+                      )}
                     </div>
                   </div>
-                  <div style={{ fontSize: '8px', color: '#475569', fontStyle: 'italic', lineHeight: '1.2' }}>
-                    {p.desc}
-                  </div>
-                </div>
-              )) : (
-                <p style={{ fontSize: '10px', color: '#64748b', gridColumn: 'span 2', textAlign: 'center', padding: '10px 0' }}>Data PAPI Kostick belum tersedia.</p>
-              )}
-            </div>
-          </div>
 
           {/* FOOTER */}
           <div style={{ position: 'absolute', bottom: '20px', right: '20px', left: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>

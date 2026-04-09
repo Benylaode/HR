@@ -59,19 +59,26 @@ export default function CandidateFinalReport({
   const finalStatus = getRecommendation(totalScore);
 
   // =====================================
-  // 2. PULL DATA PSIKOTES
+  // 2. PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN FE TEST MANAGEMENT)
   // =====================================
   const cfitSub = submissions.find(s => s.test_type === 'cfit');
   const kraepelinSub = submissions.find(s => s.test_type === 'kraepelin');
   const papiSub = submissions.find(s => s.test_type === 'papi');
   
-  const cfit = cfitSub?.scores;
-  const kraepelin = kraepelinSub?.scores;
-  const papi = papiSub?.scores;
+  const cfit = cfitSub?.scores || {};
+  const kraepelin = kraepelinSub?.scores || {};
+  const papi = papiSub?.scores || {};
 
-  const totalErrors = kraepelin ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
+  // Standardisasi Variabel Tampilan
+  const iqScore = cfit.iq || '-';
+  const cfitClass = cfit.classification || '-';
+  const cfitRaw = cfit.raw_score ?? '-';
 
-  // LOGIKA PAPI KOSTICK MENGGUNAKAN HELPER EXCEL (1 Kolom Compact)
+  const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
+  const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
+  const hasKraepelinData = Object.keys(kraepelin).length > 0;
+  const totalErrors = hasKraepelinData ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
+
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
     
@@ -79,7 +86,7 @@ export default function CandidateFinalReport({
       .sort((a, b) => (b[1] as number) - (a[1] as number))
       .map(([trait, score]) => {
           const numericScore = Number(score);
-          const letter = extractPapiLetter(trait); // Ekstrak huruf agar interpretasi terbaca
+          const letter = extractPapiLetter(trait);
           
           return { 
               letter: letter,
@@ -277,15 +284,15 @@ export default function CandidateFinalReport({
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
                         <div style={{ backgroundColor: '#f8fafc', padding: '4px', borderRadius: '4px', textAlign: 'center' }}>
                           <p style={{ fontSize: '7px', color: '#64748b', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Skor IQ</p>
-                          <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{cfit?.iq || '-'}</p>
+                          <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{iqScore}</p>
                         </div>
                         <div style={{ backgroundColor: '#f8fafc', padding: '4px', borderRadius: '4px', textAlign: 'center' }}>
                           <p style={{ fontSize: '7px', color: '#64748b', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Klasifikasi</p>
-                          <p style={{ fontSize: '8px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfit?.classification || '-'}</p>
+                          <p style={{ fontSize: '8px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitClass}</p>
                         </div>
                         <div style={{ backgroundColor: '#f8fafc', padding: '4px', borderRadius: '4px', textAlign: 'center' }}>
                           <p style={{ fontSize: '7px', color: '#64748b', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Jwb Benar</p>
-                          <p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfit?.raw_score ?? '-'}</p>
+                          <p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitRaw}</p>
                         </div>
                       </div>
                     </div>
@@ -295,11 +302,11 @@ export default function CandidateFinalReport({
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
                         <div style={{ backgroundColor: '#fcf8ea', padding: '4px', borderRadius: '4px', textAlign: 'center' }}>
                           <p style={{ fontSize: '7px', color: '#b45309', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Kecepatan</p>
-                          <p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelin?.kecepatan || kraepelin?.panker || '-'}</p>
+                          <p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelinPanker}</p>
                         </div>
                         <div style={{ backgroundColor: '#f0fdf4', padding: '4px', borderRadius: '4px', textAlign: 'center' }}>
                           <p style={{ fontSize: '7px', color: '#15803d', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Ketelitian</p>
-                          <p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#14532d' }}>{kraepelin?.ketelitian || kraepelin?.janker || '-'}</p>
+                          <p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#14532d' }}>{kraepelinJanker}</p>
                         </div>
                         <div style={{ backgroundColor: '#fef2f2', padding: '4px', borderRadius: '4px', textAlign: 'center' }}>
                           <p style={{ fontSize: '7px', color: '#ef4444', margin: 0, textTransform: 'uppercase', fontWeight: 'bold' }}>Total Errors</p>
@@ -309,7 +316,7 @@ export default function CandidateFinalReport({
                     </div>
                   </div>
 
-                  {/* 3. HASIL PAPI KOSTICK TERUPDATE (1 KOLOM COMPACT) */}
+                  {/* 3. HASIL PAPI KOSTICK */}
                   <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px', flex: 1, overflowY: 'hidden' }}>
                     <h3 style={{ marginTop: 0, fontSize: '10px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
                     
