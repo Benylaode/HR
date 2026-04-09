@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; 
 import { toast } from "sonner";
 import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation"; 
+import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from "@/utils/papiScoring"; // IMPORT HELPER
 import {
   CheckCircle, Plus, RefreshCw, Trash2, X, FolderOpen, 
   HelpCircle, Upload, Image as ImageIcon, Link as LinkIcon, 
@@ -98,13 +99,6 @@ const INITIAL_CFIT_SUBTYPES: CfitSubtype[] = [
 ];
 
 type TabType = "test-links" | "categories" | "submissions" | "evaluation";
-
-const getPapiAspectName = (aspect: string) => {
-  const names: Record<string, string> = {
-      G: "Hard Intense Worked (Pekerja Keras)", L: "Leadership Role (Peran Kepemimpinan)", I: "Ease in Decision Making (Pembuat Keputusan)", T: "Pace (Tingkat Kecepatan/Sibuk)", V: "Vigorous Type (Aktif & Penuh Semangat)", S: "Social Extension (Perluasan Sosial)", R: "Theoretical Type (Tipe Teoritis)", D: "Interest in Details (Bekerja Detail)", C: "Organized Type (Keteraturan)", E: "Emotional Resistant (Daya Tahan Emosi)", N: "Need to Finish Task (Penyelesaian Tugas)", A: "Need to Achieve (Kebutuhan Berprestasi)", P: "Need to Control Others (Kebutuhan Mengontrol)", X: "Need to be Noticed (Kebutuhan Diperhatikan)", B: "Need to Belong to Groups (Kebutuhan Diterima Kelompok)", O: "Need for Closeness (Kebutuhan Kedekatan & Kasih Sayang)", Z: "Need for Change (Kebutuhan Akan Perubahan)", K: "Need to be Forceful (Kebutuhan Bertindak Tegas/Agresif)", F: "Need to Support Authority (Kebutuhan Mendukung Otoritas)", W: "Need for Rules & Supervision (Kebutuhan Aturan & Arahan)"
-  };
-  return names[aspect] || aspect;
-};
 
 // --- 3. MAIN COMPONENT ---
 export default function TestManagementPage() {
@@ -612,26 +606,34 @@ export default function TestManagementPage() {
     }
 
     if (sub.test_type === 'papi') {
-        const aspects = Object.entries(sub.scores).filter(([key]) => /^[A-Z]$/.test(key));
+        const aspects = Object.entries(sub.scores).sort((a: any, b: any) => Number(b[1]) - Number(a[1]));
+        
         return (
             <div className="space-y-4">
                 <div className="bg-orange-50 border border-orange-100 p-5 rounded-xl mb-4">
                     <h4 className="font-bold text-orange-900 text-lg flex items-center gap-2"><CheckCircle className="w-5 h-5"/> PAPI Kostick Profile</h4>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
-                    {aspects.map(([key, value]: any) => {
+                {/* 1 Kolom untuk Test Management Detail */}
+                <div className="grid grid-cols-1 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                    {aspects.map(([originalKey, value]: any, idx) => {
                         const score = Number(value);
+                        const letter = extractPapiLetter(originalKey);
+                        if (!letter) return null;
+
                         return (
-                        <div key={key} className="flex flex-col gap-3 p-4 border border-[var(--secondary-200)] rounded-xl hover:shadow-md bg-white transition-all">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 shrink-0 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center font-black text-xl border border-orange-200">{key}</div>
+                        <div key={idx} className="flex flex-col gap-3 p-4 border border-[var(--secondary-200)] rounded-xl hover:shadow-md bg-white transition-all">
+                            <div className="flex items-start gap-3">
+                                <div className="w-12 h-12 shrink-0 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center font-black text-xl border border-orange-200">{letter}</div>
                                 <div className="flex-1">
                                     <div className="flex justify-between items-center mb-1">
-                                        <span className="font-bold text-[var(--primary-900)] text-sm line-clamp-1">{getPapiAspectName(key)}</span>
-                                        <span className="font-bold text-xs bg-gray-100 px-2 py-1 rounded-md text-[var(--secondary-600)]">Skor: {score}/9</span>
+                                        <span className="font-bold text-[var(--primary-900)] text-sm">{getPapiTraitName(originalKey)}</span>
+                                        <span className="font-bold text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-md">Skor: {score}</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
                                         <div className={`h-full rounded-full ${score >= 6 ? 'bg-green-500' : (score <= 3 ? 'bg-red-400' : 'bg-yellow-400')}`} style={{ width: `${(score / 9) * 100}%` }}/>
+                                    </div>
+                                    <div className="text-xs text-[var(--secondary-600)] italic bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                        Interpretasi: "{getPapiInterpretation(originalKey, score)}"
                                     </div>
                                 </div>
                             </div>
@@ -655,14 +657,14 @@ export default function TestManagementPage() {
         <div className="sticky top-0 z-30 bg-[var(--background)]/90 backdrop-blur-md">
            <Header title="Manajemen Test" subtitle="Kelola soal, link tes, dan lihat hasil submission" onRefresh={fetchData} />
            
-           {/* Tab Navigation - TERMASUK TAB EVALUATION BARU */}
+           {/* Tab Navigation */}
            <div className="px-4 md:px-8 pb-4 pt-1 flex overflow-x-auto scrollbar-hide">
              <div className="flex p-1 bg-[var(--secondary-100)] rounded-xl whitespace-nowrap">
                {[
                  { id: "categories", label: "Soal & Kategori" },
                  { id: "test-links", label: "Link Tes Aktif" },
                  { id: "submissions", label: "Hasil Submission" },
-                 { id: "evaluation", label: "Form Penilaian" } // <-- TAB MENU BARU
+                 { id: "evaluation", label: "Form Penilaian" }
                ].map((tab) => (
                  <button
                    key={tab.id}
@@ -904,10 +906,9 @@ export default function TestManagementPage() {
             </div>
           )}
 
-          {/* === TAB 4: FORM EVALUATION (TAB BARU) === */}
+          {/* === TAB 4: FORM EVALUATION === */}
           {activeTab === "evaluation" && (
             <div className="space-y-6">
-              {/* Box Pemilihan Kandidat */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)]">
                 <h3 className="font-bold text-[var(--primary-900)] mb-4 flex items-center gap-2">
                   <User className="w-5 h-5 text-[var(--primary)]" />
@@ -925,7 +926,6 @@ export default function TestManagementPage() {
                 </select>
               </div>
 
-              {/* Render Komponen Form Penilaian jika kandidat sudah dipilih */}
               {evalCandidateId ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
                   {(() => {

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { getPapiInterpretation, getPapiTraitName } from '@/utils/papiScoring'; // Pastikan path ini sesuai dengan folder util Anda
+import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from '@/utils/papiScoring';
 
 interface ReportProps {
   candidateName: string;
@@ -71,19 +71,21 @@ export default function CandidateFinalReport({
 
   const totalErrors = kraepelin ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
 
-  // LOGIKA PAPI KOSTICK MENGGUNAKAN HELPER EXCEL
+  // LOGIKA PAPI KOSTICK MENGGUNAKAN HELPER EXCEL (1 Kolom Compact)
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
     
     return Object.entries(papi)
-      .sort((a, b) => (b[1] as number) - (a[1] as number)) // Urutkan berdasarkan skor tertinggi
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
       .map(([trait, score]) => {
           const numericScore = Number(score);
+          const letter = extractPapiLetter(trait); // Ekstrak huruf agar interpretasi terbaca
+          
           return { 
-              trait, 
+              letter: letter,
               score: numericScore, 
               traitName: getPapiTraitName(trait),
-              desc: getPapiInterpretation(trait, numericScore) // Panggil Helper
+              desc: getPapiInterpretation(trait, numericScore) 
           };
       });
   };
@@ -156,7 +158,7 @@ export default function CandidateFinalReport({
                 <div style={innerBorderStyle}>
                     <DocumentHeader title="FINAL EVALUATION REPORT" subtitle="Rekapitulasi Hasil Evaluasi Wawancara & Value Behavior" />
                     <ParticipantProfile />
-                    {/* (TABEL ASSESSOR KOMPETENSI) */}
+                    
                     <div style={{ marginBottom: '8px' }}>
                         <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #f59e0b', paddingLeft: '6px' }}>Interview (Kompetensi)</h2>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', border: '1px solid #cbd5e1' }}>
@@ -174,12 +176,11 @@ export default function CandidateFinalReport({
                                         <td style={{ padding: '3px 6px', borderRight: '1px solid #cbd5e1' }}>{ev.name}</td>
                                         <td style={{ padding: '3px 6px', textAlign: 'center', fontWeight: 'bold', color: '#b45309' }}>{ev.compScore}%</td>
                                     </tr>
-                                )) : (<tr><td colSpan={3} style={{ padding: '4px', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic' }}>Belum ada data evaluasi dari asesor.</td></tr>)}
+                                )) : (<tr><td colSpan={3} style={{ padding: '4px', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic' }}>Belum ada data evaluasi.</td></tr>)}
                             </tbody>
                         </table>
                     </div>
 
-                    {/* (TABEL ASSESSOR VALUE) */}
                     <div style={{ marginBottom: '8px' }}>
                         <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #06b6d4', paddingLeft: '6px' }}>Value Behaviour</h2>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', border: '1px solid #cbd5e1' }}>
@@ -197,12 +198,11 @@ export default function CandidateFinalReport({
                                         <td style={{ padding: '3px 6px', borderRight: '1px solid #cbd5e1' }}>{ev.name}</td>
                                         <td style={{ padding: '3px 6px', textAlign: 'center', fontWeight: 'bold', color: '#0e7490' }}>{ev.behavScore}%</td>
                                     </tr>
-                                )) : (<tr><td colSpan={3} style={{ padding: '4px', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic' }}>Belum ada data evaluasi dari asesor.</td></tr>)}
+                                )) : (<tr><td colSpan={3} style={{ padding: '4px', textAlign: 'center', color: '#94a3b8', fontStyle: 'italic' }}>Belum ada data evaluasi.</td></tr>)}
                             </tbody>
                         </table>
                     </div>
 
-                    {/* (TABEL SUMMARY) */}
                     <div style={{ marginBottom: '8px' }}>
                         <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #1e3a8a', paddingLeft: '6px' }}>Summary</h2>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', border: '1px solid #cbd5e1' }}>
@@ -309,24 +309,24 @@ export default function CandidateFinalReport({
                     </div>
                   </div>
 
-                  {/* 3. HASIL PAPI KOSTICK TERUPDATE (1 KOLOM) */}
-                  <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px', flex: 1, overflowY: 'auto' }}>
+                  {/* 3. HASIL PAPI KOSTICK TERUPDATE (1 KOLOM COMPACT) */}
+                  <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px', flex: 1, overflowY: 'hidden' }}>
                     <h3 style={{ marginTop: 0, fontSize: '10px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '3px' }}>
                       {allPapi.length > 0 ? allPapi.map((p, i) => (
-                        <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155' }}>
-                               <span style={{ color: '#4c1d95', marginRight: '6px' }}>[{p.trait}]</span> 
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '3px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1px' }}>
+                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.1' }}>
+                               <span style={{ color: '#4c1d95', marginRight: '4px' }}>[{p.letter}]</span> 
                                {p.traitName}
                              </div>
-                             <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '2px 6px', borderRadius: '4px' }}>
-                               Skor: {String(p.score)}
+                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '1px 4px', borderRadius: '3px' }}>
+                               {String(p.score)}
                              </div>
                           </div>
-                          <div style={{ fontSize: '8px', color: '#475569', marginTop: '2px', fontStyle: 'italic' }}>
-                            Interpretasi: {p.desc}
+                          <div style={{ fontSize: '8px', color: '#475569', fontStyle: 'italic', lineHeight: '1.1' }}>
+                            Interpretasi: "{p.desc}"
                           </div>
                         </div>
                       )) : (

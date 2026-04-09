@@ -1,86 +1,133 @@
-// File: hr-next/src/utils/papiScoring.ts
+// Fungsi untuk mengekstrak hanya huruf pertama (A-Z) dari string apapun
+export const extractPapiLetter = (trait: string): string => {
+  if (!trait) return '';
+  // Ambil karakter pertama, hilangkan spasi, dan jadikan huruf besar
+  const letter = trait.trim().charAt(0).toUpperCase();
+  return letter;
+};
 
-export const getPapiInterpretation = (trait: string, score: number): string => {
+export const getPapiInterpretation = (trait: string, score: number | string): string => {
   const numScore = Number(score);
-  const t = trait.toUpperCase();
+  // FOKUS HANYA PADA HURUF PERTAMA SESUAI KLASIFIKASI EXCEL
+  const t = extractPapiLetter(trait);
 
   switch (t) {
-    case 'A': // Need to Achieve
-      if (numScore >= 0 && numScore <= 5) return "Ketidakpastian tujuan, tidak ada usaha lebih";
-      if (numScore >= 6 && numScore <= 9) return "Tujuan jelas, kebutuhan sukses dan ambisi tinggi";
+    case 'A':
+      if (numScore <= 5) return "Ketidakpastian tujuan, tidak ada usaha lebih";
+      if (numScore >= 6) return "Tujuan jelas, kebutuhan sukses dan ambisi tinggi";
       break;
-    case 'B': // Need to Belong to Groups
-      if (numScore >= 0 && numScore <= 3) return "Selektif";
+    case 'B':
+      if (numScore <= 3) return "Selektif";
       if (numScore >= 4 && numScore <= 5) return "Butuh diterima, tapi tidak mudah dipengaruhi kelompok";
-      if (numScore >= 6 && numScore <= 9) return "Butuh disukai dan diakui, mudah dipengaruhi";
+      if (numScore >= 6) return "Butuh disukai dan diakui, mudah dipengaruhi";
       break;
-    case 'C': // Organized Type
-      if (numScore >= 0 && numScore <= 2) return "Tidak teratur";
+    case 'C':
+      if (numScore <= 2) return "Tidak teratur";
       if (numScore >= 3 && numScore <= 5) return "Teratur tetapi tergolong fleksibel";
-      if (numScore >= 6 && numScore <= 9) return "Keteraturan tinggi cenderung kaku";
+      if (numScore >= 6) return "Keteraturan tinggi cenderung kaku";
       break;
-    case 'D': // Interest in Working with Details
-      if (numScore >= 0 && numScore <= 3) return "Menyadari kebutuhan akan kecermatan, tetapi tidak berminat bekerja detail";
-      if (numScore >= 4 && numScore <= 9) return "Minat tinggi untuk bekerja secara detail";
+    case 'D':
+      if (numScore <= 3) return "Menyadari kebutuhan akan kecermatan, tetapi tidak berminat bekerja detail";
+      if (numScore >= 4) return "Minat tinggi untuk bekerja secara detail";
       break;
-    case 'E': // Emotional Resistant
+    case 'E':
       if (numScore < 2) return "Terlalu cepat bereaksi, tidak normatif, ekspresi berlebihan";
-      if (numScore >= 2 && numScore <= 3) return "Agen bola terka"; // *Sesuaikan jika ada typo dari Excel
+      if (numScore >= 2 && numScore <= 3) return "Agen bola terka";
       if (numScore >= 4 && numScore <= 6) return "Punya pendekatan emosional seimbang, mampu mengendalikan";
       if (numScore > 6) return "Sangat normatif, kebutuhan pengendalian diri yang berlebihan, kecenderungan defensif";
       break;
-    case 'F': // Need to Support Authority
+    case 'F':
       if (numScore < 2) return "Cenderung egois, kemungkinan bisa memberontak";
       if (numScore >= 2 && numScore <= 3) return "Mandiri";
       if (numScore >= 4 && numScore <= 5) return "Setia terhadap otoritas";
-      if (numScore >= 6 && numScore <= 9) return "Bersikap setia dan membantu, kemungkinan bantuannya bersifat politis";
+      if (numScore >= 6) return "Bersikap setia dan membantu, kemungkinan bantuannya bersifat politis";
       break;
-    case 'R': // Theoretical Type
-      if (numScore >= 0 && numScore <= 4) return "Bersifat praktis";
-      if (numScore >= 5 && numScore <= 9) return "Nilai pendirian tergolong tinggi";
+    case 'G':
+      if (numScore <= 4) return "Bekerja untuk kesenangan saja, bukan hasil optimal";
+      if (numScore >= 5) return "Kemauan bekerja keras tinggi";
       break;
-    case 'S': // Social Extension
+    case 'I':
+      if (numScore <= 2) return "Ragu - menolak mengambil keputusan";
+      if (numScore >= 3 && numScore <= 4) return "Berhati hati membuat keputusan";
+      if (numScore >= 5 && numScore <= 7) return "Lancar dan mudah mengambil keputusan";
+      if (numScore >= 8) return "Tidak ragu dalam mengambil keputusan, cenderung terburu-buru";
+      break;
+    case 'K':
+      if (numScore <= 2) return "Menghindari masalah, menolak, mengelak adanya masalah";
+      if (numScore >= 3 && numScore <= 4) return "Suka lingkungan yang tenang, menghindari konflik, biasanya menunda penyelesaian konflik";
+      if (numScore === 5) return "Keras kepala";
+      if (numScore >= 6 && numScore <= 7) return "Menyalurkan agresi personal ke dalam pekerjaan, drive dan persaingan";
+      if (numScore >= 8) return "Agresif yang cenderung defensive";
+      break;
+    case 'L':
+      if (numScore <= 4) return "Cenderung tidak secara aktif menggunakan orang lain dalam bekerja";
+      if (numScore >= 5) return "Sangat tinggi dimana seseorang memproyeksikan dirinya sebagai pemimpin, ia mencoba menggunakan orang lain untuk mencapai tujuannya";
+      break;
+    case 'N':
+      if (numScore < 3) return "Komitmen rendah, tapi ada kemungkinan dapat memegang banyak pekerjaan dalam satu waktu";
+      if (numScore >= 3 && numScore <= 4) return "Delegator";
+      if (numScore >= 5 && numScore <= 6) return "Cukup bertanggung jawab pada pekerjaan";
+      if (numScore > 6) return "Tekun, tanggung jawab tinggi";
+      break;
+    case 'O':
+      if (numScore < 3) return "Tidak suka hubungan perorangan";
+      if (numScore >= 3 && numScore <= 4) return "Sadar akan hubungan perorangan, tapi tidak terlalu tergantung";
+      if (numScore >= 5) return "Sangat tergantung, butuh penerimaan diri";
+      break;
+    case 'P':
+      if (numScore <= 4) return "Menurunya keinginan untuk bertanggung jawab pada pekerjaan dan tindakan orang lain";
+      if (numScore >= 5) return "Tingkat kebutuhan untuk menerima tanggung jawab orang lain, menjadi orang yang bertanggung jawab";
+      break;
+    case 'R':
+      if (numScore <= 4) return "Bersifat praktis";
+      if (numScore >= 5) return "Nilai pendirian tergolong tinggi";
+      break;
+    case 'S':
       if (numScore < 6) return "Perhatian rendah terhadap hubungan sosial, kurang percaya pada orang lain";
-      if (numScore >= 6 && numScore <= 9) return "Kepercayaan tinggi dalam berhubungan sosial, suka interaksi sosial";
+      if (numScore >= 6) return "Kepercayaan tinggi dalam berhubungan sosial, suka interaksi sosial";
       break;
-    case 'T': // Pace
+    case 'T':
       if (numScore < 4) return "Melakukan segala sesuatu menurut kemauan dan kecepatannya sendiri";
-      if (numScore >= 4 && numScore <= 6) return "Tergolong aktif secara internal dan mental";
-      if (numScore > 6) return "Sangat aktif bergerak (Sesuaikan dengan Excel)";
+      if (numScore >= 4) return "Tergolong aktif secara internal dan mental";
       break;
-    case 'V': // Vigorous Type
+    case 'V':
       if (numScore < 5) return "Cenderung pasif";
-      if (numScore >= 5 && numScore <= 7) return "Aktif secara fisik, cenderung sportif";
-      if (numScore > 7) return "Sangat aktif secara fisik (Sesuaikan dengan Excel)";
+      if (numScore >= 5) return "Aktif secara fisik, cenderung sportif";
       break;
-    case 'W': // Need for Rules and Supervision
+    case 'W':
       if (numScore < 4) return "Berorientasi pada tujuan, mandiri";
       if (numScore >= 4 && numScore <= 5) return "Kebutuhan akan pengarahan dan harapan yang dirumuskan untuknya";
-      if (numScore >= 6 && numScore <= 9) return "Meningkatnya orientasi terhadap tugas dan membutuhkan instruksi yang jelas";
+      if (numScore >= 6) return "Meningkatnya orientasi terhadap tugas dan membutuhkan instruksi yang jelas";
       break;
-    case 'X': // Need to be Noticed
+    case 'X':
       if (numScore < 2) return "Cenderung pemalu";
       if (numScore >= 2 && numScore <= 3) return "Rendah hati, tulus";
       if (numScore >= 4 && numScore <= 5) return "Memiliki pola perilaku yang unik";
-      if (numScore >= 6 && numScore <= 9) return "Benar-benar membutuhkan perhatian";
+      if (numScore >= 6) return "Benar-benar membutuhkan perhatian";
       break;
-    // ... LANJUTKAN UNTUK ASPEK LAIN (G, L, I, N, P, B, O, Z, K) MENGGUNAKAN POLA YANG SAMA SESUAI FILE EXCEL
+    case 'Z':
+      if (numScore <= 2) return "Tidak suka berubah, tradisional";
+      if (numScore >= 3 && numScore <= 4) return "Merenehkan atau mengacuhkan apabila dipaksa berubah";
+      if (numScore >= 5 && numScore <= 6) return "Mudah menyesuaikan diri";
+      if (numScore === 7) return "Membuat perubahan tertentu, berfikir jauh kedepan";
+      if (numScore >= 8) return "Mudah gelisah, frustasi, karena segala sesuatu tidak berjalan dengan cepat, mudah berubah-ubah";
+      break;
     default:
-      return "Interpretasi belum tersedia";
+      return "Data interpretasi belum diatur.";
   }
-  return "Interpretasi belum tersedia";
+  return "Data interpretasi belum diatur.";
 };
 
-// Anda juga bisa mengekspor mapping nama aslinya jika tetap ingin menampilkannya
 export const getPapiTraitName = (trait: string): string => {
-    const meanings: Record<string, string> = {
-      'G': 'Peran Pekerja Keras', 'L': 'Peran Kepemimpinan', 'I': 'Peran Pembuat Keputusan', 
-      'T': 'Peran Sibuk/Kecepatan', 'V': 'Peran Penuh Semangat', 'S': 'Peran Hubungan Sosial',
-      'R': 'Peran Teoritis/Pemikir', 'D': 'Peran Bekerja Detail', 'C': 'Peran Terorganisir',
-      'E': 'Peran Pengendalian Emosi', 'N': 'Kebutuhan Menyelesaikan Tugas', 'A': 'Kebutuhan Berprestasi',
-      'P': 'Kebutuhan Mengontrol Orang Lain', 'X': 'Kebutuhan Diperhatikan', 'B': 'Kebutuhan Diterima Kelompok',
-      'O': 'Kebutuhan Kedekatan', 'Z': 'Kebutuhan Berubah', 'K': 'Kebutuhan Agresif/Keras Kepala',
-      'F': 'Kebutuhan Mendukung Atasan', 'W': 'Kebutuhan Aturan/Arahan'
-    };
-    return meanings[trait.toUpperCase()] || `Aspek ${trait}`;
+  const t = extractPapiLetter(trait);
+  const meanings: Record<string, string> = {
+    'G': 'Peran Pekerja Keras', 'L': 'Peran Kepemimpinan', 'I': 'Peran Pembuat Keputusan', 
+    'T': 'Peran Sibuk/Kecepatan', 'V': 'Peran Penuh Semangat', 'S': 'Peran Hubungan Sosial',
+    'R': 'Peran Teoritis/Pemikir', 'D': 'Peran Bekerja Detail', 'C': 'Peran Terorganisir',
+    'E': 'Peran Pengendalian Emosi', 'N': 'Kebutuhan Menyelesaikan Tugas', 'A': 'Kebutuhan Berprestasi',
+    'P': 'Kebutuhan Mengontrol Orang Lain', 'X': 'Kebutuhan Diperhatikan', 'B': 'Kebutuhan Diterima Kelompok',
+    'O': 'Kebutuhan Kedekatan', 'Z': 'Kebutuhan Berubah', 'K': 'Kebutuhan Agresif/Keras Kepala',
+    'F': 'Kebutuhan Mendukung Atasan', 'W': 'Kebutuhan Aturan/Arahan'
+  };
+  return meanings[t] || `Aspek ${trait}`;
 };
