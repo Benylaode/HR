@@ -8,8 +8,20 @@ export interface TestResultData {
   participant_type: 'Candidate' | 'Employee';
   id?: string | number;
   scores: {
-    cfit?: { iq?: number; classification?: string; raw_score?: number; };
-    kraepelin?: { salah?: number; terlewat?: number; kecepatan?: string; ketelitian?: string; panker?: string | number; janker?: string | number; };
+    cfit?: { 
+      iq?: number; 
+      classification?: string; 
+      raw_score?: number; 
+    };
+    kraepelin?: { 
+      salah?: number; 
+      terlewat?: number; 
+      kecepatan?: string; 
+      ketelitian?: string; 
+      panker?: string | number; 
+      janker?: string | number; 
+      totalErrors?: string | number; // Menambahkan tipe data untuk totalErrors
+    };
     papi?: Record<string, number>;
   };
 }
@@ -22,21 +34,21 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   if (!data || !data.scores) return null;
 
   // =====================================
-  // PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN POPUP FE)
+  // PENGAMBILAN DATA PSIKOTES
   // =====================================
   const { cfit = {}, kraepelin = {}, papi = {} } = data.scores;
 
-  // Standardisasi Variabel Tampilan
+  // Standardisasi Variabel Tampilan CFIT
   const iqScore = cfit.iq || '-';
   const cfitClass = cfit.classification || '-';
   const cfitRaw = cfit.raw_score ?? '-';
 
+  // Standardisasi Variabel Tampilan Kraepelin
   const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
   const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
-  const hasKraepelinData = Object.keys(kraepelin).length > 0;
   
-  // LOGIKA TOTAL ERROR SAMA PERSIS DENGAN POPUP KANDIDAT DI FE
-  const totalErrors = hasKraepelinData ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
+  // LOGIKA TOTAL ERROR LANGSUNG MENGAMBIL DARI BACKEND (TANPA DIHITUNG MANUAL)
+  const totalErrors = kraepelin.totalErrors ?? '-';
 
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
@@ -111,7 +123,6 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '20px', rowGap: '6px' }}>
               {allPapi.length > 0 ? allPapi.map((p, i) => (
-                /* 👇 PARENT DIV UNTUK MENGATASI ERROR JSX */
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
                     <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.2' }}>

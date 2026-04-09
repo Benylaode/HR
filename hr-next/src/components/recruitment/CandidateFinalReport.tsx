@@ -79,7 +79,7 @@ export default function CandidateFinalReport({
   const hasKraepelinData = Object.keys(kraepelin).length > 0;
   
   // LOGIKA TOTAL ERROR SAMA PERSIS DENGAN POPUP KANDIDAT DI FE
-  const totalErrors = hasKraepelinData ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
+  const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
 
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
