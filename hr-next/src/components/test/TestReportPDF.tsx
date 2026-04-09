@@ -22,7 +22,7 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   if (!data || !data.scores) return null;
 
   // =====================================
-  // PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN FE TEST MANAGEMENT)
+  // PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN POPUP FE)
   // =====================================
   const { cfit = {}, kraepelin = {}, papi = {} } = data.scores;
 
@@ -34,6 +34,8 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
   const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
   const hasKraepelinData = Object.keys(kraepelin).length > 0;
+  
+  // LOGIKA TOTAL ERROR SAMA PERSIS DENGAN POPUP KANDIDAT DI FE
   const totalErrors = hasKraepelinData ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
 
   const getAllPapi = () => {
@@ -103,38 +105,32 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
             </div>
           </div>
 
-            {/* 3. HASIL PAPI KOSTICK */}
-                  <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px', flex: 1, overflowY: 'hidden' }}>
-                    <h3 style={{ marginTop: 0, fontSize: '10px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '3px' }}>
-                      {allPapi.length > 0 ? allPapi.map((p, i) => (
-                        /* 👇 INI ADALAH PARENT ELEMENT (Wajib ada pembungkus utama) */
-                        <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '3px' }}>
-                          
-                          {/* Baris Atas: Aspek & Skor */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1px' }}>
-                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.1' }}>
-                               <span style={{ color: '#4c1d95', marginRight: '4px' }}>[{p.letter}]</span> 
-                               {p.traitName}
-                             </div>
-                             <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '1px 4px', borderRadius: '3px' }}>
-                               {String(p.score)}
-                             </div>
-                          </div>
-
-                          {/* Baris Bawah: Teks Interpretasi */}
-                          <div style={{ fontSize: '8px', color: '#475569', fontStyle: 'italic', lineHeight: '1.1' }}>
-                            Interpretasi: "{p.desc}"
-                          </div>
-
-                        </div>
-                        /* 👆 BATAS AKHIR PARENT ELEMENT */
-                      )) : (
-                        <p style={{ fontSize: '9px', color: '#64748b', textAlign: 'center', padding: '10px 0' }}>Data PAPI Kostick belum tersedia.</p>
-                      )}
+          {/* HASIL PAPI KOSTICK */}
+          <div style={{ backgroundColor: '#fff', padding: '12px', border: '1px solid #e2e8f0', borderTop: '3px solid #8b5cf6', borderRadius: '4px' }}>
+            <h3 style={{ marginTop: 0, fontSize: '11px', color: '#5b21b6', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '10px', fontWeight: 'bold' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '20px', rowGap: '6px' }}>
+              {allPapi.length > 0 ? allPapi.map((p, i) => (
+                /* 👇 PARENT DIV UNTUK MENGATASI ERROR JSX */
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
+                    <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.2' }}>
+                      <span style={{ color: '#4c1d95', marginRight: '4px' }}>[{p.letter}]</span> 
+                      {p.traitName}
+                    </div>
+                    <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', backgroundColor: '#ede9fe', padding: '2px 5px', borderRadius: '3px' }}>
+                      {p.score}
                     </div>
                   </div>
+                  <div style={{ fontSize: '8px', color: '#475569', fontStyle: 'italic', lineHeight: '1.2' }}>
+                    Interpretasi: "{p.desc}"
+                  </div>
+                </div>
+              )) : (
+                <p style={{ fontSize: '10px', color: '#64748b', gridColumn: 'span 2', textAlign: 'center', padding: '10px 0' }}>Data PAPI Kostick belum tersedia.</p>
+              )}
+            </div>
+          </div>
 
           {/* FOOTER */}
           <div style={{ position: 'absolute', bottom: '20px', right: '20px', left: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>

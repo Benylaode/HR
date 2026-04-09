@@ -59,7 +59,7 @@ export default function CandidateFinalReport({
   const finalStatus = getRecommendation(totalScore);
 
   // =====================================
-  // 2. PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN FE TEST MANAGEMENT)
+  // 2. PENGAMBILAN DATA PSIKOTES (SINKRON DENGAN POPUP FE)
   // =====================================
   const cfitSub = submissions.find(s => s.test_type === 'cfit');
   const kraepelinSub = submissions.find(s => s.test_type === 'kraepelin');
@@ -77,6 +77,8 @@ export default function CandidateFinalReport({
   const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
   const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
   const hasKraepelinData = Object.keys(kraepelin).length > 0;
+  
+  // LOGIKA TOTAL ERROR SAMA PERSIS DENGAN POPUP KANDIDAT DI FE
   const totalErrors = hasKraepelinData ? (Number(kraepelin.salah || 0) + Number(kraepelin.terlewat || 0)) : '-';
 
   const getAllPapi = () => {
@@ -322,6 +324,7 @@ export default function CandidateFinalReport({
                     
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '3px' }}>
                       {allPapi.length > 0 ? allPapi.map((p, i) => (
+                        /* 👇 PARENT DIV UNTUK MENGATASI ERROR JSX */
                         <div key={i} style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px dashed #cbd5e1', paddingBottom: '3px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1px' }}>
                              <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#334155', lineHeight: '1.1' }}>
