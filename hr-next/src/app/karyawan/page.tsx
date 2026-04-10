@@ -69,7 +69,6 @@ interface KaryawanDetail extends Karyawan {
   experienceDescription?: string;
 }
 
-
 const DetailModal = memo(({ 
   karyawan, 
   onClose 
@@ -207,6 +206,7 @@ const DetailModal = memo(({
               </div>
             </div>
           </div>
+
         </div>
 
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)] flex-shrink-0">
@@ -305,6 +305,7 @@ const EditModal = memo(({
 
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
           <form id="editEmployeeForm" onSubmit={handleSubmit} className="space-y-2">
+            
             <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Status</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-1 md:col-span-2">
@@ -442,8 +443,9 @@ const EditModal = memo(({
 });
 EditModal.displayName = 'EditModal';
 
+
 // ==========================================
-// MODAL HASIL TES (CFIT, KRAEPELIN, PAPI)
+// MODAL HASIL TES PSIKOLOGI (CFIT, KRAEPELIN, PAPI)
 // ==========================================
 const TestResultModal = memo(({ 
   karyawan, 
@@ -471,14 +473,18 @@ const TestResultModal = memo(({
     setIsGeneratingPDF(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
+      
+      // FIX OPTION ERROR UNTUK TS
       const opt = {
         margin: 0,
         filename: `Hasil_Psikotes_${karyawan.fullName.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
-      await html2pdf().set(opt).from(pdfRef.current).save();
+      
+      await html2pdf().set(opt as any).from(pdfRef.current).save();
     } catch (error) {
       console.error("Gagal mencetak PDF:", error);
       alert("Terjadi kesalahan saat mengunduh PDF.");
@@ -607,12 +613,12 @@ export default function KaryawanPage() {
   const [detailModal, setDetailModal] = useState<KaryawanDetail | null>(null);
   const [editModal, setEditModal] = useState<KaryawanDetail | null>(null);
   const [testResultModal, setTestResultModal] = useState<Karyawan | null>(null); 
+  const [loadingDetail, setLoadingDetail] = useState(false);
   
   // STATE REPORT & EVALUATIONS
   const [reportModal, setReportModal] = useState<Karyawan | null>(null); 
   const [reportEvaluations, setReportEvaluations] = useState<any[]>([]);
   const [loadingReport, setLoadingReport] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // REFS UNTUK PDF DOWNLOAD
   const finalReportRef = useRef<HTMLDivElement>(null);
@@ -700,7 +706,7 @@ export default function KaryawanPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Gagal memperbarui data. (Apakah rute PUT di backend sudah ada?)");
+        throw new Error("Gagal memperbarui data.");
       }
       
       setEditModal(null);
@@ -760,7 +766,7 @@ export default function KaryawanPage() {
     }
   };
 
-  // DOWNLOAD PDF REPORT FUNCTION
+  // DOWNLOAD PDF REPORT FUNCTION (DENGAN FIX TIPE DATA OPT)
   const handleDownloadFinalReport = async () => {
     if (!finalReportRef.current) {
       toast.error("Data laporan belum siap, silakan tunggu sebentar.");
@@ -769,18 +775,21 @@ export default function KaryawanPage() {
     setIsGeneratingReportPDF(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
+      
+      // FIX OPTION ERROR UNTUK TS
       const opt = {
         margin: 0,
-        filename: `Final_Report_Assesment_${reportModal?.fullName?.replace(/\s+/g, '_') || 'Karyawan'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        filename: `Laporan_Evaluasi_${reportModal?.fullName?.replace(/\s+/g, '_') || 'Karyawan'}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
+      
       await html2pdf().set(opt as any).from(finalReportRef.current).save();
     } catch (error) {
       console.error("Gagal mencetak PDF:", error);
-      toast.error("Terjadi kesalahan saat mengunduh Final Report.");
+      toast.error("Terjadi kesalahan saat mengunduh Laporan Evaluasi.");
     } finally {
       setIsGeneratingReportPDF(false);
     }
@@ -1089,7 +1098,7 @@ export default function KaryawanPage() {
       {editModal && <EditModal karyawan={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
       {testResultModal && <TestResultModal karyawan={testResultModal} submissions={submissions} onClose={() => setTestResultModal(null)} />}
       
-      {/* MODAL LAPORAN EVALUASI AKHIR */}
+      {/* MODAL LAPORAN EVALUASI AKHIR (USER INTERFACE) */}
       {reportModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95">
@@ -1120,7 +1129,6 @@ export default function KaryawanPage() {
               )}
             </div>
 
-            {/* TAMBAHAN FOOTER UNTUK DOWNLOAD */}
             <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
               <button onClick={() => setReportModal(null)} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                 Tutup
