@@ -106,7 +106,10 @@ export default function TestManagementPage() {
   
   const [user, setUser] = useState<{ name: string; role?: string } | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("categories");
-  const [evalCandidateId, setEvalCandidateId] = useState("");
+  // STATE BARU UNTUK EVALUASI
+  const [evalTargetType, setEvalTargetType] = useState<"candidate" | "karyawan">("candidate");
+  const [evalTargetId, setEvalTargetId] = useState("");
+  
   
   const [localCategories, setLocalCategories] = useState<Category[]>(STATIC_CATEGORIES);
   const [localQuestions, setLocalQuestions] = useState<Record<number, Question[]>>({});
@@ -885,66 +888,77 @@ export default function TestManagementPage() {
             </div>
           )}
           
-          {/* === TAB 3: SUBMISSIONS === */}
-          {activeTab === "submissions" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)] flex items-center gap-4">
-                  <div className="bg-[var(--primary-50)] p-3 rounded-full text-[var(--primary)] border border-[var(--primary-100)]"><FileCheck className="w-6 h-6"/></div>
-                  <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.length}</div><div className="text-sm text-[var(--secondary)]">Total Submissions</div></div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)] flex items-center gap-4">
-                  <div className="bg-green-50 p-3 rounded-full text-green-600 border border-green-100"><BarChart2 className="w-6 h-6"/></div>
-                  <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.filter(s => s.test_type === 'cfit').length}</div><div className="text-sm text-[var(--secondary)]">CFIT Completed</div></div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)] flex items-center gap-4">
-                  <div className="bg-purple-50 p-3 rounded-full text-purple-600 border border-purple-100"><Zap className="w-6 h-6"/></div>
-                  <div><div className="text-2xl font-bold text-[var(--primary-900)]">{submissions.filter(s => s.test_type === 'kraepelin').length}</div><div className="text-sm text-[var(--secondary)]">Kraepelin Completed</div></div>
-                </div>
-              </div>
-              <div className="hidden md:block">{renderSubmissionTable()}</div>
-            </div>
-          )}
-
-          {/* === TAB 4: FORM EVALUATION === */}
+{/* === TAB 4: FORM EVALUATION === */}
           {activeTab === "evaluation" && (
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--secondary-200)]">
                 <h3 className="font-bold text-[var(--primary-900)] mb-4 flex items-center gap-2">
                   <User className="w-5 h-5 text-[var(--primary)]" />
-                  Pilih Kandidat untuk Penilaian Interview
+                  Pilih Target Penilaian Wawancara / Evaluasi
                 </h3>
+
+                {/* Toggle Pilihan Kandidat / Karyawan */}
+                <div className="flex gap-2 mb-4 p-1 bg-[var(--secondary-50)] rounded-lg w-full max-w-md">
+                  <button 
+                    onClick={() => { setEvalTargetType("candidate"); setEvalTargetId(""); }} 
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${evalTargetType === "candidate" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}
+                  >
+                    Kandidat Baru
+                  </button>
+                  <button 
+                    onClick={() => { setEvalTargetType("karyawan"); setEvalTargetId(""); }} 
+                    className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${evalTargetType === "karyawan" ? "bg-white text-[var(--primary)] shadow-sm border border-[var(--secondary-200)]" : "text-[var(--secondary-500)] hover:bg-white/50"}`}
+                  >
+                    Karyawan Internal
+                  </button>
+                </div>
+
+                {/* Dropdown Dinamis Berdasarkan Toggle */}
                 <select
-                  value={evalCandidateId}
-                  onChange={(e) => setEvalCandidateId(e.target.value)}
+                  value={evalTargetId}
+                  onChange={(e) => setEvalTargetId(e.target.value)}
                   className="w-full p-4 border border-[var(--secondary-200)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] text-sm bg-gray-50 font-medium"
                 >
-                  <option value="">-- Silakan Pilih Kandidat --</option>
-                  {candidatesList.map(c => (
-                    <option key={c.id} value={c.id}>{c.fullName}</option>
-                  ))}
+                  <option value="">-- Silakan Pilih {evalTargetType === "candidate" ? "Kandidat" : "Karyawan"} --</option>
+                  {evalTargetType === "candidate" 
+                    ? candidatesList.map(c => <option key={c.id} value={c.id}>{c.fullName}</option>)
+                    : karyawanList.map(k => <option key={k.id} value={k.id}>{k.fullName}</option>)
+                  }
                 </select>
               </div>
 
-              {evalCandidateId ? (
+              {evalTargetId ? (
                 <div className="animate-in slide-in-from-bottom-4 duration-500">
                   {(() => {
-                    const selectedCand = candidatesList.find(c => c.id === evalCandidateId);
-                    return (
-                      <CandidateEvaluation 
-                        candidateId={evalCandidateId}
-                        candidateName={selectedCand?.fullName || "Unknown"}
-                        jobPosition={selectedCand?.top_position || "Belum Ditentukan"}
-                        currentUserRole={user?.role || "HR"} 
-                      />
-                    );
+                    // Cek tipe target dan kirim Props yang sesuai ke komponen evaluasi
+                    if (evalTargetType === "candidate") {
+                      const selectedCand = candidatesList.find(c => c.id === evalTargetId);
+                      return (
+                        <CandidateEvaluation 
+                          candidateId={evalTargetId}
+                          candidateName={selectedCand?.fullName || "Unknown"}
+                          jobPosition={selectedCand?.top_position || "Belum Ditentukan"}
+                          currentUserRole={user?.role || "HR"} 
+                        />
+                      );
+                    } else {
+                      const selectedEmp = karyawanList.find(k => k.id === evalTargetId);
+                      return (
+                        <CandidateEvaluation 
+                          employeeId={evalTargetId}  // Kirim sebagai employeeId
+                          candidateName={selectedEmp?.fullName || "Unknown"}
+                          jobPosition="Karyawan Internal" // Anda bisa menyesuaikan jika ada data jabatan di objek Karyawan
+                          currentUserRole={user?.role || "HR"} 
+                        />
+                      );
+                    }
                   })()}
                 </div>
               ) : (
                 <div className="p-10 text-center bg-white rounded-2xl border border-dashed border-[var(--secondary-300)] text-[var(--secondary-500)] flex flex-col items-center justify-center">
                   <FileCheck className="w-12 h-12 mb-3 text-[var(--secondary-200)]" />
-                  <p className="font-medium text-lg text-[var(--primary-900)]">Belum Ada Kandidat Dipilih</p>
-                  <p className="text-sm mt-1">Pilih kandidat dari *dropdown* di atas untuk memunculkan Form Assesment STAR Method dan Value Behavior.</p>
+                  <p className="font-medium text-lg text-[var(--primary-900)]">Belum Ada Target Dipilih</p>
+                  <p className="text-sm mt-1">Pilih {evalTargetType === "candidate" ? "kandidat" : "karyawan"} dari *dropdown* di atas untuk memunculkan Form Assesment STAR Method dan Value Behavior.</p>
                 </div>
               )}
             </div>

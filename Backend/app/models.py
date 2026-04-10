@@ -243,6 +243,7 @@ class Employee(db.Model, ProfileMixin):
     
     # 🌟 PERBAIKAN: Foreign Key Manpower diletakkan di dalam Employee
     manpower_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True)
+    evaluations = db.relationship("InterviewEvaluation", backref="employee_info", cascade="all, delete-orphan")
 
     test_link = db.relationship("TestLink", back_populates="employee", uselist=False, cascade="all, delete-orphan")
 
@@ -469,6 +470,7 @@ class InterviewEvaluation(db.Model):
 
     id = db.Column(db.String, primary_key=True, default=uuid_str)
     candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), nullable=False)
+    employee_id = db.Column(db.String, db.ForeignKey('employees.id'), nullable=True)
     
     evaluator_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=True) 
     evaluator_name = db.Column(db.String(100), nullable=True)
@@ -493,6 +495,7 @@ class InterviewEvaluation(db.Model):
         return {
             "id": self.id,
             "candidate_id": self.candidate_id,
+            "employee_id": self.employee_id,
             "evaluator_name": self.evaluator_name,
             "evaluator_position": self.evaluator_position, 
             "evaluation_date": self.evaluation_date.isoformat() if self.evaluation_date else None, 

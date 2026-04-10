@@ -85,6 +85,7 @@ const BEHAVIOR_QUESTIONS = [
 // INTERFACE
 interface CandidateEvaluationProps {
   candidateId?: string; 
+  employeeId?: string; // TAMBAHAN UNTUK KARYAWAN
   candidateName: string;
   candidateNik?: string; 
   jobPosition?: string;  
@@ -95,6 +96,7 @@ interface CandidateEvaluationProps {
 
 export default function CandidateEvaluation({ 
   candidateId, 
+  employeeId, // TAMBAHAN
   candidateName, 
   candidateNik,
   jobPosition,
@@ -126,12 +128,12 @@ export default function CandidateEvaluation({
 
   // Load Data dari Backend
   useEffect(() => {
-    const fetchId = candidateId || candidateNik;
+    // TAMBAHAN: Sekarang bisa membaca employeeId
+    const fetchId = candidateId || employeeId || candidateNik;
     if (!fetchId) return;
 
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
-    // MENGHAPUS /api DARI URL DAN MENAMBAHKAN AUTH HEADERS
     fetch(`${API_BASE_URL}/management/evaluations/${fetchId}`, {
       headers: getAuthHeaders()
     })
@@ -172,7 +174,7 @@ export default function CandidateEvaluation({
           setScores({}); 
           setOverallNotes(''); 
       });
-  }, [candidateId, candidateNik, activeTab]);
+  }, [candidateId, employeeId, candidateNik, activeTab]);
 
   // Kalkulasi Skor
   const totalScore = Object.values(scores).reduce((acc, curr) => acc + (curr || 0), 0);
@@ -202,9 +204,10 @@ export default function CandidateEvaluation({
         return;
     }
 
-    const fetchId = candidateId || candidateNik;
+    // TAMBAHAN: Validasi ID
+    const fetchId = candidateId || employeeId || candidateNik;
     if (!fetchId) {
-        alert("Gagal menyimpan: ID Kandidat tidak valid!");
+        alert("Gagal menyimpan: ID Target tidak valid!");
         return;
     }
 
@@ -239,7 +242,6 @@ export default function CandidateEvaluation({
     };
 
     try {
-      // MENGHAPUS /api DARI URL DAN MENAMBAHKAN AUTH HEADERS
       const res = await fetch(`${API_BASE_URL}/management/evaluations/${fetchId}`, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -260,13 +262,13 @@ export default function CandidateEvaluation({
     }
   };
 
-  const displayId = candidateId || candidateNik;
+  const displayId = candidateId || employeeId || candidateNik;
   if (!displayId) {
     return (
       <div className="p-8 bg-white border border-dashed border-[var(--secondary-300)] rounded-2xl text-center flex flex-col items-center justify-center h-[500px]">
         <UserCheck className="w-16 h-16 mb-4 text-[var(--secondary-200)]" />
-        <p className="font-bold text-[var(--primary-900)] text-lg">Pilih Kandidat Terlebih Dahulu</p>
-        <p className="text-[var(--secondary-500)] text-sm mt-1">Silakan pilih kandidat dari dropdown di menu untuk memulai form penilaian.</p>
+        <p className="font-bold text-[var(--primary-900)] text-lg">Pilih Target Terlebih Dahulu</p>
+        <p className="text-[var(--secondary-500)] text-sm mt-1">Silakan pilih target dari dropdown di menu untuk memulai form penilaian.</p>
       </div>
     );
   }
@@ -279,8 +281,10 @@ export default function CandidateEvaluation({
         
         <div className="flex justify-between items-start">
             <div>
-                <h3 className="font-bold text-[var(--primary-900)] text-lg">Assesment Interview</h3>
-                <p className="text-sm text-[var(--secondary-600)] mt-1">Kandidat: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
+                <h3 className="font-bold text-[var(--primary-900)] text-lg">
+                  {employeeId ? 'Form Evaluasi Karyawan' : 'Assesment Interview'}
+                </h3>
+                <p className="text-sm text-[var(--secondary-600)] mt-1">Peserta: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
                 {jobPosition && <p className="text-xs text-[var(--secondary-500)]">Posisi: {jobPosition}</p>}
             </div>
             <div className="text-right bg-white px-4 py-2 rounded-xl border border-[var(--secondary-200)] shadow-sm">
@@ -328,7 +332,7 @@ export default function CandidateEvaluation({
                 <Calendar className="w-5 h-5 text-[var(--primary)]" />
              </div>
              <div className="flex-1 flex flex-col">
-               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Tanggal Interview</label>
+               <label className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-wide mb-1">Tanggal Evaluasi</label>
                <input 
                  type="date" 
                  value={evaluationDate}
@@ -470,7 +474,7 @@ export default function CandidateEvaluation({
         <div className="bg-white p-5 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
           <label className="block text-sm font-bold text-[var(--primary-900)] mb-2">Catatan Tambahan & Rekomendasi (Opsional)</label>
           <textarea 
-            placeholder="Tuliskan kesimpulan, poin plus, atau evaluasi mendalam terkait kandidat..."
+            placeholder="Tuliskan kesimpulan, poin plus, atau evaluasi mendalam terkait peserta..."
             className="w-full p-4 border border-[var(--secondary-200)] rounded-xl text-sm h-28 focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none resize-none transition-all"
             value={overallNotes}
             onChange={(e) => setOverallNotes(e.target.value)}

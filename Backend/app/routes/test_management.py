@@ -550,20 +550,24 @@ def seed_cfit_questions():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
     
-# ==========================================
-# ENDPOINT PENILAIAN WAWANCARA (HR & USER)
-# ==========================================
-@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["GET", "OPTIONS"])
-def get_evaluations(candidate_id):
+@mgmt_bp.route("/evaluations/<string:target_id>", methods=["GET", "OPTIONS"])
+def get_evaluations(target_id):
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"}), 200
         
-    """Mengambil semua form penilaian untuk satu kandidat"""
-    evaluations = InterviewEvaluation.query.filter_by(candidate_id=candidate_id).all()
+    """Mengambil semua form penilaian untuk satu kandidat atau karyawan"""
+    # Gunakan db.or_ untuk mencari di kedua kolom
+    evaluations = InterviewEvaluation.query.filter(
+        db.or_(
+            InterviewEvaluation.candidate_id == target_id,
+            InterviewEvaluation.employee_id == target_id
+        )
+    ).all()
+    
     return jsonify([e.to_dict() for e in evaluations])
 
-@mgmt_bp.route("/evaluations/<string:candidate_id>", methods=["POST", "OPTIONS"])
-def save_evaluation(candidate_id):
+@mgmt_bp.route("/evaluations/<string:target_id>", methods=["POST", "OPTIONS"])
+def save_evaluation(target_id):
     # Handle preflight CORS request secara manual jika diperlukan
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"}), 200
@@ -572,14 +576,34 @@ def save_evaluation(candidate_id):
     
     role_type = data.get("role_type") 
     if not role_type:
-        return jsonify({"error": "role_type harus diisi (HR / USER_1 / USER_2)"}), 400
+        return jsonify({"error": "role_type harus diisi (HR / USER_1 / USER_2 / INTERNAL)"}), 400
+
+    # 1. Cek apakah target_id ini milik Kandidat atau Karyawan
+    is_candidate = Candidate.query.get(target_id) is not None
+    is_employee = Employee.query.get(target_id) is not None
+    
+    # Ambil ID dari URL (jika ketemu di DB) atau dari payload JSON sebagai fallback
+    candidate_id = target_id if is_candidate else data.get("candidate_id")
+    employee_id = target_id if is_employee else data.get("employee_id")
+
+    if not candidate_id and not employee_id:
+        return jsonify({"error": "Target ID tidak dikenali sebagai Kandidat maupun Karyawan"}), 404
 
     # MASUKKAN SEMUA LOGIK DB KE DALAM TRY...EXCEPT
     try:
-        evaluation = InterviewEvaluation.query.filter_by(candidate_id=candidate_id, role_type=role_type).first()
+        # 2. Query filter disesuaikan dengan siapa yang sedang dinilai
+        if candidate_id:
+            evaluation = InterviewEvaluation.query.filter_by(candidate_id=candidate_id, role_type=role_type).first()
+        else:
+            evaluation = InterviewEvaluation.query.filter_by(employee_id=employee_id, role_type=role_type).first()
         
+        # 3. Buat evaluasi baru jika belum ada
         if not evaluation:
-            evaluation = InterviewEvaluation(candidate_id=candidate_id, role_type=role_type)
+            evaluation = InterviewEvaluation(
+                candidate_id=candidate_id,
+                employee_id=employee_id,
+                role_type=role_type
+            )
             db.session.add(evaluation)
             db.session.flush() # Sekarang aman jika gagal, akan dilempar ke except
         
@@ -632,5 +656,5 @@ def save_evaluation(candidate_id):
     except Exception as e:
         db.session.rollback()
         # Print error ke terminal server agar mudah dilacak jika terjadi bug
-        print(f"[ERROR] Save Evaluation Failed for {candidate_id}:", str(e))
+        print(f"[ERROR] Save Evaluation Failed for target {target_id}:", str(e))
         return jsonify({"error": "Gagal menyimpan ke database. Detail: " + str(e)}), 500
