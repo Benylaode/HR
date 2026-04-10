@@ -6,7 +6,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import TestReportPDF from '@/components/test/TestReportPDF';
-import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport'; // <-- IMPORT COMPONENT REPORT
+import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport';
 import { toast } from "sonner";
 import { 
   Plus, 
@@ -36,7 +36,6 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
-// Disesuaikan dengan return dict dari backend Flask
 interface Karyawan {
   id: string;
   fullName: string;
@@ -48,7 +47,6 @@ interface Karyawan {
   created_at: string;
 }
 
-// Tambahan field untuk detail berdasarkan backend
 interface KaryawanDetail extends Karyawan {
   gender?: string;
   religion?: string;
@@ -96,7 +94,6 @@ const DetailModal = memo(({
         className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col transform transition-all animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER MODAL */}
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-lg font-bold text-[var(--primary)]">
@@ -117,10 +114,7 @@ const DetailModal = memo(({
           </button>
         </div>
 
-        {/* BODY MODAL */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-6">
-          
-          {/* 1. INFO KONTAK */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <User size={16} /> Kontak Utama
@@ -137,7 +131,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* 2. DATA PRIBADI & ALAMAT */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <MapPin size={16} /> Data Pribadi & Alamat
@@ -171,7 +164,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* 3. PENDIDIKAN */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <GraduationCap size={16} /> Pendidikan Terakhir
@@ -192,7 +184,6 @@ const DetailModal = memo(({
             </div>
           </div>
 
-          {/* 4. PENGALAMAN KERJA */}
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
               <Briefcase size={16} /> Pengalaman Kerja Terakhir
@@ -216,10 +207,8 @@ const DetailModal = memo(({
               </div>
             </div>
           </div>
-
         </div>
 
-        {/* FOOTER MODAL */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end bg-[var(--background)] flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-700)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
             Tutup
@@ -316,8 +305,6 @@ const EditModal = memo(({
 
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
           <form id="editEmployeeForm" onSubmit={handleSubmit} className="space-y-2">
-            
-            {/* 1. STATUS & INFO UTAMA */}
             <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Status</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-1 md:col-span-2">
@@ -346,7 +333,6 @@ const EditModal = memo(({
               </div>
             </div>
 
-            {/* 2. DATA PRIBADI & ALAMAT */}
             <h3 className={sectionTitleClass}>Data Pribadi & Alamat</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -387,7 +373,6 @@ const EditModal = memo(({
               </div>
             </div>
 
-            {/* 3. PENDIDIKAN */}
             <h3 className={sectionTitleClass}>Pendidikan Terakhir</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -408,7 +393,6 @@ const EditModal = memo(({
               </div>
             </div>
 
-            {/* 4. PENGALAMAN KERJA */}
             <h3 className={sectionTitleClass}>Pengalaman Kerja Terakhir</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -480,7 +464,6 @@ const TestResultModal = memo(({
   const kraepelin = empSubs.find(s => s.test_type === "kraepelin");
   const papi = empSubs.find(s => s.test_type === "papi");
 
-  // Hitung Total Errors Kraepelin
   const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
 
   const handleDownloadPDF = async () => {
@@ -515,7 +498,6 @@ const TestResultModal = memo(({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         
-        {/* Header Modal */}
         <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
@@ -531,10 +513,7 @@ const TestResultModal = memo(({
           </button>
         </div>
 
-        {/* Body Modal */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-8">
-          
-          {/* SEKSI: CFIT */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <BrainCircuit className="text-blue-500" size={20}/> Tes Kecerdasan (CFIT)
@@ -557,7 +536,6 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Karyawan belum menyelesaikan tes CFIT.</p>}
           </div>
 
-          {/* SEKSI: KRAEPELIN (Diperbarui jadi 3 Kotak) */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
@@ -580,7 +558,6 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Karyawan belum menyelesaikan tes Kraepelin.</p>}
           </div>
 
-          {/* SEKSI: PAPI KOSTICK */}
           <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <PieChart className="text-purple-500" size={20}/> Tes Kepribadian (PAPI Kostick)
@@ -599,7 +576,6 @@ const TestResultModal = memo(({
 
         </div>
         
-        {/* Footer Modal */}
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
             Tutup
@@ -636,8 +612,11 @@ export default function KaryawanPage() {
   const [reportModal, setReportModal] = useState<Karyawan | null>(null); 
   const [reportEvaluations, setReportEvaluations] = useState<any[]>([]);
   const [loadingReport, setLoadingReport] = useState(false);
-
   const [loadingDetail, setLoadingDetail] = useState(false);
+
+  // REFS UNTUK PDF DOWNLOAD
+  const finalReportRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingReportPDF, setIsGeneratingReportPDF] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem("hr_user");
@@ -778,6 +757,32 @@ export default function KaryawanPage() {
       setReportEvaluations([]);
     } finally {
       setLoadingReport(false);
+    }
+  };
+
+  // DOWNLOAD PDF REPORT FUNCTION
+  const handleDownloadFinalReport = async () => {
+    if (!finalReportRef.current) {
+      toast.error("Data laporan belum siap, silakan tunggu sebentar.");
+      return;
+    }
+    setIsGeneratingReportPDF(true);
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const opt = {
+        margin: 0,
+        filename: `Final_Report_Assesment_${reportModal?.fullName?.replace(/\s+/g, '_') || 'Karyawan'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      await html2pdf().set(opt as any).from(finalReportRef.current).save();
+    } catch (error) {
+      console.error("Gagal mencetak PDF:", error);
+      toast.error("Terjadi kesalahan saat mengunduh Final Report.");
+    } finally {
+      setIsGeneratingReportPDF(false);
     }
   };
 
@@ -948,7 +953,6 @@ export default function KaryawanPage() {
                               >
                                 <Award size={14}/> Psikotes
                               </button>
-                              {/* PERUBAHAN: Gunakan handleOpenReport */}
                               <button 
                                 onClick={() => handleOpenReport(karyawan)}
                                 className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
@@ -1033,7 +1037,6 @@ export default function KaryawanPage() {
                         >
                             <Award size={16} /> Psikotes
                         </button>
-                        {/* PERUBAHAN: Gunakan handleOpenReport */}
                         <button 
                             onClick={() => handleOpenReport(karyawan)} 
                             className="flex-1 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-colors"
@@ -1100,7 +1103,6 @@ export default function KaryawanPage() {
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50 relative">
-              {/* PERUBAHAN: Menambahkan Indikator Loading dan Prop yang Lengkap */}
               {loadingReport ? (
                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-[var(--secondary)]">
                     <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)] mb-3" />
@@ -1118,6 +1120,30 @@ export default function KaryawanPage() {
               )}
             </div>
 
+            {/* TAMBAHAN FOOTER UNTUK DOWNLOAD */}
+            <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
+              <button onClick={() => setReportModal(null)} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                Tutup
+              </button>
+              <button onClick={handleDownloadFinalReport} disabled={isGeneratingReportPDF} className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg flex items-center gap-2 transition-colors shadow-sm ${isGeneratingReportPDF ? 'bg-teal-400 cursor-not-allowed' : 'bg-teal-700 hover:bg-teal-800'}`}>
+                <Download size={16} /> {isGeneratingReportPDF ? 'Memproses PDF...' : 'Download Laporan Evaluasi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HIDDEN RENDER UNTUK PDF GENERATION (MENCEGAH ERROR REF NULL & CLIPPING) */}
+      {reportModal && !loadingReport && (
+        <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
+          <div ref={finalReportRef}>
+            <CandidateFinalReport 
+              employeeId={reportModal.id} 
+              candidateName={reportModal.fullName}
+              jobPosition={reportModal.positionApplied || "Karyawan Internal"}
+              submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
+              evaluations={reportEvaluations}
+            />
           </div>
         </div>
       )}
