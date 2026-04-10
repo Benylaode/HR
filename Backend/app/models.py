@@ -97,6 +97,7 @@ class User(db.Model):
     password_hash = db.Column(db.String, nullable=False)
     role = db.Column(db.Enum("SUPER_USER", "HR", name="user_roles"), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    department = db.Column(db.String(100), nullable=True, default="General")
     
     created_at = db.Column(db.DateTime, default=now_utc)
 
@@ -105,7 +106,8 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "email": self.email,
-            "role": self.role
+            "role": self.role,
+            "Departement" : self.department
         }
 
 # ==========================================

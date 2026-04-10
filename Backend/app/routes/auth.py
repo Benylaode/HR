@@ -2,15 +2,12 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     create_access_token,
     jwt_required,
-    get_jwt_identity
+    get_jwt_identity,
+    get_jwt
 )
 from passlib.hash import bcrypt
 from app import db
 from app.models import User
-
-from flask import jsonify
-from flask_jwt_extended import verify_jwt_in_request, get_jwt
-
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -24,17 +21,61 @@ def register():
     # Hash password properly before storing
     hashed_password = bcrypt.hash(data["password"])
     
+    # Menambahkan department default jika tidak ada, 
+    # karena kita sudah update modelnya
     user = User(
         name=data["name"],
         email=data["email"],
         password_hash=hashed_password,
-        role=data.get("role", "HR")
+        role=data.get("role", "HR"),
+        department=data.get("department", "General") # Default fallback
     )
 
     db.session.add(user)
     db.session.commit()
 
     return jsonify({"message": "user registered"}), 201
+
+# --- ENDPOINT BARU KHUSUS SUPER USER ---
+@auth_bp.route("/create-user", methods=["POST"])
+@jwt_required()
+def create_user():
+    """Endpoint untuk SUPER_USER membuat user baru lengkap dengan department"""
+    claims = get_jwt()
+    if claims.get("role") != "SUPER_USER":
+        return jsonify({"error": "Unauthorized. Only SUPER_USER can perform this action."}), 403
+
+    data = request.get_json(force=True)
+
+    if User.query.filter_by(email=data.get("email")).first():
+        return jsonify({"error": "Email already registered"}), 400
+
+    if not data.get("password"):
+        return jsonify({"error": "Password is required"}), 400
+
+    hashed_password = bcrypt.hash(data["password"])
+    
+    new_user = User(
+        name=data.get("name"),
+        email=data.get("email"),
+        password_hash=hashed_password,
+        role=data.get("role", "HR"),
+        department=data.get("department", "General") 
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({
+        "message": "User created successfully",
+        "user": {
+            "id": new_user.id,
+            "name": new_user.name,
+            "email": new_user.email,
+            "role": new_user.role,
+            "department": new_user.department
+        }
+    }), 201
 
 
 @auth_bp.route("/login", methods=["POST"])
@@ -46,12 +87,13 @@ def login():
         return jsonify({"error": "invalid credentials"}), 401
 
     # --- PERBAIKAN DI SINI ---
-    # Identity harus String (ID User), data lain masuk additional_claims
+    # Masukkan data department ke dalam token JWT
     token = create_access_token(
         identity=str(user.id),  
         additional_claims={
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "department": user.department # Ditambahkan
         }
     )
     # -------------------------
@@ -62,7 +104,8 @@ def login():
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "department": user.department # Ditambahkan
         }
     })
 
@@ -70,13 +113,14 @@ def login():
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
 def me():
-    # Ambil claims tambahan (email & role) dari token
+    # Ambil claims tambahan dari token
     claims = get_jwt()
     
     return jsonify({
-        "id": get_jwt_identity(), # Ini sekarang string ID
+        "id": get_jwt_identity(), # Ini string ID
         "email": claims.get("email"),
-        "role": claims.get("role")
+        "role": claims.get("role"),
+        "department": claims.get("department") # Ditambahkan
     })
 
 
@@ -92,7 +136,8 @@ def seed_admin():
         name="Administrator",
         email=admin_email,
         password_hash=bcrypt.hash("admin123"),
-        role="SUPER_USER"
+        role="SUPER_USER",
+        department="Management" # Admin masuk department khusus
     )
     
     db.session.add(admin)
@@ -102,5 +147,6 @@ def seed_admin():
         "message": "Admin created successfully",
         "email": admin_email,
         "password": "admin123",
-        "role": "SUPER_USER"
+        "role": "SUPER_USER",
+        "department": "Management"
     }), 201

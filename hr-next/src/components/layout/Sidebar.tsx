@@ -14,11 +14,12 @@ import {
   Briefcase,
   Power,
   ClipboardCheck,
-  UserPlus // Tambahkan icon UserPlus
+  UserPlus,
+  UserCheck,
+  UserCog // Icon untuk Input User
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { UserCheck } from "lucide-react";
 
 interface MenuItem {
   name: string;
@@ -40,12 +41,16 @@ const menuItems: MenuItem[] = [
   { name: "Input Pelamar", href: "/apply", icon: UserPlus, roles: ["SUPER_USER"] }, 
   { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["SUPER_USER", "HR"] },
   { name: "Laporan", href: "/reports", icon: FileBarChart, roles: ["SUPER_USER"] },
+  
+  // --- MENU INPUT USER KHUSUS ADMIN/SUPER USER ---
+  { name: "Input User", href: "/input-user", icon: UserCog, roles: ["SUPER_USER"] },
 ];
 
 interface UserData {
   name: string;
   email: string;
   role: "HR" | "SUPER_USER";
+  department?: string; // Menyimpan data department jika ada dari backend
 }
 
 export default function Sidebar() {
@@ -124,15 +129,17 @@ export default function Sidebar() {
   const UserProfile = () => (
     <div className="p-4 border-t border-[var(--secondary-100)] bg-[var(--secondary-50)]/30 mt-auto">
       <div className="flex items-center gap-4 mb-4">
-        <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center shadow-md shadow-teal-500/20 text-white font-bold text-sm">
+        <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center shadow-md shadow-teal-500/20 text-white font-bold text-sm shrink-0">
           {user ? getInitials(user.name) : "?"}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-[var(--primary-900)] truncate leading-tight">
             {user?.name || "Guest"}
           </p>
-          <p className="text-xs text-[var(--secondary)] truncate mt-0.5 font-medium">
+          <p className="text-[10px] text-[var(--secondary)] truncate mt-0.5 font-medium uppercase tracking-wide">
             {user?.role === "SUPER_USER" ? "Administrator" : "HR Staff"}
+            {/* Menampilkan Department jika ada */}
+            {user?.department && ` • ${user.department}`}
           </p>
         </div>
       </div>
