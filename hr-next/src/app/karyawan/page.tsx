@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState,useRef, memo } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import TestReportPDF from '@/components/test/TestReportPDF';
-import { toast } from "sonner"; // <-- 1. IMPORT SONNER
+import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport'; // <-- IMPORT COMPONENT REPORT
+import { toast } from "sonner";
 import { 
   Plus, 
   Search, 
@@ -25,11 +26,12 @@ import {
   Save,
   GraduationCap,
   User,
-  Award,       // Icon untuk tombol hasil
-  Activity,    // Icon Kraepelin
-  BrainCircuit,// Icon CFIT
-  PieChart,    // Icon PAPI
-  FileText     // Icon Header Modal
+  Award,       
+  Activity,    
+  BrainCircuit,
+  PieChart,    
+  FileText,
+  ClipboardList 
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -45,8 +47,6 @@ interface Karyawan {
   test_status: string;
   created_at: string;
 }
-
-
 
 // Tambahan field untuk detail berdasarkan backend
 interface KaryawanDetail extends Karyawan {
@@ -621,7 +621,7 @@ export default function KaryawanPage() {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
   const [karyawanList, setKaryawanList] = useState<Karyawan[]>([]);
-  const [submissions, setSubmissions] = useState<any[]>([]); // Data hasil tes
+  const [submissions, setSubmissions] = useState<any[]>([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -630,7 +630,13 @@ export default function KaryawanPage() {
 
   const [detailModal, setDetailModal] = useState<KaryawanDetail | null>(null);
   const [editModal, setEditModal] = useState<KaryawanDetail | null>(null);
-  const [testResultModal, setTestResultModal] = useState<Karyawan | null>(null); // State Modal Tes
+  const [testResultModal, setTestResultModal] = useState<Karyawan | null>(null); 
+  
+  // STATE REPORT & EVALUATIONS
+  const [reportModal, setReportModal] = useState<Karyawan | null>(null); 
+  const [reportEvaluations, setReportEvaluations] = useState<any[]>([]);
+  const [loadingReport, setLoadingReport] = useState(false);
+
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
@@ -754,6 +760,27 @@ export default function KaryawanPage() {
     });
   };
 
+  // HANDLE OPEN REPORT & FETCH EVALUATIONS
+  const handleOpenReport = async (karyawan: Karyawan) => {
+    setReportModal(karyawan);
+    setLoadingReport(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/management/evaluations/${karyawan.id}`, { 
+        headers: getAuthHeaders() 
+      });
+      if (res.ok) {
+        setReportEvaluations(await res.json());
+      } else {
+        setReportEvaluations([]);
+      }
+    } catch (e) {
+      console.error("Gagal load data evaluasi:", e);
+      setReportEvaluations([]);
+    } finally {
+      setLoadingReport(false);
+    }
+  };
+
   // FILTER LOGIC
   const filteredKaryawan = karyawanList.filter((k) => {
     const searchLower = (searchQuery || "").toLowerCase();
@@ -869,7 +896,7 @@ export default function KaryawanPage() {
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Test Status</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Tanggal Didaftarkan</th>
-                        <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Hasil Tes</th>
+                        <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Hasil</th>
                         <th className="px-6 py-4 text-right text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
@@ -913,12 +940,23 @@ export default function KaryawanPage() {
                             }) : "-"}
                           </td>
                           <td className="px-6 py-4 text-center">
-                             <button 
-                               onClick={() => setTestResultModal(karyawan)}
-                               className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                             >
-                               <Award size={14}/> Lihat Hasil
-                             </button>
+                            <div className="flex justify-center gap-2">
+                              <button 
+                                onClick={() => setTestResultModal(karyawan)}
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                title="Hasil Psikotes"
+                              >
+                                <Award size={14}/> Psikotes
+                              </button>
+                              {/* PERUBAHAN: Gunakan handleOpenReport */}
+                              <button 
+                                onClick={() => handleOpenReport(karyawan)}
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                title="Laporan Evaluasi Akhir"
+                              >
+                                <ClipboardList size={14}/> Evaluasi
+                              </button>
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <div className="flex justify-end gap-2">
@@ -988,12 +1026,21 @@ export default function KaryawanPage() {
                           </span>
                       </div>
 
-                      <button 
-                         onClick={() => setTestResultModal(karyawan)} 
-                         className="w-full py-2.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
-                      >
-                          <Award size={16} /> Lihat Hasil Asesmen Lengkap
-                      </button>
+                      <div className="flex gap-2">
+                        <button 
+                            onClick={() => setTestResultModal(karyawan)} 
+                            className="flex-1 py-2.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
+                        >
+                            <Award size={16} /> Psikotes
+                        </button>
+                        {/* PERUBAHAN: Gunakan handleOpenReport */}
+                        <button 
+                            onClick={() => handleOpenReport(karyawan)} 
+                            className="flex-1 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-colors"
+                        >
+                            <ClipboardList size={16} /> Evaluasi
+                        </button>
+                      </div>
 
                       <div className="pt-3 border-t border-[var(--secondary-50)] flex justify-between gap-2 overflow-x-auto">
                           <button 
@@ -1038,6 +1085,43 @@ export default function KaryawanPage() {
       {detailModal && <DetailModal karyawan={detailModal} onClose={() => setDetailModal(null)} />}
       {editModal && <EditModal karyawan={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
       {testResultModal && <TestResultModal karyawan={testResultModal} submissions={submissions} onClose={() => setTestResultModal(null)} />}
+      
+      {/* MODAL LAPORAN EVALUASI AKHIR */}
+      {reportModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-[var(--background)]">
+              <h3 className="font-bold text-[var(--primary-900)] text-lg flex items-center gap-2">
+                <ClipboardList className="text-[var(--primary)]" /> Laporan Evaluasi Kinerja: {reportModal.fullName}
+              </h3>
+              <button onClick={() => setReportModal(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50 relative">
+              {/* PERUBAHAN: Menambahkan Indikator Loading dan Prop yang Lengkap */}
+              {loadingReport ? (
+                 <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-[var(--secondary)]">
+                    <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)] mb-3" />
+                    <p className="font-medium text-sm">Mengambil data evaluasi...</p>
+                 </div>
+              ) : (
+                <CandidateFinalReport 
+                  employeeId={reportModal.id} 
+                  candidateName={reportModal.fullName}
+                  jobPosition={reportModal.positionApplied || "Karyawan Internal"}
+                  submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
+                  evaluations={reportEvaluations}
+                  onClose={() => setReportModal(null)} 
+                />
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

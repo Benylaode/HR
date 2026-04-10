@@ -3,22 +3,32 @@
 import React from 'react';
 import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from '@/utils/papiScoring';
 
+// 1. UPDATE INTERFACE
 interface ReportProps {
+  candidateId?: string;
+  employeeId?: string; 
   candidateName: string;
   candidateNik?: string;
   jobPosition?: string;
   evaluations: any[]; 
   submissions: any[]; 
+  onClose?: () => void; // Menambahkan onClose agar tidak error saat di passing dari parent
 }
 
 export default function CandidateFinalReport({ 
+  candidateId,
+  employeeId,
   candidateName, 
   candidateNik = "-", 
   jobPosition = "-", 
   evaluations = [], 
-  submissions = [] 
+  submissions = [],
+  onClose
 }: ReportProps) {
   
+  // Menentukan ID mana yang dipakai untuk tampilan teks
+  const displayId = employeeId || candidateId || candidateNik;
+
   // =====================================
   // 1. PULL DATA INTERVIEW (MULTIPLE ASSESSOR)
   // =====================================
@@ -120,8 +130,8 @@ export default function CandidateFinalReport({
       <table style={{ width: '100%', fontSize: '9px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
         <tbody>
             <tr style={{ borderBottom: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
-                <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>NIK</td>
-                <td style={{ padding: '4px 8px', fontWeight: 'bold', color: '#1e3a8a' }}>{candidateNik}</td>
+                <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>ID / NIK</td>
+                <td style={{ padding: '4px 8px', fontWeight: 'bold', color: '#1e3a8a' }}>{candidateNik !== "-" ? candidateNik : displayId}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
                 <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>Nama Assesi</td>
@@ -140,7 +150,7 @@ export default function CandidateFinalReport({
     <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '8px' }}>
       <div>
         <p style={{ fontSize: '8px', color: '#94a3b8', margin: 0, fontWeight: 'bold' }}>Sistem HR Terintegrasi</p>
-        <p style={{ fontSize: '8px', color: '#94a3b8', margin: '2px 0 0 0' }}>ID Dokumen: DOC-{candidateNik} | Dicetak: {printDate}</p>
+        <p style={{ fontSize: '8px', color: '#94a3b8', margin: '2px 0 0 0' }}>ID Dokumen: DOC-{displayId?.slice(0,8) || "UNDEF"} | Dicetak: {printDate}</p>
       </div>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontSize: '9px', margin: '0 0 25px 0', color: '#64748b' }}>Authorized Assessor,</p>

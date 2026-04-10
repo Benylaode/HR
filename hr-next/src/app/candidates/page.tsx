@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, memo, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -47,8 +47,8 @@ interface Candidate {
   test_status: string;
   created_at: string;
   match_score: number;
-  evaluations?: any[]; // Ditambahkan untuk menampung data dari backend
-  submissions?: any[]; // Ditambahkan untuk menampung data dari backend
+  evaluations?: any[]; 
+  submissions?: any[]; 
 }
 
 interface CandidateDetail extends Candidate {
@@ -712,6 +712,7 @@ const TestResultModal = memo(({
       <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
         <div ref={finalReportRef}>
           <CandidateFinalReport 
+              candidateId={candidate.id} // <-- TAMBAHAN UNTUK MENYESUAIKAN DENGAN INTERFACE BARU
               candidateName={candidate.fullName}
               candidateNik={candidate.id}
               jobPosition={candidate.top_position}
