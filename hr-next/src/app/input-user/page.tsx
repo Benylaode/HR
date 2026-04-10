@@ -255,7 +255,7 @@ export default function InputUserPage() {
                         className="mt-1 w-4 h-4 text-[var(--primary)] focus:ring-[var(--primary)]"
                       />
                       <div>
-                        <div className={`font-bold text-sm ${role === 'HR' ? 'text-[var(--primary-900)]' : 'text-slate-700'}`}>HR Staff</div>
+                        <div className={`font-bold text-sm ${role === 'HR' ? 'text-[var(--primary-900)]' : 'text-slate-700'}`}>User Staf</div>
                         <div className="text-xs text-[var(--secondary-500)] mt-0.5">Akses ke operasional rekrutmen, penilaian, dan kandidat.</div>
                       </div>
                     </label>
