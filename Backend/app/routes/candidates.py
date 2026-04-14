@@ -69,6 +69,7 @@ def candidate_to_dict(candidate: Candidate):
         "id": candidate.id,
         "resume_id": candidate.resume_id, 
         "has_cv": True if candidate.resume else False,
+        "nik_ktp": candidate.nik_ktp, # <--- TAMBAHAN NIK KTP
         # 1. Biodata
         "fullName": candidate.full_name,
         "email": candidate.email,
@@ -159,7 +160,7 @@ def create_candidate():
         # Mapping sesuai dengan ProfileMixin Gabungan
         candidate = Candidate(
             resume_id=resume_record_id, # Masukkan ID resume (Foreign Key), bukan String Path
-            
+            nik_ktp=data.get('nik_ktp'), # <--- TAMBAHAN NIK KTP
             # Biodata
             full_name=data.get("fullName"),
             email=data.get("email"),
@@ -279,6 +280,8 @@ def update_candidate(candidate_id):
 
     data = request.get_json()
     
+    if "nik_ktp" in data: candidate.nik_ktp = data["nik_ktp"] # <--- TAMBAHAN NIK KTP
+
     # 1. Info Utama & Kontak
     if "fullName" in data: candidate.full_name = data["fullName"]
     if "email" in data: candidate.email = data["email"]

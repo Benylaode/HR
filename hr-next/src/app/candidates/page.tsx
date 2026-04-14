@@ -32,13 +32,15 @@ import {
   BrainCircuit,// Icon CFIT
   PieChart,    // Icon PAPI
   FileText,    // Icon Header Modal & CV
-  Download     // Icon Download PDF
+  Download,    // Icon Download PDF
+  CreditCard   // Icon NIK KTP
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 interface Candidate {
   id: string;
+  nik_ktp?: string; // TAMBAHAN NIK KTP
   fullName: string;
   email: string;
   whatsapp: string; 
@@ -169,10 +171,14 @@ const DetailModal = memo(({ candidate, onClose }: { candidate: CandidateDetail |
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-sm">
               <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-1">
+                <CreditCard size={16} className="text-[var(--primary)] shrink-0" />
+                <span className="truncate">{candidate.nik_ktp || "-"}</span>
+              </div>
+              <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-1">
                 <Mail size={16} className="text-[var(--primary)] shrink-0" />
                 <span className="truncate">{candidate.email || "-"}</span>
               </div>
-              <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-2">
+              <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-1">
                 <Phone size={16} className="text-[var(--primary)] shrink-0" />
                 <span>{candidate.whatsapp || "-"}</span>
               </div>
@@ -322,6 +328,7 @@ DetailModal.displayName = 'DetailModal';
 
 const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDetail | null; onClose: () => void; onSave: (data: Partial<CandidateDetail>) => Promise<void>; }) => {
   const [formData, setFormData] = useState({
+    nik_ktp: "", // TAMBAHAN NIK KTP DI STATE EDIT
     fullName: "", email: "", whatsapp: "", gender: "", birthDate: "",
     domicileCity: "", domicileProvince: "",
     degree: "", major: "", studyProgram: "", university: "", gpa: "", startYear: "", gradYear: "",
@@ -332,6 +339,7 @@ const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDe
   useEffect(() => {
     if (candidate) {
       setFormData({
+        nik_ktp: candidate.nik_ktp || "",
         fullName: candidate.fullName || "",
         email: candidate.email || "",
         whatsapp: candidate.whatsapp || "",
@@ -391,6 +399,19 @@ const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDe
           <form id="editCandidateForm" onSubmit={handleSubmit} className="space-y-2">
             <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Kontak</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* TAMBAHAN INPUT NIK KTP */}
+              <div>
+                <label className={labelClass}>NIK KTP *</label>
+                <input 
+                  type="text" 
+                  maxLength={16}
+                  value={formData.nik_ktp} 
+                  onChange={(e) => setFormData({ ...formData, nik_ktp: e.target.value.replace(/\D/g, '') })} 
+                  className={inputClass} 
+                  placeholder="16 Digit Angka NIK"
+                  required 
+                />
+              </div>
               <div>
                 <label className={labelClass}>Nama Lengkap *</label>
                 <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className={inputClass} required />
@@ -403,7 +424,7 @@ const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDe
                 <label className={labelClass}>WhatsApp</label>
                 <input type="text" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className={inputClass} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:col-span-2">
                 <div>
                   <label className={labelClass}>Jenis Kelamin</label>
                   <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className={inputClass}>
@@ -712,9 +733,9 @@ const TestResultModal = memo(({
       <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
         <div ref={finalReportRef}>
           <CandidateFinalReport 
-              candidateId={candidate.id} // <-- TAMBAHAN UNTUK MENYESUAIKAN DENGAN INTERFACE BARU
+              candidateId={candidate.id} 
               candidateName={candidate.fullName}
-              candidateNik={candidate.id}
+              candidateNik={candidate.nik_ktp || candidate.id}
               jobPosition={candidate.top_position}
               evaluations={evaluations}  
               submissions={candSubs} 

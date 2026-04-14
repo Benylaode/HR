@@ -22,6 +22,7 @@ export default function ManualRegistrationPage() {
     job_id: "",
     currentPosition: "",
     // 1. Biodata Utama (ProfileMixin)
+    nik_ktp: "", // <--- TAMBAHAN NIK KTP
     fullName: "", 
     email: "", 
     whatsapp: "", 
@@ -201,6 +202,7 @@ export default function ManualRegistrationPage() {
                 <label className={labelClass}>Posisi Utama Yang Dilamar *</label>
                 <select name="job_id" required value={form.job_id} onChange={handleTextChange} className={`${inputClass} font-bold text-blue-800 border-blue-200`}>
                   <option value="">-- Pilih Lowongan Tersedia --</option>
+                  <option value="unsolicited">Open Application / Belum Ada Posisi</option>
                   {jobs.map((job) => (<option key={job.id} value={job.id}>{job.title}</option>))}
                 </select>
              </div>
@@ -223,9 +225,24 @@ export default function ManualRegistrationPage() {
           <section>
             <h2 className={sectionHeaderClass}><UserCircle className="text-blue-600" /> 1. Biodata Pribadi</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2"><label className={labelClass}>Nama Lengkap (Sesuai KTP) *</label><input name="fullName" required className={inputClass} onChange={handleTextChange} /></div>
-              <div><label className={labelClass}>Email Aktif *</label><input type="email" name="email" required className={inputClass} onChange={handleTextChange} /></div>
               
+              {/* TAMBAHAN INPUT NIK */}
+              <div>
+                <label className={labelClass}>NIK KTP *</label>
+                <input 
+                  name="nik_ktp" 
+                  required 
+                  maxLength={16} 
+                  className={inputClass} 
+                  value={form.nik_ktp} 
+                  onChange={(e) => setForm({ ...form, nik_ktp: e.target.value.replace(/\D/g, '') })} 
+                  placeholder="16 Digit Angka" 
+                />
+              </div>
+
+              <div className="lg:col-span-2"><label className={labelClass}>Nama Lengkap (Sesuai KTP) *</label><input name="fullName" required className={inputClass} onChange={handleTextChange} /></div>
+              
+              <div><label className={labelClass}>Email Aktif *</label><input type="email" name="email" required className={inputClass} onChange={handleTextChange} /></div>
               <div><label className={labelClass}>Agama *</label>
                 <select name="religion" required className={inputClass} onChange={handleTextChange}>
                   <option value="">Pilih Agama</option>
@@ -247,7 +264,7 @@ export default function ManualRegistrationPage() {
               <div><label className={labelClass}>Kota/Kabupaten *</label><input name="domicileCity" required className={inputClass} onChange={handleTextChange} /></div>
               <div><label className={labelClass}>Total Masa Kerja *</label><input name="totalExperience" placeholder="Cth: 2 Tahun 6 Bulan" required className={inputClass} onChange={handleTextChange} /></div>
               
-              {/* ✅ PERBAIKAN: FIELD UPLOAD CV HANYA MUNCUL UNTUK KANDIDAT */}
+              {/* FIELD UPLOAD CV HANYA MUNCUL UNTUK KANDIDAT */}
               {submissionType === "candidate" && (
                 <div className="lg:col-span-3">
                   <label className={labelClass}>Upload CV (Wajib format PDF) *</label>

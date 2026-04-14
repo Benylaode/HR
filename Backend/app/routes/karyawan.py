@@ -36,6 +36,7 @@ def employee_to_dict(emp: Employee):
     return {
         "id": emp.id,
         "employee_status": emp.employee_status,
+        "nik_ktp": emp.nik_ktp, # <--- TAMBAHAN NIK KTP
         "fullName": emp.full_name,
         "email": emp.email,
         "whatsapp": emp.whatsapp,
@@ -77,6 +78,7 @@ def create_employee():
             birth_date = datetime.strptime(data["birthDate"], "%Y-%m-%d").date()
 
         emp = Employee(
+            nik_ktp=data.get("nik_ktp"), # <--- TAMBAHAN NIK KTP
             full_name=data.get("fullName"),
             email=data.get("email"),
             whatsapp=data.get("whatsapp"),
@@ -150,6 +152,8 @@ def update_employee(employee_id):
     data = request.get_json(force=True)
 
     try:
+        if "nik_ktp" in data: emp.nik_ktp = data["nik_ktp"] # <--- TAMBAHAN NIK KTP
+        
         # Update field-field utama yang ada di Modal Edit Frontend
         if "fullName" in data:
             emp.full_name = data["fullName"]

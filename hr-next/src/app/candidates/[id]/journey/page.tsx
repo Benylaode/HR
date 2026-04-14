@@ -10,7 +10,7 @@ import { getPapiInterpretation, getPapiTraitName } from '@/utils/papiScoring'
 import { toast } from 'sonner'
 import { 
   Loader2, ChevronLeft, Upload, Download, Send, User as UserIcon,
-  Briefcase, TrendingUp, BrainCircuit
+  Briefcase, TrendingUp, BrainCircuit, CreditCard 
 } from 'lucide-react'
 import { 
   getJourneyTimeline, updateStage, uploadDocument, getCandidateApplications,
@@ -267,7 +267,6 @@ export default function CandidateJourneyPage() {
   const progress = getProgressPercentage(journey.current_stage)
 
   // Ekstrak skor PAPI dengan aman. 
-  // Sesuaikan properti "papi_scores" jika nama di backend/API Anda berbeda.
   const papiScores = (journey as any)?.papi_scores || (journey as any)?.metadata?.papi_scores || null;
   
   return (
@@ -297,15 +296,23 @@ export default function CandidateJourneyPage() {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-slate-900">{journey.candidate_name}</h2>
-                <p className="text-slate-600 flex items-center gap-2">
-                  <Briefcase size={16} />
-                  {journey.job_title}
-                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-1">
+                  <p className="text-slate-600 flex items-center gap-2 text-sm font-medium">
+                    <Briefcase size={16} className="text-slate-400" />
+                    {journey.job_title}
+                  </p>
+                  
+                  {/* TAMBAHAN NIK KTP DI HEADER */}
+                  <p className="text-slate-600 flex items-center gap-2 text-sm font-medium">
+                    <CreditCard size={16} className="text-slate-400" />
+                    NIK: {(journey as any).nik_ktp || (journey as any).candidate_nik || 'Tidak ada data'}
+                  </p>
+                </div>
               </div>
             </div>
             
             {/* Progress Bar */}
-            <div className="mb-2">
+            <div className="mb-2 mt-4">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-sm font-semibold text-slate-700">Overall Progress</span>
                 <span className="text-sm font-bold text-[var(--primary)]">{progress}%</span>
@@ -353,7 +360,7 @@ export default function CandidateJourneyPage() {
                 />
               </div>
 
-              {/* PAPI KOSTICK RESULT CARD (BARU) */}
+              {/* PAPI KOSTICK RESULT CARD */}
               {papiScores && Object.keys(papiScores).length > 0 && (
                 <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
                   <div className="flex items-center gap-3 mb-6">
@@ -366,7 +373,6 @@ export default function CandidateJourneyPage() {
                     </div>
                   </div>
 
-                  {/* Menggunakan grid 1 atau 2 kolom untuk Journey */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
                     {Object.entries(papiScores)
                       .sort((a, b) => (b[1] as number) - (a[1] as number))

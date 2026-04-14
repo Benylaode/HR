@@ -153,6 +153,8 @@ class JobPosition(db.Model):
 # MIXIN UNTUK DATA DIRI (KANDIDAT & KARYAWAN)
 # ==========================================
 class ProfileMixin(object):
+    nik_ktp = db.Column(db.String(50), nullable=True) # <--- TAMBAHAN NIK KTP
+    
     full_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, index=True, nullable=False)
     gender = db.Column(db.String(20))
@@ -198,6 +200,50 @@ class ProfileMixin(object):
 
     created_at = db.Column(db.DateTime, default=now_utc)
 
+
+class Candidate(db.Model, ProfileMixin):
+    __tablename__ = "candidates"
+
+    id = db.Column(db.String, primary_key=True, default=uuid_str)
+    resume_id = db.Column(db.String, db.ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True)
+    
+    resume = db.relationship("Resume", back_populates="candidate")
+    test_link = db.relationship("TestLink", back_populates="candidate", uselist=False, cascade="all, delete-orphan")
+    applications = db.relationship("JobApplication", back_populates="candidate", cascade="all, delete-orphan")
+    evaluations = db.relationship("InterviewEvaluation", backref="candidate_info", cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nik_ktp": self.nik_ktp, # <--- TAMBAHAN NIK KTP
+            "name": self.full_name,
+            "email": self.email,
+            "whatsapp": self.whatsapp,
+            "position_applied": self.position_applied,
+            "created_at": format_date(self.created_at)
+        }
+
+class Employee(db.Model, ProfileMixin):
+    __tablename__ = "employees"
+
+    id = db.Column(db.String, primary_key=True, default=uuid_str)
+    employee_status = db.Column(db.String(50), default="Active")
+    
+    manpower_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True)
+    evaluations = db.relationship("InterviewEvaluation", backref="employee_info", cascade="all, delete-orphan")
+    test_link = db.relationship("TestLink", back_populates="employee", uselist=False, cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nik_ktp": self.nik_ktp, # <--- TAMBAHAN NIK KTP
+            "name": self.full_name,
+            "email": self.email,
+            "whatsapp": self.whatsapp,
+            "department": self.last_company_field,
+            "created_at": format_date(self.created_at)
+        }
+
 # ==========================================
 # 4. CANDIDATE, EMPLOYEE & RESUME
 # ==========================================
@@ -213,49 +259,6 @@ class Resume(db.Model):
     candidate = db.relationship("Candidate", back_populates="resume", uselist=False, cascade="all, delete-orphan")
 
 
-class Candidate(db.Model, ProfileMixin):
-    __tablename__ = "candidates"
-
-    id = db.Column(db.String, primary_key=True, default=uuid_str)
-    resume_id = db.Column(db.String, db.ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True)
-    
-    resume = db.relationship("Resume", back_populates="candidate")
-    test_link = db.relationship("TestLink", back_populates="candidate", uselist=False, cascade="all, delete-orphan")
-    applications = db.relationship("JobApplication", back_populates="candidate", cascade="all, delete-orphan")
-    # Di dalam class Candidate, tambahkan:
-    evaluations = db.relationship("InterviewEvaluation", backref="candidate_info", cascade="all, delete-orphan")
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.full_name,
-            "email": self.email,
-            "whatsapp": self.whatsapp,
-            "position_applied": self.position_applied,
-            "created_at": format_date(self.created_at)
-        }
-
-class Employee(db.Model, ProfileMixin):
-    __tablename__ = "employees"
-
-    id = db.Column(db.String, primary_key=True, default=uuid_str)
-    employee_status = db.Column(db.String(50), default="Active")
-    
-    # 🌟 PERBAIKAN: Foreign Key Manpower diletakkan di dalam Employee
-    manpower_id = db.Column(db.Integer, db.ForeignKey('manpower.id'), nullable=True)
-    evaluations = db.relationship("InterviewEvaluation", backref="employee_info", cascade="all, delete-orphan")
-
-    test_link = db.relationship("TestLink", back_populates="employee", uselist=False, cascade="all, delete-orphan")
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.full_name,
-            "email": self.email,
-            "whatsapp": self.whatsapp,
-            "department": self.last_company_field,
-            "created_at": format_date(self.created_at)
-        }
 
 # ==========================================
 # 5. MANPOWER (POSISI / SLOT KARYAWAN)

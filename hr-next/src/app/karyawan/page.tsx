@@ -31,13 +31,15 @@ import {
   BrainCircuit,
   PieChart,    
   FileText,
-  ClipboardList 
+  ClipboardList,
+  CreditCard // <-- Tambahan icon untuk NIK KTP
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 interface Karyawan {
   id: string;
+  nik_ktp?: string; // <-- TAMBAHAN NIK KTP
   fullName: string;
   email: string;
   whatsapp: string;
@@ -135,6 +137,15 @@ const DetailModal = memo(({
               <MapPin size={16} /> Data Pribadi & Alamat
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-sm">
+              {/* TAMBAHAN INFO NIK KTP */}
+              <div className="col-span-2 md:col-span-3">
+                <p className="text-xs text-[var(--secondary-500)] mb-1">NIK KTP</p>
+                <p className="font-semibold text-[var(--primary-900)] flex items-center gap-2">
+                  <CreditCard size={14} className="text-[var(--primary)]" />
+                  {karyawan.nik_ktp || "-"}
+                </p>
+              </div>
+              
               <div>
                 <p className="text-xs text-[var(--secondary-500)] mb-1">Jenis Kelamin</p>
                 <p className="font-semibold text-[var(--primary-900)]">{karyawan.gender || "-"}</p>
@@ -230,6 +241,7 @@ const EditModal = memo(({
   onSave: (data: Partial<KaryawanDetail>) => Promise<void>;
 }) => {
   const [formData, setFormData] = useState({
+    nik_ktp: "", // <-- TAMBAHAN STATE NIK KTP
     fullName: "", email: "", whatsapp: "", positionApplied: "", employee_status: "",
     gender: "", religion: "", birthPlace: "", birthDate: "", driverLicense: "",
     address: "", city: "", province: "",
@@ -241,6 +253,7 @@ const EditModal = memo(({
   useEffect(() => {
     if (karyawan) {
       setFormData({
+        nik_ktp: karyawan.nik_ktp || "", // MENGISI STATE NIK KTP
         fullName: karyawan.fullName || "",
         email: karyawan.email || "",
         whatsapp: karyawan.whatsapp || "",
@@ -336,6 +349,20 @@ const EditModal = memo(({
 
             <h3 className={sectionTitleClass}>Data Pribadi & Alamat</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* TAMBAHAN INPUT NIK KTP DI DALAM FORM EDIT */}
+              <div className="col-span-1 md:col-span-3">
+                <label className={labelClass}>NIK KTP *</label>
+                <input 
+                  type="text" 
+                  maxLength={16}
+                  value={formData.nik_ktp} 
+                  onChange={(e) => setFormData({ ...formData, nik_ktp: e.target.value.replace(/\D/g, '') })} 
+                  className={inputClass} 
+                  placeholder="16 Digit Angka NIK"
+                  required 
+                />
+              </div>
+
               <div>
                 <label className={labelClass}>Jenis Kelamin</label>
                 <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className={inputClass}>
@@ -474,7 +501,6 @@ const TestResultModal = memo(({
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       
-      // FIX OPTION ERROR UNTUK TS
       const opt = {
         margin: 0,
         filename: `Hasil_Psikotes_${karyawan.fullName.replace(/\s+/g, '_')}.pdf`,

@@ -1,19 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, UserCheck, Award, Target, User, Briefcase, Calendar } from 'lucide-react'; 
+import { Save, UserCheck, Award, Target, User, Briefcase, Calendar, AlertCircle } from 'lucide-react'; 
+import { toast } from "sonner"; // Pastikan Anda sudah menginstall sonner jika belum
 
 // ==========================================
-// 1. DATA KOMPETENSI (Sesuai Gambar 1 - STAR)
+// 1. DATA KOMPETENSI (Khusus Internal Hire / Sesuai Excel)
 // ==========================================
 const COMPETENCY_CATEGORIES = [
   {
     category: "Communication Skill",
     bobot: "15%",
     questions: [
-      { id: "comp_1", question: "Ceritakan pengalaman Anda menyampaikan informasi penting kepada tim atau atasan", indikator: "Struktur penyampaian jelas (alur logis)" },
-      { id: "comp_2", question: "Ceritakan pengalaman terjadi miskomunikasi dan bagaimana Anda menanganinya", indikator: "Mengidentifikasi sumber masalah & Perbaikan komunikasi" },
-      { id: "comp_3", question: "Ceritakan pengalaman Anda berkomunikasi dengan Department lain yang berbeda level", indikator: "Menyesuaikan gaya komunikasi" }
+      { id: "comp_1", question: "Ceritakan saat Anda harus menyampaikan perubahan kebijakan/prosedur kepada tim yang menolak. Bagaimana Anda memastikan pesan dipahami dan dijalankan?", indikator: "Struktur penyampaian jelas (alur logis)" },
+      { id: "comp_2", question: "Pernahkah terjadi miskomunikasi antar divisi? Apa yang Anda lakukan untuk memperbaikinya?", indikator: "Mengidentifikasi sumber masalah & Perbaikan komunikasi" },
+      { id: "comp_3", question: "Ceritakan pengalaman Anda menjelaskan hal kompleks ke Management hingga mereka bisa mengambil keputusan", indikator: "Menyesuaikan gaya komunikasi" }
     ]
   },
   {
@@ -28,58 +29,56 @@ const COMPETENCY_CATEGORIES = [
     category: "Problem Solving",
     bobot: "25%",
     questions: [
-      { id: "comp_6", question: "Ceritakan masalah kompleks yang pernah Anda hadapi", indikator: "Struktur berpikir jelas & Solusi relevan" },
-      { id: "comp_7", question: "Ceritakan bagaimana cara anda menemukan akar masalah", indikator: "Identifikasi root cause & melakukan pendekatan logis" },
-      { id: "comp_8", question: "Ceritakan keputusan yang anda ambil berbasis data", indikator: "Menggunakan data valid & Analisa evidence-based" }
+      { id: "comp_6", question: "Ceritakan masalah kompleks yang pernah Anda hadapi dan dampaknya pada perusahaan", indikator: "Struktur berpikir jelas & Solusi relevan" },
+      { id: "comp_7", question: "Ceritakan bagaimana cara Anda menemukan akar masalah dari situasi tersebut", indikator: "Identifikasi root cause & melakukan pendekatan logis" },
+      { id: "comp_8", question: "Ceritakan keputusan yang Anda ambil berbasis data", indikator: "Menggunakan data valid & Analisa evidence-based" }
     ]
   },
   {
     category: "Adaptability",
     bobot: "10%",
     questions: [
-      { id: "comp_9", question: "Ceritakan pengalaman menghadapi perubahan mendadak dalam suatu organisasi yang sangat dinamis", indikator: "Tetap produktif & Respon Cepat" },
-      { id: "comp_10", question: "Ceritakan saat anda harus belajar hal baru dengan cepat", indikator: "Inisiatif belajar & Implementasi langsung" },
-      { id: "comp_11", question: "Ceritakan pengalaman anda keluar dari zona nyaman", indikator: "Growth mindset & Proaktif" }
+      { id: "comp_9", question: "Ceritakan pengalaman menghadapi perubahan mendadak/proses baru? Bagaimana Anda beradaptasi dengan cepat?", indikator: "Tetap produktif & Respon Cepat" },
+      { id: "comp_10", question: "Bagaimana Anda menjaga performa saat terjadi perubahan kebijakan internal?", indikator: "Inisiatif belajar & Implementasi langsung" }
     ]
   },
   {
     category: "Integrity",
     bobot: "30%",
     questions: [
-      { id: "comp_12", question: "Ceritakan saat Anda menolak melakukan hal yang tidak sesuai aturan", indikator: "Tegas, Berani & Profesional" },
-      { id: "comp_13", question: "Ceritakan saat menghadapi tekanan untuk melanggar aturan", indikator: "Tidak terpengaruh, Teguh prinsip & Etis" },
-      { id: "comp_14", question: "Ceritakan saat Anda jujur meskipun berisiko", indikator: "Transparansi, Konsistensi, & Dampak positif" }
+      { id: "comp_11", question: "Ceritakan saat Anda menemukan praktik kerja yang tidak sesuai SOP. Apa tindakan Anda?", indikator: "Tegas, Berani & Profesional" },
+      { id: "comp_12", question: "Pernahkah Anda berada dalam dilema antara target dan kepatuhan aturan? Apa keputusan Anda?", indikator: "Tidak terpengaruh, Teguh prinsip & Etis" },
+      { id: "comp_13", question: "Bagaimana Anda memastikan tetap bekerja sesuai aturan di tengah tekanan?", indikator: "Transparansi, Konsistensi, & Dampak positif" }
     ]
   },
   {
     category: "Safety Awareness",
     bobot: "10%",
     questions: [
-      { id: "comp_15", question: "Ceritakan saat Anda mengidentifikasi potensi bahaya", indikator: "Hazard awareness, Observasi tajam & Preventif" },
-      { id: "comp_16", question: "Ceritakan saat Anda mencegah kecelakaan kerja", indikator: "Tindakan cepat, Proaktif & Dampak nyata" }
+      { id: "comp_14", question: "Ceritakan saat Anda menemukan potensi risiko kerja. Apa tindakan konkret Anda?", indikator: "Hazard awareness, Observasi tajam & Preventif" },
+      { id: "comp_15", question: "Bagaimana Anda memastikan tim menjalankan standar keselamatan secara konsisten?", indikator: "Tindakan cepat, Proaktif & Dampak nyata" }
     ]
   }
 ];
 
 // ==========================================
-// 2. DATA VALUE BEHAVIOR (Sesuai Gambar 2)
+// 2. DATA VALUE BEHAVIOR (Sesuai Excel)
 // ==========================================
 const BEHAVIOR_QUESTIONS = [
   { id: "behav_1", value: "Growth", sub: "Rasa ingin Berkembang", indikator: "Aktif berpartisipasi memunculkan ide ide untuk menumbuhkan produktivitas" },
   { id: "behav_2", value: "Growth", sub: "Evaluasi diri", indikator: "Melakukan evaluasi, memberikan rekomendasi perbaikan dan mengimplementasikannya" },
   { id: "behav_3", value: "Respect", sub: "Rasa Hormat", indikator: "Menghargai keberagaman dalam tim kerja, dan mampu bekerjasama meraih target-target melampaui standar kinerja." },
   { id: "behav_4", value: "Respect", sub: "Menghargai pendapat", indikator: "Mampu memberikan dan menerima umpan balik secara terbuka dan penuh penghargaan." },
-  { id: "behav_5", value: "Accountability", sub: "Komprehensif", indikator: "Menyelesaikan semua tugas pekerjaan secara komprehensif" },
-  { id: "behav_6", value: "Accountability", sub: "Akuntabilitas", indikator: "Selalu focus dalam mencari solusi dari pada terpaku dalam permasalahan." },
-  { id: "behav_7", value: "Collaboration", sub: "Kolaborasi", indikator: "Menempatkan prioritas yang lebih tinggi pada tujuan tim dan organisasi daripada tujuan kami sendiri." },
-  { id: "behav_8", value: "Collaboration", sub: "Komunikasi", indikator: "Aktif menjalin koordinasi dan komunikasi dengan baik antar anggota tim maupun lintas department" },
-  { id: "behav_9", value: "Excellent", sub: "Keunggulan", indikator: "Menawarkan saran-saran yang sesuai serta mengambil tindakan yang relevan Ketika menghadapi situasi yang tidak diharapkan." },
-  { id: "behav_10", value: "Excellent", sub: "Kepedulian", indikator: "Perduli biaya dan memastikan sumberdaya dipakai secara efisien dan pemborosan berkurang." },
-  { id: "behav_11", value: "Safety", sub: "Proaktif", indikator: "Secara proaktif mengidentifikasi dan melaporkan adanya bahaya atau masalah sebelum terjadi kecelakaan." },
-  { id: "behav_12", value: "Safety", sub: "Keamanan", indikator: "Memimpin budaya aman dengan menunjukkan perilaku selamat, menyediakan intruksi yang jelas, serta memastikan ketaatan terhadap control dan prosedur yang berlaku." },
-  { id: "behav_13", value: "Safety", sub: "Regulasi", indikator: "Mentaati standard dan prosedur yang ada, sambil selalu mencari cara yang lebih baik." },
-  { id: "behav_14", value: "Sustainability", sub: "Keberlanjutan", indikator: "Berusaha keras untuk mengurangi jejak karbon dan dampak lingkungan dari apa yang telah di lakukan melalui konsumsi listrik, bahan bakar fosil, perlengkapan kantor dan bahan kimia secara hati-hati serta metode kerja yang efektif dan efisien." },
-  { id: "behav_15", value: "Sustainability", sub: "Keberlanjutan", indikator: "Mengakui hak asasi manusia dan menghormati orang lain selain itu dapat mempromosikan nilai-nilai serta berkontribusi secara aktif untuk kesejahteraan seluruh pemangku kepentingan." }
+  { id: "behav_5", value: "Accountability", sub: "Akuntabilitas", indikator: "Selalu focus dalam mencari solusi dari pada terpaku dalam permasalahan." },
+  { id: "behav_6", value: "Collaboration", sub: "Kolaborasi", indikator: "Menempatkan prioritas yang lebih tinggi pada tujuan tim dan organisasi daripada tujuan kami sendiri." },
+  { id: "behav_7", value: "Collaboration", sub: "Komunikasi", indikator: "Aktif menjalin koordinasi dan komunikasi dengan baik antar anggota tim maupun lintas department" },
+  { id: "behav_8", value: "Excellent", sub: "Keunggulan", indikator: "Menawarkan saran-saran yang sesuai serta mengambil tindakan yang relevan Ketika menghadapi situasi yang tidak diharapkan." },
+  { id: "behav_9", value: "Excellent", sub: "Kepedulian", indikator: "Perduli biaya dan memastikan sumberdaya dipakai secara efisien dan pemborosan berkurang." },
+  { id: "behav_10", value: "Safety", sub: "Proaktif", indikator: "Secara proaktif mengidentifikasi dan melaporkan adanya bahaya atau masalah sebelum terjadi kecelakaan." },
+  { id: "behav_11", value: "Safety", sub: "Keamanan", indikator: "Memimpin budaya aman dengan menunjukkan perilaku selamat, menyediakan intruksi yang jelas, serta memastikan ketaatan terhadap control dan prosedur yang berlaku." },
+  { id: "behav_12", value: "Safety", sub: "Regulasi", indikator: "Mentaati standard dan prosedur yang ada, sambil selalu mencari cara yang lebih baik." },
+  { id: "behav_13", value: "Sustainability", sub: "Keberlanjutan", indikator: "Berusaha keras untuk mengurangi jejak karbon dan dampak lingkungan dari apa yang telah di lakukan melalui konsumsi listrik, bahan bakar fosil, perlengkapan kantor dan bahan kimia secara hati-hati serta metode kerja yang efektif dan efisien." },
+  { id: "behav_14", value: "Sustainability", sub: "Keberlanjutan", indikator: "Mengakui hak asasi manusia dan menghormati orang lain selain itu dapat mempromosikan nilai-nilai serta berkontribusi secara aktif untuk kesejahteraan seluruh pemangku kepentingan." }
 ];
 
 // INTERFACE
@@ -107,6 +106,9 @@ export default function CandidateEvaluation({
   const [scores, setScores] = useState<Record<string, number>>({});
   const [overallNotes, setOverallNotes] = useState('');
   
+  // STATE BARU: Untuk menyimpan Readyness Karyawan
+  const [readiness, setReadiness] = useState('');
+  
   const [assessorName, setAssessorName] = useState('');
   const [assessorPosition, setAssessorPosition] = useState('');
   const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]); 
@@ -128,7 +130,6 @@ export default function CandidateEvaluation({
 
   // Load Data dari Backend
   useEffect(() => {
-    // TAMBAHAN: Sekarang bisa membaca employeeId
     const fetchId = candidateId || employeeId || candidateNik;
     if (!fetchId) return;
 
@@ -149,7 +150,17 @@ export default function CandidateEvaluation({
             currentForm.scores.forEach((s: any) => { loadedScores[s.criteria_name] = s.score; });
             setScores(loadedScores);
           }
-          setOverallNotes(currentForm.overall_notes || '');
+          
+          // PARSING READINESS DARI OVERALL NOTES (Jika ada)
+          const notesData = currentForm.overall_notes || '';
+          const match = notesData.match(/\[Readyness:\s(.*?)\]\n\nCatatan:\n([\s\S]*)/);
+          if (match) {
+              setReadiness(match[1]);
+              setOverallNotes(match[2]);
+          } else {
+              setOverallNotes(notesData);
+          }
+
           setAssessorName(currentForm.evaluator_name || '');
           setAssessorPosition(currentForm.evaluator_position || '');
           if(currentForm.evaluation_date) {
@@ -158,6 +169,7 @@ export default function CandidateEvaluation({
         } else {
           setScores({});
           setOverallNotes('');
+          setReadiness('');
           setAssessorPosition('');
           setEvaluationDate(new Date().toISOString().split('T')[0]);
           try {
@@ -173,14 +185,27 @@ export default function CandidateEvaluation({
           console.error("Fetch Data Gagal:", error);
           setScores({}); 
           setOverallNotes(''); 
+          setReadiness('');
       });
   }, [candidateId, employeeId, candidateNik, activeTab]);
 
   // Kalkulasi Skor
   const totalScore = Object.values(scores).reduce((acc, curr) => acc + (curr || 0), 0);
-  const totalQuestions = 16 + 15; 
+  const totalQuestions = 15 + 14; // Update jumlah pertanyaan (15 Kompetensi + 14 Value)
   const maxPossibleScore = totalQuestions * 5;
   const percentageScore = Math.round((totalScore / maxPossibleScore) * 100) || 0;
+
+  // FUNGSI BARU: Penentuan Kategori & Rekomendasi (Berdasarkan Excel)
+  const getEvaluationStatus = (percentage: number) => {
+    if (percentage < 50) return { category: "Unacceptable", status: "Not Recommended", color: "text-red-600", bg: "bg-red-50" };
+    if (percentage >= 50 && percentage < 70) return { category: "Below Expectation", status: "Not Recommended", color: "text-orange-500", bg: "bg-orange-50" };
+    if (percentage >= 70 && percentage < 80) return { category: "Fully Successful", status: "Recommended", color: "text-blue-600", bg: "bg-blue-50" };
+    if (percentage >= 80 && percentage < 90) return { category: "Above Expectation", status: "Recommended", color: "text-green-500", bg: "bg-green-50" };
+    if (percentage >= 90) return { category: "Outstanding", status: "Recommended", color: "text-emerald-600", bg: "bg-emerald-50" };
+    return { category: "Belum Dinilai", status: "-", color: "text-gray-500", bg: "bg-gray-50" };
+  };
+
+  const evalStatus = getEvaluationStatus(percentageScore);
 
   // Fungsi mengamankan input skor (Lock 1-5)
   const handleScoreChange = (id: string, value: string) => {
@@ -200,19 +225,23 @@ export default function CandidateEvaluation({
   // Handler Simpan
   const handleSave = async () => {
     if (!assessorName.trim()) {
-        alert("Mohon isi Nama Assesor terlebih dahulu!");
+        toast?.error("Mohon isi Nama Assesor terlebih dahulu!");
         return;
     }
 
-    // TAMBAHAN: Validasi ID
     const fetchId = candidateId || employeeId || candidateNik;
     if (!fetchId) {
-        alert("Gagal menyimpan: ID Target tidak valid!");
+        toast?.error("Gagal menyimpan: ID Target tidak valid!");
         return;
     }
 
     setIsSaving(true);
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    
+    // GABUNGKAN READINESS (Khusus Karyawan) KE NOTES UNTUK BACKEND
+    const finalNotesToSave = employeeId && readiness 
+        ? `[Readyness: ${readiness}]\n\nCatatan:\n${overallNotes}`
+        : overallNotes;
     
     const flatCompetencyScores = COMPETENCY_CATEGORIES.flatMap(cat => 
         cat.questions.map(q => ({
@@ -228,8 +257,8 @@ export default function CandidateEvaluation({
       evaluator_name: assessorName, 
       evaluator_position: assessorPosition, 
       evaluation_date: evaluationDate,       
-      overall_notes: overallNotes,
-      status: "SUBMITTED",
+      overall_notes: finalNotesToSave, // Gunakan notes yang sudah digabung
+      status: evalStatus.status === "Recommended" ? "PASSED" : "FAILED", // Otomatis Lulus/Gagal
       scores: [
         ...flatCompetencyScores,
         ...BEHAVIOR_QUESTIONS.map(q => ({
@@ -249,13 +278,13 @@ export default function CandidateEvaluation({
       });
       
       if (res.ok) {
-          alert('Penilaian berhasil disimpan!');
+          toast?.success('Penilaian berhasil disimpan!');
       } else {
           const errData = await res.json();
-          alert(`Gagal menyimpan penilaian: ${errData.error || 'Server error'}`);
+          toast?.error(`Gagal menyimpan penilaian: ${errData.error || 'Server error'}`);
       }
     } catch (error: any) {
-      alert(`Terjadi kesalahan jaringan: ${error.message}. Pastikan URL API HTTPS sudah benar dan terkoneksi.`);
+      toast?.error(`Terjadi kesalahan jaringan: ${error.message}`);
       console.error(error);
     } finally {
       setIsSaving(false);
@@ -282,14 +311,14 @@ export default function CandidateEvaluation({
         <div className="flex justify-between items-start">
             <div>
                 <h3 className="font-bold text-[var(--primary-900)] text-lg">
-                  {employeeId ? 'Form Evaluasi Karyawan' : 'Assesment Interview'}
+                  {employeeId ? 'Rekapitulasi Final Evaluation (Internal Hire)' : 'Assesment Interview'}
                 </h3>
-                <p className="text-sm text-[var(--secondary-600)] mt-1">Peserta: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
+                <p className="text-sm text-[var(--secondary-600)] mt-1">Assesi: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
                 {jobPosition && <p className="text-xs text-[var(--secondary-500)]">Posisi: {jobPosition}</p>}
             </div>
-            <div className="text-right bg-white px-4 py-2 rounded-xl border border-[var(--secondary-200)] shadow-sm">
-                <div className="text-[10px] font-bold text-[var(--secondary-400)] uppercase tracking-widest">Persentase</div>
-                <div className={`text-2xl font-black ${percentageScore >= 70 ? 'text-green-600' : 'text-orange-500'}`}>{percentageScore}%</div>
+            <div className={`px-4 py-2 rounded-xl border border-[var(--secondary-200)] shadow-sm text-right ${evalStatus.bg}`}>
+                <div className="text-[10px] font-bold text-[var(--secondary-500)] uppercase tracking-widest">Grand Score</div>
+                <div className={`text-2xl font-black ${evalStatus.color}`}>{percentageScore}%</div>
             </div>
         </div>
 
@@ -364,7 +393,7 @@ export default function CandidateEvaluation({
           <div className="p-4 bg-[var(--primary-50)] border-b border-[var(--secondary-100)] flex items-center gap-2">
             <Award className="w-5 h-5 text-[var(--primary)]" />
             <h4 className="font-bold text-[var(--primary-900)] text-sm uppercase tracking-wide">
-              Scoring Assessment: Kompetensi
+              Scoring Assessment: Kompetensi (STAR Method)
             </h4>
           </div>
           
@@ -372,7 +401,7 @@ export default function CandidateEvaluation({
             <table className="w-full text-left text-sm bg-white">
               <thead className="bg-[var(--secondary-50)] text-[var(--secondary-500)] font-bold uppercase text-[10px] tracking-wide border-b border-[var(--secondary-100)]">
                   <tr>
-                      <th className="p-3 w-1/3">Kompetensi (STAR Method)</th>
+                      <th className="p-3 w-1/3">Pertanyaan Interview</th>
                       <th className="p-3 w-1/2">Perilaku / Indikator</th>
                       <th className="p-3 text-center w-24">Skala (1-5)</th>
                   </tr>
@@ -416,7 +445,7 @@ export default function CandidateEvaluation({
           <div className="p-4 bg-emerald-50 border-b border-[var(--secondary-100)] flex items-center gap-2">
             <Target className="w-5 h-5 text-emerald-600" />
             <h4 className="font-bold text-emerald-900 text-sm uppercase tracking-wide">
-              Value Behaviour
+              Value Behaviour (Greatness)
             </h4>
           </div>
           
@@ -470,16 +499,55 @@ export default function CandidateEvaluation({
           </div>
         </div>
 
-        {/* CATATAN KESELURUHAN */}
-        <div className="bg-white p-5 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
-          <label className="block text-sm font-bold text-[var(--primary-900)] mb-2">Catatan Tambahan & Rekomendasi (Opsional)</label>
-          <textarea 
-            placeholder="Tuliskan kesimpulan, poin plus, atau evaluasi mendalam terkait peserta..."
-            className="w-full p-4 border border-[var(--secondary-200)] rounded-xl text-sm h-28 focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none resize-none transition-all"
-            value={overallNotes}
-            onChange={(e) => setOverallNotes(e.target.value)}
-          ></textarea>
+        {/* CATATAN KESELURUHAN & SUMMARY (Update Final Evaluation) */}
+        <div className="bg-white p-5 rounded-2xl border border-[var(--secondary-200)] shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Kolom Kiri: Hasil Kalkulasi & Readyness */}
+          <div className="space-y-4">
+            <div className={`p-5 rounded-xl border ${evalStatus.color.replace('text-', 'border-')} ${evalStatus.bg}`}>
+                <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wide opacity-70">Hasil Evaluasi Akhir</span>
+                    <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full bg-white shadow-sm ${evalStatus.color}`}>
+                       {evalStatus.status}
+                    </span>
+                </div>
+                <div className={`text-3xl font-black ${evalStatus.color}`}>{evalStatus.category}</div>
+            </div>
+
+            {/* Munculkan Dropdown Readyness HANYA untuk Karyawan (Internal Hire) */}
+            {employeeId && (
+                <div className="bg-[var(--primary-50)] p-5 rounded-xl border border-[var(--primary-100)]">
+                    <label className="block text-sm font-bold text-[var(--primary-900)] mb-3 flex items-center gap-2">
+                       <AlertCircle className="w-4 h-4 text-[var(--primary)]" />
+                       Tingkat Kesiapan / Readyness (Internal Hire)
+                    </label>
+                    <select 
+                        value={readiness}
+                        onChange={(e) => setReadiness(e.target.value)}
+                        className="w-full p-3 border border-[var(--primary-200)] rounded-lg text-sm bg-white text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                    >
+                        <option value="">-- Pilih Tingkat Kesiapan --</option>
+                        <option value="NR">NR - Belum Siap Kerja</option>
+                        <option value="R0">R0 - Siap Kerja + Penyesuaian Pekerjaan</option>
+                        <option value="R1">R1 - Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan</option>
+                        <option value="R2">R2 - Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan</option>
+                    </select>
+                </div>
+            )}
+          </div>
+
+          {/* Kolom Kanan: Catatan Manual */}
+          <div className="flex flex-col">
+            <label className="block text-sm font-bold text-[var(--primary-900)] mb-2">Kesimpulan Assesor</label>
+            <textarea 
+              placeholder="Tuliskan alasan rekomendasi dan catatan evaluasi mendalam terkait peserta..."
+              className="w-full p-4 border border-[var(--secondary-200)] rounded-xl text-sm flex-1 min-h-[150px] focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none resize-none transition-all"
+              value={overallNotes}
+              onChange={(e) => setOverallNotes(e.target.value)}
+            ></textarea>
+          </div>
         </div>
+
       </div>
 
       {/* FOOTER */}
@@ -495,7 +563,7 @@ export default function CandidateEvaluation({
           disabled={isSaving}
           className="bg-[var(--primary)] hover:bg-[var(--primary-700)] text-white px-8 py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--primary)]/20 disabled:opacity-50 flex items-center gap-2 transition-all active:scale-95"
         >
-          {isSaving ? 'Menyimpan...' : <><Save className="w-5 h-5"/> Submit Penilaian</>}
+          {isSaving ? 'Menyimpan...' : <><Save className="w-5 h-5"/> Submit Penilaian Final</>}
         </button>
       </div>
 
