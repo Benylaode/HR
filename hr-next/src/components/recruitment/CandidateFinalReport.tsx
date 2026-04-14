@@ -12,8 +12,19 @@ interface ReportProps {
   jobPosition?: string;
   evaluations: any[]; 
   submissions: any[]; 
-  onClose?: () => void; // Menambahkan onClose agar tidak error saat di passing dari parent
+  onClose?: () => void; 
 }
+
+// FUNGSI TRANSLASI READINESS (Sesuai Excel)
+const getReadinessLabel = (code: string) => {
+  switch (code) {
+    case 'NR': return 'Belum Siap Kerja';
+    case 'R0': return 'Siap Kerja + Penyesuaian Pekerjaan';
+    case 'R1': return 'Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan';
+    case 'R2': return 'Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan';
+    default: return '';
+  }
+};
 
 export default function CandidateFinalReport({ 
   candidateId,
@@ -26,11 +37,10 @@ export default function CandidateFinalReport({
   onClose
 }: ReportProps) {
   
-  // Menentukan ID mana yang dipakai untuk tampilan teks
   const displayId = employeeId || candidateId || candidateNik;
 
   // =====================================
-  // 1. PULL DATA INTERVIEW (MULTIPLE ASSESSOR)
+  // 1. PULL DATA INTERVIEW & READINESS
   // =====================================
   const processedEvals = evaluations.map((e: any) => {
       const compScores = e.scores?.filter((s: any) => s.category === 'COMPETENCY') || [];
@@ -39,11 +49,17 @@ export default function CandidateFinalReport({
       const compTotal = compScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
       const behavTotal = behavScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
       
+      // EKSTRAK READINESS DARI CATATAN (Hanya untuk Internal)
+      const rawNotes = e.overall_notes || '';
+      const match = rawNotes.match(/\[Readyness:\s(.*?)\]\n\nCatatan:\n([\s\S]*)/);
+      const readinessCode = match ? match[1] : null;
+
       return {
           role: e.role_type || 'Assessor',
           name: e.evaluator_name || '-',
-          compScore: Math.round((compTotal / 80) * 100) || 0,
-          behavScore: Math.round((behavTotal / 75) * 100) || 0,
+          compScore: Math.round((compTotal / 75) * 100) || 0, // Disesuaikan max skor dari Excel
+          behavScore: Math.round((behavTotal / 70) * 100) || 0, // Disesuaikan max skor dari Excel
+          readiness: readinessCode
       };
   });
 
@@ -58,13 +74,16 @@ export default function CandidateFinalReport({
   const totalScore = processedEvals.length > 0 ? (avgComp + avgBehav) / 2 : 0;
   const mainAssessor = processedEvals.find(e => e.role === 'HR') || processedEvals[0] || { name: '-', role: '-' };
 
+  // Ambil Readiness dari evaluator (diprioritaskan HR)
+  const finalReadinessCode = processedEvals.find(e => e.readiness)?.readiness || null;
+
   const getRecommendation = (score: number) => {
     if (processedEvals.length === 0) return { cat: '-', remarks: 'Belum Dinilai', status: '-', readyness: '-' };
-    if (score < 50) return { cat: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', readyness: '-' };
-    if (score < 70) return { cat: '≥50% - <70%', remarks: 'Below Expectation', status: 'Considered', readyness: 'R3' };
+    if (score < 50) return { cat: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', readyness: 'NR' };
+    if (score < 70) return { cat: '≥50% - <70%', remarks: 'Below Expectation', status: 'Considered', readyness: 'R0' };
     if (score < 80) return { cat: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', readyness: 'R1' };
     if (score < 90) return { cat: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', readyness: 'R1' };
-    return { cat: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', readyness: 'R1' };
+    return { cat: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', readyness: 'R2' };
   };
   const finalStatus = getRecommendation(totalScore);
 
@@ -79,26 +98,21 @@ export default function CandidateFinalReport({
   const kraepelin = kraepelinSub?.scores || {};
   const papi = papiSub?.scores || {};
 
-  // Standardisasi Variabel Tampilan
   const iqScore = cfit.iq || '-';
   const cfitClass = cfit.classification || '-';
   const cfitRaw = cfit.raw_score ?? '-';
 
   const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
   const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
-  
-  // LOGIKA TOTAL ERROR LANGSUNG MENGAMBIL DARI BACKEND
   const totalErrors = kraepelin.totalErrors ?? "-";
 
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
-    
     return Object.entries(papi)
       .sort((a, b) => (b[1] as number) - (a[1] as number))
       .map(([trait, score]) => {
           const numericScore = Number(score);
           const letter = extractPapiLetter(trait);
-          
           return { 
               letter: letter,
               score: numericScore, 
@@ -130,8 +144,8 @@ export default function CandidateFinalReport({
       <table style={{ width: '100%', fontSize: '9px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
         <tbody>
             <tr style={{ borderBottom: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
-                <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>ID / NIK</td>
-                <td style={{ padding: '4px 8px', fontWeight: 'bold', color: '#1e3a8a' }}>{candidateNik !== "-" ? candidateNik : displayId}</td>
+                <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>NIK KTP</td>
+                <td style={{ padding: '4px 8px', fontWeight: 'bold', color: '#1e3a8a' }}>{candidateNik}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
                 <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>Nama Assesi</td>
@@ -176,6 +190,17 @@ export default function CandidateFinalReport({
                 <div style={innerBorderStyle}>
                     <DocumentHeader title="FINAL EVALUATION REPORT" subtitle="Rekapitulasi Hasil Evaluasi Wawancara & Value Behavior" />
                     <ParticipantProfile />
+                    
+                    {/* READINESS BLOCK (Muncul jika ada employeeId / Internal Hire) */}
+                    {employeeId && finalReadinessCode && (
+                       <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '8px', borderRadius: '4px', marginBottom: '8px' }}>
+                          <p style={{ fontSize: '9px', fontWeight: 'bold', color: '#166534', margin: '0 0 2px 0' }}>Rekomendasi Kesiapan Karyawan (Readiness):</p>
+                          <p style={{ fontSize: '12px', fontWeight: '900', color: '#14532d', margin: 0 }}>
+                            <span style={{ backgroundColor: '#16a34a', color: 'white', padding: '1px 4px', borderRadius: '2px', marginRight: '4px' }}>{finalReadinessCode}</span> 
+                            {getReadinessLabel(finalReadinessCode)}
+                          </p>
+                       </div>
+                    )}
                     
                     <div style={{ marginBottom: '8px' }}>
                         <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #f59e0b', paddingLeft: '6px' }}>Interview (Kompetensi)</h2>
@@ -262,11 +287,11 @@ export default function CandidateFinalReport({
                       </thead>
                       <tbody>
                         {[
-                          { score: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', ready: '-' },
-                          { score: '≥50% - <70%', remarks: 'Below Expectation', status: 'Considered', ready: 'R3' },
+                          { score: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', ready: 'NR' },
+                          { score: '≥50% - <70%', remarks: 'Below Expectation', status: 'Considered', ready: 'R0' },
                           { score: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', ready: 'R1' },
                           { score: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', ready: 'R1' },
-                          { score: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', ready: 'R1' }
+                          { score: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', ready: 'R2' }
                         ].map((row, idx) => (
                           <tr key={idx} style={{ backgroundColor: finalStatus.remarks === row.remarks ? '#dbeafe' : '#fff', fontWeight: finalStatus.remarks === row.remarks ? 'bold' : 'normal' }}>
                             <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.score}</td>
@@ -283,7 +308,7 @@ export default function CandidateFinalReport({
 
             <div className="html2pdf__page-break" style={{ height: '0px', width: '100%', margin: 0, padding: 0, border: 'none', pageBreakAfter: 'always' }}></div>
 
-            {/* HALAMAN 2: TES PSIKOLOGI (DIADAPTASI DARI TEST REPORT PDF) */}
+            {/* HALAMAN 2: TES PSIKOLOGI */}
             <div style={safePageStyle}>
                 <div style={innerBorderStyle}>
                   <DocumentHeader title="PSYCHOLOGICAL ASSESSMENT REPORT" subtitle="Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan" />
