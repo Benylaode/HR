@@ -81,6 +81,17 @@ export default function CandidateFinalReport({
   // Ambil Readiness dari evaluator (diprioritaskan HR)
   const finalReadinessCode = processedEvals.find(e => e.readiness)?.readiness || null;
 
+  // URUTAN DIBALIK: Skor Tinggi = R0 (Hanya butuh penyesuaian), Skor Rendah = R2
+  const getRecommendation = (score: number) => {
+    if (processedEvals.length === 0) return { cat: '-', remarks: 'Belum Dinilai', status: '-', readyness: '-', colorHex: '#64748b', bgHex: '#f8fafc' };
+    if (score < 50) return { cat: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', readyness: 'NR', colorHex: '#dc2626', bgHex: '#fef2f2' };
+    if (score < 70) return { cat: '≥50% - <70%', remarks: 'Below Expectation', status: 'Not Recommended', readyness: 'NR', colorHex: '#ea580c', bgHex: '#fff7ed' };
+    if (score < 80) return { cat: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', readyness: 'R2', colorHex: '#2563eb', bgHex: '#eff6ff' };
+    if (score < 90) return { cat: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', readyness: 'R1', colorHex: '#16a34a', bgHex: '#f0fdf4' };
+    return { cat: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', readyness: 'R0', colorHex: '#059669', bgHex: '#ecfdf5' };
+  };
+  const finalStatus = getRecommendation(totalScore);
+
   // =====================================
   // 2. PENGAMBILAN DATA PSIKOTES
   // =====================================
@@ -281,9 +292,38 @@ export default function CandidateFinalReport({
                         </table>
                     </div>
 
-                    {/* TABEL MAKNA KESIAPAN (SESUAI GAMBAR) */}
+                    {/* MATRIKS REKOMENDASI KELULUSAN */}
+                    <h3 style={{ fontSize: '10px', color: '#1e3a8a', fontWeight: 'bold', marginBottom: '4px' }}>Matriks Rekomendasi Kelulusan</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                      <thead style={{ backgroundColor: '#f8fafc' }}>
+                        <tr>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Kategori Skor</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Remarks</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Status</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Readyness</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { score: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', ready: 'NR' },
+                          { score: '≥50% - <70%', remarks: 'Below Expectation', status: 'Not Recommended', ready: 'NR' },
+                          { score: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', ready: 'R2' },
+                          { score: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', ready: 'R1' },
+                          { score: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', ready: 'R0' }
+                        ].map((row, idx) => (
+                          <tr key={idx} style={{ backgroundColor: finalStatus.remarks === row.remarks ? '#dbeafe' : '#fff', fontWeight: finalStatus.remarks === row.remarks ? 'bold' : 'normal' }}>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.score}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.remarks}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.status}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.ready}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* TABEL MAKNA KESIAPAN (SESUAI GAMBAR BARU) */}
                     <h3 style={{ fontSize: '10px', color: '#1e3a8a', fontWeight: 'bold', marginBottom: '4px' }}>Makna Kesiapan (Readyness)</h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0', marginBottom: '12px' }}>
                       <thead style={{ backgroundColor: '#f8fafc' }}>
                         <tr>
                           <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '25%' }}>Status Rekomendasi</th>
@@ -306,6 +346,19 @@ export default function CandidateFinalReport({
                         ))}
                       </tbody>
                     </table>
+
+                    {/* KOTAK KESIMPULAN AKHIR BESAR */}
+                    <div style={{ marginTop: 'auto', backgroundColor: finalStatus.bgHex, border: `1px solid ${finalStatus.colorHex}`, padding: '12px', borderRadius: '6px', textAlign: 'center' }}>
+                       <p style={{ fontSize: '10px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Hasil Evaluasi Akhir
+                       </p>
+                       <h2 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: '900', color: finalStatus.colorHex, textTransform: 'uppercase' }}>
+                          {finalStatus.status}
+                       </h2>
+                       <p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold', color: finalStatus.colorHex }}>
+                          ( {finalStatus.remarks} )
+                       </p>
+                    </div>
                     
                     <DocumentFooter />
                 </div>

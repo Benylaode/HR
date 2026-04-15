@@ -2,67 +2,119 @@
 
 import React, { useState, useEffect } from 'react';
 import { Save, UserCheck, Award, Target, User, Briefcase, Calendar, AlertCircle } from 'lucide-react'; 
-import { toast } from "sonner"; // Pastikan Anda sudah menginstall sonner jika belum
+import { toast } from "sonner";
 
 // ==========================================
-// 1. DATA KOMPETENSI (Khusus Internal Hire / Sesuai Excel)
+// 1. DATA KOMPETENSI (KANDIDAT EKSTERNAL / DEFAULT)
 // ==========================================
-const COMPETENCY_CATEGORIES = [
+const CANDIDATE_COMPETENCY_CATEGORIES = [
+  {
+    category: "Communication Skill",
+    bobot: "20%",
+    questions: [
+      { id: "cand_comp_1", question: "Ceritakan pengalaman Anda saat harus menjelaskan hal teknis kepada orang awam. Bagaimana cara Anda?", indikator: "Mampu menyederhanakan bahasa & memastikan pemahaman" },
+      { id: "cand_comp_2", question: "Bagaimana Anda menangani situasi ketika ada kesalahpahaman dengan rekan kerja atau atasan?", indikator: "Klarifikasi masalah & inisiatif komunikasi" },
+      { id: "cand_comp_3", question: "Ceritakan pengalaman Anda meyakinkan orang lain yang memiliki pendapat berbeda dengan Anda.", indikator: "Persuasif, logis & menghargai lawan bicara" }
+    ]
+  },
+  {
+    category: "Teamwork Skill",
+    bobot: "20%",
+    questions: [
+      { id: "cand_comp_4", question: "Ceritakan pengalaman Anda bekerja dalam tim dengan latar belakang anggota yang sangat berbeda.", indikator: "Toleransi & mampu membaur" },
+      { id: "cand_comp_5", question: "Pernahkah Anda harus mengerjakan tugas anggota tim lain yang tidak selesai? Bagaimana sikap Anda?", indikator: "Inisiatif & fokus pada target bersama" },
+      { id: "cand_comp_6", question: "Bagaimana cara Anda memotivasi anggota tim yang sedang tidak bersemangat?", indikator: "Empati & dorongan positif" }
+    ]
+  },
+  {
+    category: "Problem Solving",
+    bobot: "20%",
+    questions: [
+      { id: "cand_comp_7", question: "Ceritakan masalah paling rumit yang pernah Anda hadapi di pekerjaan sebelumnya. Bagaimana solusinya?", indikator: "Analisa akar masalah & solusi efektif" },
+      { id: "cand_comp_8", question: "Pernahkah Anda harus mengambil keputusan cepat tanpa panduan yang jelas? Jelaskan prosesnya.", indikator: "Pengambilan keputusan logis & berani ambil risiko terukur" },
+      { id: "cand_comp_9", question: "Apa yang Anda lakukan saat rencana yang Anda susun gagal di tengah jalan?", indikator: "Plan B (Mitigasi) & evaluasi" }
+    ]
+  },
+  {
+    category: "Adaptability",
+    bobot: "20%",
+    questions: [
+      { id: "cand_comp_10", question: "Ceritakan pengalaman Anda saat harus beradaptasi dengan tool/teknologi baru dalam waktu singkat.", indikator: "Kecepatan belajar (Learning Agility)" },
+      { id: "cand_comp_11", question: "Pernahkah atasan Anda mengubah target pekerjaan secara mendadak? Bagaimana respon Anda?", indikator: "Fleksibel & tetap tenang di bawah tekanan" },
+      { id: "cand_comp_12", question: "Bagaimana Anda menghadapi lingkungan kerja yang ritmenya jauh lebih cepat dari sebelumnya?", indikator: "Manajemen waktu & prioritas" }
+    ]
+  },
+  {
+    category: "Integrity",
+    bobot: "20%",
+    questions: [
+      { id: "cand_comp_13", question: "Ceritakan saat Anda menyadari Anda membuat kesalahan besar. Apa yang Anda lakukan?", indikator: "Mengakui kesalahan & bertanggung jawab" },
+      { id: "cand_comp_14", question: "Pernahkah Anda diminta melakukan sesuatu yang bertentangan dengan aturan oleh atasan?", indikator: "Teguh pada prinsip & etika kerja" },
+      { id: "cand_comp_15", question: "Bagaimana cara Anda menjaga kerahasiaan data perusahaan sebelumnya?", indikator: "Kepatuhan & loyalitas" }
+    ]
+  }
+];
+
+// ==========================================
+// 2. DATA KOMPETENSI (KARYAWAN INTERNAL / SESUAI EXCEL)
+// ==========================================
+const EMPLOYEE_COMPETENCY_CATEGORIES = [
   {
     category: "Communication Skill",
     bobot: "15%",
     questions: [
-      { id: "comp_1", question: "Ceritakan saat Anda harus menyampaikan perubahan kebijakan/prosedur kepada tim yang menolak. Bagaimana Anda memastikan pesan dipahami dan dijalankan?", indikator: "Struktur penyampaian jelas (alur logis)" },
-      { id: "comp_2", question: "Pernahkah terjadi miskomunikasi antar divisi? Apa yang Anda lakukan untuk memperbaikinya?", indikator: "Mengidentifikasi sumber masalah & Perbaikan komunikasi" },
-      { id: "comp_3", question: "Ceritakan pengalaman Anda menjelaskan hal kompleks ke Management hingga mereka bisa mengambil keputusan", indikator: "Menyesuaikan gaya komunikasi" }
+      { id: "emp_comp_1", question: "Ceritakan saat Anda harus menyampaikan perubahan kebijakan/prosedur kepada tim yang menolak. Bagaimana Anda memastikan pesan dipahami dan dijalankan?", indikator: "Struktur penyampaian jelas (alur logis)" },
+      { id: "emp_comp_2", question: "Pernahkah terjadi miskomunikasi antar divisi? Apa yang Anda lakukan untuk memperbaikinya?", indikator: "Mengidentifikasi sumber masalah & Perbaikan komunikasi" },
+      { id: "emp_comp_3", question: "Ceritakan pengalaman Anda menjelaskan hal kompleks ke Management hingga mereka bisa mengambil keputusan", indikator: "Menyesuaikan gaya komunikasi" }
     ]
   },
   {
     category: "Teamwork Skill",
     bobot: "10%",
     questions: [
-      { id: "comp_4", question: "Ceritakan pengalaman menghadapi konflik dalam tim", indikator: "Mencari solusi win-win serta bersikap Objektif & netral" },
-      { id: "comp_5", question: "Ceritakan pengalaman kerja dalam membantu anggota tim & lintas departemen", indikator: "Inisiatif membantu & Koordinasi efektif" }
+      { id: "emp_comp_4", question: "Ceritakan saat tim Anda gagal mencapai target. Apa kontribusi spesifik Anda dalam memperbaikinya?", indikator: "Mencari solusi win-win serta bersikap Objektif & netral" },
+      { id: "emp_comp_5", question: "Pernah bekerja dengan anggota tim yang sulit atau tidak perform? Bagaimana Anda mengelolanya tanpa merusak hubungan kerja?", indikator: "Inisiatif membantu & Koordinasi efektif" }
     ]
   },
   {
     category: "Problem Solving",
     bobot: "25%",
     questions: [
-      { id: "comp_6", question: "Ceritakan masalah kompleks yang pernah Anda hadapi dan dampaknya pada perusahaan", indikator: "Struktur berpikir jelas & Solusi relevan" },
-      { id: "comp_7", question: "Ceritakan bagaimana cara Anda menemukan akar masalah dari situasi tersebut", indikator: "Identifikasi root cause & melakukan pendekatan logis" },
-      { id: "comp_8", question: "Ceritakan keputusan yang Anda ambil berbasis data", indikator: "Menggunakan data valid & Analisa evidence-based" }
+      { id: "emp_comp_6", question: "Ceritakan satu masalah operasional yang Anda tangani end-to-end. Jelaskan bagaimana Anda menjalankan Plan–Do–Check–Act (PDCA)", indikator: "Struktur berpikir jelas & Solusi relevan" },
+      { id: "emp_comp_7", question: "Saat solusi tidak mencapai target, bagaimana Anda melakukan evaluasi (Check) dan menentukan perbaikan (Act)?", indikator: "Identifikasi root cause & melakukan pendekatan logis" },
+      { id: "emp_comp_8", question: "Bagaimana Anda memastikan solusi menjadi standar dan mencegah masalah terulang kembali?", indikator: "Menggunakan data valid & Analisa evidence-based" }
     ]
   },
   {
     category: "Adaptability",
     bobot: "10%",
     questions: [
-      { id: "comp_9", question: "Ceritakan pengalaman menghadapi perubahan mendadak/proses baru? Bagaimana Anda beradaptasi dengan cepat?", indikator: "Tetap produktif & Respon Cepat" },
-      { id: "comp_10", question: "Bagaimana Anda menjaga performa saat terjadi perubahan kebijakan internal?", indikator: "Inisiatif belajar & Implementasi langsung" }
+      { id: "emp_comp_9", question: "Ceritakan saat prioritas kerja berubah mendadak. Bagaimana Anda mengatur ulang pekerjaan?", indikator: "Tetap produktif & Respon Cepat" },
+      { id: "emp_comp_10", question: "Pernah ditempatkan di lingkungan/proses baru? Bagaimana Anda beradaptasi dengan cepat?", indikator: "Inisiatif belajar & Implementasi langsung" },
+      { id: "emp_comp_11", question: "Bagaimana Anda menjaga performa saat terjadi perubahan kebijakan internal?", indikator: "Growth mindset & Proaktif" }
     ]
   },
   {
     category: "Integrity",
     bobot: "30%",
     questions: [
-      { id: "comp_11", question: "Ceritakan saat Anda menemukan praktik kerja yang tidak sesuai SOP. Apa tindakan Anda?", indikator: "Tegas, Berani & Profesional" },
-      { id: "comp_12", question: "Pernahkah Anda berada dalam dilema antara target dan kepatuhan aturan? Apa keputusan Anda?", indikator: "Tidak terpengaruh, Teguh prinsip & Etis" },
-      { id: "comp_13", question: "Bagaimana Anda memastikan tetap bekerja sesuai aturan di tengah tekanan?", indikator: "Transparansi, Konsistensi, & Dampak positif" }
+      { id: "emp_comp_12", question: "Ceritakan saat Anda menemukan praktik kerja yang tidak sesuai SOP. Apa tindakan Anda?", indikator: "Tegas, Berani & Profesional" },
+      { id: "emp_comp_13", question: "Pernahkah Anda berada dalam dilema antara target dan kepatuhan aturan? Apa keputusan Anda?", indikator: "Tidak terpengaruh, Teguh prinsip & Etis" },
+      { id: "emp_comp_14", question: "Bagaimana Anda memastikan tetap bekerja sesuai aturan di tengah tekanan?", indikator: "Transparansi, Konsistensi, & Dampak positif" }
     ]
   },
   {
     category: "Safety Awareness",
     bobot: "10%",
     questions: [
-      { id: "comp_14", question: "Ceritakan saat Anda menemukan potensi risiko kerja. Apa tindakan konkret Anda?", indikator: "Hazard awareness, Observasi tajam & Preventif" },
-      { id: "comp_15", question: "Bagaimana Anda memastikan tim menjalankan standar keselamatan secara konsisten?", indikator: "Tindakan cepat, Proaktif & Dampak nyata" }
+      { id: "emp_comp_15", question: "Ceritakan saat Anda menemukan potensi risiko kerja. Apa tindakan konkret Anda?", indikator: "Hazard awareness, Observasi tajam & Preventif" },
+      { id: "emp_comp_16", question: "Bagaimana Anda memastikan tim menjalankan standar keselamatan secara konsisten?", indikator: "Tindakan cepat, Proaktif & Dampak nyata" }
     ]
   }
 ];
 
 // ==========================================
-// 2. DATA VALUE BEHAVIOR (Sesuai Excel)
+// 3. DATA VALUE BEHAVIOR (Berlaku untuk keduanya)
 // ==========================================
 const BEHAVIOR_QUESTIONS = [
   { id: "behav_1", value: "Growth", sub: "Rasa ingin Berkembang", indikator: "Aktif berpartisipasi memunculkan ide ide untuk menumbuhkan produktivitas" },
@@ -84,7 +136,7 @@ const BEHAVIOR_QUESTIONS = [
 // INTERFACE
 interface CandidateEvaluationProps {
   candidateId?: string; 
-  employeeId?: string; // TAMBAHAN UNTUK KARYAWAN
+  employeeId?: string; 
   candidateName: string;
   candidateNik?: string; 
   jobPosition?: string;  
@@ -95,7 +147,7 @@ interface CandidateEvaluationProps {
 
 export default function CandidateEvaluation({ 
   candidateId, 
-  employeeId, // TAMBAHAN
+  employeeId, 
   candidateName, 
   candidateNik,
   jobPosition,
@@ -114,6 +166,9 @@ export default function CandidateEvaluation({
   const [evaluationDate, setEvaluationDate] = useState(() => new Date().toISOString().split('T')[0]); 
   
   const [isSaving, setIsSaving] = useState(false);
+
+  // === PENENTUAN PERTANYAAN (KARYAWAN VS KANDIDAT) ===
+  const activeCompetencies = employeeId ? EMPLOYEE_COMPETENCY_CATEGORIES : CANDIDATE_COMPETENCY_CATEGORIES;
 
   // Helper untuk Autentikasi Headers
   const getAuthHeaders = (): HeadersInit => {
@@ -189,19 +244,22 @@ export default function CandidateEvaluation({
       });
   }, [candidateId, employeeId, candidateNik, activeTab]);
 
-  // Kalkulasi Skor
+  // === KALKULASI SKOR DINAMIS ===
+  // Hitung jumlah soal kompetensi berdasarkan array yang aktif
+  const numCompetencyQuestions = activeCompetencies.reduce((acc, cat) => acc + cat.questions.length, 0);
+  
   const totalScore = Object.values(scores).reduce((acc, curr) => acc + (curr || 0), 0);
-  const totalQuestions = 15 + 14; // Update jumlah pertanyaan (15 Kompetensi + 14 Value)
+  const totalQuestions = numCompetencyQuestions + BEHAVIOR_QUESTIONS.length; 
   const maxPossibleScore = totalQuestions * 5;
   const percentageScore = Math.round((totalScore / maxPossibleScore) * 100) || 0;
 
-  // FUNGSI BARU: Penentuan Kategori & Rekomendasi (Berdasarkan Excel)
+  // Penentuan Kategori & Rekomendasi (Dibalik R0 = Terbaik, NR = Belum Siap)
   const getEvaluationStatus = (percentage: number) => {
     if (percentage < 50) return { category: "Unacceptable", status: "Not Recommended", color: "text-red-600", bg: "bg-red-50" };
     if (percentage >= 50 && percentage < 70) return { category: "Below Expectation", status: "Not Recommended", color: "text-orange-500", bg: "bg-orange-50" };
     if (percentage >= 70 && percentage < 80) return { category: "Fully Successful", status: "Recommended", color: "text-blue-600", bg: "bg-blue-50" };
-    if (percentage >= 80 && percentage < 90) return { category: "Above Expectation", status: "Recommended", color: "text-green-500", bg: "bg-green-50" };
-    if (percentage >= 90) return { category: "Outstanding", status: "Recommended", color: "text-emerald-600", bg: "bg-emerald-50" };
+    if (percentage >= 80 && percentage < 90) return { category: "Above Expectation", status: "Highly Recommended", color: "text-green-500", bg: "bg-green-50" };
+    if (percentage >= 90) return { category: "Outstanding", status: "Highly Recommended", color: "text-emerald-600", bg: "bg-emerald-50" };
     return { category: "Belum Dinilai", status: "-", color: "text-gray-500", bg: "bg-gray-50" };
   };
 
@@ -243,7 +301,8 @@ export default function CandidateEvaluation({
         ? `[Readyness: ${readiness}]\n\nCatatan:\n${overallNotes}`
         : overallNotes;
     
-    const flatCompetencyScores = COMPETENCY_CATEGORIES.flatMap(cat => 
+    // Simpan data array aktif (Bisa 15 soal atau 16 soal)
+    const flatCompetencyScores = activeCompetencies.flatMap(cat => 
         cat.questions.map(q => ({
             category: "COMPETENCY",
             criteria_name: q.id, 
@@ -258,7 +317,7 @@ export default function CandidateEvaluation({
       evaluator_position: assessorPosition, 
       evaluation_date: evaluationDate,       
       overall_notes: finalNotesToSave, // Gunakan notes yang sudah digabung
-      status: evalStatus.status === "Recommended" ? "PASSED" : "FAILED", // Otomatis Lulus/Gagal
+      status: evalStatus.status === "Not Recommended" ? "FAILED" : "PASSED", // Otomatis Lulus/Gagal
       scores: [
         ...flatCompetencyScores,
         ...BEHAVIOR_QUESTIONS.map(q => ({
@@ -291,8 +350,8 @@ export default function CandidateEvaluation({
     }
   };
 
-  const displayId = candidateId || employeeId || candidateNik;
-  if (!displayId) {
+  const displayIdTarget = candidateId || employeeId || candidateNik;
+  if (!displayIdTarget) {
     return (
       <div className="p-8 bg-white border border-dashed border-[var(--secondary-300)] rounded-2xl text-center flex flex-col items-center justify-center h-[500px]">
         <UserCheck className="w-16 h-16 mb-4 text-[var(--secondary-200)]" />
@@ -311,7 +370,7 @@ export default function CandidateEvaluation({
         <div className="flex justify-between items-start">
             <div>
                 <h3 className="font-bold text-[var(--primary-900)] text-lg">
-                  {employeeId ? 'Rekapitulasi Final Evaluation (Internal Hire)' : 'Assesment Interview'}
+                  {employeeId ? 'Assesment Interview (Internal Hire)' : 'Assesment Interview (Eksternal)'}
                 </h3>
                 <p className="text-sm text-[var(--secondary-600)] mt-1">Assesi: <span className="font-bold text-[var(--primary)]">{candidateName}</span></p>
                 {jobPosition && <p className="text-xs text-[var(--secondary-500)]">Posisi: {jobPosition}</p>}
@@ -393,7 +452,7 @@ export default function CandidateEvaluation({
           <div className="p-4 bg-[var(--primary-50)] border-b border-[var(--secondary-100)] flex items-center gap-2">
             <Award className="w-5 h-5 text-[var(--primary)]" />
             <h4 className="font-bold text-[var(--primary-900)] text-sm uppercase tracking-wide">
-              Scoring Assessment: Kompetensi (STAR Method)
+              {employeeId ? 'Scoring Assessment: Behavior Event Interview' : 'Scoring Assessment: Kompetensi (STAR Method)'}
             </h4>
           </div>
           
@@ -407,7 +466,7 @@ export default function CandidateEvaluation({
                   </tr>
               </thead>
               <tbody className="divide-y divide-[var(--secondary-100)]">
-                {COMPETENCY_CATEGORIES.map((cat, catIdx) => (
+                {activeCompetencies.map((cat, catIdx) => (
                     <React.Fragment key={catIdx}>
                         {/* Kategori Header */}
                         <tr className="bg-[var(--secondary-50)]/50">
@@ -513,6 +572,27 @@ export default function CandidateEvaluation({
                 </div>
                 <div className={`text-3xl font-black ${evalStatus.color}`}>{evalStatus.category}</div>
             </div>
+
+            {/* Munculkan Dropdown Readyness HANYA untuk Karyawan (Internal Hire) */}
+            {employeeId && (
+                <div className="bg-[var(--primary-50)] p-5 rounded-xl border border-[var(--primary-100)]">
+                    <label className="block text-sm font-bold text-[var(--primary-900)] mb-3 flex items-center gap-2">
+                       <AlertCircle className="w-4 h-4 text-[var(--primary)]" />
+                       Tingkat Kesiapan / Readyness (Internal Hire)
+                    </label>
+                    <select 
+                        value={readiness}
+                        onChange={(e) => setReadiness(e.target.value)}
+                        className="w-full p-3 border border-[var(--primary-200)] rounded-lg text-sm bg-white text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                    >
+                        <option value="">-- Pilih Tingkat Kesiapan --</option>
+                        <option value="NR">NR - Belum Siap Kerja</option>
+                        <option value="R0">R0 - Siap Kerja + Penyesuaian Pekerjaan</option>
+                        <option value="R1">R1 - Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan</option>
+                        <option value="R2">R2 - Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan</option>
+                    </select>
+                </div>
+            )}
           </div>
 
           {/* Kolom Kanan: Catatan Manual */}

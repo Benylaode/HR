@@ -472,7 +472,7 @@ class InterviewEvaluation(db.Model):
     __tablename__ = 'interview_evaluations'
 
     id = db.Column(db.String, primary_key=True, default=uuid_str)
-    candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), nullable=False)
+    candidate_id = db.Column(db.String, db.ForeignKey('candidates.id'), nullable=True)
     employee_id = db.Column(db.String, db.ForeignKey('employees.id'), nullable=True)
     
     evaluator_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=True) 
