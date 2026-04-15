@@ -326,20 +326,21 @@ export default function CandidateFinalReport({
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0', marginBottom: '12px' }}>
                       <thead style={{ backgroundColor: '#f8fafc' }}>
                         <tr>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '25%' }}>Status Rekomendasi</th>
+                          {/* DIGANTI DARI Status Rekomendasi KE Kategori Skor (Presentase) */}
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '25%' }}>Kategori Skor</th>
                           <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '20%' }}>Readyness</th>
                           <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '55%' }}>Keterangan</th>
                         </tr>
                       </thead>
                       <tbody>
                         {[
-                          { status: 'Not Recommended', code: 'NR', desc: 'Belum Siap Kerja' },
-                          { status: 'Considered', code: 'R0', desc: 'Siap Kerja + Penyesuaian Pekerjaan' },
-                          { status: 'Recommended', code: 'R1', desc: 'Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan' },
-                          { status: 'Highly Recommended', code: 'R2', desc: 'Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan' }
+                          { score: '< 70%', code: 'NR', desc: 'Belum Siap Kerja' },
+                          { score: '70% - 79%', code: 'R2', desc: 'Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan' },
+                          { score: '80% - 89%', code: 'R1', desc: 'Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan' },
+                          { score: '≥ 90%', code: 'R0', desc: 'Siap Kerja + Penyesuaian Pekerjaan' }
                         ].map((row, idx) => (
                           <tr key={idx} style={{ backgroundColor: finalReadinessCode === row.code ? '#dbeafe' : '#fff', fontWeight: finalReadinessCode === row.code ? 'bold' : 'normal' }}>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.status}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.score}</td>
                             <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.code}</td>
                             <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'left' }}>{row.desc}</td>
                           </tr>
