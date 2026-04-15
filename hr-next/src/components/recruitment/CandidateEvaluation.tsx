@@ -513,27 +513,6 @@ export default function CandidateEvaluation({
                 </div>
                 <div className={`text-3xl font-black ${evalStatus.color}`}>{evalStatus.category}</div>
             </div>
-
-            {/* Munculkan Dropdown Readyness HANYA untuk Karyawan (Internal Hire) */}
-            {employeeId && (
-                <div className="bg-[var(--primary-50)] p-5 rounded-xl border border-[var(--primary-100)]">
-                    <label className="block text-sm font-bold text-[var(--primary-900)] mb-3 flex items-center gap-2">
-                       <AlertCircle className="w-4 h-4 text-[var(--primary)]" />
-                       Tingkat Kesiapan / Readyness (Internal Hire)
-                    </label>
-                    <select 
-                        value={readiness}
-                        onChange={(e) => setReadiness(e.target.value)}
-                        className="w-full p-3 border border-[var(--primary-200)] rounded-lg text-sm bg-white text-[var(--primary-900)] focus:ring-2 focus:ring-[var(--primary)] outline-none"
-                    >
-                        <option value="">-- Pilih Tingkat Kesiapan --</option>
-                        <option value="NR">NR - Belum Siap Kerja</option>
-                        <option value="R0">R0 - Siap Kerja + Penyesuaian Pekerjaan</option>
-                        <option value="R1">R1 - Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan</option>
-                        <option value="R2">R2 - Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan</option>
-                    </select>
-                </div>
-            )}
           </div>
 
           {/* Kolom Kanan: Catatan Manual */}

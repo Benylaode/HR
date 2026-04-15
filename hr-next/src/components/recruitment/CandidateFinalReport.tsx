@@ -15,7 +15,7 @@ interface ReportProps {
   onClose?: () => void; 
 }
 
-// FUNGSI TRANSLASI READINESS (Sesuai Excel)
+// FUNGSI TRANSLASI READINESS (Sesuai Excel/Gambar)
 const getReadinessLabel = (code: string) => {
   switch (code) {
     case 'NR': return 'Belum Siap Kerja';
@@ -49,17 +49,19 @@ export default function CandidateFinalReport({
       const compTotal = compScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
       const behavTotal = behavScores.reduce((acc: number, curr: any) => acc + curr.score, 0);
       
-      // EKSTRAK READINESS DARI CATATAN (Hanya untuk Internal)
+      // EKSTRAK READINESS & KESIMPULAN DARI CATATAN (Hanya untuk Internal)
       const rawNotes = e.overall_notes || '';
       const match = rawNotes.match(/\[Readyness:\s(.*?)\]\n\nCatatan:\n([\s\S]*)/);
       const readinessCode = match ? match[1] : null;
+      const cleanNotes = match ? match[2].trim() : rawNotes.trim();
 
       return {
           role: e.role_type || 'Assessor',
           name: e.evaluator_name || '-',
           compScore: Math.round((compTotal / 75) * 100) || 0, // Disesuaikan max skor dari Excel
           behavScore: Math.round((behavTotal / 70) * 100) || 0, // Disesuaikan max skor dari Excel
-          readiness: readinessCode
+          readiness: readinessCode,
+          notes: cleanNotes
       };
   });
 
@@ -72,20 +74,12 @@ export default function CandidateFinalReport({
       : 0;
 
   const totalScore = processedEvals.length > 0 ? (avgComp + avgBehav) / 2 : 0;
-  const mainAssessor = processedEvals.find(e => e.role === 'HR') || processedEvals[0] || { name: '-', role: '-' };
-
+  
+  // Dapatkan Assesor utama untuk menampilkan kesimpulan
+  const mainAssessor = processedEvals.find(e => e.role === 'HR') || processedEvals[0] || { name: '-', role: '-', notes: '' };
+  
   // Ambil Readiness dari evaluator (diprioritaskan HR)
   const finalReadinessCode = processedEvals.find(e => e.readiness)?.readiness || null;
-
-  const getRecommendation = (score: number) => {
-    if (processedEvals.length === 0) return { cat: '-', remarks: 'Belum Dinilai', status: '-', readyness: '-' };
-    if (score < 50) return { cat: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', readyness: 'NR' };
-    if (score < 70) return { cat: '≥50% - <70%', remarks: 'Below Expectation', status: 'Considered', readyness: 'R0' };
-    if (score < 80) return { cat: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', readyness: 'R1' };
-    if (score < 90) return { cat: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', readyness: 'R1' };
-    return { cat: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', readyness: 'R2' };
-  };
-  const finalStatus = getRecommendation(totalScore);
 
   // =====================================
   // 2. PENGAMBILAN DATA PSIKOTES
@@ -203,7 +197,7 @@ export default function CandidateFinalReport({
                     )}
                     
                     <div style={{ marginBottom: '8px' }}>
-                        <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #f59e0b', paddingLeft: '6px' }}>Interview (Kompetensi)</h2>
+                        <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #f59e0b', paddingLeft: '6px' }}>Behavior Event Interview</h2>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', border: '1px solid #cbd5e1' }}>
                             <thead style={{ backgroundColor: '#f8fafc' }}>
                                 <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
@@ -246,6 +240,18 @@ export default function CandidateFinalReport({
                         </table>
                     </div>
 
+                    {/* KESIMPULAN ASSESOR */}
+                    {processedEvals.length > 0 && (
+                      <div style={{ marginBottom: '8px' }}>
+                        <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #8b5cf6', paddingLeft: '6px' }}>
+                           Kesimpulan Assesor ({mainAssessor.name})
+                        </h2>
+                        <div style={{ border: '1px solid #cbd5e1', padding: '6px', fontSize: '9px', backgroundColor: '#f8fafc', color: '#334155', minHeight: '35px', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+                           {mainAssessor.notes || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Tidak ada catatan kesimpulan dari assesor.</span>}
+                        </div>
+                      </div>
+                    )}
+
                     <div style={{ marginBottom: '8px' }}>
                         <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#0f172a', marginBottom: '4px', borderLeft: '3px solid #1e3a8a', paddingLeft: '6px' }}>Summary</h2>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', border: '1px solid #cbd5e1' }}>
@@ -259,7 +265,7 @@ export default function CandidateFinalReport({
                             <tbody>
                                 <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
                                     <td style={{ padding: '4px 6px', borderRight: '1px solid #cbd5e1', textAlign: 'center' }}>1</td>
-                                    <td style={{ padding: '4px 6px', borderRight: '1px solid #cbd5e1' }}>Assesment - Presentasi (Kompetensi)</td>
+                                    <td style={{ padding: '4px 6px', borderRight: '1px solid #cbd5e1' }}>Behavior Event Interview</td>
                                     <td style={{ padding: '4px 6px', textAlign: 'center', fontWeight: 'bold' }}>{avgComp.toFixed(2)}%</td>
                                 </tr>
                                 <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
@@ -275,33 +281,32 @@ export default function CandidateFinalReport({
                         </table>
                     </div>
 
-                    <h3 style={{ fontSize: '10px', color: '#1e3a8a', fontWeight: 'bold', marginBottom: '4px' }}>Matriks Rekomendasi Kelulusan</h3>
+                    {/* TABEL MAKNA KESIAPAN (SESUAI GAMBAR) */}
+                    <h3 style={{ fontSize: '10px', color: '#1e3a8a', fontWeight: 'bold', marginBottom: '4px' }}>Makna Kesiapan (Readyness)</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0' }}>
                       <thead style={{ backgroundColor: '#f8fafc' }}>
                         <tr>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Kategori Skor</th>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Remarks</th>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Status</th>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Readyness</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '25%' }}>Status Rekomendasi</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '20%' }}>Readyness</th>
+                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569', width: '55%' }}>Keterangan</th>
                         </tr>
                       </thead>
                       <tbody>
                         {[
-                          { score: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', ready: 'NR' },
-                          { score: '≥50% - <70%', remarks: 'Below Expectation', status: 'Considered', ready: 'R0' },
-                          { score: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', ready: 'R1' },
-                          { score: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', ready: 'R1' },
-                          { score: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', ready: 'R2' }
+                          { status: 'Not Recommended', code: 'NR', desc: 'Belum Siap Kerja' },
+                          { status: 'Considered', code: 'R0', desc: 'Siap Kerja + Penyesuaian Pekerjaan' },
+                          { status: 'Recommended', code: 'R1', desc: 'Siap Kerja + Penyesuaian Pekerjaan + Sedikit pengembangan' },
+                          { status: 'Highly Recommended', code: 'R2', desc: 'Siap Kerja + Penyesuaian Pekerjaan + Banyak Pengembangan' }
                         ].map((row, idx) => (
-                          <tr key={idx} style={{ backgroundColor: finalStatus.remarks === row.remarks ? '#dbeafe' : '#fff', fontWeight: finalStatus.remarks === row.remarks ? 'bold' : 'normal' }}>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.score}</td>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.remarks}</td>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.status}</td>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.ready}</td>
+                          <tr key={idx} style={{ backgroundColor: finalReadinessCode === row.code ? '#dbeafe' : '#fff', fontWeight: finalReadinessCode === row.code ? 'bold' : 'normal' }}>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.status}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.code}</td>
+                            <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'left' }}>{row.desc}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                    
                     <DocumentFooter />
                 </div>
             </div>
