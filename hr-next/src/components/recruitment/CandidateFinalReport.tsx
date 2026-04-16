@@ -149,7 +149,10 @@ export default function CandidateFinalReport({
       <table style={{ width: '100%', fontSize: '9px', borderCollapse: 'collapse', border: '1px solid #cbd5e1' }}>
         <tbody>
             <tr style={{ borderBottom: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
-                <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>NIK KTP</td>
+                {/* UBAHAN KONDISIONAL LABEL NIK/NOMOR KARYAWAN */}
+                <td style={{ width: '30%', padding: '4px 8px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>
+                  {employeeId ? "Nomor Karyawan" : "NIK KTP"}
+                </td>
                 <td style={{ padding: '4px 8px', fontWeight: 'bold', color: '#1e3a8a' }}>{candidateNik}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid #cbd5e1' }}>

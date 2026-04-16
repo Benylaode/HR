@@ -39,7 +39,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5
 
 interface Karyawan {
   id: string;
-  nik_ktp?: string; // <-- NIK KTP
+  nik_ktp?: string; // Menyimpan Nomor Karyawan
   fullName: string;
   email: string;
   whatsapp: string;
@@ -138,7 +138,7 @@ const DetailModal = memo(({
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-sm">
               <div className="col-span-2 md:col-span-3">
-                <p className="text-xs text-[var(--secondary-500)] mb-1">NIK KTP</p>
+                <p className="text-xs text-[var(--secondary-500)] mb-1">Nomor Karyawan</p>
                 <p className="font-semibold text-[var(--primary-900)] flex items-center gap-2">
                   <CreditCard size={14} className="text-[var(--primary)]" />
                   {karyawan.nik_ktp || "-"}
@@ -240,7 +240,7 @@ const EditModal = memo(({
   onSave: (data: Partial<KaryawanDetail>) => Promise<void>;
 }) => {
   const [formData, setFormData] = useState({
-    nik_ktp: "", // <-- STATE NIK KTP
+    nik_ktp: "", 
     fullName: "", email: "", whatsapp: "", positionApplied: "", employee_status: "",
     gender: "", religion: "", birthPlace: "", birthDate: "", driverLicense: "",
     address: "", city: "", province: "",
@@ -252,7 +252,7 @@ const EditModal = memo(({
   useEffect(() => {
     if (karyawan) {
       setFormData({
-        nik_ktp: karyawan.nik_ktp || "", // PRE-FILL NIK KTP JIKA ADA
+        nik_ktp: karyawan.nik_ktp || "", 
         fullName: karyawan.fullName || "",
         email: karyawan.email || "",
         whatsapp: karyawan.whatsapp || "",
@@ -285,6 +285,13 @@ const EditModal = memo(({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validasi Regex Khusus Karyawan: Harus Kombinasi Huruf dan Angka
+    const hasLetterAndNumber = /^(?=.*[a-zA-Z])(?=.*\d)/.test(formData.nik_ktp);
+    if (!hasLetterAndNumber) {
+      return toast.error("Gagal: Nomor Karyawan wajib berupa kombinasi huruf dan angka!");
+    }
+
     setSaving(true);
     await onSave(formData);
     setSaving(false);
@@ -348,18 +355,21 @@ const EditModal = memo(({
 
             <h3 className={sectionTitleClass}>Data Pribadi & Alamat</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* FORM UNTUK EDIT NIK KTP */}
+              
+              {/* UBAHAN FORM NOMOR KARYAWAN */}
               <div className="col-span-1 md:col-span-3">
-                <label className={labelClass}>NIK KTP *</label>
+                <label className={labelClass}>Nomor Karyawan *</label>
                 <input 
                   type="text" 
-                  maxLength={16}
                   value={formData.nik_ktp} 
-                  onChange={(e) => setFormData({ ...formData, nik_ktp: e.target.value.replace(/\D/g, '') })} 
+                  onChange={(e) => setFormData({ ...formData, nik_ktp: e.target.value })} 
                   className={inputClass} 
-                  placeholder="16 Digit Angka NIK"
+                  placeholder="Contoh: EMP2026123"
+                  pattern="(?=.*[a-zA-Z])(?=.*\d).+"
+                  title="Nomor Karyawan wajib berupa kombinasi huruf dan angka"
                   required 
                 />
+                <p className="text-[10px] text-blue-500 mt-1">Wajib kombinasi huruf dan angka.</p>
               </div>
 
               <div>

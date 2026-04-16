@@ -22,7 +22,7 @@ export default function ManualRegistrationPage() {
     job_id: "",
     currentPosition: "",
     // 1. Biodata Utama (ProfileMixin)
-    nik_ktp: "", // <--- TAMBAHAN NIK KTP
+    nik_ktp: "", // <--- Dipakai untuk NIK (Kandidat) atau Nomor Karyawan (Karyawan)
     fullName: "", 
     email: "", 
     whatsapp: "", 
@@ -106,6 +106,19 @@ export default function ManualRegistrationPage() {
     e.preventDefault();
     if (submissionType === "candidate" && !form.job_id) return toast.error("Silakan pilih posisi lowongan.");
     if (submissionType === "candidate" && !cvFile) return toast.error("File CV wajib diunggah.");
+    
+    // 1. VALIDASI KETAT NIK KTP KHUSUS KANDIDAT HARUS 16 DIGIT
+    if (submissionType === "candidate" && form.nik_ktp.length !== 16) {
+      return toast.error("Pendaftaran Gagal: NIK KTP harus tepat 16 digit angka!");
+    }
+
+    // 2. VALIDASI KETAT NOMOR KARYAWAN HARUS KOMBINASI ANGKA DAN HURUF
+    if (submissionType === "employee") {
+      const hasLetterAndNumber = /^(?=.*[a-zA-Z])(?=.*\d)/.test(form.nik_ktp);
+      if (!hasLetterAndNumber) {
+        return toast.error("Pendaftaran Gagal: Nomor Karyawan wajib berupa kombinasi huruf dan angka!");
+      }
+    }
 
     setIsLoading(true);
     const apiUrl = submissionType === "candidate" ? `${API_BASE_URL}/candidates` : `${API_BASE_URL}/employees`;
@@ -190,7 +203,15 @@ export default function ManualRegistrationPage() {
           <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 shadow-sm grid md:grid-cols-2 gap-8">
             <div>
                 <label className={labelClass}>Tipe Pendaftaran *</label>
-                <select value={submissionType} onChange={(e) => setSubmissionType(e.target.value as any)} className={inputClass}>
+                <select 
+                  value={submissionType} 
+                  onChange={(e) => {
+                    setSubmissionType(e.target.value as any);
+                    // Reset value NIK/Nomor Karyawan ketika mengganti tipe agar formatnya bersih
+                    setForm({ ...form, nik_ktp: "" });
+                  }} 
+                  className={inputClass}
+                >
                   <option value="candidate">Kandidat Baru (Pelamar Eksternal)</option>
                   <option value="employee">Karyawan (Data Internal / Mutasi)</option>
                 </select>
@@ -226,18 +247,44 @@ export default function ManualRegistrationPage() {
             <h2 className={sectionHeaderClass}><UserCircle className="text-blue-600" /> 1. Biodata Pribadi</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               
-              {/* TAMBAHAN INPUT NIK */}
+              {/* KONDISIONAL INPUT NIK KTP ATAU NOMOR KARYAWAN */}
               <div>
-                <label className={labelClass}>NIK KTP *</label>
-                <input 
-                  name="nik_ktp" 
-                  required 
-                  maxLength={16} 
-                  className={inputClass} 
-                  value={form.nik_ktp} 
-                  onChange={(e) => setForm({ ...form, nik_ktp: e.target.value.replace(/\D/g, '') })} 
-                  placeholder="16 Digit Angka" 
-                />
+                <label className={labelClass}>
+                  {submissionType === "candidate" ? "NIK KTP *" : "Nomor Karyawan *"}
+                </label>
+                {submissionType === "candidate" ? (
+                  // INPUT UNTUK KANDIDAT: Wajib Angka & Tepat 16 Digit
+                  <>
+                    <input 
+                      name="nik_ktp" 
+                      required 
+                      maxLength={16} 
+                      minLength={16}
+                      pattern="\d{16}"
+                      title="NIK harus terdiri dari tepat 16 digit angka"
+                      className={inputClass} 
+                      value={form.nik_ktp} 
+                      onChange={(e) => setForm({ ...form, nik_ktp: e.target.value.replace(/\D/g, '') })} 
+                      placeholder="16 Digit Angka NIK" 
+                    />
+                    <p className="text-[10px] text-red-500 mt-1">Pastikan wajib berjumlah 16 digit angka.</p>
+                  </>
+                ) : (
+                  // INPUT UNTUK KARYAWAN: Wajib Kombinasi Angka dan Huruf
+                  <>
+                    <input 
+                      name="nik_ktp" 
+                      required 
+                      pattern="(?=.*[a-zA-Z])(?=.*\d).+"
+                      title="Nomor Karyawan wajib berupa kombinasi huruf dan angka"
+                      className={inputClass} 
+                      value={form.nik_ktp} 
+                      onChange={(e) => setForm({ ...form, nik_ktp: e.target.value })} 
+                      placeholder="Contoh: EMP2026123" 
+                    />
+                    <p className="text-[10px] text-blue-500 mt-1">Wajib kombinasi huruf dan angka.</p>
+                  </>
+                )}
               </div>
 
               <div className="lg:col-span-2"><label className={labelClass}>Nama Lengkap (Sesuai KTP) *</label><input name="fullName" required className={inputClass} onChange={handleTextChange} /></div>
