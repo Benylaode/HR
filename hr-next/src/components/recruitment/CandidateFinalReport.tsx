@@ -295,35 +295,6 @@ export default function CandidateFinalReport({
                         </table>
                     </div>
 
-                    {/* MATRIKS REKOMENDASI KELULUSAN */}
-                    <h3 style={{ fontSize: '10px', color: '#1e3a8a', fontWeight: 'bold', marginBottom: '4px' }}>Matriks Rekomendasi Kelulusan</h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                      <thead style={{ backgroundColor: '#f8fafc' }}>
-                        <tr>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Kategori Skor</th>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Remarks</th>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Status</th>
-                          <th style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', color: '#475569' }}>Readyness</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[
-                          { score: '<50%', remarks: 'Unacceptable', status: 'Not Recommended', ready: 'NR' },
-                          { score: '≥50% - <70%', remarks: 'Below Expectation', status: 'Not Recommended', ready: 'NR' },
-                          { score: '≥70% - <80%', remarks: 'Fully Successful', status: 'Recommended', ready: 'R2' },
-                          { score: '≥80% - <90%', remarks: 'Above Expectation', status: 'Highly Recommended', ready: 'R1' },
-                          { score: '≥90%', remarks: 'Outstanding', status: 'Highly Recommended', ready: 'R0' }
-                        ].map((row, idx) => (
-                          <tr key={idx} style={{ backgroundColor: finalStatus.remarks === row.remarks ? '#dbeafe' : '#fff', fontWeight: finalStatus.remarks === row.remarks ? 'bold' : 'normal' }}>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.score}</td>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.remarks}</td>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.status}</td>
-                            <td style={{ border: '1px solid #cbd5e1', padding: '3px', textAlign: 'center' }}>{row.ready}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-
                     {/* TABEL MAKNA KESIAPAN (SESUAI GAMBAR BARU) */}
                     <h3 style={{ fontSize: '10px', color: '#1e3a8a', fontWeight: 'bold', marginBottom: '4px' }}>Makna Kesiapan (Readyness)</h3>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', border: '1px solid #e2e8f0', marginBottom: '12px' }}>
