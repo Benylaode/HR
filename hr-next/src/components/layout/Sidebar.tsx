@@ -16,7 +16,7 @@ import {
   ClipboardCheck,
   UserPlus,
   UserCheck,
-  UserCog // Icon untuk Input User
+  UserCog
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -28,21 +28,21 @@ interface MenuItem {
   roles?: string[];
 }
 
-// Konfigurasi Menu berdasarkan Role
+// ==========================================
+// SUSUNAN MENU (Update Sesuai Urutan Baru)
+// ==========================================
 const menuItems: MenuItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }, 
-  { name: "Job Positions", href: "/job-positions", icon: Briefcase, roles: ["SUPER_USER"] },
+  { name: "Manpower Planning", href: "/manpower", icon: Users },
   { name: "ATA Tracking", href: "/ata-tracking", icon: ClipboardCheck, roles: ["SUPER_USER", "HR"] },
-  { name: "Kandidat", href: "/candidates", icon: Users, roles: ["SUPER_USER"] },
-  { name: "Test Management", href: "/test-management", icon: ClipboardList, roles: ["SUPER_USER"] },
-  { name: "Form Wawancara", href: "/wawancara", icon: ClipboardList, roles: ["HR"] },
-  { name: 'Manpower Planning', href: '/manpower', icon: UserPlus },
-  { name: "Karyawan", href: "/karyawan", icon: UserCheck, roles: ["SUPER_USER", "HR"] },
+  { name: "Job Position", href: "/job-positions", icon: Briefcase, roles: ["SUPER_USER"] },
   { name: "Input Pelamar", href: "/apply", icon: UserPlus, roles: ["SUPER_USER"] }, 
+  { name: "Kandidat", href: "/candidates", icon: Users, roles: ["SUPER_USER"] },
+  { name: "Karyawan", href: "/karyawan", icon: UserCheck, roles: ["SUPER_USER", "HR"] },
+  { name: "Test Management", href: "/test-management", icon: ClipboardList, roles: ["SUPER_USER"] },
+  { name: "Form Wawancara", href: "/wawancara", icon: ClipboardList, roles: ["HR"] }, // Tetap dipertahankan khusus HR
   { name: "Analytics", href: "/analytics", icon: BarChart3, roles: ["SUPER_USER", "HR"] },
   { name: "Laporan", href: "/reports", icon: FileBarChart, roles: ["SUPER_USER"] },
-  
-  // --- MENU INPUT USER KHUSUS ADMIN/SUPER USER ---
   { name: "Input User", href: "/input-user", icon: UserCog, roles: ["SUPER_USER"] },
 ];
 
@@ -50,7 +50,7 @@ interface UserData {
   name: string;
   email: string;
   role: "HR" | "SUPER_USER";
-  department?: string; // Menyimpan data department jika ada dari backend
+  department?: string;
 }
 
 export default function Sidebar() {
@@ -74,7 +74,7 @@ export default function Sidebar() {
 
   // Filter menu berdasarkan role user yang aktif
   const filteredMenuItems = menuItems.filter((item) => {
-    if (!item.roles) return true; // Menu publik (Dashboard)
+    if (!item.roles) return true; // Menu publik (Dashboard, Manpower)
     if (!user) return false;
     return item.roles.includes(user.role);
   });
@@ -138,7 +138,6 @@ export default function Sidebar() {
           </p>
           <p className="text-[10px] text-[var(--secondary)] truncate mt-0.5 font-medium uppercase tracking-wide">
             {user?.role === "SUPER_USER" ? "Administrator" : "HR Staff"}
-            {/* Menampilkan Department jika ada */}
             {user?.department && ` • ${user.department}`}
           </p>
         </div>
