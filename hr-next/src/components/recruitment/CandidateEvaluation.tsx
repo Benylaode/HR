@@ -280,6 +280,23 @@ export default function CandidateEvaluation({
     setScores(prev => ({...prev, [id]: num}));
   };
 
+  // Fungsi Membatasi Kesimpulan 1000 Karakter
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const inputText = e.target.value;
+    
+    if (inputText.length <= 1000) {
+      setOverallNotes(inputText);
+    } else {
+      // Potong secara otomatis jika melebihi 1000 karakter (misal saat paste teks panjang)
+      const truncated = inputText.slice(0, 1000);
+      setOverallNotes(truncated);
+      toast?.error("Maksimal 1000 karakter untuk kesimpulan telah tercapai.");
+    }
+  };
+
+  // Hitung jumlah karakter saat ini untuk ditampilkan di UI
+  const currentCharCount = overallNotes.length;
+
   // Handler Simpan
   const handleSave = async () => {
     if (!assessorName.trim()) {
@@ -316,8 +333,8 @@ export default function CandidateEvaluation({
       evaluator_name: assessorName, 
       evaluator_position: assessorPosition, 
       evaluation_date: evaluationDate,       
-      overall_notes: finalNotesToSave, // Gunakan notes yang sudah digabung
-      status: evalStatus.status === "Not Recommended" ? "FAILED" : "PASSED", // Otomatis Lulus/Gagal
+      overall_notes: finalNotesToSave, 
+      status: evalStatus.status === "Not Recommended" ? "FAILED" : "PASSED", 
       scores: [
         ...flatCompetencyScores,
         ...BEHAVIOR_QUESTIONS.map(q => ({
@@ -578,12 +595,21 @@ export default function CandidateEvaluation({
           {/* Kolom Kanan: Catatan Manual */}
           <div className="flex flex-col">
             <label className="block text-sm font-bold text-[var(--primary-900)] mb-2">Kesimpulan Assesor</label>
-            <textarea 
-              placeholder="Tuliskan alasan rekomendasi dan catatan evaluasi mendalam terkait peserta..."
-              className="w-full p-4 border border-[var(--secondary-200)] rounded-xl text-sm flex-1 min-h-[150px] focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none resize-none transition-all"
-              value={overallNotes}
-              onChange={(e) => setOverallNotes(e.target.value)}
-            ></textarea>
+            <div className="relative flex-1 flex flex-col">
+              <textarea 
+                placeholder="Tuliskan alasan rekomendasi dan catatan evaluasi mendalam terkait peserta (Maks. 1000 karakter)..."
+                className={`w-full p-4 border rounded-xl text-sm flex-1 min-h-[150px] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none transition-all ${
+                  currentCharCount >= 1000 ? 'border-red-400 focus:border-red-500' : 'border-[var(--secondary-200)] focus:border-[var(--primary)]'
+                }`}
+                value={overallNotes}
+                onChange={handleNotesChange}
+              ></textarea>
+              <div className={`text-xs mt-1 text-right font-medium ${
+                currentCharCount >= 1000 ? 'text-red-500' : 'text-[var(--secondary-500)]'
+              }`}>
+                {currentCharCount} / 1000 karakter
+              </div>
+            </div>
           </div>
         </div>
 
