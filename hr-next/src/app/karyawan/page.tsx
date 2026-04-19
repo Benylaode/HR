@@ -797,7 +797,9 @@ export default function KaryawanPage() {
     }
   };
 
-  // DOWNLOAD PDF REPORT FUNCTION (DENGAN FIX TIPE DATA OPT)
+  // =========================================================================
+  // FIX: KONFIGURASI PDF (TANPA MARGIN & MENCEGAH TERPOTONG)
+  // =========================================================================
   const handleDownloadFinalReport = async () => {
     if (!finalReportRef.current) {
       toast.error("Data laporan belum siap, silakan tunggu sebentar.");
@@ -807,14 +809,13 @@ export default function KaryawanPage() {
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       
-      // FIX OPTION ERROR UNTUK TS
       const opt = {
-        margin: 0,
+        margin: 0, // KUNCI: Hapus semua margin bawaan aplikasi PDF
         filename: `Laporan_Evaluasi_${reportModal?.fullName?.replace(/\s+/g, '_') || 'Karyawan'}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 1 },
         html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        pagebreak: { mode: ['css', 'legacy'] } // KUNCI: Biarkan CSS yang mengatur page-break
       };
       
       await html2pdf().set(opt as any).from(finalReportRef.current).save();
@@ -1149,14 +1150,14 @@ export default function KaryawanPage() {
                     <p className="font-medium text-sm">Mengambil data evaluasi...</p>
                  </div>
               ) : (
-                <CandidateFinalReport 
+              <CandidateFinalReport 
+                  candidateId={reportModal.id} 
                   employeeId={reportModal.id} 
                   candidateName={reportModal.fullName}
                   candidateNik={reportModal.nik_ktp || "-"} 
                   jobPosition={reportModal.positionApplied || "Karyawan Internal"}
                   submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
                   evaluations={reportEvaluations}
-                  onClose={() => setReportModal(null)} 
                 />
               )}
             </div>
@@ -1173,18 +1174,20 @@ export default function KaryawanPage() {
         </div>
       )}
 
-      {/* HIDDEN RENDER UNTUK PDF GENERATION (MENCEGAH ERROR REF NULL & CLIPPING) */}
+      {/* HIDDEN RENDER UNTUK PDF GENERATION: 
+          KUNCI PERBAIKAN: Dibungkus dengan backgroundColor #ffffff dan width 210mm absolut */}
       {reportModal && !loadingReport && (
-        <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
+        <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm', backgroundColor: '#ffffff' }}>
           <div ref={finalReportRef}>
-            <CandidateFinalReport 
-              employeeId={reportModal.id} 
-              candidateName={reportModal.fullName}
-              candidateNik={reportModal.nik_ktp || "-"} 
-              jobPosition={reportModal.positionApplied || "Karyawan Internal"}
-              submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
-              evaluations={reportEvaluations}
-            />
+                <CandidateFinalReport 
+                  candidateId={reportModal.id} 
+                  employeeId={reportModal.id} 
+                  candidateName={reportModal.fullName}
+                  candidateNik={reportModal.nik_ktp || "-"} 
+                  jobPosition={reportModal.positionApplied || "Karyawan Internal"}
+                  submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
+                  evaluations={reportEvaluations}
+                />
           </div>
         </div>
       )}
