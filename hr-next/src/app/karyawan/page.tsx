@@ -6,6 +6,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import TestReportPDF from '@/components/test/TestReportPDF';
+import { healAllSubmissions } from "@/utils/kraepelinHealer";
 import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport';
 import { toast } from "sonner";
 import { 
@@ -32,7 +33,9 @@ import {
   PieChart,    
   FileText,
   ClipboardList,
-  CreditCard
+  CreditCard,
+  Zap,
+  Shield
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -498,7 +501,13 @@ const TestResultModal = memo(({
   const kraepelin = empSubs.find(s => s.test_type === "kraepelin");
   const papi = empSubs.find(s => s.test_type === "papi");
 
-  const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
+  // Logika pewarnaan otomatis (Merah untuk 'Kurang', Teal untuk yang lain)
+  const getBadgeClass = (grade: string | undefined) => {
+    if (!grade) return "";
+    return grade.toLowerCase().includes('kurang') 
+        ? "bg-red-50 text-red-700 border-red-100" 
+        : "text-teal-700 bg-teal-50 border-teal-100";
+  };
 
   const handleDownloadPDF = async () => {
     if (!pdfRef.current) return;
@@ -557,15 +566,15 @@ const TestResultModal = memo(({
             </h3>
             {cfit ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-blue-50 p-5 rounded-xl text-center border border-blue-100">
+                    <div className="bg-blue-50 p-5 rounded-xl text-center border border-blue-100 relative overflow-hidden">
                         <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider">Skor IQ</p>
                         <p className="text-3xl font-black text-blue-900 mt-2">{cfit.scores?.iq || 0}</p>
                     </div>
-                    <div className="bg-green-50 p-5 rounded-xl text-center border border-green-100">
+                    <div className="bg-green-50 p-5 rounded-xl text-center border border-green-100 relative overflow-hidden">
                         <p className="text-xs text-green-600 font-extrabold uppercase tracking-wider">Klasifikasi</p>
                         <p className="text-lg font-black text-green-900 mt-4">{cfit.scores?.classification || "-"}</p>
                     </div>
-                    <div className="bg-slate-50 p-5 rounded-xl text-center border border-slate-200">
+                    <div className="bg-slate-50 p-5 rounded-xl text-center border border-slate-200 relative overflow-hidden">
                         <p className="text-xs text-slate-500 font-extrabold uppercase tracking-wider">Jawaban Benar</p>
                         <p className="text-3xl font-black text-slate-800 mt-2">{cfit.scores?.raw_score || 0}</p>
                     </div>
@@ -578,18 +587,47 @@ const TestResultModal = memo(({
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
             </h3>
             {kraepelin ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                    <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
-                        <p className="text-xs text-amber-600 font-extrabold uppercase tracking-wider">Kecepatan</p>
-                        <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.panker || "-"}</p>
-                    </div>
-                    <div className="bg-teal-50 border border-teal-100 p-5 rounded-xl">
-                        <p className="text-xs text-teal-600 font-extrabold uppercase tracking-wider">Ketelitian</p>
-                        <p className="font-black text-3xl text-teal-900 mt-2">{kraepelin.scores?.janker || "-"}</p>
-                    </div>
-                    <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
-                        <p className="text-xs text-red-600 font-extrabold uppercase tracking-wider">Total Errors</p>
-                        <p className="font-black text-3xl text-red-900 mt-2">{totalErrors}</p>
+                <div className="space-y-4">
+                    {kraepelin.scores?.interpretation && (
+                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-center">
+                            <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider mb-1">Interpretasi Umum</p>
+                            <p className="text-sm text-blue-900 italic">"{kraepelin.scores.interpretation}"</p>
+                        </div>
+                    )}
+                    {/* Bagian Render Kraepelin di dalam Modal */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        {/* CEPAT (Panker) */}
+                        <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Zap className="w-4 h-4 text-amber-600"/><span className="text-[11px] font-bold uppercase text-gray-500">CEPAT</span>
+                            </div>
+                            <p className="font-black text-3xl text-amber-900">{kraepelin.scores?.panker ?? "-"}</p>
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores?.gradeSpeed)}`}>
+                                {kraepelin.scores?.gradeSpeed || "-"}
+                            </div>
+                        </div>
+
+                        {/* TELITI (totalErrors) */}
+                        <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <AlertCircle className="w-4 h-4 text-red-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TELITI</span>
+                            </div>
+                            <p className="font-black text-3xl text-red-900">{kraepelin.scores?.totalErrors ?? "-"}</p>
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores?.gradeAccuracy)}`}>
+                                {kraepelin.scores?.gradeAccuracy || "-"}
+                            </div>
+                        </div>
+
+                        {/* TAHAN (Hanker - Ini yang tadinya strip) */}
+                        <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Shield className="w-4 h-4 text-purple-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TAHAN</span>
+                            </div>
+                            <p className="font-black text-3xl text-purple-900">{kraepelin.scores?.hanker ?? "-"}</p>
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores?.gradeEndurance)}`}>
+                                {kraepelin.scores?.gradeEndurance || "-"}
+                            </div>
+                        </div>
                     </div>
                 </div>
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Karyawan belum menyelesaikan tes Kraepelin.</p>}
@@ -612,7 +650,7 @@ const TestResultModal = memo(({
           </div>
 
         </div>
-        
+
         <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
             Tutup
@@ -689,14 +727,25 @@ export default function KaryawanPage() {
     }
   };
 
-  const fetchSubmissions = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() });
-      if (res.ok) setSubmissions(await res.json());
-    } catch (err) {
-      console.error("Gagal mengambil data hasil tes:", err);
+const fetchSubmissions = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/management/submissions`, { 
+      headers: { "Authorization": `Bearer ${localStorage.getItem("hr_token")}` } 
+    });
+    
+    if (res.ok) {
+      const rawData = await res.json();
+      const subsArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
+
+      // MENGGUNAKAN UTILS: Otomatis menghitung Hanker & mapping key lama
+      const processedData = healAllSubmissions(subsArray);
+      
+      setSubmissions(processedData);
     }
-  };
+  } catch (e) {
+    console.error("Gagal memproses data submissions:", e);
+  }
+};
 
   const fetchKaryawanDetail = async (id: string) => {
     setLoadingDetail(true);
@@ -776,7 +825,6 @@ export default function KaryawanPage() {
     });
   };
 
-  // HANDLE OPEN REPORT & FETCH EVALUATIONS
   const handleOpenReport = async (karyawan: Karyawan) => {
     setReportModal(karyawan);
     setLoadingReport(true);
@@ -797,9 +845,6 @@ export default function KaryawanPage() {
     }
   };
 
-  // =========================================================================
-  // FIX: KONFIGURASI PDF (TANPA MARGIN & MENCEGAH TERPOTONG)
-  // =========================================================================
   const handleDownloadFinalReport = async () => {
     if (!finalReportRef.current) {
       toast.error("Data laporan belum siap, silakan tunggu sebentar.");
@@ -810,12 +855,12 @@ export default function KaryawanPage() {
       const html2pdf = (await import('html2pdf.js')).default;
       
       const opt = {
-        margin: 0, // KUNCI: Hapus semua margin bawaan aplikasi PDF
+        margin: 0, 
         filename: `Laporan_Evaluasi_${reportModal?.fullName?.replace(/\s+/g, '_') || 'Karyawan'}.pdf`,
         image: { type: 'jpeg' as const, quality: 1 },
         html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['css', 'legacy'] } // KUNCI: Biarkan CSS yang mengatur page-break
+        pagebreak: { mode: ['css', 'legacy'] } 
       };
       
       await html2pdf().set(opt as any).from(finalReportRef.current).save();
@@ -827,7 +872,6 @@ export default function KaryawanPage() {
     }
   };
 
-  // FILTER LOGIC
   const filteredKaryawan = karyawanList.filter((k) => {
     const searchLower = (searchQuery || "").toLowerCase();
     const matchesSearch = 

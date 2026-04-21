@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { getTestConfig, saveTestConfig } from "@/utils/config-actions"; 
+import { healAllSubmissions } from "@/utils/kraepelinHealer";
 import { toast } from "sonner";
 import CandidateEvaluation from "@/components/recruitment/CandidateEvaluation"; 
 import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from "@/utils/papiScoring";
 import {
   CheckCircle, Plus, RefreshCw, Trash2, X, FolderOpen, 
-  Clock, FileCheck, Eye, Zap, Target, AlertCircle, User, Calendar, Image as ImageIcon, Copy
+  Clock, FileCheck, Eye, Zap, Target, AlertCircle, User, Calendar, Image as ImageIcon, Copy, Shield
 } from "lucide-react";
 
 // --- 0. CONFIG ---
@@ -50,6 +51,7 @@ export interface Submission {
   employee_name?: string; 
   test_type: string;
   scores: any; 
+  raw_answers?: any; // <-- DITAMBAHKAN UNTUK MENGAMBIL DATA RAW DARI BACKEND
   submitted_at: string;
 }
 
@@ -195,26 +197,17 @@ export default function TestManagementPage() {
       const resLinks = await fetch(`${API_BASE_URL}/management/links`, fetchOptions);
       if (resLinks.ok) setLocalTestLinks(await resLinks.json());
 
-      // FETCH SUBMISSIONS (DENGAN SAFE PARSING)
+      // FETCH SUBMISSIONS & LAKUKAN AUTO-HEALING UNTUK DATA LAMA
       const resSubs = await fetch(`${API_BASE_URL}/management/submissions`, fetchOptions); 
+      // console.log(resSubs)
       if (resSubs.ok) {
         const data = await resSubs.json();
         const subsArray = Array.isArray(data) ? data : (data.data || data.submissions || []);
         
-        // PENTING: Parsing JSON string jika backend mengirim skor sebagai string
-        const parsedSubs = subsArray.map((sub: any) => {
-            let parsedScores = sub.scores;
-            if (typeof parsedScores === 'string') {
-                try {
-                    parsedScores = JSON.parse(parsedScores);
-                } catch (e) {
-                    console.error("Gagal parse scores untuk ID:", sub.id);
-                    parsedScores = {};
-                }
-            }
-            return { ...sub, scores: parsedScores || {} };
-        });
-        setSubmissions(parsedSubs);
+        // Gunakan Utility Healer untuk menangani data lama & menghitung Hanker otomatis
+        const processedSubs = healAllSubmissions(subsArray);
+        
+        setSubmissions(processedSubs);
       }
 
       // FETCH OTHERS
@@ -521,17 +514,34 @@ export default function TestManagementPage() {
                     <span className="text-[9px] uppercase tracking-wide opacity-80">{sub.scores.classification || "Unclassified"}</span>
                   </div>
                 );
-              } else if (testType.includes('kraepelin')) {
-                scoreBadge = (
-                  <div className="flex gap-2">
-                    <div className="px-2 py-1 bg-teal-50 border border-teal-100 rounded text-xs">
-                      <span className="text-teal-600 mr-1">Speed:</span><span className="font-bold text-teal-900">{sub.scores.panker ?? sub.scores.kecepatan ?? '-'}</span>
-                    </div>
-                    <div className="px-2 py-1 bg-teal-50 border border-teal-100 rounded text-xs">
-                      <span className="text-teal-600 mr-1">Acc:</span><span className="font-bold text-teal-900">{sub.scores.janker ?? sub.scores.ketelitian ?? '-'}</span>
-                    </div>
-                  </div>
-                );
+                  } else if (testType.includes('kraepelin')) {
+                    // Ambil data dengan fallback ke key lama jika healer belum berjalan sempurna
+                    const cepat = sub.scores.panker ?? sub.scores.kecepatan ?? '-';
+                    const teliti = sub.scores.totalErrors ?? sub.scores.salah ?? '-';
+                    const tahan = sub.scores.hanker ?? '-';
+
+                    scoreBadge = (
+                      <div className="flex flex-wrap gap-2">
+                        {/* 1. CEPAT (PANKER) */}
+                        <div className="px-2 py-1 bg-yellow-50 border border-yellow-100 rounded text-xs">
+                          <span className="text-yellow-600 mr-1">Cepat:</span>
+                          <span className="font-bold text-yellow-900">{cepat}</span>
+                        </div>
+
+                        {/* 2. TELITI (TOTAL ERRORS) */}
+                        <div className="px-2 py-1 bg-red-50 border border-red-100 rounded text-xs">
+                          <span className="text-red-600 mr-1">Teliti:</span>
+                          <span className="font-bold text-red-900">{teliti}</span>
+                        </div>
+
+                        {/* 3. TAHAN (HANKER - HASIL HEALING) */}
+                        <div className="px-2 py-1 bg-purple-50 border border-purple-100 rounded text-xs">
+                          <span className="text-purple-600 mr-1">Tahan:</span>
+                          <span className="font-bold text-purple-900">{tahan}</span>
+                        </div>
+                      </div>
+                    );
+
               } else if (testType.includes('papi')) {
                 scoreBadge = (
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 text-orange-700 text-xs border border-orange-100 font-medium">
@@ -619,6 +629,14 @@ export default function TestManagementPage() {
     } 
     
     if (testType.includes('kraepelin')) {
+        // Logika pewarnaan otomatis (Merah untuk 'Kurang', Teal untuk yang lain)
+        const getBadgeClass = (grade: string | undefined) => {
+            if (!grade) return "";
+            return grade.toLowerCase().includes('kurang') 
+                ? "bg-red-50 text-red-700 border-red-100" 
+                : "text-teal-700 bg-teal-50 border-teal-100";
+        };
+
         return (
             <div className="space-y-6">
                 {sub.scores.interpretation && (
@@ -628,20 +646,27 @@ export default function TestManagementPage() {
                   </div>
                 )}
                 
+                {/* Menampilkan 3 poin: CEPAT, TELITI, dan TAHAN */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 1. CEPAT (Produktivitas) */}
                     <div className="p-4 border border-gray-200 rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2"><Zap className="w-4 h-4 text-yellow-500"/><span className="text-xs font-bold uppercase text-gray-500">Kecepatan (Panker)</span></div>
-                        <div className="text-2xl font-bold text-gray-900">{sub.scores.panker ?? sub.scores.kecepatan ?? '-'}</div>
-                        {sub.scores.gradeSpeed && <div className="text-xs mt-1 text-teal-700 bg-teal-50 px-2 py-0.5 rounded w-fit border border-teal-100">{sub.scores.gradeSpeed}</div>}
+                        <div className="flex items-center gap-2 mb-2"><Zap className="w-4 h-4 text-yellow-500"/><span className="text-[11px] font-bold uppercase text-gray-500">CEPAT (Produktivitas)</span></div>
+                        <div className="text-2xl font-bold text-gray-900">{sub.scores.panker ?? '-'}</div>
+                        {sub.scores.gradeSpeed && <div className={`text-xs mt-1 px-2 py-0.5 rounded w-fit border ${getBadgeClass(sub.scores.gradeSpeed)}`}>{sub.scores.gradeSpeed}</div>}
                     </div>
+
+                    {/* 2. TELITI (Ketelitian) */}
                     <div className="p-4 border border-gray-200 rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2"><Target className="w-4 h-4 text-green-500"/><span className="text-xs font-bold uppercase text-gray-500">Ketelitian (Janker)</span></div>
-                        <div className="text-2xl font-bold text-gray-900">{sub.scores.janker ?? sub.scores.ketelitian ?? '-'}</div>
-                        {sub.scores.gradeStability && <div className="text-xs mt-1 text-teal-700 bg-teal-50 px-2 py-0.5 rounded w-fit border border-teal-100">{sub.scores.gradeStability}</div>}
+                        <div className="flex items-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-500"/><span className="text-[11px] font-bold uppercase text-gray-500">TELITI (Ketelitian)</span></div>
+                        <div className="text-2xl font-bold text-red-600">{sub.scores.totalErrors ?? '-'}</div>
+                        {sub.scores.gradeAccuracy && <div className={`text-xs mt-1 px-2 py-0.5 rounded w-fit border ${getBadgeClass(sub.scores.gradeAccuracy)}`}>{sub.scores.gradeAccuracy}</div>}
                     </div>
+
+                    {/* 3. TAHAN (Ketahanan) */}
                     <div className="p-4 border border-gray-200 rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-500"/><span className="text-xs font-bold uppercase text-gray-500">Total Errors</span></div>
-                        <div className="text-2xl font-bold text-red-600">{sub.scores.totalErrors ?? sub.scores.salah ?? '-'}</div>
+                        <div className="flex items-center gap-2 mb-2"><Shield className="w-4 h-4 text-purple-500"/><span className="text-[11px] font-bold uppercase text-gray-500">TAHAN (Ketahanan)</span></div>
+                        <div className="text-2xl font-bold text-gray-900">{sub.scores.hanker ?? '-'}</div>
+                        {sub.scores.gradeEndurance && <div className={`text-xs mt-1 px-2 py-0.5 rounded w-fit border ${getBadgeClass(sub.scores.gradeEndurance)}`}>{sub.scores.gradeEndurance}</div>}
                     </div>
                 </div>
             </div>

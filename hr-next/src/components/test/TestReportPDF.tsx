@@ -20,7 +20,9 @@ export interface TestResultData {
       ketelitian?: string; 
       panker?: string | number; 
       janker?: string | number; 
-      totalErrors?: string | number; // Menambahkan tipe data untuk totalErrors
+      totalErrors?: string | number;
+      hanker?: string | number;
+      raw_answers?: any; // Diperlukan untuk proses healing
     };
     papi?: Record<string, number>;
   };
@@ -34,7 +36,7 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   if (!data || !data.scores) return null;
 
   // =====================================
-  // PENGAMBILAN DATA PSIKOTES
+  // 1. PENGAMBILAN DATA PSIKOTES
   // =====================================
   const { cfit = {}, kraepelin = {}, papi = {} } = data.scores;
 
@@ -43,12 +45,59 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   const cfitClass = cfit.classification || '-';
   const cfitRaw = cfit.raw_score ?? '-';
 
-  // Standardisasi Variabel Tampilan Kraepelin
-  const kraepelinPanker = kraepelin.panker || kraepelin.kecepatan || '-';
-  const kraepelinJanker = kraepelin.janker || kraepelin.ketelitian || '-';
-  
-  // LOGIKA TOTAL ERROR LANGSUNG MENGAMBIL DARI BACKEND (TANPA DIHITUNG MANUAL)
-  const totalErrors = kraepelin.totalErrors ?? '-';
+  // =====================================
+  // 2. LOGIKA AUTO-HEALING KRAEPELIN
+  // =====================================
+  const kraepelinPanker = kraepelin.panker ?? kraepelin.kecepatan ?? '-';
+  const totalErrors = kraepelin.totalErrors ?? kraepelin.salah ?? '-';
+  let kraepelinHanker: string | number = kraepelin.hanker ?? '-';
+
+  // JIKA HANKER KOSONG ATAU STRIP, HITUNG DARI DATA MENTAH (HEALING)
+  if ((kraepelinHanker === '-' || !kraepelinHanker) && kraepelin.raw_answers) {
+    try {
+      // Parsing raw_answers (bisa string JSON atau array/objek)
+      let raw = typeof kraepelin.raw_answers === 'string' 
+                ? JSON.parse(kraepelin.raw_answers) 
+                : kraepelin.raw_answers;
+      
+      // Normalisasi format: Ubah Object ke Array jika perlu
+      let rawDataArray: any[] = [];
+      if (Array.isArray(raw)) {
+        rawDataArray = raw;
+      } else if (raw && typeof raw === 'object') {
+        rawDataArray = Object.keys(raw)
+          .sort((a, b) => Number(a) - Number(b))
+          .map(k => raw[k]);
+      }
+
+      if (rawDataArray.length > 1) {
+        // Ekstrak nilai Benar (y_values)
+        const y_values = rawDataArray.map((item: any) => {
+          if (typeof item === 'object' && item !== null) {
+            return Number(item.correct || item.benar || 0);
+          }
+          return Number(item || 0);
+        }).filter(v => !isNaN(v));
+
+        const N = y_values.length;
+        if (N > 1) {
+          let sx = 0, sy = 0, sx2 = 0, sxy = 0;
+          for (let i = 0; i < N; i++) {
+            const x = i + 1;
+            const y = y_values[i];
+            sx += x; sy += y; sx2 += (x * x); sxy += (x * y);
+          }
+          const denom = (N * sx2) - (sx * sx);
+          const b = denom !== 0 ? ((N * sxy) - (sx * sy)) / denom : 0;
+          
+          // Nilai Hanker (Multiplier 50)
+          kraepelinHanker = Number((b * 50).toFixed(3));
+        }
+      }
+    } catch (e) {
+      console.error("Auto-healing gagal pada PDF:", e);
+    }
+  }
 
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
@@ -99,20 +148,42 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
           {/* HASIL CFIT & KRAEPELIN */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+            
+            {/* CFIT */}
             <div style={{ flex: '1', backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #3b82f6', borderRadius: '4px' }}>
               <h3 style={{ marginTop: 0, fontSize: '11px', color: '#1e40af', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>1. Kecerdasan Kognitif (CFIT)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Skor IQ</p><p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{iqScore}</p></div>
-                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Klasifikasi</p><p style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitClass}</p></div>
-                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold' }}>Jwb Benar</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitRaw}</p></div>
+                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Skor IQ</p>
+                  <p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{iqScore}</p>
+                </div>
+                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Klasifikasi</p>
+                  <p style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitClass}</p>
+                </div>
+                <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '8px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Jwb Benar</p>
+                  <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#0f172a' }}>{cfitRaw}</p>
+                </div>
               </div>
             </div>
+
+            {/* KRAEPELIN (MENGGUNAKAN HASIL HEALING) */}
             <div style={{ flex: '1', backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: '4px' }}>
               <h3 style={{ marginTop: 0, fontSize: '11px', color: '#065f46', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>2. Performa Kerja (Kraepelin)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                <div style={{ backgroundColor: '#fcf8ea', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#b45309', margin: 0, fontWeight: 'bold' }}>Kecepatan</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelinPanker}</p></div>
-                <div style={{ backgroundColor: '#f0fdf4', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#15803d', margin: 0, fontWeight: 'bold' }}>Ketelitian</p><p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#14532d' }}>{kraepelinJanker}</p></div>
-                <div style={{ backgroundColor: '#fef2f2', padding: '6px', borderRadius: '4px', textAlign: 'center' }}><p style={{ fontSize: '8px', color: '#ef4444', margin: 0, fontWeight: 'bold' }}>Total Errors</p><p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#b91c1c' }}>{totalErrors}</p></div>
+                <div style={{ backgroundColor: '#fcf8ea', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '8px', color: '#b45309', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Cepat</p>
+                  <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelinPanker}</p>
+                </div>
+                <div style={{ backgroundColor: '#fef2f2', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '8px', color: '#ef4444', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Teliti</p>
+                  <p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#b91c1c' }}>{totalErrors}</p>
+                </div>
+                <div style={{ backgroundColor: '#faf5ff', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '8px', color: '#9333ea', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Tahan</p>
+                  <p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#5b21b6' }}>{kraepelinHanker}</p>
+                </div>
               </div>
             </div>
           </div>

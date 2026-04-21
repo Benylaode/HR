@@ -6,34 +6,14 @@ import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { toast } from "sonner";
+import { healAllSubmissions } from "@/utils/kraepelinHealer";
 import TestReportPDF from '@/components/test/TestReportPDF';
 import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport';
 import { 
-  Plus, 
-  Search, 
-  Mail, 
-  Phone, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Loader2, 
-  AlertCircle,
-  Briefcase,
-  Filter,
-  X,
-  MapPin,
-  Save,
-  User,
-  TrendingUp,
-  GraduationCap,
-  Award,
-  Users,
-  Activity,    // Icon Kraepelin
-  BrainCircuit,// Icon CFIT
-  PieChart,    // Icon PAPI
-  FileText,    // Icon Header Modal & CV
-  Download,    // Icon Download PDF
-  CreditCard   // Icon NIK KTP
+  Plus, Search, Mail, Phone, Eye, Edit, Trash2, Loader2, AlertCircle,
+  Briefcase, Filter, X, MapPin, Save, User, TrendingUp, GraduationCap,
+  Award, Users, Activity, BrainCircuit, PieChart, FileText, Download,
+  CreditCard, Zap, Shield
 } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -328,7 +308,7 @@ DetailModal.displayName = 'DetailModal';
 
 const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDetail | null; onClose: () => void; onSave: (data: Partial<CandidateDetail>) => Promise<void>; }) => {
   const [formData, setFormData] = useState({
-    nik_ktp: "", // TAMBAHAN NIK KTP DI STATE EDIT
+    nik_ktp: "", 
     fullName: "", email: "", whatsapp: "", gender: "", birthDate: "",
     domicileCity: "", domicileProvince: "",
     degree: "", major: "", studyProgram: "", university: "", gpa: "", startYear: "", gradYear: "",
@@ -399,7 +379,6 @@ const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDe
           <form id="editCandidateForm" onSubmit={handleSubmit} className="space-y-2">
             <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Kontak</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* TAMBAHAN INPUT NIK KTP */}
               <div>
                 <label className={labelClass}>NIK KTP *</label>
                 <input 
@@ -535,24 +514,14 @@ const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDe
 EditModal.displayName = 'EditModal';
 
 // ==========================================
-// MODAL HASIL TES UNTUK KANDIDAT (DIPERBAIKI)
+// MODAL HASIL TES (DENGAN UI 3 POIN)
 // ==========================================
-const TestResultModal = memo(({ 
-  candidate, 
-  submissions,
-  onClose 
-}: { 
-  candidate: Candidate | null; 
-  submissions: any[];
-  onClose: () => void;
-}) => {
+const TestResultModal = memo(({ candidate, submissions, onClose }: { candidate: Candidate | null; submissions: any[]; onClose: () => void; }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
   const finalReportRef = useRef<HTMLDivElement>(null); 
-  
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [evaluations, setEvaluations] = useState<any[]>(candidate?.evaluations || []); 
 
-  // Mengambil data evaluasi tambahan jika belum dilampirkan oleh parent
   useEffect(() => {
     if (candidate?.id && (!candidate.evaluations || candidate.evaluations.length === 0)) {
       const token = localStorage.getItem("hr_token");
@@ -573,6 +542,13 @@ const TestResultModal = memo(({
   const papi = candSubs.find(s => s.test_type === "papi");
 
   const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
+
+  const getBadgeClass = (grade: string | undefined) => {
+    if (!grade) return "";
+    return grade.toLowerCase().includes('kurang') 
+        ? "bg-red-50 text-red-700 border-red-100" 
+        : "text-teal-700 bg-teal-50 border-teal-100";
+  };
 
   const handleDownloadPDF = async () => {
     if (!pdfRef.current) return;
@@ -673,18 +649,41 @@ const TestResultModal = memo(({
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
             </h3>
             {kraepelin ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                    <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
-                        <p className="text-xs text-amber-600 font-extrabold uppercase tracking-wider">Kecepatan</p>
-                        <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.panker || "-"}</p>
-                    </div>
-                    <div className="bg-teal-50 border border-teal-100 p-5 rounded-xl">
-                        <p className="text-xs text-teal-600 font-extrabold uppercase tracking-wider">Ketelitian</p>
-                        <p className="font-black text-3xl text-teal-900 mt-2">{kraepelin.scores?.janker || "-"}</p>
-                    </div>
-                    <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
-                        <p className="text-xs text-red-600 font-extrabold uppercase tracking-wider">Total Errors</p>
-                        <p className="font-black text-3xl text-red-900 mt-2">{totalErrors}</p>
+                <div className="space-y-4">
+                    {kraepelin.scores?.interpretation && (
+                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-center">
+                            <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider mb-1">Interpretasi Umum</p>
+                            <p className="text-sm text-blue-900 italic">"{kraepelin.scores.interpretation}"</p>
+                        </div>
+                    )}
+                    {/* Cari bagian Kraepelin di dalam Modal, pastikan variabelnya seperti ini: */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        {/* CEPAT */}
+                        <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Zap size={16} className="text-amber-600"/><span className="text-xs font-bold uppercase">KECEPATAN</span>
+                            </div>
+                            <p className="font-black text-3xl text-amber-900">{kraepelin.scores?.panker ?? "-"}</p>
+                            {kraepelin.scores?.gradeSpeed && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeSpeed)}`}>{kraepelin.scores.gradeSpeed}</div>}
+                        </div>
+
+                        {/* TELITI */}
+                        <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <AlertCircle size={16} className="text-red-600"/><span className="text-xs font-bold uppercase">KETELITIAN</span>
+                            </div>
+                            <p className="font-black text-3xl text-red-900">{kraepelin.scores?.totalErrors ?? "-"}</p>
+                            {kraepelin.scores?.gradeAccuracy && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeAccuracy)}`}>{kraepelin.scores.gradeAccuracy}</div>}
+                        </div>
+
+                        {/* TAHAN (HASIL HEALING UTILS) */}
+                        <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Shield size={16} className="text-purple-600"/><span className="text-xs font-bold uppercase">KETAHANAN</span>
+                            </div>
+                            <p className="font-black text-3xl text-purple-900">{kraepelin.scores?.hanker ?? "-"}</p>
+                            {kraepelin.scores?.gradeEndurance && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeEndurance)}`}>{kraepelin.scores.gradeEndurance}</div>}
+                        </div>
                     </div>
                 </div>
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes Kraepelin.</p>}
@@ -748,6 +747,10 @@ const TestResultModal = memo(({
 });
 TestResultModal.displayName = 'TestResultModal';
 
+
+// ==========================================
+// MAIN COMPONENT: CANDIDATES PAGE
+// ==========================================
 export default function CandidatesPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
@@ -814,9 +817,18 @@ export default function CandidatesPage() {
   const fetchSubmissions = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() });
-      if (res.ok) setSubmissions(await res.json());
-    } catch (err) {
-      console.error("Gagal mengambil data hasil tes:", err);
+      if (res.ok) {
+        const data = await res.json();
+        const subsArray = Array.isArray(data) ? data : (data.data || []);
+
+        // CUKUP GANTI DENGAN BARIS INI:
+        // Fungsi ini otomatis menghitung Hanker & memetakan key lama (kecepatan/salah)
+        const processedData = healAllSubmissions(subsArray);
+        
+        setSubmissions(processedData);
+      }
+    } catch (e) {
+      console.error("Gagal memproses data hasil tes:", e);
     }
   };
 

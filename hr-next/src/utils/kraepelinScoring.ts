@@ -1,12 +1,12 @@
 // utils/kraepelinScoring.ts
 
-interface KraepelinResult {
-  panker: number;      // Kecepatan (Rata-rata benar)
-  janker: number;      // Ajeg/Konsistensi (Simpangan rata-rata)
-  totalErrors: number; // Teliti (Jumlah Salah)
-  gradeSpeed: string;  // Kategori PANKER
-  gradeStability: string; // Kategori AJEG
-  gradeAccuracy: string; // Kategori TELITI (Error count)
+export interface KraepelinResult {
+  panker: number;      // 1. Kecepatan (Rata-rata benar per kolom)
+  totalErrors: number; // 2. Ketelitian (Jumlah Salah total)
+  hanker: number;      // 3. Ketahanan (Daya Tahan dari Regresi Linear)
+  gradeSpeed: string;  // Kategori Kecepatan
+  gradeAccuracy: string; // Kategori Ketelitian
+  gradeEndurance: string; // Kategori Ketahanan
   interpretation: string;
 }
 
@@ -39,47 +39,77 @@ export const calculateKraepelinScore = (
     return colCorrect;
   });
 
-  // 3. Hitung PANKER (Kecepatan / Mean)
-  //
-  const panker = columnScores.length > 0 ? totalCorrect / columnScores.length : 0;
+  const N = columnScores.length;
 
-  // 4. Hitung JANKER / AJEG (Mean Deviation)
-  // Rumus: Rata-rata dari selisih mutlak setiap skor kolom terhadap Panker
-  const totalDeviation = columnScores.reduce((sum, score) => {
-    return sum + Math.abs(score - panker);
-  }, 0);
-  const janker = columnScores.length > 0 ? totalDeviation / columnScores.length : 0;
+  // ==========================================
+  // POIN 1: PANKER (Kecepatan / Mean)
+  // ==========================================
+  const panker = N > 0 ? totalCorrect / N : 0;
 
-  // 5. Penilaian Berdasarkan Norma Sarjana (File: 8. NORMA SARJANA.csv)
+  // ==========================================
+  // POIN 2: HANKER (Ketahanan / Regresi Linear)
+  // Diambil dari rumus hanker_calculator.py
+  // ==========================================
+  let hanker = 0;
+  if (N > 1) {
+    let sum_x = 0;
+    let sum_y = 0;
+    let sum_x2 = 0;
+    let sum_xy = 0;
+
+    for (let i = 0; i < N; i++) {
+      const x = i + 1; // Sumbu X adalah indeks lajur (1, 2, 3...)
+      const y = columnScores[i]; // Sumbu Y adalah jumlah benar di lajur itu
+
+      sum_x += x;
+      sum_y += y;
+      sum_x2 += (x * x);
+      sum_xy += (x * y);
+    }
+
+    const denom = (N * sum_x2) - (sum_x * sum_x);
+    // Koefisien gradien (b)
+    const b = denom !== 0 ? ((N * sum_xy) - (sum_x * sum_y)) / denom : 0;
+    
+    // Hanker = b * 50
+    hanker = b * 50;
+  }
+
+  // ==========================================
+  // POIN 3: KATEGORI NORMA SARJANA (Sesuai Excel)
+  // ==========================================
   
-  // A. Kategori PANKER (Kecepatan)
+  // A. Kategori KECEPATAN (Panker)
   let gradeSpeed = "Kurang Sekali";
   if (panker > 17.21) gradeSpeed = "Baik Sekali";
   else if (panker >= 14.973) gradeSpeed = "Baik";
   else if (panker >= 12.736) gradeSpeed = "Sedang";
   else if (panker >= 10.5) gradeSpeed = "Kurang";
   
-  // B. Kategori AJEG (Konsistensi/Janker) - Makin kecil makin bagus
-  let gradeStability = "Kurang Sekali";
-  if (janker < 0.696) gradeStability = "Baik Sekali";
-  else if (janker <= 0.908) gradeStability = "Baik";
-  else if (janker <= 1.056) gradeStability = "Sedang";
-  else if (janker <= 1.779) gradeStability = "Kurang";
+  // B. Kategori KETELITIAN (Total Errors) - Makin kecil makin bagus
+  let gradeAccuracy = "Kurang Sekali"; // Default >= 23
+  if (totalErrors <= 0) gradeAccuracy = "Baik Sekali"; // 0
+  else if (totalErrors <= 2) gradeAccuracy = "Baik";   // 1 - 2
+  else if (totalErrors <= 13) gradeAccuracy = "Sedang"; // 3 - 13
+  else if (totalErrors <= 22) gradeAccuracy = "Kurang"; // 14 - 22
 
-  // C. Kategori TELITI (Errors) - Berdasarkan jumlah salah
-  let gradeAccuracy = "Kurang Sekali"; // default >= 23
-  if (totalErrors === 0) gradeAccuracy = "Baik Sekali";
-  else if (totalErrors <= 1) gradeAccuracy = "Baik";
-  else if (totalErrors <= 3) gradeAccuracy = "Sedang";
-  else if (totalErrors <= 14) gradeAccuracy = "Kurang";
+  // C. Kategori KETAHANAN (Hanker) - Boleh bernilai minus
+  let gradeEndurance = "Kurang Sekali";
+  if (hanker > 2.496) gradeEndurance = "Baik Sekali";
+  else if (hanker >= 1.015) gradeEndurance = "Baik";
+  else if (hanker >= -0.468) gradeEndurance = "Sedang";
+  else if (hanker >= -1.95) gradeEndurance = "Kurang";
 
+  // ==========================================
+  // KEMBALIKAN 3 POIN SAJA
+  // ==========================================
   return {
     panker: Number(panker.toFixed(2)),
-    janker: Number(janker.toFixed(2)),
-    totalErrors,
-    gradeSpeed,     // Aspek CEPAT
-    gradeStability, // Aspek AJEG
-    gradeAccuracy,  // Aspek TELITI
-    interpretation: `Kecepatan: ${gradeSpeed}, Stabilitas: ${gradeStability}, Ketelitian: ${gradeAccuracy}`
+    totalErrors: totalErrors,
+    hanker: Number(hanker.toFixed(3)),
+    gradeSpeed,      
+    gradeAccuracy,   
+    gradeEndurance,  
+    interpretation: `Kecepatan: ${gradeSpeed}, Ketelitian: ${gradeAccuracy}, Ketahanan: ${gradeEndurance}`
   };
 };
