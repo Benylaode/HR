@@ -386,17 +386,21 @@ export default function CandidateFinalReport({
           {/* Grid PAPI Kostick */}
           <div style={{ flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', overflow: 'hidden' }}>
             <h3 style={{ fontSize: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', marginBottom: '4px', fontWeight: 'bold', color: '#5b21b6' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '12px', rowGap: '0' }}>
+            
+            {/* Tambahan flex: 1 dan gridAutoRows: '1fr' agar baris otomatis membagi rata sisa tinggi div */}
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '12px', gridAutoRows: '1fr' }}>
               {allPapi.length > 0 ? allPapi.map((p, i) => (
-                <div key={i} style={{ borderBottom: '1px dashed #cbd5e1', padding: '2px 0' }}>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', borderBottom: '1px dashed #cbd5e1', padding: '2px 0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '7.5px', fontWeight: 'bold' }}>
-                    <span>[{p.letter}] {p.traitName}</span>
-                    <span style={{ backgroundColor: '#f1f5f9', padding: '0 4px', borderRadius: '3px' }}>{p.score}</span>
+                    <span style={{ fontSize: '12px', color : '#3a1577' }}>[{p.letter}] {p.traitName}</span>
+                    <span style={{ backgroundColor: '#f1f5f9', padding: '0 4px', borderRadius: '3px', fontSize: '12px', color : '#5b21b6'}}>{p.score}</span>
                   </div>
-                  <p style={{ fontSize: '6.5px', margin: 0, fontStyle: 'italic', lineHeight: '1.1', color: '#475569' }}>"{p.desc}"</p>
+                  <p style={{ fontSize: '10px', margin: 0, fontStyle: 'italic', lineHeight: '1.1', color: '#475569' }}>"{p.desc}"</p>
                 </div>
               )) : (
-                <p style={{ fontSize: '7.5px', color: '#64748b', textAlign: 'center', gridColumn: 'span 2', padding: '20px' }}>Data PAPI Kostick tidak tersedia.</p>
+                <p style={{ fontSize: '7.5px', color: '#64748b', textAlign: 'center', alignSelf: 'center', gridColumn: 'span 2', padding: '20px' }}>
+                  Data PAPI Kostick tidak tersedia.
+                </p>
               )}
             </div>
           </div>
