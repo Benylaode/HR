@@ -492,19 +492,36 @@ const TestResultModal = memo(({
   onClose: () => void;
 }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
+  const finalReportRef = useRef<HTMLDivElement>(null); 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   if (!karyawan) return null;
 
-  const empSubs = submissions.filter(s => s.candidate_id === karyawan.id && s.participant_type === "Employee");
+  // Filter khusus karyawan internal
+  const empSubs = submissions.filter(s => (s.candidate_id === karyawan.id || s.employee_id === karyawan.id) && (s.participant_type === "Employee" || s.participant_type === "Karyawan"));
+  
   const cfit = empSubs.find(s => s.test_type === "cfit");
   const kraepelin = empSubs.find(s => s.test_type === "kraepelin");
   const papi = empSubs.find(s => s.test_type === "papi");
 
-  // Logika pewarnaan otomatis (Merah untuk 'Kurang', Teal untuk yang lain)
+  // PARSING JSON STRING KE OBJECT UNTUK MENGHINDARI ERROR
+  const safeParse = (data: any) => {
+    if (!data) return {};
+    if (typeof data === 'string') {
+      try { return JSON.parse(data); } catch (e) { return {}; }
+    }
+    return data;
+  };
+
+  const cfitScores = safeParse(cfit?.scores);
+  const kraepelinScores = safeParse(kraepelin?.scores);
+  const papiScores = safeParse(papi?.scores);
+
+  // Logika pewarnaan otomatis 
   const getBadgeClass = (grade: string | undefined) => {
     if (!grade) return "";
-    return grade.toLowerCase().includes('kurang') 
+    const lowerGrade = grade.toLowerCase();
+    return (lowerGrade === 'low' || lowerGrade === 'below' || lowerGrade.includes('kurang')) 
         ? "bg-red-50 text-red-700 border-red-100" 
         : "text-teal-700 bg-teal-50 border-teal-100";
   };
@@ -533,11 +550,33 @@ const TestResultModal = memo(({
     }
   };
 
+  const handleDownloadFinalReport = async () => {
+    if (!finalReportRef.current) return;
+    setIsGeneratingPDF(true);
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const opt = {
+        margin: 0,
+        filename: `Final_Report_Assesment_${karyawan.fullName.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      await html2pdf().set(opt as any).from(finalReportRef.current).save();
+    } catch (error) {
+      console.error("Gagal mencetak PDF:", error);
+      alert("Terjadi kesalahan saat mengunduh Final Report.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   const pdfData = {
     candidate_name: karyawan.fullName,
     participant_type: 'Employee',
     id: karyawan.id,
-    scores: { cfit: cfit?.scores, kraepelin: kraepelin?.scores, papi: papi?.scores }
+    scores: { cfit: cfitScores, kraepelin: kraepelinScores, papi: papiScores }
   };
 
   return (
@@ -568,15 +607,15 @@ const TestResultModal = memo(({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-blue-50 p-5 rounded-xl text-center border border-blue-100 relative overflow-hidden">
                         <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider">Skor IQ</p>
-                        <p className="text-3xl font-black text-blue-900 mt-2">{cfit.scores?.iq || 0}</p>
+                        <p className="text-3xl font-black text-blue-900 mt-2">{cfitScores.iq || 0}</p>
                     </div>
                     <div className="bg-green-50 p-5 rounded-xl text-center border border-green-100 relative overflow-hidden">
                         <p className="text-xs text-green-600 font-extrabold uppercase tracking-wider">Klasifikasi</p>
-                        <p className="text-lg font-black text-green-900 mt-4">{cfit.scores?.classification || "-"}</p>
+                        <p className="text-lg font-black text-green-900 mt-4">{cfitScores.classification || "-"}</p>
                     </div>
                     <div className="bg-slate-50 p-5 rounded-xl text-center border border-slate-200 relative overflow-hidden">
                         <p className="text-xs text-slate-500 font-extrabold uppercase tracking-wider">Jawaban Benar</p>
-                        <p className="text-3xl font-black text-slate-800 mt-2">{cfit.scores?.raw_score || 0}</p>
+                        <p className="text-3xl font-black text-slate-800 mt-2">{cfitScores.raw_score || 0}</p>
                     </div>
                 </div>
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Karyawan belum menyelesaikan tes CFIT.</p>}
@@ -588,44 +627,40 @@ const TestResultModal = memo(({
             </h3>
             {kraepelin ? (
                 <div className="space-y-4">
-                    {kraepelin.scores?.interpretation && (
+                    {kraepelinScores.interpretation && (
                         <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-center">
                             <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider mb-1">Interpretasi Umum</p>
-                            <p className="text-sm text-blue-900 italic">"{kraepelin.scores.interpretation}"</p>
+                            <p className="text-sm text-blue-900 italic">"{kraepelinScores.interpretation}"</p>
                         </div>
                     )}
-                    {/* Bagian Render Kraepelin di dalam Modal */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                        {/* CEPAT (Panker) */}
                         <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <Zap className="w-4 h-4 text-amber-600"/><span className="text-[11px] font-bold uppercase text-gray-500">CEPAT</span>
+                                <Zap className="w-4 h-4 text-amber-600"/><span className="text-[11px] font-bold uppercase text-gray-500">Speed (Kecepatan)</span>
                             </div>
-                            <p className="font-black text-3xl text-amber-900">{kraepelin.scores?.panker ?? "-"}</p>
-                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores?.gradeSpeed)}`}>
-                                {kraepelin.scores?.gradeSpeed || "-"}
+                            <p className="font-black text-3xl text-amber-900">{kraepelinScores.panker ?? kraepelinScores.kecepatan ?? "-"}</p>
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelinScores.gradeSpeed)}`}>
+                                {kraepelinScores.gradeSpeed || "-"}
                             </div>
                         </div>
 
-                        {/* TELITI (totalErrors) */}
                         <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <AlertCircle className="w-4 h-4 text-red-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TELITI</span>
+                                <AlertCircle className="w-4 h-4 text-red-600"/><span className="text-[11px] font-bold uppercase text-gray-500">Accuracy (Ketelitian)</span>
                             </div>
-                            <p className="font-black text-3xl text-red-900">{kraepelin.scores?.totalErrors ?? "-"}</p>
-                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores?.gradeAccuracy)}`}>
-                                {kraepelin.scores?.gradeAccuracy || "-"}
+                            <p className="font-black text-3xl text-red-900">{kraepelinScores.totalErrors ?? kraepelinScores.salah ?? "-"}</p>
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelinScores.gradeAccuracy)}`}>
+                                {kraepelinScores.gradeAccuracy || "-"}
                             </div>
                         </div>
 
-                        {/* TAHAN (Hanker - Ini yang tadinya strip) */}
                         <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <Shield className="w-4 h-4 text-purple-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TAHAN</span>
+                                <Shield className="w-4 h-4 text-purple-600"/><span className="text-[11px] font-bold uppercase text-gray-500">Endurance (Ketahanan)</span>
                             </div>
-                            <p className="font-black text-3xl text-purple-900">{kraepelin.scores?.hanker ?? "-"}</p>
-                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores?.gradeEndurance)}`}>
-                                {kraepelin.scores?.gradeEndurance || "-"}
+                            <p className="font-black text-3xl text-purple-900">{kraepelinScores.hanker ?? "-"}</p>
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelinScores.gradeEndurance)}`}>
+                                {kraepelinScores.gradeEndurance || "-"}
                             </div>
                         </div>
                     </div>
@@ -637,9 +672,9 @@ const TestResultModal = memo(({
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <PieChart className="text-purple-500" size={20}/> Tes Kepribadian (PAPI Kostick)
             </h3>
-            {papi ? (
+            {papi && Object.keys(papiScores).length > 0 ? (
                 <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-3">
-                    {Object.entries(papi.scores || {}).map(([key, value]) => (
+                    {Object.entries(papiScores).map(([key, value]) => (
                         <div key={key} className="bg-purple-50 p-3 rounded-xl text-center border border-purple-100 shadow-sm">
                             <p className="text-xs font-black text-purple-900">{key}</p>
                             <p className="text-lg font-bold text-purple-700 mt-1">{String(value)}</p>
@@ -660,7 +695,11 @@ const TestResultModal = memo(({
           </button>
         </div>
       </div>
-      <TestReportPDF ref={pdfRef} data={pdfData as any} />
+      
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
+        <TestReportPDF ref={pdfRef} data={pdfData as any} />
+      </div>
+
     </div>
   );
 });
@@ -1200,7 +1239,7 @@ const fetchSubmissions = async () => {
                   candidateName={reportModal.fullName}
                   candidateNik={reportModal.nik_ktp || "-"} 
                   jobPosition={reportModal.positionApplied || "Karyawan Internal"}
-                  submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
+                  submissions={submissions.filter(s => s.candidate_id === reportModal.id || s.employee_id === reportModal.id)}
                   evaluations={reportEvaluations}
                 />
               )}
@@ -1229,7 +1268,7 @@ const fetchSubmissions = async () => {
                   candidateName={reportModal.fullName}
                   candidateNik={reportModal.nik_ktp || "-"} 
                   jobPosition={reportModal.positionApplied || "Karyawan Internal"}
-                  submissions={submissions.filter(s => s.candidate_id === reportModal.id)}
+                  submissions={submissions.filter(s => s.candidate_id === reportModal.id || s.employee_id === reportModal.id)}
                   evaluations={reportEvaluations}
                 />
           </div>

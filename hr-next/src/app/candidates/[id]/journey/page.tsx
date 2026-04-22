@@ -1,32 +1,20 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef, memo } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Sidebar from '@/components/layout/Sidebar'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
-import JourneyTimeline from '@/components/recruitment/JourneyTimeline'
-import TestReportPDF from '@/components/test/TestReportPDF'
-import { healKraepelinSubmission, healAllSubmissions } from "@/utils/kraepelinHealer";
-import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport'
-
-import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from '@/utils/papiScoring'
-import { toast } from 'sonner'
+import { useEffect, useState, useRef, memo } from "react";
+import { useRouter } from "next/navigation";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { toast } from "sonner";
+import { healAllSubmissions } from "@/utils/kraepelinHealer";
+import TestReportPDF from '@/components/test/TestReportPDF';
+import CandidateFinalReport from '@/components/recruitment/CandidateFinalReport';
 import { 
-  Loader2, ChevronLeft, Upload, Download, Send, User as UserIcon,
-  Briefcase, TrendingUp, BrainCircuit, CreditCard,
-  MapPin, Phone, Mail, GraduationCap, Users, Award, 
-  FileText, Activity, PieChart, ClipboardList, X, Eye, Edit, Trash2,
-  Zap, AlertCircle, Shield
-} from 'lucide-react'
-import { 
-  getJourneyTimeline, updateStage, uploadDocument, getCandidateApplications,
-  type JourneyTimeline as JourneyData
-} from '@/lib/api/tracking'
-import { 
-  getAllowedNextStages, isRejectionStage, isTerminalStage,
-  getProgressPercentage, getStageColor, RecruitmentStages
-} from '@/lib/recruitment-stages'
+  Plus, Search, Mail, Phone, Eye, Edit, Trash2, Loader2, AlertCircle,
+  Briefcase, Filter, X, MapPin, Save, User, TrendingUp, GraduationCap,
+  Award, Users, Activity, BrainCircuit, PieChart, FileText, Download,
+  CreditCard, Zap, Shield
+} from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
@@ -79,9 +67,6 @@ interface JobPosition {
   title: string;
 }
 
-// ==========================================
-// MODAL DETAIL KANDIDAT
-// ==========================================
 const DetailModal = memo(({ candidate, onClose }: { candidate: CandidateDetail | null; onClose: () => void; }) => {
   const [loadingCV, setLoadingCV] = useState(false);
 
@@ -162,7 +147,7 @@ const DetailModal = memo(({ candidate, onClose }: { candidate: CandidateDetail |
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-6">
           <div className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-sm font-bold text-[var(--primary)] mb-4 border-b pb-2 flex items-center gap-2">
-              <UserIcon size={16} /> Data Pribadi & Kontak
+              <User size={16} /> Data Pribadi & Kontak
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-sm">
               <div className="flex items-center gap-3 text-[var(--secondary-700)] col-span-2 md:col-span-1">
@@ -321,22 +306,219 @@ const DetailModal = memo(({ candidate, onClose }: { candidate: CandidateDetail |
 });
 DetailModal.displayName = 'DetailModal';
 
+const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDetail | null; onClose: () => void; onSave: (data: Partial<CandidateDetail>) => Promise<void>; }) => {
+  const [formData, setFormData] = useState({
+    nik_ktp: "", 
+    fullName: "", email: "", whatsapp: "", gender: "", birthDate: "",
+    domicileCity: "", domicileProvince: "",
+    degree: "", major: "", studyProgram: "", university: "", gpa: "", startYear: "", gradYear: "",
+    totalExperience: "", appliedPosition1: "", appliedPosition2: "", expectedSalary: "", noticePeriod: ""
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (candidate) {
+      setFormData({
+        nik_ktp: candidate.nik_ktp || "",
+        fullName: candidate.fullName || "",
+        email: candidate.email || "",
+        whatsapp: candidate.whatsapp || "",
+        gender: candidate.gender || "",
+        birthDate: candidate.birthDate ? candidate.birthDate.split('T')[0] : "",
+        domicileCity: candidate.domicileCity || "",
+        domicileProvince: candidate.domicileProvince || "",
+        degree: candidate.degree || "",
+        major: candidate.major || "",
+        studyProgram: candidate.studyProgram || "",
+        university: candidate.university || "",
+        gpa: candidate.gpa || "",
+        startYear: candidate.startYear || "",
+        gradYear: candidate.gradYear || "",
+        totalExperience: candidate.totalExperience || "",
+        appliedPosition1: candidate.appliedPosition1 || "",
+        appliedPosition2: candidate.appliedPosition2 || "",
+        expectedSalary: candidate.expectedSalary ? candidate.expectedSalary.toString() : "",
+        noticePeriod: candidate.noticePeriod || ""
+      });
+    }
+  }, [candidate]);
+
+  if (!candidate) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const submissionData = { ...formData, expectedSalary: formData.expectedSalary ? parseInt(formData.expectedSalary, 10) : undefined };
+    await onSave(submissionData);
+    setSaving(false);
+  };
+
+  const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--secondary-200)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:outline-none transition-colors text-[var(--primary-900)] placeholder-[var(--secondary-300)]";
+  const labelClass = "text-xs font-semibold text-[var(--secondary-500)] uppercase tracking-wide mb-1.5 block";
+  const sectionTitleClass = "text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-6";
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[var(--primary-50)] flex items-center justify-center">
+              <Edit size={18} className="text-[var(--primary)]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Edit Profil Kandidat</h2>
+              <p className="text-xs text-[var(--secondary)]">{candidate.fullName}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
+          <form id="editCandidateForm" onSubmit={handleSubmit} className="space-y-2">
+            <h3 className="text-sm font-bold text-[var(--primary)] border-b border-[var(--secondary-100)] pb-2 mb-4 mt-0">Info Utama & Kontak</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>NIK KTP *</label>
+                <input 
+                  type="text" 
+                  maxLength={16}
+                  value={formData.nik_ktp} 
+                  onChange={(e) => setFormData({ ...formData, nik_ktp: e.target.value.replace(/\D/g, '') })} 
+                  className={inputClass} 
+                  placeholder="16 Digit Angka NIK"
+                  required 
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Nama Lengkap *</label>
+                <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className={inputClass} required />
+              </div>
+              <div>
+                <label className={labelClass}>Email *</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={inputClass} required />
+              </div>
+              <div>
+                <label className={labelClass}>WhatsApp</label>
+                <input type="text" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-2 gap-4 md:col-span-2">
+                <div>
+                  <label className={labelClass}>Jenis Kelamin</label>
+                  <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className={inputClass}>
+                    <option value="">Pilih...</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Tanggal Lahir</label>
+                  <input type="date" value={formData.birthDate} onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })} className={inputClass} />
+                </div>
+              </div>
+            </div>
+
+            <h3 className={sectionTitleClass}>Lokasi & Domisili</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Kota / Kabupaten Domisili</label>
+                <input type="text" value={formData.domicileCity} onChange={(e) => setFormData({ ...formData, domicileCity: e.target.value })} className={inputClass} placeholder="Cth: Jakarta Selatan" />
+              </div>
+              <div>
+                <label className={labelClass}>Provinsi Domisili</label>
+                <input type="text" value={formData.domicileProvince} onChange={(e) => setFormData({ ...formData, domicileProvince: e.target.value })} className={inputClass} placeholder="Cth: DKI Jakarta" />
+              </div>
+            </div>
+
+            <h3 className={sectionTitleClass}>Pendidikan Terakhir</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Tingkat</label>
+                  <input type="text" value={formData.degree} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} className={inputClass} placeholder="Cth: S1, D3" />
+                </div>
+                <div>
+                  <label className={labelClass}>Fakultas / Peminatan</label>
+                  <input type="text" value={formData.major} onChange={(e) => setFormData({ ...formData, major: e.target.value })} className={inputClass} placeholder="Cth: Teknik" />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>Program Studi (Jurusan)</label>
+                <input type="text" value={formData.studyProgram} onChange={(e) => setFormData({ ...formData, studyProgram: e.target.value })} className={inputClass} placeholder="Cth: Teknik Informatika" />
+              </div>
+              <div>
+                <label className={labelClass}>Universitas / Institusi</label>
+                <input type="text" value={formData.university} onChange={(e) => setFormData({ ...formData, university: e.target.value })} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>IPK</label>
+                  <input type="text" value={formData.gpa} onChange={(e) => setFormData({ ...formData, gpa: e.target.value })} className={inputClass} placeholder="Cth: 3.80" />
+                </div>
+                <div>
+                  <label className={labelClass}>Tahun Masuk</label>
+                  <input type="text" value={formData.startYear} onChange={(e) => setFormData({ ...formData, startYear: e.target.value })} className={inputClass} placeholder="YYYY" />
+                </div>
+                <div>
+                  <label className={labelClass}>Tahun Lulus</label>
+                  <input type="text" value={formData.gradYear} onChange={(e) => setFormData({ ...formData, gradYear: e.target.value })} className={inputClass} placeholder="YYYY" />
+                </div>
+              </div>
+            </div>
+
+            <h3 className={sectionTitleClass}>Pengalaman & Ekspektasi Pekerjaan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Posisi Dilamar (Pilihan 1)</label>
+                <input type="text" value={formData.appliedPosition1} onChange={(e) => setFormData({ ...formData, appliedPosition1: e.target.value })} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Posisi Dilamar (Pilihan 2)</label>
+                <input type="text" value={formData.appliedPosition2} onChange={(e) => setFormData({ ...formData, appliedPosition2: e.target.value })} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Total Pengalaman Kerja</label>
+                <input type="text" value={formData.totalExperience} onChange={(e) => setFormData({ ...formData, totalExperience: e.target.value })} className={inputClass} placeholder="Cth: 2 Tahun" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Ekspektasi Gaji (IDR)</label>
+                  <input type="number" value={formData.expectedSalary} onChange={(e) => setFormData({ ...formData, expectedSalary: e.target.value })} className={inputClass} placeholder="Angka saja..." />
+                </div>
+                <div>
+                  <label className={labelClass}>Notice Period</label>
+                  <input type="text" value={formData.noticePeriod} onChange={(e) => setFormData({ ...formData, noticePeriod: e.target.value })} className={inputClass} placeholder="Cth: 1 Bulan, Segera" />
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
+          <p className="text-[10px] text-[var(--secondary-500)] font-medium">Data kandidat akan langsung disinkronkan ke server.</p>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--secondary-600)] hover:text-[var(--primary-900)] hover:bg-[var(--secondary-100)] rounded-lg transition-colors">
+              Batal
+            </button>
+            <button type="submit" form="editCandidateForm" disabled={saving} className="px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-bold rounded-lg hover:bg-[var(--primary-700)] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm">
+              {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+EditModal.displayName = 'EditModal';
+
 // ==========================================
-// MODAL HASIL TES
+// MODAL HASIL TES (DENGAN UI 3 POIN)
 // ==========================================
-const [submissions, setSubmissions] = useState<any[]>([])
-const TestResultModal = memo(({ 
-  candidate, 
-  submissions,
-  onClose 
-}: { 
-  candidate: Candidate | null; 
-  submissions: any[];
-  onClose: () => void;
-}) => {
+const TestResultModal = memo(({ candidate, submissions, onClose }: { candidate: Candidate | null; submissions: any[]; onClose: () => void; }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
   const finalReportRef = useRef<HTMLDivElement>(null); 
-  
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [evaluations, setEvaluations] = useState<any[]>(candidate?.evaluations || []); 
 
@@ -359,10 +541,11 @@ const TestResultModal = memo(({
   const kraepelin = candSubs.find(s => s.test_type === "kraepelin");
   const papi = candSubs.find(s => s.test_type === "papi");
 
-  // Logika pewarnaan otomatis 
+  // Logika pewarnaan otomatis membaca kata Low / Below
   const getBadgeClass = (grade: string | undefined) => {
     if (!grade) return "";
-    return grade.toLowerCase().includes('kurang') 
+    const lowerGrade = grade.toLowerCase();
+    return (lowerGrade === 'low' || lowerGrade === 'below' || lowerGrade.includes('kurang')) 
         ? "bg-red-50 text-red-700 border-red-100" 
         : "text-teal-700 bg-teal-50 border-teal-100";
   };
@@ -419,27 +602,27 @@ const TestResultModal = memo(({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-gray-200 flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-xl border border-[var(--secondary-100)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         
         {/* Header Modal */}
-        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
+        <div className="px-6 py-5 border-b border-[var(--secondary-100)] flex justify-between items-center bg-[var(--background)] flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
               <FileText size={20} className="text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Hasil Tes Asesmen Lengkap</h2>
-              <p className="text-xs text-gray-500">{candidate.fullName} - {candidate.top_position}</p>
+              <h2 className="text-lg font-bold text-[var(--primary-900)]">Hasil Tes Asesmen Lengkap</h2>
+              <p className="text-xs text-[var(--secondary)]">{candidate.fullName} - {candidate.top_position}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <X size={20} className="text-gray-400" />
+          <button onClick={onClose} className="p-2 hover:bg-[var(--secondary-100)] rounded-full transition-colors">
+            <X size={20} className="text-[var(--secondary-400)]" />
           </button>
         </div>
 
         {/* Body Modal */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50 space-y-8">
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <BrainCircuit className="text-blue-500" size={20}/> Tes Kecerdasan (CFIT)
             </h3>
@@ -461,79 +644,40 @@ const TestResultModal = memo(({
             ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes CFIT.</p>}
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <Activity className="text-orange-500" size={20}/> Tes Kraepelin (Koran)
             </h3>
             {kraepelin ? (
-              <div className="space-y-4">
-                {/* Interpretasi Umum */}
-                {kraepelin.scores?.interpretation && (
-                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-center">
-                    <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider mb-1">Interpretasi Umum</p>
-                    <p className="text-sm text-blue-900 italic">"{kraepelin.scores.interpretation}"</p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                  {/* 1. CEPAT (Produktivitas / Panker) */}
-                  <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl relative overflow-hidden">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Zap className="w-4 h-4 text-amber-600" />
-                      <span className="text-[11px] font-bold uppercase text-gray-500">CEPAT (Produktivitas)</span>
-                    </div>
-                    {/* Menggunakan panker dengan fallback kecepatan agar data lama tetap muncul */}
-                    <p className="font-black text-3xl text-amber-900 mt-2">
-                      {kraepelin.scores?.panker ?? kraepelin.scores?.kecepatan ?? "-"}
-                    </p>
-                    {kraepelin.scores?.gradeSpeed && (
-                      <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeSpeed)}`}>
-                        {kraepelin.scores.gradeSpeed}
-                      </div>
+                <div className="space-y-4">
+                    {kraepelin.scores?.interpretation && (
+                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-center">
+                            <p className="text-xs text-blue-600 font-extrabold uppercase tracking-wider mb-1">Interpretasi Umum</p>
+                            <p className="text-sm text-blue-900 italic">"{kraepelin.scores.interpretation}"</p>
+                        </div>
                     )}
-                  </div>
-
-                  {/* 2. TELITI (Ketelitian / totalErrors) */}
-                  <div className="bg-red-50 border border-red-100 p-5 rounded-xl relative overflow-hidden">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <AlertCircle className="w-4 h-4 text-red-600" />
-                      <span className="text-[11px] font-bold uppercase text-gray-500">TELITI (Ketelitian)</span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl relative overflow-hidden">
+                            <div className="flex items-center justify-center gap-2 mb-2"><Zap className="w-4 h-4 text-amber-600"/><span className="text-[11px] font-bold uppercase text-gray-500">CEPAT (Produktivitas)</span></div>
+                            <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.panker ?? kraepelin.scores?.kecepatan ?? "-"}</p>
+                            {kraepelin.scores?.gradeSpeed && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeSpeed)}`}>{kraepelin.scores.gradeSpeed}</div>}
+                        </div>
+                        <div className="bg-red-50 border border-red-100 p-5 rounded-xl relative overflow-hidden">
+                            <div className="flex items-center justify-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TELITI (Ketelitian)</span></div>
+                            <p className="font-black text-3xl text-red-900 mt-2">{kraepelin.scores?.totalErrors ?? kraepelin.scores?.salah ?? "-"}</p>
+                            {kraepelin.scores?.gradeAccuracy && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeAccuracy)}`}>{kraepelin.scores.gradeAccuracy}</div>}
+                        </div>
+                        <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl relative overflow-hidden">
+                            <div className="flex items-center justify-center gap-2 mb-2"><Shield className="w-4 h-4 text-purple-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TAHAN (Ketahanan)</span></div>
+                            <p className="font-black text-3xl text-purple-900 mt-2">{kraepelin.scores?.hanker ?? "-"}</p>
+                            {kraepelin.scores?.gradeEndurance && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeEndurance)}`}>{kraepelin.scores.gradeEndurance}</div>}
+                        </div>
                     </div>
-                    {/* Menggunakan totalErrors dengan fallback salah */}
-                    <p className="font-black text-3xl text-red-900 mt-2">
-                      {kraepelin.scores?.totalErrors ?? kraepelin.scores?.salah ?? "-"}
-                    </p>
-                    {kraepelin.scores?.gradeAccuracy && (
-                      <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeAccuracy)}`}>
-                        {kraepelin.scores.gradeAccuracy}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 3. TAHAN (Ketahanan / Hanker - Hasil Auto-Healing) */}
-                  <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl relative overflow-hidden">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-purple-600" />
-                      <span className="text-[11px] font-bold uppercase text-gray-500">TAHAN (Ketahanan)</span>
-                    </div>
-                    {/* Hanker sekarang sudah diisi oleh utility kraepelinHealer */}
-                    <p className="font-black text-3xl text-purple-900 mt-2">
-                      {kraepelin.scores?.hanker ?? "-"}
-                    </p>
-                    {kraepelin.scores?.gradeEndurance && (
-                      <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeEndurance)}`}>
-                        {kraepelin.scores.gradeEndurance}
-                      </div>
-                    )}
-                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes Kraepelin.</p>
-            )}
+            ) : <p className="text-sm text-gray-500 italic">Belum ada data atau Kandidat belum menyelesaikan tes Kraepelin.</p>}
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="bg-white p-6 rounded-2xl border border-[var(--secondary-200)] shadow-sm">
             <h3 className="text-base font-bold text-gray-800 mb-5 border-b pb-3 flex items-center gap-2">
                 <PieChart className="text-purple-500" size={20}/> Tes Kepribadian (PAPI Kostick)
             </h3>
@@ -551,7 +695,7 @@ const TestResultModal = memo(({
         </div>
         
         {/* Footer Modal */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-white shrink-0">
+        <div className="px-6 py-4 border-t border-[var(--secondary-100)] flex justify-end gap-3 bg-[var(--background)] flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
             Tutup
           </button>
@@ -564,10 +708,15 @@ const TestResultModal = memo(({
         </div>
       </div>
       
+      {/* ========================================================= */}
+      {/* AREA RENDER PDF YANG DIPERBAIKI SINTAKSNYA */}
+      {/* ========================================================= */}
+      
       <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
         <TestReportPDF ref={pdfRef} data={pdfData as any} />
       </div>
 
+      {/* Pembungkus agar html2pdf bisa membaca lebar dengan presisi tanpa mengacaukan flexbox */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm' }}>
         <div ref={finalReportRef}>
           <CandidateFinalReport 
@@ -580,6 +729,7 @@ const TestResultModal = memo(({
           />
         </div>
       </div>
+
     </div>
   );
 });
@@ -587,43 +737,38 @@ TestResultModal.displayName = 'TestResultModal';
 
 
 // ==========================================
-// MAIN PAGE COMPONENT
+// MAIN COMPONENT: CANDIDATES PAGE
 // ==========================================
-export default function CandidateJourneyPage() {
-  const params = useParams()
-  const router = useRouter()
-  const candidateId = params.id as string
+export default function CandidatesPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
-  const [journey, setJourney] = useState<JourneyData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [actionLoading, setActionLoading] = useState(false)
-  
-  const [selectedStage, setSelectedStage] = useState('')
-  const [notes, setNotes] = useState('')
-  const [actorName, setActorName] = useState('HR Admin')
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [jobs, setJobs] = useState<JobPosition[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]); 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [manpowerList, setManpowerList] = useState<any[]>([])
-  const [selectedManpower, setSelectedManpower] = useState('')
-  
-  const [docType, setDocType] = useState<'offering' | 'ticket' | 'mcu'>('offering')
-  const [docFile, setDocFile] = useState<File | null>(null)
-  const [uploadNotes, setUploadNotes] = useState('')
-  const [uploadLoading, setUploadLoading] = useState(false)
-  
-  const [whatsappLink, setWhatsappLink] = useState<string | null>(null)
-  
-  useEffect(() => {
-    fetchJourney()
-  }, [candidateId])
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState("all"); 
+
+  const [detailModal, setDetailModal] = useState<CandidateDetail | null>(null);
+  const [editModal, setEditModal] = useState<CandidateDetail | null>(null);
+  const [testResultModal, setTestResultModal] = useState<Candidate | null>(null); 
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
-    const isHired = selectedStage.toLowerCase() === 'hired' || selectedStage === 'Offer Accepted';
-    if (isHired) {
-      fetchVacantManpower()
-    } else {
-      setSelectedManpower('') 
+    const userData = localStorage.getItem("hr_user");
+    if (!userData) {
+      router.push("/");
+      return;
     }
-  }, [selectedStage])
+    setUser(JSON.parse(userData));
+    fetchCandidates();
+    fetchJobs();
+    fetchSubmissions(); 
+  }, [router]);
 
   const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("hr_token");
@@ -633,510 +778,443 @@ export default function CandidateJourneyPage() {
     };
   };
 
-  const fetchVacantManpower = async () => {
+  const fetchCandidates = async () => {
     try {
-      const headers = getAuthHeaders();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/manpower/vacant`, { headers });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setManpowerList(data);
-      }
-    } catch (error) {
-      toast.error("Gagal memuat formasi Manpower yang kosong.");
-    }
-  }
-  
-  const fetchJourney = async () => {
-    try {
-      const candidateData = await getCandidateApplications(candidateId);
-      if (!candidateData.applications || candidateData.applications.length === 0) {
-        setJourney(null);
-        return;
-      }
-      const applicationId = candidateData.applications[0].id;
-      const data = await getJourneyTimeline(applicationId);
-
-      // =====================================================================
-      // LOGIKA AUTO-HEALING YANG SUDAH DISIMPLIFIKASI (MENGGUNAKAN UTILS)
-      // =====================================================================
-      if (data.history) {
-        data.history = data.history.map((item: any) => {
-          // Gunakan utility untuk menghitung Hanker dan mapping key secara otomatis
-          return healKraepelinSubmission(item);
-        });
-      }
-
-      setJourney(data);
-      
-      // Pastikan state submissions juga terisi data yang sudah di-heal untuk Modal
-      if (data.history) {
-        setSubmissions(data.history.filter((h: any) => h.test_type));
-      }
-
-    } catch (error: any) {
-      console.error('Error fetching journey:', error);
-      setJourney(null);
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/candidates`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Gagal mengambil data kandidat");
+      setCandidates(await res.json());
+      setError(null);
+    } catch (err) {
+      setError("Gagal menghubungkan ke server.");
+      toast.error("Gagal memuat daftar kandidat.");
     } finally {
       setLoading(false);
     }
   };
-  
-  const handleStageUpdate = async () => {
-    if (!journey || !selectedStage) {
-      toast.warning('Peringatan', { description: 'Silakan pilih tahap (stage) terlebih dahulu' })
-      return
-    }
-    
-    if (isRejectionStage(selectedStage) && !notes.trim()) {
-      toast.warning('Peringatan', { description: 'Catatan/alasan wajib diisi untuk tahap penolakan' })
-      return
-    }
 
-    const isHired = selectedStage.toLowerCase() === 'hired' || selectedStage === 'Offer Accepted';
-    if (isHired && !selectedManpower) {
-      toast.warning('Peringatan', { description: 'Silakan pilih Slot Manpower untuk kandidat yang diterima!' })
-      return
+  const fetchJobs = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/job-positions?status=active`, { headers: getAuthHeaders() });
+      if (res.ok) setJobs(await res.json());
+    } catch (err) {
+      console.error("Gagal mengambil data pekerjaan:", err);
     }
-    
-    setActionLoading(true)
+  };
+
+  const fetchSubmissions = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        const subsArray = Array.isArray(data) ? data : (data.data || []);
+
+        const processedData = healAllSubmissions(subsArray);
+        
+        setSubmissions(processedData);
+      }
+    } catch (e) {
+      console.error("Gagal memproses data hasil tes:", e);
+    }
+  };
+
+  const fetchCandidateDetail = async (id: string) => {
+    setLoadingDetail(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        return await res.json();
+      }
+      toast.error("Gagal memuat detail kandidat.");
+      return null;
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan jaringan.");
+      return null;
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleViewDetail = async (id: string) => {
+    const detail = await fetchCandidateDetail(id);
+    if (detail) setDetailModal(detail);
+  };
+
+  const handleEdit = async (id: string) => {
+    const detail = await fetchCandidateDetail(id);
+    if (detail) setEditModal(detail);
+  };
+
+  const handleSaveEdit = async (data: Partial<CandidateDetail>) => {
+    if (!editModal) return;
     
     const updateTask = async () => {
-      try {
-        if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
-        
-        const result = await updateStage({
-          application_id: journey.application_id,
-          new_stage: selectedStage,
-          notes: notes.trim(),
-          actor_name: actorName,
-          ...(isHired && selectedManpower ? { manpower_id: selectedManpower } : {})
-        })
-        
-        if (result.whatsapp_link) {
-          setWhatsappLink(result.whatsapp_link)
-          window.open(result.whatsapp_link, '_blank')
-        }
-        
-        setSelectedStage('')
-        setNotes('')
-        setSelectedManpower('')
-        await fetchJourney()
+      const res = await fetch(`${API_BASE_URL}/candidates/${editModal.id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
 
-        return result.message || 'Tahap kandidat berhasil diperbarui!'
-      } finally {
-        setActionLoading(false)
-      }
+      if (!res.ok) throw new Error("Gagal memperbarui data dari server.");
+      
+      setEditModal(null);
+      fetchCandidates();
+      return "Data kandidat berhasil diperbarui!";
+    };
+
+    await toast.promise(updateTask(), {
+      loading: 'Menyimpan perubahan...',
+      success: (message) => message,
+      error: (err) => err.message || 'Terjadi kesalahan sistem.',
+    });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus kandidat ini? Data tidak dapat dikembalikan.")) return;
+
+    const deleteTask = async () => {
+      const res = await fetch(`${API_BASE_URL}/candidates/${id}`, { 
+        method: "DELETE", 
+        headers: getAuthHeaders() 
+      });
+      
+      if (!res.ok) throw new Error("Gagal menghapus data dari server.");
+      
+      setCandidates(prev => prev.filter(c => c.id !== id));
+      return "Kandidat berhasil dihapus!";
+    };
+
+    toast.promise(deleteTask(), {
+      loading: 'Menghapus data kandidat...',
+      success: (message) => message,
+      error: (err) => err.message || 'Terjadi kesalahan sistem.',
+    });
+  };
+
+  const filteredCandidates = candidates.filter((c) => {
+    const searchLower = (searchQuery || "").toLowerCase();
+    const matchesSearch = 
+      (c.fullName || "").toLowerCase().includes(searchLower) || 
+      (c.email || "").toLowerCase().includes(searchLower);
+    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+    const matchesJob = jobFilter === "all" || c.top_position === jobFilter; 
+    return matchesSearch && matchesStatus && matchesJob;
+  });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Pending": return "badge badge-warning";
+      case "Screening": return "badge badge-primary";
+      case "Interview": return "badge badge-primary";
+      case "Hired": return "badge badge-success";
+      case "Rejected": return "badge badge-danger";
+      default: return "badge badge-secondary";
     }
+  };
 
-    toast.promise(updateTask(), {
-      loading: 'Memperbarui tahap...',
-      success: (msg) => msg,
-      error: (err) => err.message || 'Gagal memperbarui tahap.',
-    })
-  }
-  
-  const handleDocumentUpload = async () => {
-    if (!docFile) {
-      toast.warning('Peringatan', { description: 'Silakan pilih file dokumen terlebih dahulu' })
-      return
-    }
-    
-    setUploadLoading(true)
+  const getTestBadge = (status: string) => {
+    if (status === "Completed") return "badge badge-success";
+    if (status === "Active") return "badge badge-primary";
+    return "badge badge-secondary text-[var(--secondary-400)]";
+  };
 
-    const uploadTask = async () => {
-      try {
-        if (!journey?.application_id) throw new Error('ID Aplikasi tidak ditemukan')
-        
-        const result = await uploadDocument(journey.application_id, docType, docFile, uploadNotes)
-        
-        if (result.whatsapp_link) {
-          setWhatsappLink(result.whatsapp_link)
-          window.open(result.whatsapp_link, '_blank')
-        }
-        
-        setDocFile(null)
-        setUploadNotes('')
-        await fetchJourney()
+  if (!user) return null;
 
-        return result.message || 'Dokumen berhasil diunggah!'
-      } finally {
-        setUploadLoading(false)
-      }
-    }
-
-    toast.promise(uploadTask(), {
-      loading: 'Mengunggah dokumen...',
-      success: (msg) => msg,
-      error: (err) => err.message || 'Gagal mengunggah dokumen.',
-    })
-  }
-  
-  const copyWhatsAppLink = () => {
-    if (whatsappLink) {
-      navigator.clipboard.writeText(whatsappLink)
-      toast.success('Disalin!', { description: 'Link WhatsApp berhasil disalin ke clipboard.' })
-    }
-  }
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[var(--background)]">
-        <Sidebar />
-        <div className="lg:ml-64 min-h-screen flex flex-col">
-          <Header title="Journey Loading..." subtitle="" />
-          <main className="flex-1 flex items-center justify-center p-8">
-            <Loader2 className="animate-spin text-[var(--primary)]" size={48} />
-          </main>
-          <Footer />
-        </div>
-      </div>
-    )
-  }
-  
-  if (!journey) {
-    return (
-      <div className="min-h-screen bg-[var(--background)]">
-        <Sidebar />
-        <div className="lg:ml-64 min-h-screen flex flex-col">
-          <Header title="Journey Not Available" subtitle="" />
-          <main className="flex-1 flex items-center justify-center p-8">
-            <div className="text-center max-w-md">
-              <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <TrendingUp className="text-orange-600" size={48} />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-3">No Recruitment Journey Yet</h2>
-              <p className="text-slate-600 mb-6">
-                Kandidat ini belum memiliki <strong>job application</strong> aktif. 
-                Recruitment journey hanya tersedia setelah kandidat di-assign ke job position.
-              </p>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                <h3 className="font-bold text-blue-900 mb-2">📋 Langkah selanjutnya:</h3>
-                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                  <li>Buka halaman Candidates</li>
-                  <li>Assign kandidat ke job position yang sesuai</li>
-                  <li>Journey tracking akan otomatis tersedia</li>
-                </ol>
-              </div>
-              
-              <button 
-                onClick={() => router.push('/candidates')} 
-                className="mt-4 px-6 py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-700)] font-semibold shadow-md transition-all"
-              >
-                Back to Candidates
-              </button>
-            </div>
-          </main>
-          <Footer />
-        </div>
-      </div>
-    )
-  }
-  
-  const allowedNext = getAllowedNextStages(journey.current_stage)
-  const isTerminal = isTerminalStage(journey.current_stage)
-  const progress = getProgressPercentage(journey.current_stage)
-  const papiScores = (journey as any)?.papi_scores || (journey as any)?.metadata?.papi_scores || null;
-  
   return (
-    <div className="min-h-screen bg-[var(--background)] flex">
+    <div className="min-h-screen bg-[var(--background)]">
       <Sidebar />
-      <div className="lg:ml-64 flex-1 flex flex-col min-h-screen min-w-0">
+      <div className="lg:ml-64 min-h-screen flex flex-col">
         <Header 
-          title="Recruitment Journey"
-          subtitle={`${journey.candidate_name} - ${journey.job_title}`}
+          title="Candidates" 
+          subtitle="Manage job applicants and their test results"
         />
-        
         <main className="p-4 md:p-8 flex-1">
-          <button
-            onClick={() => router.push('/candidates')}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 font-medium"
-          >
-            <ChevronLeft size={20} />
-            Back to Candidates
-          </button>
           
-          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 mb-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] text-2xl font-bold">
-                {journey.candidate_name.charAt(0)}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">{journey.candidate_name}</h2>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mt-1">
-                  <p className="text-gray-600 flex items-center gap-2 text-sm font-medium">
-                    <Briefcase size={16} className="text-gray-400" />
-                    {journey.job_title}
-                  </p>
-                  <p className="text-gray-600 flex items-center gap-2 text-sm font-medium">
-                    <CreditCard size={16} className="text-gray-400" />
-                    NIK: {(journey as any).nik_ktp || (journey as any).candidate_nik || 'Tidak ada data'}
-                  </p>
-                </div>
-              </div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div className="w-full md:w-auto">
+              <h2 className="text-xl md:text-2xl font-bold text-[var(--primary-900)]">Database Kandidat</h2>
+              <p className="text-xs md:text-sm text-[var(--secondary)] mt-1">Total {candidates.length} kandidat terdaftar</p>
             </div>
             
-            <div className="mb-2 mt-4">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-semibold text-gray-700">Overall Progress</span>
-                <span className="text-sm font-bold text-[var(--primary)]">{progress}%</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div 
-                  className="bg-[var(--primary)] h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
+            <button 
+              onClick={() => router.push('/apply')} 
+              className="w-full md:w-auto bg-[var(--primary)] text-white px-5 py-3 md:py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[var(--primary-700)] hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95 text-sm"
+            >
+              <Plus size={18} /> Add Candidate
+            </button>
+          </div>
+
+          <div className="card-static bg-white p-4 rounded-xl border border-[var(--secondary-200)] mb-6 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+              <div className="relative flex-1 w-full">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--secondary-400)]" />
+                <input
+                  type="text"
+                  placeholder="Cari nama atau email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm"
                 />
               </div>
-            </div>
-            
-            <div className="mt-4">
-              <span className={`inline-block px-4 py-2 rounded-lg font-bold text-sm border-2 ${getStageColor(journey.current_stage)}`}>
-                Current: {RecruitmentStages[journey.current_stage as keyof typeof RecruitmentStages]}
-              </span>
+
+              <div className="flex flex-col sm:flex-row md:items-center gap-3 w-full md:w-auto">
+                <div className="w-full md:w-auto flex items-center gap-2">
+                  <Briefcase size={18} className="text-[var(--secondary-400)] hidden md:block" />
+                  <select
+                    value={jobFilter}
+                    onChange={(e) => setJobFilter(e.target.value)}
+                    className="w-full md:w-56 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-white cursor-pointer text-sm text-[var(--secondary-700)] appearance-none"
+                  >
+                    <option value="all">Semua Posisi</option>
+                    {jobs.map((job) => (
+                      <option key={job.id} value={job.title}>{job.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="w-full md:w-auto flex items-center gap-2">
+                  <Filter size={18} className="text-[var(--secondary-400)] hidden md:block" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full md:w-48 px-4 py-2.5 border border-[var(--secondary-200)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-white cursor-pointer text-sm text-[var(--secondary-700)] appearance-none"
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Screening">Screening</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Hired">Hired</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="flex flex-col xl:flex-row gap-6">
-            <div className="flex-1 flex flex-col gap-6">
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                    <TrendingUp className="text-[var(--primary)]" size={22} />
-                    Journey Timeline
-                  </h2>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500 font-medium">Current Stage</p>
-                    <p className="text-sm font-bold text-[var(--primary)]">
-                      {RecruitmentStages[journey.current_stage as keyof typeof RecruitmentStages]}
-                    </p>
-                  </div>
-                </div>
-                
-                <JourneyTimeline 
-                  currentStage={journey.current_stage}
-                  history={journey.history}
-                />
-              </div>
 
-              {papiScores && Object.keys(papiScores).length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                  <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-                    <BrainCircuit className="text-purple-600" size={22} />
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">Hasil PAPI Kostick</h2>
-                      <p className="text-xs text-gray-500 font-medium">Profil Kepribadian & Gaya Kerja Kandidat</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
-                    {Object.entries(papiScores)
-                      .sort((a, b) => (b[1] as number) - (a[1] as number))
-                      .map(([trait, score], i) => {
-                        const numericScore = Number(score);
-                        return (
-                          <div key={i} className="flex flex-col border-b border-dashed border-gray-200 pb-3">
-                            <div className="flex justify-between items-center mb-1.5">
-                              <div className="text-sm font-bold text-gray-800">
-                                <span className="text-purple-700 mr-1.5">[{trait}]</span> 
-                                {getPapiTraitName(trait)}
-                              </div>
-                              <div className="text-xs font-bold text-purple-800 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded shadow-sm">
-                                Skor: {numericScore}
-                              </div>
-                            </div>
-                            <div className="text-xs text-gray-500 italic">
-                              Interpretasi: "{getPapiInterpretation(trait, numericScore)}"
-                            </div>
-                          </div>
-                        )
-                      })}
-                  </div>
-                </div>
-              )}
-
+          {error && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 mb-6 text-red-700 animation-shake">
+              <AlertCircle size={20} />
+              <p>{error}</p>
             </div>
-            
-            <div className="w-full xl:w-[400px] space-y-4 flex-shrink-0">
-              {!isTerminal && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-3">
-                    <TrendingUp className="text-blue-600" size={20} />
-                    <div>
-                      <h3 className="font-bold text-gray-900">Next Stage</h3>
-                      <p className="text-xs text-gray-500">Move candidate forward</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Select Stage</label>
-                      <select
-                        value={selectedStage}
-                        onChange={(e) => setSelectedStage(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] font-medium text-sm transition-all"
-                      >
-                        <option value="">Choose stage...</option>
-                        {allowedNext.map(stage => (
-                          <option key={stage} value={stage}>
-                            {RecruitmentStages[stage as keyof typeof RecruitmentStages]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+          )}
 
-                    {(selectedStage.toLowerCase() === 'hired' || selectedStage === 'Offer Accepted') && (
-                      <div className="animate-in fade-in slide-in-from-top-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                        <label className="block text-xs font-bold text-emerald-700 mb-2 uppercase tracking-wide">
-                          Slot Manpower (Wajib) <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          value={selectedManpower}
-                          onChange={(e) => setSelectedManpower(e.target.value)}
-                          className="w-full px-4 py-3 bg-white border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 font-medium text-sm transition-all"
-                        >
-                          <option value="">-- Pilih Formasi Kosong --</option>
-                          {manpowerList.map(slot => (
-                            <option key={slot.id} value={slot.id}>
-                              {slot.position_title} ({slot.level}) - Dept: {slot.department}
-                            </option>
-                          ))}
-                        </select>
-                        {manpowerList.length === 0 ? (
-                          <p className="text-xs text-red-500 mt-2 font-medium">⚠️ Tidak ada slot kosong.</p>
-                        ) : (
-                          <p className="text-xs text-emerald-600 mt-2 font-medium">✓ {manpowerList.length} formasi tersedia</p>
-                        )}
+          {loadingDetail && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+              <Loader2 className="w-10 h-10 animate-spin text-white" />
+            </div>
+          )}
+
+          <div className="bg-transparent md:bg-white md:rounded-2xl md:border md:border-[var(--secondary-200)] md:overflow-hidden md:shadow-sm">
+            {loading ? (
+              <div className="p-20 text-center text-[var(--secondary)]">
+                <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-[var(--primary)]" />
+                <p className="font-medium">Memuat data kandidat...</p>
+              </div>
+            ) : (
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--secondary-50)] border-b border-[var(--secondary-100)]">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Kandidat</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Posisi / Skor</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Test Status</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Tanggal Apply</th>
+                        <th className="px-6 py-4 text-center text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Hasil Tes</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-[var(--secondary)] uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--secondary-50)]">
+                      {filteredCandidates.map((candidate) => (
+                        <tr key={candidate.id} className="hover:bg-[var(--primary-50)]/30 transition-colors group">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-sm">
+                                {(candidate.fullName || "?").charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-[var(--primary-900)] group-hover:text-[var(--primary)] transition-colors">{candidate.fullName || "Unknown"}</p>
+                                <div className="flex items-center gap-2 text-xs text-[var(--secondary)] mt-0.5">
+                                  <Mail size={12} />
+                                  <span className="truncate max-w-[150px]">{candidate.email || "-"}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-[var(--primary-900)] flex items-center gap-1">
+                                <Briefcase size={14} className="text-[var(--secondary-400)]"/> {candidate.top_position || "Unassigned"}
+                              </span>
+                              <span className={`text-xs mt-1 ${candidate.match_score >= 80 ? 'text-[var(--primary)] font-bold' : 'text-[var(--secondary)]'}`}>
+                                Match: {candidate.match_score || 0}%
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`${getStatusBadge(candidate.status)} rounded-full px-2.5 py-1 text-xs font-semibold`}>
+                              {candidate.status || "-"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getTestBadge(candidate.test_status)}`}>
+                              {candidate.test_status || "-"}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-[var(--secondary)]">
+                            {candidate.created_at ? new Date(candidate.created_at).toLocaleDateString("id-ID", {
+                              day: 'numeric', month: 'short', year: 'numeric'
+                            }) : "-"}
+                          </td>
+                          
+                          <td className="px-6 py-4 text-center">
+                             <button 
+                               onClick={() => setTestResultModal(candidate)}
+                               className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                             >
+                               <Award size={14}/> Lihat Hasil
+                             </button>
+                          </td>
+
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button 
+                                onClick={() => router.push(`/candidates/${candidate.id}/journey`)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                                title="View Journey"
+                              >
+                                <TrendingUp size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleViewDetail(candidate.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--primary)] hover:bg-[var(--primary-50)] rounded-lg transition-colors" 
+                                title="Lihat Detail"
+                              >
+                                <Eye size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleEdit(candidate.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--success)] hover:bg-green-50 rounded-lg transition-colors" 
+                                title="Edit"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(candidate.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--danger)] hover:bg-red-50 rounded-lg transition-colors" 
+                                title="Hapus"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden space-y-4">
+                  {filteredCandidates.map((candidate) => (
+                    <div key={candidate.id} className="bg-white p-4 rounded-xl border border-[var(--secondary-200)] shadow-sm flex flex-col gap-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-[var(--primary-100)] flex items-center justify-center text-[var(--primary-700)] font-bold text-lg">
+                             {(candidate.fullName || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-[var(--primary-900)] text-base">{candidate.fullName || "Unknown"}</h3>
+                            <p className="text-xs text-[var(--secondary)] mt-0.5">{candidate.email || "-"}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                           <span className={`text-sm font-bold block ${candidate.match_score >= 80 ? 'text-[var(--primary)]' : 'text-[var(--secondary)]'}`}>
+                              {candidate.match_score || 0}%
+                           </span>
+                           <span className="text-[10px] text-[var(--secondary-400)] uppercase tracking-wider">Match</span>
+                        </div>
                       </div>
-                    )}
-                    
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
-                        Notes {isRejectionStage(selectedStage) && <span className="text-red-500">*</span>}
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] text-sm resize-none transition-all"
-                        placeholder={isRejectionStage(selectedStage) ? 'Reason required for rejection' : 'Optional notes...'}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Actor</label>
-                      <input
-                        type="text"
-                        value={actorName}
-                        onChange={(e) => setActorName(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] text-sm transition-all"
-                        placeholder="e.g. Sarah (HR)"
-                      />
-                    </div>
-                    
-                    <button
-                      onClick={handleStageUpdate}
-                      disabled={actionLoading || !selectedStage}
-                      className="w-full bg-[var(--primary)] text-white rounded-xl py-3.5 font-bold hover:bg-[var(--primary-700)] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center gap-2"
-                    >
-                      {actionLoading && <Loader2 className="animate-spin" size={18} />}
-                      {actionLoading ? 'Updating...' : 'Update Stage'}
-                    </button>
-                  </div>
-                </div>
-              )}
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
-                  <Upload size={16} className="text-orange-600" />
-                  <h3 className="font-bold text-gray-900 text-sm">Upload Document</h3>
-                </div>
-                
-                <div className="space-y-3">
-                  <select
-                    value={docType}
-                    onChange={(e) => setDocType(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm transition-all"
-                  >
-                    <option value="offering">Offering Letter</option>
-                    <option value="ticket">Flight Ticket</option>
-                    <option value="mcu">MCU Results</option>
-                  </select>
-                  
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setDocFile(e.target.files?.[0] || null)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm transition-all"
-                  />
-                  {docFile && <p className="text-xs text-gray-500 truncate">📎 {docFile.name}</p>}
-                  
-                  <input
-                    type="text"
-                    value={uploadNotes}
-                    onChange={(e) => setUploadNotes(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm transition-all"
-                    placeholder="Optional notes..."
-                  />
-                  
-                  <button
-                    onClick={handleDocumentUpload}
-                    disabled={uploadLoading || !docFile}
-                    className="w-full bg-orange-500 text-white rounded-lg py-2.5 font-bold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
-                  >
-                    {uploadLoading && <Loader2 className="animate-spin" size={16} />}
-                    {uploadLoading ? 'Uploading...' : 'Upload File'}
-                  </button>
-                </div>
-                
-                {journey.metadata && Object.keys(journey.metadata).some(k => k.endsWith('_url')) && (
-                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-                    <p className="text-xs font-bold text-gray-500 uppercase">Uploaded Files:</p>
-                    {Object.entries(journey.metadata).filter(([k]) => k.endsWith('_url')).map(([key, url]) => (
-                      <a
-                        key={key}
-                        href={`${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+
+                      <div className="grid grid-cols-2 gap-2 text-sm border-y border-[var(--secondary-100)] py-3">
+                         <div>
+                            <p className="text-[10px] text-[var(--secondary-400)] uppercase">Posisi</p>
+                            <p className="font-medium text-[var(--primary-900)] truncate">{candidate.top_position || "Unassigned"}</p>
+                         </div>
+                         <div>
+                            <p className="text-[10px] text-[var(--secondary-400)] uppercase">Joined</p>
+                            <p className="font-medium text-[var(--secondary)]">
+                               {candidate.created_at ? new Date(candidate.created_at).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : "-"}
+                            </p>
+                         </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                          <span className={`${getStatusBadge(candidate.status)} rounded-lg px-3 py-1 text-xs font-semibold flex-1 text-center`}>
+                              {candidate.status || "-"}
+                          </span>
+                          <span className={`rounded-lg px-3 py-1 text-xs font-semibold flex-1 text-center border border-[var(--secondary-200)] bg-[var(--secondary-50)] text-[var(--secondary-600)]`}>
+                              {candidate.test_status || "-"} Test
+                          </span>
+                      </div>
+
+                      <button 
+                         onClick={() => setTestResultModal(candidate)} 
+                         className="w-full py-2.5 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-colors"
                       >
-                        <Download size={12} />
-                        {key.replace('_url', '').toUpperCase()}
-                      </a>
-                    ))}
+                          <Award size={16} /> Lihat Hasil Asesmen Lengkap
+                      </button>
+
+                      <div className="pt-3 border-t border-[var(--secondary-50)] flex justify-between gap-2 overflow-x-auto">
+                          <button 
+                            onClick={() => router.push(`/candidates/${candidate.id}/journey`)}
+                            className="flex-1 py-2 px-3 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-blue-100"
+                          >
+                             <TrendingUp size={14} /> Journey
+                          </button>
+                          <button 
+                            onClick={() => handleViewDetail(candidate.id)}
+                            className="flex-1 py-2 px-3 bg-[var(--primary-50)] text-[var(--primary)] rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-[var(--primary-100)]"
+                          >
+                             <Eye size={14} /> Detail
+                          </button>
+                          <button 
+                                onClick={() => handleEdit(candidate.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--success)] bg-gray-50 rounded-lg" 
+                              >
+                                <Edit size={16} />
+                          </button>
+                          <button 
+                                onClick={() => handleDelete(candidate.id)}
+                                className="p-2 text-[var(--secondary-400)] hover:text-[var(--danger)] bg-gray-50 rounded-lg" 
+                              >
+                                <Trash2 size={16} />
+                          </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredCandidates.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-[var(--secondary)]">
+                    <div className="w-16 h-16 bg-[var(--secondary-50)] rounded-full flex items-center justify-center mb-4">
+                       <Search size={32} className="text-[var(--secondary-400)]" />
+                    </div>
+                    <p className="font-bold text-[var(--primary-900)]">Tidak ada kandidat yang ditemukan</p>
+                    <p className="text-sm">Coba ubah filter pencarian Anda atau tambahkan kandidat baru.</p>
                   </div>
                 )}
-              </div>
-              
-              {whatsappLink && (
-                <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Send size={16} className="text-green-700" />
-                    <h4 className="font-bold text-green-900 text-sm">WhatsApp Ready</h4>
-                  </div>
-                  <button
-                    onClick={copyWhatsAppLink}
-                    className="w-full bg-green-600 text-white rounded-lg py-2 font-bold hover:bg-green-700 text-sm mb-2 transition-colors shadow-sm"
-                  >
-                    Copy Link
-                  </button>
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full bg-white text-green-700 border border-green-200 rounded-lg py-2 font-bold hover:bg-green-100 text-sm text-center transition-colors"
-                  >
-                    Open WhatsApp
-                  </a>
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </main>
         <Footer />
       </div>
+
+      {detailModal && <DetailModal candidate={detailModal} onClose={() => setDetailModal(null)} />}
+      {editModal && <EditModal candidate={editModal} onClose={() => setEditModal(null)} onSave={handleSaveEdit} />}
+      {testResultModal && <TestResultModal candidate={testResultModal} submissions={submissions} onClose={() => setTestResultModal(null)} />}
     </div>
-  )
+  );
 }

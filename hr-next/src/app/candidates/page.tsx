@@ -514,11 +514,20 @@ const EditModal = memo(({ candidate, onClose, onSave }: { candidate: CandidateDe
 EditModal.displayName = 'EditModal';
 
 // ==========================================
-// MODAL HASIL TES (DENGAN UI 3 POIN)
+// MODAL HASIL TES
 // ==========================================
-const TestResultModal = memo(({ candidate, submissions, onClose }: { candidate: Candidate | null; submissions: any[]; onClose: () => void; }) => {
+const TestResultModal = memo(({ 
+  candidate, 
+  submissions,
+  onClose 
+}: { 
+  candidate: Candidate | null; 
+  submissions: any[];
+  onClose: () => void;
+}) => {
   const pdfRef = useRef<HTMLDivElement>(null);
   const finalReportRef = useRef<HTMLDivElement>(null); 
+  
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [evaluations, setEvaluations] = useState<any[]>(candidate?.evaluations || []); 
 
@@ -541,11 +550,11 @@ const TestResultModal = memo(({ candidate, submissions, onClose }: { candidate: 
   const kraepelin = candSubs.find(s => s.test_type === "kraepelin");
   const papi = candSubs.find(s => s.test_type === "papi");
 
-  const totalErrors = kraepelin?.scores?.totalErrors ?? "-";
-
+  // Logika pewarnaan otomatis, di-update mendeteksi "Low" atau "Below"
   const getBadgeClass = (grade: string | undefined) => {
     if (!grade) return "";
-    return grade.toLowerCase().includes('kurang') 
+    const lowerGrade = grade.toLowerCase();
+    return (lowerGrade === 'low' || lowerGrade === 'below' || lowerGrade.includes('kurang')) 
         ? "bg-red-50 text-red-700 border-red-100" 
         : "text-teal-700 bg-teal-50 border-teal-100";
   };
@@ -656,33 +665,21 @@ const TestResultModal = memo(({ candidate, submissions, onClose }: { candidate: 
                             <p className="text-sm text-blue-900 italic">"{kraepelin.scores.interpretation}"</p>
                         </div>
                     )}
-                    {/* Cari bagian Kraepelin di dalam Modal, pastikan variabelnya seperti ini: */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                        {/* CEPAT */}
-                        <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                <Zap size={16} className="text-amber-600"/><span className="text-xs font-bold uppercase">KECEPATAN</span>
-                            </div>
-                            <p className="font-black text-3xl text-amber-900">{kraepelin.scores?.panker ?? "-"}</p>
-                            {kraepelin.scores?.gradeSpeed && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeSpeed)}`}>{kraepelin.scores.gradeSpeed}</div>}
+                        <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl relative overflow-hidden">
+                            <div className="flex items-center justify-center gap-2 mb-2"><Zap className="w-4 h-4 text-amber-600"/><span className="text-[11px] font-bold uppercase text-gray-500">CEPAT (Produktivitas)</span></div>
+                            <p className="font-black text-3xl text-amber-900 mt-2">{kraepelin.scores?.panker ?? kraepelin.scores?.kecepatan ?? "-"}</p>
+                            {kraepelin.scores?.gradeSpeed && <div className={`mt-2 text-[10px] font-bold px-2 py-0.5 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeSpeed)}`}>{kraepelin.scores.gradeSpeed}</div>}
                         </div>
-
-                        {/* TELITI */}
-                        <div className="bg-red-50 border border-red-100 p-5 rounded-xl">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                <AlertCircle size={16} className="text-red-600"/><span className="text-xs font-bold uppercase">KETELITIAN</span>
-                            </div>
-                            <p className="font-black text-3xl text-red-900">{kraepelin.scores?.totalErrors ?? "-"}</p>
-                            {kraepelin.scores?.gradeAccuracy && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeAccuracy)}`}>{kraepelin.scores.gradeAccuracy}</div>}
+                        <div className="bg-red-50 border border-red-100 p-5 rounded-xl relative overflow-hidden">
+                            <div className="flex items-center justify-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TELITI (Ketelitian)</span></div>
+                            <p className="font-black text-3xl text-red-900 mt-2">{kraepelin.scores?.totalErrors ?? kraepelin.scores?.salah ?? "-"}</p>
+                            {kraepelin.scores?.gradeAccuracy && <div className={`mt-2 text-[10px] font-bold px-2 py-0.5 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeAccuracy)}`}>{kraepelin.scores.gradeAccuracy}</div>}
                         </div>
-
-                        {/* TAHAN (HASIL HEALING UTILS) */}
-                        <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                <Shield size={16} className="text-purple-600"/><span className="text-xs font-bold uppercase">KETAHANAN</span>
-                            </div>
-                            <p className="font-black text-3xl text-purple-900">{kraepelin.scores?.hanker ?? "-"}</p>
-                            {kraepelin.scores?.gradeEndurance && <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeEndurance)}`}>{kraepelin.scores.gradeEndurance}</div>}
+                        <div className="bg-purple-50 border border-purple-100 p-5 rounded-xl relative overflow-hidden">
+                            <div className="flex items-center justify-center gap-2 mb-2"><Shield className="w-4 h-4 text-purple-600"/><span className="text-[11px] font-bold uppercase text-gray-500">TAHAN (Ketahanan)</span></div>
+                            <p className="font-black text-3xl text-purple-900 mt-2">{kraepelin.scores?.hanker ?? "-"}</p>
+                            {kraepelin.scores?.gradeEndurance && <div className={`mt-2 text-[10px] font-bold px-2 py-0.5 rounded w-fit mx-auto border ${getBadgeClass(kraepelin.scores.gradeEndurance)}`}>{kraepelin.scores.gradeEndurance}</div>}
                         </div>
                     </div>
                 </div>
@@ -814,15 +811,17 @@ export default function CandidatesPage() {
     }
   };
 
+  // =====================================================================
+  // LOGIKA AUTO-HEALING: MEMULIHKAN DATA HANKER YANG KOSONG
+  // =====================================================================
   const fetchSubmissions = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/management/submissions`, { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         const subsArray = Array.isArray(data) ? data : (data.data || []);
-
-        // CUKUP GANTI DENGAN BARIS INI:
-        // Fungsi ini otomatis menghitung Hanker & memetakan key lama (kecepatan/salah)
+        
+        // Gunakan Utility Healer untuk menangani data lama & menghitung Hanker otomatis
         const processedData = healAllSubmissions(subsArray);
         
         setSubmissions(processedData);

@@ -80,25 +80,25 @@ export const calculateKraepelinScore = (
   // ==========================================
   
   // A. Kategori KECEPATAN (Panker)
-  let gradeSpeed = "Kurang Sekali";
-  if (panker > 17.21) gradeSpeed = "Baik Sekali";
-  else if (panker >= 14.973) gradeSpeed = "Baik";
-  else if (panker >= 12.736) gradeSpeed = "Sedang";
-  else if (panker >= 10.5) gradeSpeed = "Kurang";
+  let gradeSpeed = "Below";
+  if (panker > 17.21) gradeSpeed = "Above";
+  else if (panker >= 14.973) gradeSpeed = "High";
+  else if (panker >= 12.736) gradeSpeed = "Average";
+  else if (panker >= 10.5) gradeSpeed = "Low";
   
   // B. Kategori KETELITIAN (Total Errors) - Makin kecil makin bagus
-  let gradeAccuracy = "Kurang Sekali"; // Default >= 23
-  if (totalErrors <= 0) gradeAccuracy = "Baik Sekali"; // 0
-  else if (totalErrors <= 2) gradeAccuracy = "Baik";   // 1 - 2
-  else if (totalErrors <= 13) gradeAccuracy = "Sedang"; // 3 - 13
-  else if (totalErrors <= 22) gradeAccuracy = "Kurang"; // 14 - 22
+  let gradeAccuracy = "Below"; // Default >= 23
+  if (totalErrors <= 0) gradeAccuracy = "Above"; // 0
+  else if (totalErrors <= 2) gradeAccuracy = "High";   // 1 - 2
+  else if (totalErrors <= 13) gradeAccuracy = "Average"; // 3 - 13
+  else if (totalErrors <= 22) gradeAccuracy = "Low"; // 14 - 22
 
   // C. Kategori KETAHANAN (Hanker) - Boleh bernilai minus
-  let gradeEndurance = "Kurang Sekali";
-  if (hanker > 2.496) gradeEndurance = "Baik Sekali";
-  else if (hanker >= 1.015) gradeEndurance = "Baik";
-  else if (hanker >= -0.468) gradeEndurance = "Sedang";
-  else if (hanker >= -1.95) gradeEndurance = "Kurang";
+  let gradeEndurance = "Below";
+  if (hanker > 2.496) gradeEndurance = "Above";
+  else if (hanker >= 1.015) gradeEndurance = "High";
+  else if (hanker >= -0.468) gradeEndurance = "Average";
+  else if (hanker >= -1.95) gradeEndurance = "Low";
 
   // ==========================================
   // KEMBALIKAN 3 POIN SAJA
@@ -110,6 +110,6 @@ export const calculateKraepelinScore = (
     gradeSpeed,      
     gradeAccuracy,   
     gradeEndurance,  
-    interpretation: `Kecepatan: ${gradeSpeed}, Ketelitian: ${gradeAccuracy}, Ketahanan: ${gradeEndurance}`
+    interpretation: `Speed: ${gradeSpeed}, Accuracy: ${gradeAccuracy}, Endurance: ${gradeEndurance}`
   };
 };

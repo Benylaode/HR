@@ -106,41 +106,53 @@ export default function CandidateFinalReport({
   }
 
   // =====================================
-  // 3. PENENTUAN KETERANGAN (GRADE LABEL)
+  // 3. PENENTUAN KETERANGAN (GRADE LABEL) BAHASA INGGRIS
   // =====================================
   const getSpeedLabel = (n: any) => {
     if (n === '-' || n === undefined) return '-';
     const v = Number(n);
-    if (v > 17.21) return "Baik Sekali";
-    if (v >= 14.973) return "Baik";
-    if (v >= 12.736) return "Sedang";
-    if (v >= 10.5) return "Kurang";
-    return "Kurang Sekali";
+    if (v > 17.21) return "Above";
+    if (v >= 14.973) return "High";
+    if (v >= 12.736) return "Average";
+    if (v >= 10.5) return "Low";
+    return "Below";
   };
 
   const getAccuracyLabel = (n: any) => {
     if (n === '-' || n === undefined) return '-';
     const v = Number(n);
-    if (v <= 0) return "Baik Sekali";
-    if (v <= 2) return "Baik";
-    if (v <= 13) return "Sedang";
-    if (v <= 22) return "Kurang";
-    return "Kurang Sekali";
+    if (v <= 0) return "Above";
+    if (v <= 2) return "High";
+    if (v <= 13) return "Average";
+    if (v <= 22) return "Low";
+    return "Below";
   };
 
   const getEnduranceLabel = (n: any) => {
     if (n === '-' || n === undefined) return '-';
     const v = Number(n);
-    if (v > 2.496) return "Baik Sekali";
-    if (v >= 1.015) return "Baik";
-    if (v >= -0.468) return "Sedang";
-    if (v >= -1.95) return "Kurang";
-    return "Kurang Sekali";
+    if (v > 2.496) return "Above";
+    if (v >= 1.015) return "High";
+    if (v >= -0.468) return "Average";
+    if (v >= -1.95) return "Low";
+    return "Below";
   };
 
-  const labelCepat = kraepelin.gradeSpeed || getSpeedLabel(displayPanker);
-  const labelTeliti = kraepelin.gradeAccuracy || getAccuracyLabel(displayErrors);
-  const labelTahan = kraepelin.gradeEndurance || getEnduranceLabel(displayHanker);
+  // Translator jika backend mengirim data lama berbahasa Indonesia
+  const translateGrade = (label: string) => {
+    if (!label || label === '-') return '-';
+    const lower = label.toLowerCase();
+    if (lower.includes('baik sekali')) return 'Above';
+    if (lower.includes('baik')) return 'High';
+    if (lower.includes('sedang')) return 'Average';
+    if (lower.includes('kurang sekali')) return 'Below';
+    if (lower.includes('kurang')) return 'Low';
+    return label; 
+  };
+
+  const labelCepat = translateGrade(kraepelin.gradeSpeed) !== '-' ? translateGrade(kraepelin.gradeSpeed) : getSpeedLabel(displayPanker);
+  const labelTeliti = translateGrade(kraepelin.gradeAccuracy) !== '-' ? translateGrade(kraepelin.gradeAccuracy) : getAccuracyLabel(displayErrors);
+  const labelTahan = translateGrade(kraepelin.gradeEndurance) !== '-' ? translateGrade(kraepelin.gradeEndurance) : getEnduranceLabel(displayHanker);
 
   // Penyiapan Data PAPI
   const allPapi = Object.entries(papi).map(([trait, score]) => ({
@@ -152,12 +164,29 @@ export default function CandidateFinalReport({
 
   const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
+  // Helper function untuk warna label grade di PDF
+  const getBadgeStyle = (label: string, defaultColor: string, defaultBg: string): React.CSSProperties => {
+    if (label === '-') return { display: 'none' };
+    const isBad = label.toLowerCase() === 'low' || label.toLowerCase() === 'below';
+    return {
+      fontSize: '7px',
+      fontWeight: 'bold',
+      marginTop: '3px',
+      textTransform: 'uppercase',
+      color: isBad ? '#b91c1c' : defaultColor,
+      backgroundColor: isBad ? '#fee2e2' : defaultBg,
+      padding: '2px 4px',
+      borderRadius: '2px',
+      display: 'inline-block'
+    };
+  };
+
   // =====================================
   // 4. STYLES (PDF CONFIG)
   // =====================================
   const safePageStyle: React.CSSProperties = {
     width: '210mm',
-    height: '296.5mm', // KUNCI: Sedikit di bawah 297mm agar PDF tidak bocor ke halaman kosong
+    height: '296.5mm', 
     padding: '10mm', 
     backgroundColor: '#ffffff',
     boxSizing: 'border-box',
@@ -174,23 +203,6 @@ export default function CandidateFinalReport({
   const thStyle: React.CSSProperties = { padding: '3px 8px', textAlign: 'left', fontSize: '7.5px', color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #cbd5e1' };
   const tdStyle: React.CSSProperties = { padding: '3px 8px', fontSize: '8px', borderBottom: '1px solid #e2e8f0' };
 
-  // Helper function untuk warna label grade di PDF
-  const getBadgeStyle = (label: string, defaultColor: string, defaultBg: string): React.CSSProperties => {
-    if (label === '-') return { display: 'none' };
-    const isBad = label.toLowerCase().includes('kurang');
-    return {
-      fontSize: '7px',
-      fontWeight: 'bold',
-      marginTop: '3px',
-      textTransform: 'uppercase',
-      color: isBad ? '#b91c1c' : defaultColor,
-      backgroundColor: isBad ? '#fee2e2' : defaultBg,
-      padding: '2px 4px',
-      borderRadius: '2px',
-      display: 'inline-block'
-    };
-  };
-
   const DocHeader = () => (
     <div style={{ textAlign: 'center', marginBottom: '8px' }}>
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginBottom: '6px' }}>
@@ -206,6 +218,7 @@ export default function CandidateFinalReport({
 
   return (
     <div style={{ backgroundColor: '#ffffff', padding: 0, margin: 0, display: 'flex', justifyContent: 'center', width: '100%', minHeight: '100vh' }}>
+      
       <div id="pdf-document" style={{ width: '210mm', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
         
         {/* ==================== HALAMAN 1 (WAWANCARA) ==================== */}
@@ -221,7 +234,7 @@ export default function CandidateFinalReport({
             </tbody>
           </table>
 
-          <div style={sectionTitleStyle}>{titleBar('#f59e0b')}<h2 style={{ fontSize: '9px', fontWeight: 'bold', margin: 0 }}>Interview (Kompetensi)</h2></div>
+          <div style={sectionTitleStyle}>{titleBar('#f59e0b')}<h2 style={{ fontSize: '9px', fontWeight: 'bold', margin: 0 }}>Behavioral Event Interview (BEI)</h2></div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead><tr><th style={{...thStyle, width: '30%'}}>Assesor</th><th style={thStyle}>Nama Assesor</th><th style={{...thStyle, textAlign: 'center', width: '20%'}}>Score</th></tr></thead>
             <tbody>
@@ -291,7 +304,9 @@ export default function CandidateFinalReport({
               <div style={{ border: '1px solid #93c5fd', borderRadius: '6px', padding: '6px 10px', width: '220px', backgroundColor: '#eff6ff' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
                   <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#475569' }}>HASIL EVALUASI AKHIR</span>
-                  <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#2563eb', border: '1px solid #93c5fd', padding: '1px 5px', borderRadius: '10px', backgroundColor: '#ffffff' }}>{finalStatus.status}</span>
+                  <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#2563eb', border: '1px solid #93c5fd', padding: '1px 5px', borderRadius: '10px', backgroundColor: '#ffffff' }}>
+                    {finalStatus.status}
+                  </span>
                 </div>
                 <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#1e3a8a' }}>{finalStatus.remarks}</h2>
               </div>
@@ -302,8 +317,14 @@ export default function CandidateFinalReport({
               </div>
             </div>
             <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '6px', color: '#94a3b8' }}>
-              <div><p style={{ margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p><p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId.slice(0,8).toUpperCase()} | Dicetak: {printDate}</p></div>
-              <div style={{ textAlign: 'right' }}><p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p><p style={{ margin: 0 }}>HR</p></div>
+              <div>
+                <p style={{ margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
+                <p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId.slice(0,8).toUpperCase()} | Dicetak: {printDate}</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p>
+                <p style={{ margin: 0 }}>HR</p>
+              </div>
             </div>
           </div>
         </div>
@@ -313,8 +334,8 @@ export default function CandidateFinalReport({
           <DocHeader />
           <h2 style={{ fontSize: '10px', fontWeight: 'bold', textAlign: 'center', margin: '8px 0', color: '#1e3a8a' }}>Psychological Assessment Report</h2>
 
+          {/* Grid CFIT dan Kraepelin */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            {/* BOX CFIT */}
             <div style={{ flex: '1', border: '1px solid #e2e8f0', borderTop: '3px solid #3b82f6', borderRadius: '4px', padding: '6px', backgroundColor: '#ffffff' }}>
               <h3 style={{ fontSize: '8px', color: '#1e40af', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', margin: '0 0 4px 0', fontWeight: 'bold' }}>1. Kecerdasan Kognitif (CFIT)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', textAlign: 'center' }}>
@@ -324,23 +345,26 @@ export default function CandidateFinalReport({
               </div>
             </div>
             
-            {/* BOX KRAEPELIN DENGAN LABEL DI BAWAH ANGKA */}
+            {/* KRAEPELIN (Dengan Auto-Healing Variables & Label English) */}
             <div style={{ flex: '1', border: '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: '4px', padding: '6px', backgroundColor: '#ffffff' }}>
               <h3 style={{ fontSize: '8px', color: '#065f46', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', margin: '0 0 4px 0', fontWeight: 'bold' }}>2. Performa Kerja (Kraepelin)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', textAlign: 'center' }}>
                   
+                  {/* CEPAT */}
                   <div style={{ backgroundColor: '#fcf8ea', padding: '4px', borderRadius: '4px' }}>
                     <p style={{ fontSize: '6.5px', color: '#b45309', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Cepat</p>
                     <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#78350f' }}>{displayPanker}</p>
                     <span style={getBadgeStyle(labelCepat, '#b45309', '#fef3c7')}>{labelCepat}</span>
                   </div>
 
+                  {/* TELITI */}
                   <div style={{ backgroundColor: '#fef2f2', padding: '4px', borderRadius: '4px' }}>
                     <p style={{ fontSize: '6.5px', color: '#ef4444', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Teliti</p>
                     <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#b91c1c' }}>{displayErrors}</p>
                     <span style={getBadgeStyle(labelTeliti, '#ef4444', '#fee2e2')}>{labelTeliti}</span>
                   </div>
 
+                  {/* TAHAN */}
                   <div style={{ backgroundColor: '#faf5ff', padding: '4px', borderRadius: '4px' }}>
                     <p style={{ fontSize: '6.5px', color: '#9333ea', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Tahan</p>
                     <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#5b21b6' }}>{displayHanker}</p>
@@ -351,6 +375,7 @@ export default function CandidateFinalReport({
             </div>
           </div>
 
+          {/* Grid PAPI Kostick */}
           <div style={{ flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', overflow: 'hidden' }}>
             <h3 style={{ fontSize: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', marginBottom: '4px', fontWeight: 'bold', color: '#5b21b6' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '12px', rowGap: '0' }}>
@@ -368,10 +393,17 @@ export default function CandidateFinalReport({
             </div>
           </div>
 
+          {/* FOOTER HALAMAN 2 */}
           <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
             <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '6px', color: '#94a3b8' }}>
-              <div><p style={{ margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p><p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId.slice(0,8).toUpperCase()} | Dicetak: {printDate}</p></div>
-              <div style={{ textAlign: 'right' }}><p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p><p style={{ margin: 0 }}>{mainAssessor.role !== '-' ? mainAssessor.role : ''}</p></div>
+              <div>
+                <p style={{ margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
+                <p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId.slice(0,8).toUpperCase()} | Dicetak: {printDate}</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p>
+                <p style={{ margin: 0 }}>{mainAssessor.role !== '-' ? mainAssessor.role : ''}</p>
+              </div>
             </div>
           </div>
 
