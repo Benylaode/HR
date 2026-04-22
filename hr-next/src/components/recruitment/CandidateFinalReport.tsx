@@ -260,7 +260,7 @@ export default function CandidateFinalReport({
               <tr><th style={{ ...thStyle, width: '10%', textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>NO</th><th style={{ ...thStyle, borderRight: '1px solid #e2e8f0' }}>JENIS ASSESMENT</th><th style={{ ...thStyle, width: '20%', textAlign: 'center' }}>RATA-RATA SCORE</th></tr>
             </thead>
             <tbody>
-              <tr><td style={{ ...tdStyle, textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>1</td><td style={{ ...tdStyle, borderRight: '1px solid #e2e8f0' }}>Assesment - Presentasi (Kompetensi)</td><td style={{ ...tdStyle, textAlign: 'center' }}>{avgComp.toFixed(2)}%</td></tr>
+              <tr><td style={{ ...tdStyle, textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>1</td><td style={{ ...tdStyle, borderRight: '1px solid #e2e8f0' }}>Assesment - Behavioral Event Interview (BEI)</td><td style={{ ...tdStyle, textAlign: 'center' }}>{avgComp.toFixed(2)}%</td></tr>
               <tr><td style={{ ...tdStyle, textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>2</td><td style={{ ...tdStyle, borderRight: '1px solid #e2e8f0' }}>Assesment - Value Behaviour</td><td style={{ ...tdStyle, textAlign: 'center' }}>{avgBehav.toFixed(2)}%</td></tr>
               <tr style={{ backgroundColor: '#e0e7ff' }}><td colSpan={2} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>TOTAL SCORE</td><td style={{ ...tdStyle, textAlign: 'center', fontWeight: 'bold', color: '#1e3a8a', fontSize: '9px' }}>{totalScore.toFixed(2)}%</td></tr>
             </tbody>
@@ -268,6 +268,14 @@ export default function CandidateFinalReport({
 
           <h3 style={{ fontSize: '8px', color: '#1e3a8a', fontWeight: 'bold', margin: '8px 0 3px 0' }}>Matriks Rekomendasi Kelulusan</h3>
           <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', marginBottom: '6px' }}>
+            <thead style={{ backgroundColor: '#f8fafc' }}>
+              <tr>
+                <th style={{ ...thStyle, width: '20%', borderRight: '1px solid #e2e8f0' }}>Score</th>
+                <th style={{ ...thStyle, width: '30%', borderRight: '1px solid #e2e8f0' }}>Kategori</th>
+                <th style={{ ...thStyle, width: '30%', borderRight: '1px solid #e2e8f0' }}>Result</th>
+                <th style={{ ...thStyle, width: '20%', textAlign: 'center' }}>Readyness</th>
+              </tr>
+            </thead>
             <tbody>
               {[
                 { r: '<50%', m: 'Unacceptable', s: 'Not Recommended', c: 'Failed' },

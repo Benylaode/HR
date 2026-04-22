@@ -492,7 +492,6 @@ const TestResultModal = memo(({
   onClose: () => void;
 }) => {
   const pdfRef = useRef<HTMLDivElement>(null);
-  const finalReportRef = useRef<HTMLDivElement>(null); 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   if (!karyawan) return null;
@@ -516,6 +515,22 @@ const TestResultModal = memo(({
   const cfitScores = safeParse(cfit?.scores);
   const kraepelinScores = safeParse(kraepelin?.scores);
   const papiScores = safeParse(papi?.scores);
+
+  // Translasi untuk memastikan bahasa Inggris
+  const translateGrade = (label: string | undefined) => {
+    if (!label || label === '-') return '-';
+    const lower = label.toLowerCase();
+    if (lower.includes('baik sekali')) return 'Above';
+    if (lower.includes('baik')) return 'High';
+    if (lower.includes('sedang')) return 'Average';
+    if (lower.includes('kurang sekali')) return 'Below';
+    if (lower.includes('kurang')) return 'Low';
+    return label; 
+  };
+
+  const labelCepat = translateGrade(kraepelinScores?.gradeSpeed);
+  const labelTeliti = translateGrade(kraepelinScores?.gradeAccuracy);
+  const labelTahan = translateGrade(kraepelinScores?.gradeEndurance);
 
   // Logika pewarnaan otomatis 
   const getBadgeClass = (grade: string | undefined) => {
@@ -545,28 +560,6 @@ const TestResultModal = memo(({
     } catch (error) {
       console.error("Gagal mencetak PDF:", error);
       alert("Terjadi kesalahan saat mengunduh PDF.");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
-  const handleDownloadFinalReport = async () => {
-    if (!finalReportRef.current) return;
-    setIsGeneratingPDF(true);
-    try {
-      const html2pdf = (await import('html2pdf.js')).default;
-      const opt = {
-        margin: 0,
-        filename: `Final_Report_Assesment_${karyawan.fullName.replace(/\s+/g, '_')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-      await html2pdf().set(opt as any).from(finalReportRef.current).save();
-    } catch (error) {
-      console.error("Gagal mencetak PDF:", error);
-      alert("Terjadi kesalahan saat mengunduh Final Report.");
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -639,8 +632,8 @@ const TestResultModal = memo(({
                                 <Zap className="w-4 h-4 text-amber-600"/><span className="text-[11px] font-bold uppercase text-gray-500">Speed (Kecepatan)</span>
                             </div>
                             <p className="font-black text-3xl text-amber-900">{kraepelinScores.panker ?? kraepelinScores.kecepatan ?? "-"}</p>
-                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelinScores.gradeSpeed)}`}>
-                                {kraepelinScores.gradeSpeed || "-"}
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(labelCepat)}`}>
+                                {labelCepat}
                             </div>
                         </div>
 
@@ -649,8 +642,8 @@ const TestResultModal = memo(({
                                 <AlertCircle className="w-4 h-4 text-red-600"/><span className="text-[11px] font-bold uppercase text-gray-500">Accuracy (Ketelitian)</span>
                             </div>
                             <p className="font-black text-3xl text-red-900">{kraepelinScores.totalErrors ?? kraepelinScores.salah ?? "-"}</p>
-                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelinScores.gradeAccuracy)}`}>
-                                {kraepelinScores.gradeAccuracy || "-"}
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(labelTeliti)}`}>
+                                {labelTeliti}
                             </div>
                         </div>
 
@@ -659,8 +652,8 @@ const TestResultModal = memo(({
                                 <Shield className="w-4 h-4 text-purple-600"/><span className="text-[11px] font-bold uppercase text-gray-500">Endurance (Ketahanan)</span>
                             </div>
                             <p className="font-black text-3xl text-purple-900">{kraepelinScores.hanker ?? "-"}</p>
-                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(kraepelinScores.gradeEndurance)}`}>
-                                {kraepelinScores.gradeEndurance || "-"}
+                            <div className={`mt-2 text-[10px] font-bold px-2 py-1 rounded w-fit mx-auto border ${getBadgeClass(labelTahan)}`}>
+                                {labelTahan}
                             </div>
                         </div>
                     </div>

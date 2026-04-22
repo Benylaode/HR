@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -475,6 +475,15 @@ export default function TestManagementPage() {
     return 'bg-gray-50 text-gray-600 border border-gray-200';
   };
 
+  // Fungsi utilitas untuk menerjemahkan nilai ke label warna (Merah untuk Low/Below)
+  const getBadgeClass = (grade: string | undefined) => {
+    if (!grade) return "";
+    const lowerGrade = grade.toLowerCase();
+    return (lowerGrade === 'low' || lowerGrade === 'below' || lowerGrade.includes('kurang')) 
+        ? "bg-red-50 text-red-700 border-red-100" 
+        : "text-teal-700 bg-teal-50 border-teal-100";
+  };
+
   // --- RENDER TABLE HASIL SUBMISSION ---
   const renderSubmissionTable = () => (
     <div className="bg-white rounded-[20px] border border-gray-200 shadow-sm overflow-hidden max-w-5xl">
@@ -513,29 +522,29 @@ export default function TestManagementPage() {
                   </div>
                 );
                   } else if (testType.includes('kraepelin')) {
-                    // Ambil data dengan fallback ke key lama jika healer belum berjalan sempurna
-                    const speed = sub.scores.panker ?? sub.scores.kecepatan ?? '-';
-                    const acc = sub.scores.totalErrors ?? sub.scores.salah ?? '-';
-                    const end = sub.scores.hanker ?? '-';
+                    // Ambil data dengan fallback ke key lama
+                    const cepat = sub.scores.panker ?? sub.scores.kecepatan ?? '-';
+                    const teliti = sub.scores.totalErrors ?? sub.scores.salah ?? '-';
+                    const tahan = sub.scores.hanker ?? '-';
 
                     scoreBadge = (
                       <div className="flex flex-wrap gap-2">
                         {/* 1. CEPAT (PANKER) */}
                         <div className="px-2 py-1 bg-yellow-50 border border-yellow-100 rounded text-xs">
-                          <span className="text-yellow-600 mr-1">Speed:</span>
-                          <span className="font-bold text-yellow-900">{speed}</span>
+                          <span className="text-yellow-600 mr-1">Cepat:</span>
+                          <span className="font-bold text-yellow-900">{cepat}</span>
                         </div>
 
                         {/* 2. TELITI (TOTAL ERRORS) */}
                         <div className="px-2 py-1 bg-red-50 border border-red-100 rounded text-xs">
-                          <span className="text-red-600 mr-1">Acc:</span>
-                          <span className="font-bold text-red-900">{acc}</span>
+                          <span className="text-red-600 mr-1">Teliti:</span>
+                          <span className="font-bold text-red-900">{teliti}</span>
                         </div>
 
-                        {/* 3. TAHAN (HANKER - HASIL HEALING) */}
+                        {/* 3. TAHAN (HANKER) */}
                         <div className="px-2 py-1 bg-purple-50 border border-purple-100 rounded text-xs">
-                          <span className="text-purple-600 mr-1">Endur:</span>
-                          <span className="font-bold text-purple-900">{end}</span>
+                          <span className="text-purple-600 mr-1">Tahan:</span>
+                          <span className="font-bold text-purple-900">{tahan}</span>
                         </div>
                       </div>
                     );
@@ -627,15 +636,6 @@ export default function TestManagementPage() {
     } 
     
     if (testType.includes('kraepelin')) {
-        // Logika pewarnaan otomatis menggunakan label Bahasa Inggris ('Low' atau 'Below')
-        const getBadgeClass = (grade: string | undefined) => {
-            if (!grade) return "";
-            const lowerGrade = grade.toLowerCase();
-            return (lowerGrade === 'low' || lowerGrade === 'below' || lowerGrade.includes('kurang')) 
-                ? "bg-red-50 text-red-700 border-red-100" 
-                : "text-teal-700 bg-teal-50 border-teal-100";
-        };
-
         return (
             <div className="space-y-6">
                 {sub.scores.interpretation && (
@@ -649,21 +649,21 @@ export default function TestManagementPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* 1. CEPAT (Produktivitas) */}
                     <div className="p-4 border border-gray-200 rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2"><Zap className="w-4 h-4 text-yellow-500"/><span className="text-[11px] font-bold uppercase text-gray-500">Speed (Kecepatan)</span></div>
+                        <div className="flex items-center gap-2 mb-2"><Zap className="w-4 h-4 text-yellow-500"/><span className="text-[11px] font-bold uppercase text-gray-500">CEPAT (Produktivitas)</span></div>
                         <div className="text-2xl font-bold text-gray-900">{sub.scores.panker ?? sub.scores.kecepatan ?? '-'}</div>
                         {sub.scores.gradeSpeed && <div className={`text-xs mt-1 px-2 py-0.5 rounded w-fit border ${getBadgeClass(sub.scores.gradeSpeed)}`}>{sub.scores.gradeSpeed}</div>}
                     </div>
 
                     {/* 2. TELITI (Ketelitian) */}
                     <div className="p-4 border border-gray-200 rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-500"/><span className="text-[11px] font-bold uppercase text-gray-500">Accuracy (Ketelitian)</span></div>
+                        <div className="flex items-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-500"/><span className="text-[11px] font-bold uppercase text-gray-500">TELITI (Ketelitian)</span></div>
                         <div className="text-2xl font-bold text-red-600">{sub.scores.totalErrors ?? sub.scores.salah ?? '-'}</div>
                         {sub.scores.gradeAccuracy && <div className={`text-xs mt-1 px-2 py-0.5 rounded w-fit border ${getBadgeClass(sub.scores.gradeAccuracy)}`}>{sub.scores.gradeAccuracy}</div>}
                     </div>
 
                     {/* 3. TAHAN (Ketahanan) */}
                     <div className="p-4 border border-gray-200 rounded-xl shadow-sm bg-white">
-                        <div className="flex items-center gap-2 mb-2"><Shield className="w-4 h-4 text-purple-500"/><span className="text-[11px] font-bold uppercase text-gray-500">Endurance (Ketahanan)</span></div>
+                        <div className="flex items-center gap-2 mb-2"><Shield className="w-4 h-4 text-purple-500"/><span className="text-[11px] font-bold uppercase text-gray-500">TAHAN (Ketahanan)</span></div>
                         <div className="text-2xl font-bold text-gray-900">{sub.scores.hanker ?? '-'}</div>
                         {sub.scores.gradeEndurance && <div className={`text-xs mt-1 px-2 py-0.5 rounded w-fit border ${getBadgeClass(sub.scores.gradeEndurance)}`}>{sub.scores.gradeEndurance}</div>}
                     </div>
@@ -1205,4 +1205,3 @@ export default function TestManagementPage() {
     </div>
   );
 }
-
