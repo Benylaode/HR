@@ -22,6 +22,9 @@ export interface TestResultData {
       janker?: string | number; 
       totalErrors?: string | number;
       hanker?: string | number;
+      gradeSpeed?: string;
+      gradeAccuracy?: string;
+      gradeEndurance?: string;
       raw_answers?: any; // Diperlukan untuk proses healing
     };
     papi?: Record<string, number>;
@@ -99,6 +102,44 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
     }
   }
 
+  // =====================================
+  // 3. PENENTUAN KETERANGAN (GRADE)
+  // =====================================
+  const getSpeedLabel = (n: any) => {
+    if (n === '-' || n === undefined) return '-';
+    const v = Number(n);
+    if (v > 17.21) return "Baik Sekali";
+    if (v >= 14.973) return "Baik";
+    if (v >= 12.736) return "Sedang";
+    if (v >= 10.5) return "Kurang";
+    return "Kurang Sekali";
+  };
+
+  const getAccuracyLabel = (n: any) => {
+    if (n === '-' || n === undefined) return '-';
+    const v = Number(n);
+    if (v <= 0) return "Baik Sekali";
+    if (v <= 2) return "Baik";
+    if (v <= 13) return "Sedang";
+    if (v <= 22) return "Kurang";
+    return "Kurang Sekali";
+  };
+
+  const getEnduranceLabel = (n: any) => {
+    if (n === '-' || n === undefined) return '-';
+    const v = Number(n);
+    if (v > 2.496) return "Baik Sekali";
+    if (v >= 1.015) return "Baik";
+    if (v >= -0.468) return "Sedang";
+    if (v >= -1.95) return "Kurang";
+    return "Kurang Sekali";
+  };
+
+  // Menggunakan Grade yang sudah dikirim dari API, atau hitung otomatis jika kosong
+  const labelCepat = kraepelin.gradeSpeed || getSpeedLabel(kraepelinPanker);
+  const labelTeliti = kraepelin.gradeAccuracy || getAccuracyLabel(totalErrors);
+  const labelTahan = kraepelin.gradeEndurance || getEnduranceLabel(kraepelinHanker);
+
   const getAllPapi = () => {
     if (!papi || Object.keys(papi).length === 0) return [];
     
@@ -168,22 +209,38 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
               </div>
             </div>
 
-            {/* KRAEPELIN (MENGGUNAKAN HASIL HEALING) */}
+            {/* KRAEPELIN (3 POIN UTAMA BESERTA KETERANGAN) */}
             <div style={{ flex: '1', backgroundColor: '#fff', padding: '10px', border: '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: '4px' }}>
               <h3 style={{ marginTop: 0, fontSize: '11px', color: '#065f46', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', fontWeight: 'bold' }}>2. Performa Kerja (Kraepelin)</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                
+                {/* CEPAT */}
                 <div style={{ backgroundColor: '#fcf8ea', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
                   <p style={{ fontSize: '8px', color: '#b45309', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Cepat</p>
                   <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '2px 0 0 0', color: '#78350f' }}>{kraepelinPanker}</p>
+                  <p style={{ fontSize: '7px', fontWeight: 'bold', marginTop: '3px', textTransform: 'uppercase', color: '#b45309', backgroundColor: '#fef3c7', padding: '2px', borderRadius: '2px', display: 'inline-block' }}>
+                    {labelCepat}
+                  </p>
                 </div>
+
+                {/* TELITI */}
                 <div style={{ backgroundColor: '#fef2f2', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
                   <p style={{ fontSize: '8px', color: '#ef4444', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Teliti</p>
                   <p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#b91c1c' }}>{totalErrors}</p>
+                  <p style={{ fontSize: '7px', fontWeight: 'bold', marginTop: '3px', textTransform: 'uppercase', color: '#ef4444', backgroundColor: '#fee2e2', padding: '2px', borderRadius: '2px', display: 'inline-block' }}>
+                    {labelTeliti}
+                  </p>
                 </div>
+
+                {/* TAHAN */}
                 <div style={{ backgroundColor: '#faf5ff', padding: '6px', borderRadius: '4px', textAlign: 'center' }}>
                   <p style={{ fontSize: '8px', color: '#9333ea', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Tahan</p>
                   <p style={{ fontSize: '14px', fontWeight: '900', margin: '2px 0 0 0', color: '#5b21b6' }}>{kraepelinHanker}</p>
+                  <p style={{ fontSize: '7px', fontWeight: 'bold', marginTop: '3px', textTransform: 'uppercase', color: '#9333ea', backgroundColor: '#f3e8ff', padding: '2px', borderRadius: '2px', display: 'inline-block' }}>
+                    {labelTahan}
+                  </p>
                 </div>
+
               </div>
             </div>
           </div>
