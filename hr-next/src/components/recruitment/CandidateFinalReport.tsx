@@ -297,14 +297,26 @@ export default function CandidateFinalReport({
             </tbody>
           </table>
 
+          {/* KOTAK KESIMPULAN GABUNGAN (HR, USER 1, USER 2) */}
           <div style={{ 
               flex: 1, minHeight: '40px', border: '1px solid #cbd5e1', borderRadius: '4px', 
               padding: '6px 8px', backgroundColor: '#ffffff', fontSize: '7.5px', color: '#334155', 
               lineHeight: '1.4', textAlign: 'justify', overflow: 'hidden', wordBreak: 'break-all', overflowWrap: 'break-word'
           }}>
-            <p style={{ whiteSpace: 'pre-wrap', margin: 0, wordBreak: 'break-all' }}>
-              {mainAssessor.notes || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Tidak ada catatan kesimpulan.</span>}
-            </p>
+            {processedEvals.length > 0 ? (
+              processedEvals.map((evalData, idx) => (
+                <div key={idx} style={{ marginBottom: idx !== processedEvals.length - 1 ? '6px' : '0' }}>
+                  <span style={{ fontWeight: 'bold', color: '#1e3a8a' }}>
+                    [{evalData.role}] {evalData.name !== '-' ? evalData.name : ''}: 
+                  </span>
+                  <span style={{ marginLeft: '4px', whiteSpace: 'pre-wrap' }}>
+                    {evalData.notes || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Tidak ada catatan.</span>}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Tidak ada catatan kesimpulan dari assesor.</span>
+            )}
           </div>
 
           <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
