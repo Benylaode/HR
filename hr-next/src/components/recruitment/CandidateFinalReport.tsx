@@ -2,7 +2,14 @@
 
 import React from 'react';
 import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from '@/utils/papiScoring';
-import { getCompetencyConclusion, getValueConclusion, getAutoConclusion, getRecommendationStatus } from '@/lib/evaluationConclusions';
+import { 
+  getCompetencyConclusion, 
+  getValueConclusion, 
+  getAutoConclusion, 
+  getRecommendationStatus,
+  getBeiOverallConclusion,
+  getValueOverallConclusion
+} from '@/lib/evaluationConclusions';
 import { CANDIDATE_COMPETENCY_CATEGORIES, EMPLOYEE_COMPETENCY_CATEGORIES, BEHAVIOR_QUESTIONS } from '@/lib/evaluationQuestions';
 
 interface ReportProps {
@@ -50,6 +57,7 @@ export default function CandidateFinalReport({
     };
   });
 
+  // MENGHITUNG PERSENTASE AKHIR KATEGORI (Kategori BEI & Kategori Value Behaviour)
   const avgComp = processedEvals.length > 0 ? processedEvals.reduce((acc, curr) => acc + curr.compScore, 0) / processedEvals.length : 0;
   const avgBehav = processedEvals.length > 0 ? processedEvals.reduce((acc, curr) => acc + curr.behavScore, 0) / processedEvals.length : 0;
   
@@ -59,34 +67,21 @@ export default function CandidateFinalReport({
   const mainAssessor = evaluations.find(e => e.role_type === 'HR') || evaluations[0] || { evaluator_name: '-', role_type: '-' };
 
   // =====================================
-  // GENERATE DYNAMIC DETAILS DARI LIB (Menggantikan Teks Statis)
+  // GENERATE DYNAMIC DETAILS DARI LIB (MENGGUNAKAN PERSENTASE KATEGORI)
   // =====================================
   const competencyTemplate = employeeId ? EMPLOYEE_COMPETENCY_CATEGORIES : CANDIDATE_COMPETENCY_CATEGORIES;
-  
-  // Helper menghitung rata-rata skor spesifik (Communication, Growth, dll)
-  const getAvgParamScore = (catName: string, type: 'COMPETENCY' | 'BEHAVIOR') => {
-    let targetIds: string[] = [];
-    if (type === 'COMPETENCY') {
-      targetIds = competencyTemplate.find(c => c.category === catName)?.questions.map(q => q.id) || [];
-    } else {
-      targetIds = BEHAVIOR_QUESTIONS.filter(q => q.value === catName).map(q => q.id);
-    }
-    const allScores = evaluations.flatMap(e => e.scores || []).filter(s => s.category === type && targetIds.includes(s.criteria_name));
-    if (allScores.length === 0) return 0;
-    const sum = allScores.reduce((acc, curr) => acc + curr.score, 0);
-    return Math.round((sum / (allScores.length * 5)) * 100);
-  };
 
-  // Membuat Array persis seperti format awal Anda, tapi dengan teks dinamis
-  const BEI_DETAILS = competencyTemplate.map(c => ({
+  // Mapping BEI: Semua Teks Parameter menggunakan persentase AKHIR KATEGORI BEI (avgComp)
+  const BEI_DETAILS = competencyTemplate.map((c: any) => ({
     title: c.category,
-    text: getCompetencyConclusion(c.category, getAvgParamScore(c.category, 'COMPETENCY'))
+    text: getCompetencyConclusion(c.category, avgComp)
   }));
 
-  const uniqueBehaviors = Array.from(new Set(BEHAVIOR_QUESTIONS.map(q => q.value)));
-  const VALUE_DETAILS = uniqueBehaviors.map(v => ({
+  // Mapping VALUE BEHAVIOUR: Semua Teks Parameter menggunakan persentase AKHIR KATEGORI VB (avgBehav)
+  const uniqueBehaviors = Array.from(new Set(BEHAVIOR_QUESTIONS.map((q: any) => q.value)));
+  const VALUE_DETAILS = uniqueBehaviors.map((v: any) => ({
     title: v,
-    text: getValueConclusion(v, getAvgParamScore(v, 'BEHAVIOR'))
+    text: getValueConclusion(v as string, avgBehav)
   }));
 
   // =====================================
@@ -231,8 +226,17 @@ export default function CandidateFinalReport({
              </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-             <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+             {/* BAGIAN KIRI - KESIMPULAN & TABEL BEI */}
+             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', padding: '6px', marginBottom: '6px' }}>
+                   <div style={{ fontWeight: 'bold', fontSize: '9px', color: '#1e3a8a', marginBottom: '4px', borderBottom: '1px solid #cbd5e1', paddingBottom: '3px' }}>
+                      Kesimpulan Soft Kompetensi (BEI)
+                   </div>
+                   <div style={{ fontSize: '9px', textAlign: 'justify', lineHeight: 1.4, color: avgComp > 0 ? '#1e293b' : '#94a3b8' }}>
+                      {getBeiOverallConclusion(avgComp)}
+                   </div>
+                </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                    <tbody>
                       {BEI_DETAILS.map((d, i) => (
@@ -244,7 +248,17 @@ export default function CandidateFinalReport({
                    </tbody>
                 </table>
              </div>
-             <div style={{ flex: 1 }}>
+
+             {/* BAGIAN KANAN - KESIMPULAN & TABEL VALUE BEHAVIOUR */}
+             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', padding: '6px', marginBottom: '6px' }}>
+                   <div style={{ fontWeight: 'bold', fontSize: '9px', color: '#059669', marginBottom: '4px', borderBottom: '1px solid #cbd5e1', paddingBottom: '3px' }}>
+                      Kesimpulan Value Behaviour
+                   </div>
+                   <div style={{ fontSize: '9px', textAlign: 'justify', lineHeight: 1.4, color: avgBehav > 0 ? '#1e293b' : '#94a3b8' }}>
+                      {getValueOverallConclusion(avgBehav)}
+                   </div>
+                </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                    <tbody>
                       {VALUE_DETAILS.map((d, i) => (

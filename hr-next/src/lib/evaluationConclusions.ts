@@ -51,7 +51,6 @@ export const getCompetencyConclusion = (category: string, percentage: number): s
     }
   }
   
-  // < 50%
   switch(category) {
     case "Communication Skill": return "Belum mampu menyampaikan informasi secara jelas dan terstruktur. Penjelasan pengalaman masih terbatas serta belum menunjukkan kemampuan dalam menangani miskomunikasi maupun komunikasi lintas tim atau level.";
     case "Teamwork Skill": return "Belum menunjukkan kemampuan bekerja sama secara efektif dalam tim. Kontribusi dalam kerja tim masih sangat terbatas dan belum terlihat peran dalam mendukung anggota tim lain.";
@@ -118,7 +117,6 @@ export const getValueConclusion = (value: string, percentage: number): string =>
     }
   }
 
-  // < 50%
   switch(value) {
     case "Growth": return "Belum terlihat dorongan untuk berkembang secara aktif. Kandidat cenderung menjalankan tugas secara pasif tanpa menunjukkan inisiatif untuk meningkatkan kualitas kerja maupun melakukan evaluasi terhadap hasil yang telah dicapai.";
     case "Respect": return "Interaksi kerja belum mencerminkan penghargaan terhadap perbedaan maupun sudut pandang orang lain. Respons yang diberikan belum menunjukkan kemampuan membangun hubungan kerja yang positif.";
@@ -132,7 +130,36 @@ export const getValueConclusion = (value: string, percentage: number): string =>
 };
 
 // ============================================================================
-// 3. KESIMPULAN AKHIR (OVERALL GRAND CONCLUSION) - Sesuai "Final Evaluation"
+// 3. KESIMPULAN KATEGORI BEI (OVERALL KATEGORI) - NON-PARAMETER
+// ============================================================================
+export const getBeiOverallConclusion = (percentage: number): string => {
+  if (percentage === 0) return "Belum ada data penilaian BEI.";
+  if (percentage >= 90) return "Kandidat menunjukkan tingkat kematangan yang sangat tinggi dengan kemampuan yang konsisten dalam memahami situasi, merumuskan pendekatan, dan menghasilkan dampak yang jelas. Respons yang diberikan tidak hanya terstruktur dan berbasis pengalaman nyata, tetapi juga mencerminkan pola pikir yang analitis, strategis, dan berorientasi pada hasil. Kandidat mampu mengaitkan tindakan dengan dampak yang dihasilkan serta menunjukkan kesadaran yang kuat terhadap tanggung jawab profesional. Dalam berbagai situasi, kandidat tidak hanya berperan sebagai pelaksana, tetapi juga mampu memberikan arah dan nilai tambah bagi lingkungan kerja. Secara keseluruhan, kandidat berada pada level unggul dan berpotensi menjadi kontributor kunci dalam organisasi.";
+  if (percentage >= 80) return "Kandidat menunjukkan tingkat kematangan yang baik dalam menjalankan peran dan mampu memberikan respons yang terstruktur, relevan, serta berbasis pengalaman nyata. Pendekatan yang digunakan dalam menghadapi situasi kerja sudah sistematis dan menunjukkan alur berpikir yang jelas. Kandidat juga mampu menunjukkan kontribusi yang nyata dalam lingkungan kerja serta memiliki kemampuan untuk menyesuaikan diri dengan berbagai kondisi yang dinamis. Dalam beberapa aspek, kandidat telah menunjukkan inisiatif dan pertimbangan yang cukup matang, meskipun masih terdapat ruang untuk meningkatkan kedalaman analisis dan memperluas dampak kontribusi. Secara keseluruhan, kandidat berada pada level yang solid dan layak untuk direkomendasikan.";
+  
+  // Teks ditarik persis dari gambar referensi (kiri)
+  if (percentage >= 70) return "Kandidat telah mampu memenuhi sebagian besar ekspektasi dasar dan menunjukkan kemampuan yang cukup dalam menjalankan tugas-tugas operasional. Penjelasan yang diberikan sudah lebih terstruktur dan mencerminkan pengalaman yang relevan, meskipun belum sepenuhnya menunjukkan kedalaman maupun konsistensi dalam pendekatan. Dalam menghadapi situasi kerja, kandidat mampu mengambil langkah yang logis dan terarah, namun masih cenderung fokus pada penyelesaian jangka pendek. Peran dalam lingkungan kerja sudah terlihat, namun kontribusi yang diberikan belum menunjukkan dampak yang signifikan. Kandidat layak dipertimbangkan, dengan catatan masih diperlukan penguatan dalam hal kedalaman analisis, inisiatif, dan konsistensi performa.";
+  
+  if (percentage >= 50) return "Kandidat telah menunjukkan pemahaman dasar terhadap tuntutan pekerjaan, namun masih berada pada level implementasi yang terbatas dan belum konsisten. Penjelasan yang diberikan umumnya bersifat umum, kurang spesifik, dan belum menggambarkan peran aktif maupun dampak nyata dari tindakan yang dilakukan. Dalam menghadapi permasalahan, pendekatan yang digunakan masih sederhana dan belum menunjukkan kedalaman analisis maupun pertimbangan yang komprehensif. Kandidat juga masih cenderung bergantung pada arahan dalam menghadapi situasi baru. Secara keseluruhan, kandidat memiliki potensi untuk berkembang, namun masih memerlukan pembinaan yang cukup intensif agar dapat mencapai standar kinerja yang diharapkan";
+  return "Kandidat belum mampu menunjukkan kapasitas dasar yang dibutuhkan untuk menjalankan peran secara efektif. Respons yang diberikan cenderung tidak terstruktur, deskriptif tanpa kedalaman, serta tidak mencerminkan pengalaman yang relevan dan dapat dipertanggungjawabkan. Dalam menjelaskan situasi yang dihadapi, kandidat belum mampu menguraikan konteks, tindakan, dan hasil secara jelas. Pendekatan dalam menghadapi masalah juga belum sistematis dan tidak menunjukkan proses berpikir yang logis. Selain itu, belum terlihat kesiapan dalam menghadapi perubahan maupun kesadaran terhadap tanggung jawab profesional. Secara keseluruhan, kandidat belum menunjukkan kesiapan kerja dan tidak memenuhi standar minimum yang diharapkan.";
+};
+
+// ============================================================================
+// 4. KESIMPULAN KATEGORI VALUE BEHAVIOUR (OVERALL KATEGORI) - NON-PARAMETER
+// ============================================================================
+export const getValueOverallConclusion = (percentage: number): string => {
+  if (percentage === 0) return "Belum ada data penilaian Value Behaviour.";
+  if (percentage >= 90) return "Kandidat sangat kuat mencerminkan seluruh value perusahaan. Proaktif dalam Growth dan inovasi, menjunjung tinggi Respect, memiliki Accountability yang konsisten, unggul dalam Collaboration lintas fungsi, serta menjadi role model dalam Safety dan Sustainability. Memberikan dampak nyata bagi tim dan organisasi.";
+  if (percentage >= 80) return "Kandidat menunjukkan keselarasan yang kuat dengan value perusahaan. Aktif dalam Growth (inisiatif & evaluasi diri), menjunjung Respect, memiliki Accountability tinggi, serta berkontribusi dalam Collaboration lintas tim. Juga menunjukkan kepedulian terhadap Safety dan mulai berperan dalam Sustainability.";
+
+  if (percentage >= 70) return "Kandidat telah menunjukkan perilaku yang cukup sesuai dengan nilai perusahaan. Memiliki Growth mindset, mampu bekerja sama, serta menunjukkan Respect dan Accountability dalam pekerjaan. Namun masih perlu peningkatan dalam konsistensi kontribusi, pengambilan inisiatif, serta peran aktif dalam Safety dan Sustainability.";
+  
+  if (percentage >= 50) return "Kandidat mulai menunjukkan sebagian value behavior, seperti kemauan belajar dan kerja sama dasar. Namun masih belum konsisten dalam Growth (evaluasi diri & inisiatif), Accountability (penyelesaian tugas), serta belum optimal dalam Collaboration, Safety awareness, dan kontribusi terhadap Sustainability.";
+  return "Kandidat belum menunjukkan perilaku dasar yang selaras dengan nilai perusahaan. Indikasi rendah pada Growth (tidak menunjukkan inisiatif berkembang), Respect (kurang menghargai orang lain), Accountability (tidak tuntas & kurang ownership), Collaboration (lemah dalam kerja sama), serta rendahnya awareness terhadap Safety dan Sustainability.";
+};
+
+// ============================================================================
+// 5. KESIMPULAN AKHIR (OVERALL GRAND CONCLUSION) - Sesuai "Final Evaluation"
 // ============================================================================
 export const getAutoConclusion = (percentage: number): string => {
   if (percentage === 0) return "Belum ada data evaluasi yang masuk, sehingga kesimpulan akhir belum dapat digenerate oleh sistem.";
@@ -143,19 +170,21 @@ export const getAutoConclusion = (percentage: number): string => {
   if (percentage >= 80) {
     return "Kandidat menunjukkan kemampuan komunikasi yang efektif serta mampu membangun kolaborasi yang baik dalam tim maupun lintas fungsi, dengan tetap menghargai perbedaan dan menjaga hubungan kerja yang positif. Dalam menyelesaikan pekerjaan, kandidat menunjukkan tanggung jawab yang kuat dengan pendekatan yang sistematis dan berbasis analisis. Kandidat juga aktif dalam mengembangkan diri, terbuka terhadap umpan balik, serta mampu beradaptasi dengan baik terhadap perubahan. Selain itu, terlihat kepedulian terhadap kualitas, efisiensi, serta penerapan standar keselamatan dan nilai-nilai keberlanjutan dalam pekerjaan. Secara keseluruhan, kandidat mampu mengintegrasikan kompetensi dengan value behavior secara konsisten.";
   }
+  
+  // Teks ditarik persis dari file CSV "Kesimpulan Overall"
   if (percentage >= 70) {
     return "Kandidat mampu menjalankan komunikasi dan kerja sama secara cukup efektif, serta menunjukkan sikap terbuka dalam berinteraksi dan menerima masukan. Dalam menyelesaikan pekerjaan, kandidat telah menunjukkan tanggung jawab dan pendekatan yang cukup logis, meskipun masih terbatas pada situasi umum. Kemampuan beradaptasi dan keinginan untuk berkembang sudah mulai terlihat, didukung dengan kontribusi dalam tim yang cukup baik. Kandidat juga menunjukkan kepedulian terhadap kualitas hasil kerja dan kepatuhan terhadap standar yang berlaku, meskipun masih perlu meningkatkan konsistensi serta inisiatif dalam menciptakan nilai tambah.";
   }
+  
   if (percentage >= 50) {
-    return "Kandidat menunjukkan pemahaman dasar mengenai pekerjaan namun masih membutuhkan arahan dan pengembangan signifikan dalam hal komunikasi, kolaborasi, dan penyelesaian masalah. Inisiatif dan adaptasi terhadap perubahan masih tergolong minim.";
+    return "Kandidat belum menunjukkan kemampuan dasar dalam menyampaikan ide maupun bekerja sama secara efektif, yang berdampak pada rendahnya kontribusi dalam tim serta tidak terlihatnya penghargaan terhadap peran dan sudut pandang orang lain. Pendekatan dalam menyelesaikan masalah belum terstruktur dan tidak mencerminkan tanggung jawab terhadap hasil kerja. Selain itu, tidak terlihat adanya dorongan untuk berkembang, inisiatif dalam memperbaiki kinerja, maupun kesadaran terhadap standar kerja, keselamatan, dan dampak pekerjaan. Secara keseluruhan, kandidat belum mampu mengintegrasikan kemampuan kerja dengan nilai-nilai yang diharapkan organisasi.";
   }
 
-  // < 50%
   return "Kandidat belum menunjukkan kemampuan dasar dalam menyampaikan ide maupun bekerja sama secara efektif, yang berdampak pada rendahnya kontribusi dalam tim serta tidak terlihatnya penghargaan terhadap peran dan sudut pandang orang lain. Pendekatan dalam menyelesaikan masalah belum terstruktur dan tidak mencerminkan tanggung jawab terhadap hasil kerja. Selain itu, tidak terlihat adanya dorongan untuk berkembang, inisiatif dalam memperbaiki kinerja, maupun kesadaran terhadap standar kerja, keselamatan, dan dampak pekerjaan. Secara keseluruhan, kandidat belum mampu mengintegrasikan kemampuan kerja dengan nilai-nilai yang diharapkan organisasi.";
 };
 
 // ============================================================================
-// 4. MATRIKS REKOMENDASI (STATUS & KODE)
+// 6. MATRIKS REKOMENDASI (STATUS & KODE)
 // ============================================================================
 export const getRecommendationStatus = (score: number) => {
   if (score === 0) return { remarks: '-', status: 'Belum Dinilai', code: '-' };
