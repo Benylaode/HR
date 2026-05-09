@@ -181,15 +181,26 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
       >
         <div style={{ position: 'absolute', top: '15px', bottom: '15px', left: '15px', right: '15px', border: '2px solid #1e3a8a', padding: '20px', boxSizing: 'border-box' }}>
           
-          {/* HEADER */}
-          <div style={{ textAlign: 'center', borderBottom: '2px solid #1e3a8a', paddingBottom: '12px', marginBottom: '15px' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '10px' }}>
-              <img src="/images/logos/MBMlogo.png" alt="Logo MBM" style={{ height: '45px', objectFit: 'contain' }} />
-              <div style={{ height: '35px', width: '2px', backgroundColor: '#cbd5e1' }}></div>
-              <img src="/images/logos/ptLogoText.png" alt="Logo Partner" style={{ height: '40px', objectFit: 'contain' }} />
+          {/* HEADER BARU */}
+          <div style={{ marginBottom: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+              {/* KIRI: Logo SCM */}
+              <div style={{ width: '140px', display: 'flex', justifyContent: 'flex-start' }}>
+                <img src="/images/logos/ptLogoText.png" alt="Logo SCM" style={{ height: '35px', objectFit: 'contain' }} />
+              </div>
+              
+              {/* TENGAH: Judul */}
+              <div style={{ flex: 1, textAlign: 'center', paddingTop: '4px' }}>
+                <h1 style={{ fontSize: '15px', color: '#1e3a8a', margin: '0 0 2px 0', letterSpacing: '0.5px', fontWeight: '900', textTransform: 'uppercase' }}>PSYCHOLOGICAL ASSESSMENT REPORT</h1>
+                <p style={{ fontSize: '8px', color: '#64748b', margin: 0 }}>Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan</p>
+              </div>
+
+              {/* KANAN: Logo MBM */}
+              <div style={{ width: '140px', display: 'flex', justifyContent: 'flex-end' }}>
+                <img src="/images/logos/MBMlogo.png" alt="Logo MBM" style={{ height: '35px', objectFit: 'contain' }} />
+              </div>
             </div>
-            <h1 style={{ fontSize: '18px', color: '#1e3a8a', margin: '0 0 4px 0', letterSpacing: '1px', fontWeight: '900' }}>PSYCHOLOGICAL ASSESSMENT REPORT</h1>
-            <p style={{ fontSize: '9px', color: '#64748b', margin: 0 }}>Dokumen Resmi Hasil Evaluasi Psikologi Kandidat & Karyawan</p>
+            <div style={{ width: '100%', height: '2px', backgroundColor: '#1e3a8a', marginTop: '10px' }}></div>
           </div>
 
           {/* PROFIL */}
@@ -264,15 +275,15 @@ const TestReportPDF = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
           {/* HASIL PAPI KOSTICK */}
           <div style={{ flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', overflow: 'hidden' }}>
-            <h3 style={{ fontSize: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', marginBottom: '4px', fontWeight: 'bold', color: '#5b21b6' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
+            <h3 style={{ fontSize: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', marginBottom: '4px', fontWeight: 'bold', color: '#006666' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
             
             {/* Tambahan flex: 1 dan gridAutoRows: '1fr' agar baris otomatis membagi rata sisa tinggi div */}
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '12px', gridAutoRows: '1fr' }}>
               {allPapi.length > 0 ? allPapi.map((p, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', borderBottom: '1px dashed #cbd5e1', padding: '2px 0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '7.5px', fontWeight: 'bold' }}>
-                    <span style={{ fontSize: '12px', color : '#3a1577' }}>[{p.letter}] {p.traitName}</span>
-                    <span style={{ backgroundColor: '#f1f5f9', padding: '0 4px', borderRadius: '3px', fontSize: '12px', color : '#5b21b6'}}>{p.score}</span>
+                    <span style={{ fontSize: '12px', color : '#0066667' }}>[{p.letter}] {p.traitName}</span>
+                    <span style={{ backgroundColor: '#f1f5f9', padding: '0 4px', borderRadius: '3px', fontSize: '12px', color : '#006666'}}>{p.score}</span>
                   </div>
                   <p style={{ fontSize: '10px', margin: 0, fontStyle: 'italic', lineHeight: '1.1', color: '#475569' }}>"{p.desc}"</p>
                 </div>

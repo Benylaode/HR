@@ -1,5 +1,6 @@
-"use client";
-import { useState, useEffect, useRef } from "react";
+'use client';
+
+import { useState, useEffect, useRef, useCallback } from "react";
 import { generateKraepelinGrid } from "@/lib/test-data"; 
 import { calculateKraepelinScore } from "@/utils/kraepelinScoring"; 
 import { Play, SkipForward, Clock } from "lucide-react"; 
@@ -33,44 +34,128 @@ export default function KraepelinTest({
   const [columnTimeLeft, setColumnTimeLeft] = useState(dbConfig.durationPerColumn);
   
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const answersRef = useRef<any>([]);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null); 
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // REFS Mutlak: Mencegah Stale Closure (Nilai Null saat dikirim)
+  const answersRef = useRef<(number | null)[][]>([]);
+  const gridRef = useRef<number[][]>([]);
+
+  // Inisialisasi Tes
   useEffect(() => {
     const newGrid = generateKraepelinGrid(dbConfig.columns, dbConfig.rows);
     setGrid(newGrid);
+    gridRef.current = newGrid;
+
     const numberOfInputs = dbConfig.rows - 1;
     const initialAnswers = Array.from({ length: dbConfig.columns }, () =>
       Array(numberOfInputs).fill(null)
     );
+    
     setAnswers(initialAnswers);
     answersRef.current = initialAnswers;
+    
     setCurrentColumn(0);
     setActiveInputIndex(numberOfInputs - 1); 
     setColumnTimeLeft(dbConfig.durationPerColumn);
   }, [dbConfig]);
 
-  useEffect(() => {
-    answersRef.current = answers;
-  }, [answers]);
+  // --- SUBMIT LOGIC ---
+  const submitDataToBackend = useCallback(async () => {
+      if (isSubmitting) return; 
+      setIsSubmitting(true);
 
+      const finalAnswers = answersRef.current;
+      const finalGrid = gridRef.current; 
+
+      // 1. MENGOLAH "INFORMASI JAWABAN USER" (Penting untuk Laporan & Auto-Healing)
+      // Array ini berisi rincian: jumlah benar, salah, dan array input jawaban murninya
+      const detailedAnswers = finalGrid.map((colData, colIndex) => {
+          let benar = 0;
+          let salah = 0;
+          let terjawab = 0;
+          
+          for (let rowIndex = 0; rowIndex < colData.length - 1; rowIndex++) {
+              const userAns = finalAnswers[colIndex][rowIndex];
+              if (userAns !== null && userAns !== undefined) {
+                  terjawab++;
+                  const correctAns = (colData[rowIndex] + colData[rowIndex + 1]) % 10;
+                  if (Number(userAns) === correctAns) {
+                      benar++;
+                  } else {
+                      salah++;
+                  }
+              }
+          }
+          return { 
+              column: colIndex + 1, 
+              benar: benar, 
+              salah: salah, 
+              terjawab: terjawab,
+              inputs: finalAnswers[colIndex] // Jawaban murni user tidak hilang
+          };
+      });
+
+      // 2. MENGHITUNG HASIL KESELURUHAN (Scores)
+      let analysisResults = {};
+      try {
+          analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
+      } catch (e) {
+          console.error("Scoring Kraepelin gagal, mengirim data fallback:", e);
+      }
+
+      try {
+        const pathSegments = window.location.pathname.split('/'); 
+        const token = pathSegments[pathSegments.length - 1]; 
+
+        // 3. MENYUSUN PAYLOAD YANG AMAN
+        const payload = {
+            token: token,
+            answers: detailedAnswers, // Dikirim sbg `raw_answers` di DB (Bisa dibaca Auto-Healing)
+            results: analysisResults  // Dikirim sbg `scores` di DB
+        };
+
+        const response = await fetch(`${BE_URL}/submission/kraepelin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+           const data = await response.json();
+           onComplete(data.data || analysisResults);
+        } else {
+           alert("Gagal menyimpan hasil Kraepelin.");
+           setIsSubmitting(false); 
+        }
+      } catch (error) {
+        console.error("Error submitting Kraepelin:", error);
+        setIsSubmitting(false);
+      }
+  }, [isSubmitting, onComplete]);
+
+  // Eksekusi Submit Berdasarkan Perintah dari Parent
   useEffect(() => {
-    if (manualSubmit && !isSubmitting) {
-        submitTest();
+    if ((manualSubmit || forceSubmit) && !isSubmitting) {
+        submitDataToBackend();
     }
-  }, [manualSubmit]);
+  }, [manualSubmit, forceSubmit, submitDataToBackend, isSubmitting]);
 
+  // Timer per Kolom
   useEffect(() => {
     if (!grid.length) return;
     setColumnTimeLeft(dbConfig.durationPerColumn);
+    
     const timer = setInterval(() => {
       setColumnTimeLeft((prev) => {
-        if (prev <= 1) return 0; 
+        if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+        }
         return prev - 1;
       });
     }, 1000);
+    
     return () => clearInterval(timer);
   }, [currentColumn, grid.length, dbConfig.durationPerColumn]);
 
@@ -80,86 +165,8 @@ export default function KraepelinTest({
     }
   }, [columnTimeLeft]);
 
-  // --- SUBMIT LOGIC ---
-  const submitTest = async () => {
-      if (isSubmitting) return; 
-      setIsSubmitting(true);
-
-      const finalAnswers = answersRef.current;
-      const finalGrid = grid; 
-
-      const analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
-      try {
-        const pathSegments = window.location.pathname.split('/'); 
-        const token = pathSegments[pathSegments.length - 1]; 
-
-        const response = await fetch(`${BE_URL}/submission/kraepelin`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            token: token,
-            answers: finalAnswers, 
-            results: analysisResults 
-          })
-        });
-
-        if (response.ok) {
-           const data = await response.json();
-           onComplete(data); 
-        } else {
-           alert("Gagal menyimpan. Coba lagi.");
-           setIsSubmitting(false); 
-        }
-      } catch (error) {
-        console.error("Error submitting:", error);
-        setIsSubmitting(false);
-      }
-  };
-
-  const submitDataToBackend = async () => {
-      if (isSubmitting) return; 
-      setIsSubmitting(true);
-
-      const finalAnswers = answersRef.current;
-      const finalGrid = grid; 
-
-      const analysisResults = calculateKraepelinScore(finalAnswers, finalGrid);
-
-      try {
-        const pathSegments = window.location.pathname.split('/'); 
-        const token = pathSegments[pathSegments.length - 1]; 
-
-        const response = await fetch(`${BE_URL}/submission/kraepelin`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            token: token,
-            answers: finalAnswers, 
-            results: analysisResults 
-          })
-        });
-
-        if (response.ok) {
-           const data = await response.json();
-           onComplete(data);
-        } else {
-           alert("Gagal menyimpan hasil.");
-           setIsSubmitting(false); 
-        }
-      } catch (error) {
-        console.error("Error submitting:", error);
-        setIsSubmitting(false);
-      }
-  };
-
-  useEffect(() => {
-    if (forceSubmit && !isSubmitting) {
-        submitDataToBackend();
-    }
-  }, [forceSubmit]); 
-
   // --- NAVIGATION & INPUT ---
-  const handleMoveToNextColumn = async () => {
+  const handleMoveToNextColumn = () => {
     if (currentColumn < dbConfig.columns - 1) {
       setCurrentColumn((prev) => prev + 1);
       setActiveInputIndex(dbConfig.rows - 2); 
@@ -172,13 +179,24 @@ export default function KraepelinTest({
   const handleInput = (val: string) => {
     if (!/^\d?$/.test(val)) return;
     setCurrentInputValue(val);
+    
     if (val === "") return;
     const numVal = parseInt(val, 10);
-    const updatedAnswers = structuredClone(answers);
-    if (updatedAnswers[currentColumn]) {
-        updatedAnswers[currentColumn][activeInputIndex] = numVal;
-        setAnswers(updatedAnswers);
-    }
+    
+    // Gunakan fungsi updater pada SetState & update Ref secara Instan!
+    setAnswers(prev => {
+        const newAnswers = prev.map((col, cIdx) => {
+            if (cIdx === currentColumn) {
+                const newCol = [...col];
+                newCol[activeInputIndex] = numVal;
+                return newCol;
+            }
+            return col;
+        });
+        answersRef.current = newAnswers; // KUNCI: Menjamin nilai tidak pernah null
+        return newAnswers;
+    });
+    
     if (activeInputIndex > 0) {
       setActiveInputIndex((prev) => prev - 1);
       setCurrentInputValue("");
@@ -191,12 +209,10 @@ export default function KraepelinTest({
     handleMoveToNextColumn();
   };
 
-  // --- SCROLL LOGIC PRESISI TINGGI (UPDATE) ---
+  // --- SCROLL LOGIC PRESISI TINGGI ---
   useEffect(() => {
-    // Memastikan fokus pada input
     inputRef.current?.focus();
     
-    // Beri sedikit jeda (20ms) agar DOM (khususnya input yang baru muncul) di-render sepenuhnya oleh React
     const timer = setTimeout(() => {
         const container = scrollContainerRef.current;
         const activeInputEl = document.getElementById(`input-row-${currentColumn}-${activeInputIndex}`);
@@ -206,19 +222,15 @@ export default function KraepelinTest({
             let offsetLeft = 0;
             let el: HTMLElement | null = activeInputEl;
             
-            // Loop untuk menelusuri jarak elemen dari container utama
-            // Hal ini 100% imun terhadap bug yang disebabkan oleh efek animasi/scale CSS
             while (el && el !== container) {
                 offsetTop += el.offsetTop;
                 offsetLeft += el.offsetLeft;
                 el = el.offsetParent as HTMLElement;
             }
 
-            // Hitung kordinat tengah secara presisi
             const targetY = offsetTop - (container.clientHeight / 2) + (activeInputEl.clientHeight / 2);
             const targetX = offsetLeft - (container.clientWidth / 2) + (activeInputEl.clientWidth / 2);
 
-            // Eksekusi scroll
             container.scrollTo({
                 top: targetY,
                 left: targetX,
@@ -229,12 +241,6 @@ export default function KraepelinTest({
 
     return () => clearTimeout(timer);
   }, [activeInputIndex, currentColumn]);
-
-  const formatTime = (sec: number) => {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
 
   if (!grid.length) return <div className="p-10 text-center">Memuat Tes...</div>;
 
@@ -310,7 +316,7 @@ export default function KraepelinTest({
                         id={`col-container-${colIndex}`}
                         className={`
                             flex flex-col items-center flex-shrink-0 transition-all duration-300
-                            py-[30vh] /* Padding besar atas bawah agar scroll behavior center selalu optimal */
+                            py-[30vh]
                             ${isCurrentCol ? 'opacity-100 scale-100 z-10' : 'opacity-40 scale-95 grayscale'}
                         `}
                         style={{ width: '64px' }}

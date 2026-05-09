@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { getPapiInterpretation, getPapiTraitName, extractPapiLetter } from '@/utils/papiScoring';
+import { getCompetencyConclusion, getValueConclusion, getAutoConclusion, getRecommendationStatus } from '@/lib/evaluationConclusions';
+import { CANDIDATE_COMPETENCY_CATEGORIES, EMPLOYEE_COMPETENCY_CATEGORIES, BEHAVIOR_QUESTIONS } from '@/lib/evaluationQuestions';
 
 interface ReportProps {
   candidateId?: string;
@@ -24,10 +26,13 @@ export default function CandidateFinalReport({
 }: ReportProps) {
   
   const displayId = employeeId || candidateId || candidateNik || "UNKNOWN";
+  const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // =====================================
   // 1. DATA PROCESSING (EVALUASI)
   // =====================================
+  const maxCompScore = employeeId ? 80 : 75;
+
   const processedEvals = evaluations.map((e: any) => {
     const compScores = e.scores?.filter((s: any) => s.category === 'COMPETENCY') || [];
     const behavScores = e.scores?.filter((s: any) => s.category === 'BEHAVIOR') || [];
@@ -39,7 +44,7 @@ export default function CandidateFinalReport({
     return {
       role: e.role_type || 'Assessor',
       name: e.evaluator_name || '-',
-      compScore: Math.round((compTotal / 75) * 100) || 0,
+      compScore: Math.round((compTotal / maxCompScore) * 100) || 0,
       behavScore: Math.round((behavTotal / 70) * 100) || 0,
       notes: match ? match[2].trim() : rawNotes.trim()
     };
@@ -47,20 +52,45 @@ export default function CandidateFinalReport({
 
   const avgComp = processedEvals.length > 0 ? processedEvals.reduce((acc, curr) => acc + curr.compScore, 0) / processedEvals.length : 0;
   const avgBehav = processedEvals.length > 0 ? processedEvals.reduce((acc, curr) => acc + curr.behavScore, 0) / processedEvals.length : 0;
-  const totalScore = processedEvals.length > 0 ? (avgComp + avgBehav) / 2 : 0;
-  const mainAssessor = processedEvals.find(e => e.role === 'HR') || processedEvals[0] || { name: '-', role: '-', notes: '' };
-
-  const getRecommendation = (score: number) => {
-    if (score < 50) return { remarks: 'Unacceptable', status: 'Not Recommended' };
-    if (score < 70) return { remarks: 'Below Expectation', status: 'Not Recommended' };
-    if (score < 80) return { remarks: 'Fully Successful', status: 'Recommended' }; 
-    if (score < 90) return { remarks: 'Above Expectation', status: 'Recommended' };
-    return { remarks: 'Outstanding', status: 'Recommended' };
-  };
-  const finalStatus = getRecommendation(totalScore);
+  
+  // Penanganan BUG 0%
+  const totalScore = evaluations.length > 0 ? (avgComp + avgBehav) / 2 : 0; 
+  const finalStatus = getRecommendationStatus(totalScore);
+  const mainAssessor = evaluations.find(e => e.role_type === 'HR') || evaluations[0] || { evaluator_name: '-', role_type: '-' };
 
   // =====================================
-  // 2. DATA PSIKOTES & AUTO-HEALING KRAEPELIN
+  // GENERATE DYNAMIC DETAILS DARI LIB (Menggantikan Teks Statis)
+  // =====================================
+  const competencyTemplate = employeeId ? EMPLOYEE_COMPETENCY_CATEGORIES : CANDIDATE_COMPETENCY_CATEGORIES;
+  
+  // Helper menghitung rata-rata skor spesifik (Communication, Growth, dll)
+  const getAvgParamScore = (catName: string, type: 'COMPETENCY' | 'BEHAVIOR') => {
+    let targetIds: string[] = [];
+    if (type === 'COMPETENCY') {
+      targetIds = competencyTemplate.find(c => c.category === catName)?.questions.map(q => q.id) || [];
+    } else {
+      targetIds = BEHAVIOR_QUESTIONS.filter(q => q.value === catName).map(q => q.id);
+    }
+    const allScores = evaluations.flatMap(e => e.scores || []).filter(s => s.category === type && targetIds.includes(s.criteria_name));
+    if (allScores.length === 0) return 0;
+    const sum = allScores.reduce((acc, curr) => acc + curr.score, 0);
+    return Math.round((sum / (allScores.length * 5)) * 100);
+  };
+
+  // Membuat Array persis seperti format awal Anda, tapi dengan teks dinamis
+  const BEI_DETAILS = competencyTemplate.map(c => ({
+    title: c.category,
+    text: getCompetencyConclusion(c.category, getAvgParamScore(c.category, 'COMPETENCY'))
+  }));
+
+  const uniqueBehaviors = Array.from(new Set(BEHAVIOR_QUESTIONS.map(q => q.value)));
+  const VALUE_DETAILS = uniqueBehaviors.map(v => ({
+    title: v,
+    text: getValueConclusion(v, getAvgParamScore(v, 'BEHAVIOR'))
+  }));
+
+  // =====================================
+  // 2. DATA PSIKOTES & KRAEPELIN
   // =====================================
   const cfit = submissions.find(s => s.test_type === 'cfit')?.scores || {};
   const papi = submissions.find(s => s.test_type === 'papi')?.scores || {};
@@ -71,7 +101,6 @@ export default function CandidateFinalReport({
   const displayErrors = kraepelin.totalErrors ?? kraepelin.salah ?? '-';
   let displayHanker: string | number = kraepelin.hanker ?? '-';
 
-  // Real-time Healing Hanker
   if ((displayHanker === '-' || !displayHanker) && kraepelinSub?.raw_answers) {
     try {
       let raw = typeof kraepelinSub.raw_answers === 'string' ? JSON.parse(kraepelinSub.raw_answers) : kraepelinSub.raw_answers;
@@ -81,7 +110,6 @@ export default function CandidateFinalReport({
       } else if (raw && typeof raw === 'object') {
         rawDataArray = Object.keys(raw).sort((a, b) => Number(a) - Number(b)).map(k => raw[k]);
       }
-
       if (rawDataArray.length > 1) {
         let y_values = rawDataArray.map((item: any) => {
           if (typeof item === 'object' && item !== null) return Number(item.correct || item.benar || 0);
@@ -105,56 +133,14 @@ export default function CandidateFinalReport({
     }
   }
 
-  // =====================================
-  // 3. PENENTUAN KETERANGAN (GRADE LABEL) BAHASA INGGRIS
-  // =====================================
-  const getSpeedLabel = (n: any) => {
-    if (n === '-' || n === undefined) return '-';
-    const v = Number(n);
-    if (v > 17.21) return "Above";
-    if (v >= 14.973) return "High";
-    if (v >= 12.736) return "Average";
-    if (v >= 10.5) return "Low";
-    return "Below";
-  };
+  const getSpeedLabel = (n: any) => { if (n === '-' || n === undefined) return '-'; const v = Number(n); if (v > 17.21) return "Above"; if (v >= 14.973) return "High"; if (v >= 12.736) return "Average"; if (v >= 10.5) return "Low"; return "Below"; };
+  const getAccuracyLabel = (n: any) => { if (n === '-' || n === undefined) return '-'; const v = Number(n); if (v <= 0) return "Above"; if (v <= 2) return "High"; if (v <= 13) return "Average"; if (v <= 22) return "Low"; return "Below"; };
+  const getEnduranceLabel = (n: any) => { if (n === '-' || n === undefined) return '-'; const v = Number(n); if (v > 2.496) return "Above"; if (v >= 1.015) return "High"; if (v >= -0.468) return "Average"; if (v >= -1.95) return "Low"; return "Below"; };
 
-  const getAccuracyLabel = (n: any) => {
-    if (n === '-' || n === undefined) return '-';
-    const v = Number(n);
-    if (v <= 0) return "Above";
-    if (v <= 2) return "High";
-    if (v <= 13) return "Average";
-    if (v <= 22) return "Low";
-    return "Below";
-  };
+  const labelCepat = getSpeedLabel(displayPanker);
+  const labelTeliti = getAccuracyLabel(displayErrors);
+  const labelTahan = getEnduranceLabel(displayHanker);
 
-  const getEnduranceLabel = (n: any) => {
-    if (n === '-' || n === undefined) return '-';
-    const v = Number(n);
-    if (v > 2.496) return "Above";
-    if (v >= 1.015) return "High";
-    if (v >= -0.468) return "Average";
-    if (v >= -1.95) return "Low";
-    return "Below";
-  };
-
-  // Translator jika backend mengirim data lama berbahasa Indonesia
-  const translateGrade = (label: string) => {
-    if (!label || label === '-') return '-';
-    const lower = label.toLowerCase();
-    if (lower.includes('baik sekali')) return 'Above';
-    if (lower.includes('baik')) return 'High';
-    if (lower.includes('sedang')) return 'Average';
-    if (lower.includes('kurang sekali')) return 'Below';
-    if (lower.includes('kurang')) return 'Low';
-    return label; 
-  };
-
-  const labelCepat = translateGrade(kraepelin.gradeSpeed) !== '-' ? translateGrade(kraepelin.gradeSpeed) : getSpeedLabel(displayPanker);
-  const labelTeliti = translateGrade(kraepelin.gradeAccuracy) !== '-' ? translateGrade(kraepelin.gradeAccuracy) : getAccuracyLabel(displayErrors);
-  const labelTahan = translateGrade(kraepelin.gradeEndurance) !== '-' ? translateGrade(kraepelin.gradeEndurance) : getEnduranceLabel(displayHanker);
-
-  // Penyiapan Data PAPI
   const allPapi = Object.entries(papi).map(([trait, score]) => ({
     letter: extractPapiLetter(trait),
     score: Number(score),
@@ -162,271 +148,226 @@ export default function CandidateFinalReport({
     desc: getPapiInterpretation(trait, Number(score))
   })).sort((a, b) => b.score - a.score);
 
-  const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-
-  // Helper function untuk warna label grade di PDF
-  const getBadgeStyle = (label: string, defaultColor: string, defaultBg: string): React.CSSProperties => {
-    if (label === '-') return { display: 'none' };
-    const isBad = label.toLowerCase() === 'low' || label.toLowerCase() === 'below';
-    return {
-      fontSize: '7px',
-      fontWeight: 'bold',
-      marginTop: '3px',
-      textTransform: 'uppercase',
-      color: isBad ? '#b91c1c' : defaultColor,
-      backgroundColor: isBad ? '#fee2e2' : defaultBg,
-      padding: '2px 4px',
-      borderRadius: '2px',
-      display: 'inline-block'
-    };
-  };
-
   // =====================================
-  // 4. STYLES (PDF CONFIG)
+  // 3. STYLES (PDF CONFIG)
   // =====================================
   const safePageStyle: React.CSSProperties = {
-    width: '210mm',
-    height: '296.5mm', 
-    padding: '10mm', 
-    backgroundColor: '#ffffff',
-    boxSizing: 'border-box',
-    display: 'flex',         
-    flexDirection: 'column', 
-    overflow: 'hidden', 
-    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-    color: '#1e293b',
-    pageBreakInside: 'avoid'
+    width: '210mm', height: '296.5mm', padding: '12mm', backgroundColor: '#ffffff', boxSizing: 'border-box',
+    display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', color: '#1e293b', pageBreakInside: 'avoid'
+  };
+  const thStyle: React.CSSProperties = { padding: '5px 8px', textAlign: 'left', fontSize: '9px', color: '#1e3a8a', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', fontWeight: 'bold' };
+  const tdStyle: React.CSSProperties = { padding: '5px 8px', fontSize: '9px', border: '1px solid #cbd5e1', color: '#334155' };
+  const getBadgeStyle = (label: string, defaultColor: string, defaultBg: string): React.CSSProperties => {
+    if (label === '-') return { display: 'none' };
+    const isBad = label === 'Low' || label === 'Below';
+    return { fontSize: '7px', fontWeight: 'bold', marginTop: '3px', textTransform: 'uppercase', color: isBad ? '#b91c1c' : defaultColor, backgroundColor: isBad ? '#fee2e2' : defaultBg, padding: '2px 4px', borderRadius: '2px', display: 'inline-block' };
   };
 
-  const sectionTitleStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', marginTop: '8px' };
-  const titleBar = (color: string) => <div style={{ width: '4px', height: '10px', backgroundColor: color }}></div>;
-  const thStyle: React.CSSProperties = { padding: '3px 8px', textAlign: 'left', fontSize: '7.5px', color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #cbd5e1' };
-  const tdStyle: React.CSSProperties = { padding: '3px 8px', fontSize: '8px', borderBottom: '1px solid #e2e8f0' };
-
-  const DocHeader = () => (
-    <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginBottom: '6px' }}>
-        <img src="/images/logos/MBMlogo.png" alt="Logo MBM" style={{ height: '30px', objectFit: 'contain' }} />
-        <div style={{ height: '18px', width: '2px', backgroundColor: '#cbd5e1' }}></div>
-        <img src="/images/logos/ptLogoText.png" alt="Logo SCM" style={{ height: '26px', objectFit: 'contain' }} />
+  const DocHeader = ({ subtitle }: { subtitle: string }) => (
+    <div style={{ marginBottom: '15px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+        <div style={{ width: '140px', display: 'flex', justifyContent: 'flex-start' }}><img src="/images/logos/ptLogoText.png" alt="Logo SCM" style={{ height: '35px', objectFit: 'contain' }} /></div>
+        <div style={{ flex: 1, textAlign: 'center', paddingTop: '4px' }}>
+          <h1 style={{ fontSize: '16px', color: '#1e3a8a', margin: '0 0 2px 0', letterSpacing: '0.5px', fontWeight: '900', textTransform: 'uppercase' }}>{subtitle}</h1>
+          <p style={{ fontSize: '9px', color: '#64748b', margin: 0 }}>Dokumen Resmi Hasil Evaluasi Psikologi & Wawancara</p>
+        </div>
+        <div style={{ width: '140px', display: 'flex', justifyContent: 'flex-end' }}><img src="/images/logos/MBMlogo.png" alt="Logo MBM" style={{ height: '35px', objectFit: 'contain' }} /></div>
       </div>
-      <h1 style={{ fontSize: '11px', color: '#1e3a8a', margin: '2px 0', letterSpacing: '0.5px', fontWeight: '900' }}>FINAL EVALUATION REPORT</h1>
-      <p style={{ fontSize: '7.5px', color: '#64748b', margin: 0 }}>Rekapitulasi Hasil Evaluasi Wawancara & Value Behavior</p>
-      <div style={{ width: '100%', height: '2px', backgroundColor: '#1e3a8a', marginTop: '6px' }}></div>
+      <div style={{ width: '100%', height: '2px', backgroundColor: '#1e3a8a', marginTop: '10px' }}></div>
     </div>
   );
 
   return (
     <div style={{ backgroundColor: '#ffffff', padding: 0, margin: 0, display: 'flex', justifyContent: 'center', width: '100%', minHeight: '100vh' }}>
-      
       <div id="pdf-document" style={{ width: '210mm', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
         
-        {/* ==================== HALAMAN 1 (WAWANCARA) ==================== */}
+        {/* ==================== HALAMAN 1: LAYOUT SHEET 2 ==================== */}
         <div style={safePageStyle}>
-          <DocHeader />
+          <DocHeader subtitle="FINAL EVALUATION REPORT" />
 
-          <div style={sectionTitleStyle}>{titleBar('#1e3a8a')}<h2 style={{ fontSize: '9px', fontWeight: 'bold', margin: 0 }}>Identitas Assesi</h2></div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
+          <table style={{ width: '100%', fontSize: '10px', marginBottom: '12px', borderCollapse: 'collapse' }}>
             <tbody>
-              <tr><td style={{ ...tdStyle, width: '30%', backgroundColor: '#f8fafc', fontWeight: 'bold' }}>{employeeId ? "Nomor Karyawan" : "NIK KTP"}</td><td style={{ ...tdStyle, color: '#1e3a8a', fontWeight: 'bold' }}>{candidateNik}</td></tr>
-              <tr><td style={{ ...tdStyle, backgroundColor: '#f8fafc', fontWeight: 'bold' }}>Nama Assesi</td><td style={{ ...tdStyle }}>{candidateName}</td></tr>
-              <tr><td style={{ ...tdStyle, backgroundColor: '#f8fafc', fontWeight: 'bold' }}>Posisi Assesi</td><td style={{ ...tdStyle }}>{jobPosition}</td></tr>
-            </tbody>
-          </table>
-
-          <div style={sectionTitleStyle}>{titleBar('#f59e0b')}<h2 style={{ fontSize: '9px', fontWeight: 'bold', margin: 0 }}>Behavioral Event Interview (BEI)</h2></div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr><th style={{...thStyle, width: '30%'}}>Assesor</th><th style={thStyle}>Nama Assesor</th><th style={{...thStyle, textAlign: 'center', width: '20%'}}>Score</th></tr></thead>
-            <tbody>
-              {processedEvals.map((ev, i) => (
-                <tr key={i}><td style={tdStyle}>{ev.role}</td><td style={tdStyle}>{ev.name}</td><td style={{ ...tdStyle, textAlign: 'center', fontWeight: 'bold', color: '#b45309' }}>{ev.compScore}%</td></tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div style={sectionTitleStyle}>{titleBar('#06b6d4')}<h2 style={{ fontSize: '9px', fontWeight: 'bold', margin: 0 }}>Value Behaviour</h2></div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr><th style={{...thStyle, width: '30%'}}>Assesor</th><th style={thStyle}>Nama Assesor</th><th style={{...thStyle, textAlign: 'center', width: '20%'}}>Score</th></tr></thead>
-            <tbody>
-              {processedEvals.map((ev, i) => (
-                <tr key={i}><td style={tdStyle}>{ev.role}</td><td style={tdStyle}>{ev.name}</td><td style={{ ...tdStyle, textAlign: 'center', fontWeight: 'bold', color: '#0284c7' }}>{ev.behavScore}%</td></tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div style={sectionTitleStyle}>{titleBar('#1e3a8a')}<h2 style={{ fontSize: '9px', fontWeight: 'bold', margin: 0 }}>Summary</h2></div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
-            <thead style={{ backgroundColor: '#f8fafc' }}>
-              <tr><th style={{ ...thStyle, width: '10%', textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>NO</th><th style={{ ...thStyle, borderRight: '1px solid #e2e8f0' }}>JENIS ASSESMENT</th><th style={{ ...thStyle, width: '20%', textAlign: 'center' }}>RATA-RATA SCORE</th></tr>
-            </thead>
-            <tbody>
-              <tr><td style={{ ...tdStyle, textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>1</td><td style={{ ...tdStyle, borderRight: '1px solid #e2e8f0' }}>Assesment - Behavioral Event Interview (BEI)</td><td style={{ ...tdStyle, textAlign: 'center' }}>{avgComp.toFixed(2)}%</td></tr>
-              <tr><td style={{ ...tdStyle, textAlign: 'center', borderRight: '1px solid #e2e8f0' }}>2</td><td style={{ ...tdStyle, borderRight: '1px solid #e2e8f0' }}>Assesment - Value Behaviour</td><td style={{ ...tdStyle, textAlign: 'center' }}>{avgBehav.toFixed(2)}%</td></tr>
-              <tr style={{ backgroundColor: '#e0e7ff' }}><td colSpan={2} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', borderRight: '1px solid #cbd5e1' }}>TOTAL SCORE</td><td style={{ ...tdStyle, textAlign: 'center', fontWeight: 'bold', color: '#1e3a8a', fontSize: '9px' }}>{totalScore.toFixed(2)}%</td></tr>
-            </tbody>
-          </table>
-
-          <h3 style={{ fontSize: '8px', color: '#1e3a8a', fontWeight: 'bold', margin: '8px 0 3px 0' }}>Matriks Rekomendasi Kelulusan</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0', marginBottom: '6px' }}>
-            <thead style={{ backgroundColor: '#f8fafc' }}>
               <tr>
-                <th style={{ ...thStyle, width: '20%', borderRight: '1px solid #e2e8f0' }}>Score</th>
-                <th style={{ ...thStyle, width: '30%', borderRight: '1px solid #e2e8f0' }}>Kategori</th>
-                <th style={{ ...thStyle, width: '30%', borderRight: '1px solid #e2e8f0' }}>Result</th>
-                <th style={{ ...thStyle, width: '20%', textAlign: 'center' }}>Readyness</th>
+                <td style={{ width: '15%', fontWeight: 'bold', padding: '2px' }}>Nama Assesi</td>
+                <td style={{ width: '35%', padding: '2px' }}>: <span style={{ fontWeight: 'bold', fontSize: '12px' }}>{candidateName}</span></td>
+                <td style={{ width: '15%', fontWeight: 'bold', padding: '2px' }}>NIK / No. KTP</td>
+                <td style={{ width: '35%', padding: '2px' }}>: {candidateNik}</td>
               </tr>
-            </thead>
-            <tbody>
-              {[
-                { r: '<50%', m: 'Unacceptable', s: 'Not Recommended', c: 'Failed' },
-                { r: '≥50% - <70%', m: 'Below Expectation', s: 'Not Recommended', c: 'NR' },
-                { r: '≥70% - <80%', m: 'Fully Successful', s: 'Recommended', c: 'R2' },
-                { r: '≥80% - <90%', m: 'Above Expectation', s: 'Recommended', c: 'R1' },
-                { r: '≥90%', m: 'Outstanding', s: 'Recommended', c: 'R0' },
-              ].map((row, idx) => {
-                const isMatch = finalStatus.remarks === row.m;
-                return (
-                  <tr key={idx} style={{ backgroundColor: isMatch ? '#93c5fd' : 'transparent', borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '2px 8px', fontSize: '7.5px', borderRight: '1px solid #e2e8f0', width: '20%' }}>{row.r}</td>
-                    <td style={{ padding: '2px 8px', fontSize: '7.5px', borderRight: '1px solid #e2e8f0', width: '30%' }}>{row.m}</td>
-                    <td style={{ padding: '2px 8px', fontSize: '7.5px', borderRight: '1px solid #e2e8f0', width: '30%' }}>{row.s}</td>
-                    <td style={{ padding: '2px 8px', fontSize: '7.5px', textAlign: 'center', width: '20%' }}>{row.c}</td>
-                  </tr>
-                );
-              })}
+              <tr>
+                <td style={{ fontWeight: 'bold', padding: '2px' }}>Posisi</td>
+                <td style={{ padding: '2px' }}>: {jobPosition}</td>
+                <td style={{ fontWeight: 'bold', padding: '2px' }}>Tanggal Cetak</td>
+                <td style={{ padding: '2px' }}>: {printDate}</td>
+              </tr>
             </tbody>
           </table>
 
-          {/* KOTAK KESIMPULAN GABUNGAN (HR, USER 1, USER 2) */}
-          <div style={{ 
-              flex: 1, minHeight: '40px', border: '1px solid #cbd5e1', borderRadius: '4px', 
-              padding: '6px 8px', backgroundColor: '#ffffff', fontSize: '7.5px', color: '#334155', 
-              lineHeight: '1.4', textAlign: 'justify', overflow: 'hidden', wordBreak: 'break-all', overflowWrap: 'break-word'
-          }}>
-            {processedEvals.length > 0 ? (
-              processedEvals.map((evalData, idx) => (
-                <div key={idx} style={{ marginBottom: idx !== processedEvals.length - 1 ? '6px' : '0' }}>
-                  <span style={{ fontWeight: 'bold', color: '#1e3a8a' }}>
-                    [{evalData.role}] {evalData.name !== '-' ? evalData.name : ''}: 
-                  </span>
-                  <span style={{ marginLeft: '4px', whiteSpace: 'pre-wrap' }}>
-                    {evalData.notes || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Tidak ada catatan.</span>}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>Tidak ada catatan kesimpulan dari assesor.</span>
-            )}
+          <div style={{ backgroundColor: '#1e3a8a', color: '#ffffff', textAlign: 'center', fontWeight: 'bold', fontSize: '11px', padding: '6px', marginBottom: '10px', borderRadius: '2px' }}>
+            PSIKOGRAPH HASIL INTERVIEW
           </div>
 
-          <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '6px' }}>
-              <div style={{ border: '1px solid #93c5fd', borderRadius: '6px', padding: '6px 10px', width: '220px', backgroundColor: '#eff6ff' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#475569' }}>HASIL EVALUASI AKHIR</span>
-                  <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#2563eb', border: '1px solid #93c5fd', padding: '1px 5px', borderRadius: '10px', backgroundColor: '#ffffff' }}>
-                    {finalStatus.status}
-                  </span>
-                </div>
-                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '900', color: '#1e3a8a' }}>{finalStatus.remarks}</h2>
-              </div>
-              <div style={{ textAlign: 'right', paddingBottom: '2px' }}>
-                <p style={{ fontSize: '7.5px', margin: '0 0 30px 0', color: '#64748b' }}>Authorized Assessor,</p>
-                <p style={{ fontSize: '9px', fontWeight: 'bold', margin: 0, textDecoration: 'underline' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p>
-                <p style={{ fontSize: '7px', color: '#64748b', margin: '2px 0 0 0' }}>{mainAssessor.role !== '-' ? mainAssessor.role : ''}</p>
-              </div>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+             <div style={{ flex: 1 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                   <thead><tr><th style={thStyle}>Soft Kompetensi (BEI)</th><th style={{ ...thStyle, textAlign: 'center', width: '25%' }}>Score</th></tr></thead>
+                   <tbody>
+                      <tr><td style={{...tdStyle, fontWeight: 'bold', backgroundColor: '#f8fafc'}}>Overall Score</td><td style={{...tdStyle, textAlign: 'center', fontWeight: 'bold', backgroundColor: '#f8fafc', color: '#1e3a8a'}}>{totalScore > 0 ? avgComp.toFixed(2)+'%' : '-'}</td></tr>
+                      {processedEvals.length > 0 ? processedEvals.map((e, i) => (
+                         <tr key={i}><td style={tdStyle}>[{e.role}] {e.name !== '-' ? e.name : 'Menunggu...'}</td><td style={{...tdStyle, textAlign: 'center'}}>{e.compScore}%</td></tr>
+                      )) : <tr><td style={tdStyle} colSpan={2} align="center"><span style={{fontStyle:'italic', color:'#94a3b8'}}>Belum ada penilai</span></td></tr>}
+                   </tbody>
+                </table>
+             </div>
+             <div style={{ flex: 1 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                   <thead><tr><th style={thStyle}>Value Behaviour (Greatness)</th><th style={{ ...thStyle, textAlign: 'center', width: '25%' }}>Score</th></tr></thead>
+                   <tbody>
+                      <tr><td style={{...tdStyle, fontWeight: 'bold', backgroundColor: '#f8fafc'}}>Overall Score</td><td style={{...tdStyle, textAlign: 'center', fontWeight: 'bold', backgroundColor: '#f8fafc', color: '#059669'}}>{totalScore > 0 ? avgBehav.toFixed(2)+'%' : '-'}</td></tr>
+                      {processedEvals.length > 0 ? processedEvals.map((e, i) => (
+                         <tr key={i}><td style={tdStyle}>[{e.role}] {e.name !== '-' ? e.name : 'Menunggu...'}</td><td style={{...tdStyle, textAlign: 'center'}}>{e.behavScore}%</td></tr>
+                      )) : <tr><td style={tdStyle} colSpan={2} align="center"><span style={{fontStyle:'italic', color:'#94a3b8'}}>Belum ada penilai</span></td></tr>}
+                   </tbody>
+                </table>
+             </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+             <div style={{ flex: 1 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                   <tbody>
+                      {BEI_DETAILS.map((d, i) => (
+                         <tr key={i}>
+                            <td style={{ ...tdStyle, width: '35%', fontWeight: 'bold', backgroundColor: '#f8fafc', verticalAlign: 'top' }}>{d.title}</td>
+                            <td style={{ ...tdStyle, textAlign: 'justify', lineHeight: 1.3 }}>{d.text}</td>
+                         </tr>
+                      ))}
+                   </tbody>
+                </table>
+             </div>
+             <div style={{ flex: 1 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                   <tbody>
+                      {VALUE_DETAILS.map((d, i) => (
+                         <tr key={i}>
+                            <td style={{ ...tdStyle, width: '35%', fontWeight: 'bold', backgroundColor: '#f8fafc', verticalAlign: 'top' }}>{d.title}</td>
+                            <td style={{ ...tdStyle, textAlign: 'justify', lineHeight: 1.3 }}>{d.text}</td>
+                         </tr>
+                      ))}
+                   </tbody>
+                </table>
+             </div>
+          </div>
+
+          <div style={{ border: '1px solid #cbd5e1', marginBottom: '12px' }}>
+            <div style={{ padding: '5px 8px', backgroundColor: '#f1f5f9', fontWeight: 'bold', fontSize: '9px', borderBottom: '1px solid #cbd5e1' }}>
+               KESIMPULAN ASSESOR (OVERALL)
             </div>
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '6px', color: '#94a3b8' }}>
-              <div>
-                <p style={{ margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
-                <p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId.slice(0,8).toUpperCase()} | Dicetak: {printDate}</p>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p>
-                <p style={{ margin: 0 }}>HR</p>
-              </div>
+            <div style={{ padding: '10px', fontSize: '9px', textAlign: 'justify', lineHeight: 1.5, color: totalScore > 0 ? '#1e293b' : '#94a3b8' }}>
+               {getAutoConclusion(totalScore)}
             </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 'auto', paddingTop: '10px' }}>
+             <table style={{ width: '65%', borderCollapse: 'collapse', border: '2px solid #1e3a8a' }}>
+                 <thead style={{ backgroundColor: '#1e3a8a', color: '#fff' }}>
+                    <tr>
+                       <th style={{ padding: '5px', fontSize: '9px', borderRight: '1px solid #93c5fd', textAlign: 'center' }}>GRAND SCORE</th>
+                       <th style={{ padding: '5px', fontSize: '9px', borderRight: '1px solid #93c5fd', textAlign: 'center' }}>KATEGORI</th>
+                       <th style={{ padding: '5px', fontSize: '9px', borderRight: '1px solid #93c5fd', textAlign: 'center' }}>STATUS</th>
+                       <th style={{ padding: '5px', fontSize: '9px', textAlign: 'center' }}>KODE</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                   <tr>
+                      <td style={{ padding: '10px', fontWeight: '900', textAlign: 'center', fontSize: '20px', color: '#1e3a8a', borderRight: '1px solid #cbd5e1', backgroundColor: '#eff6ff' }}>
+                         {totalScore > 0 ? totalScore.toFixed(2)+'%' : '-'}
+                      </td>
+                      <td style={{ padding: '10px', fontWeight: 'bold', backgroundColor: '#f8fafc', borderRight: '1px solid #cbd5e1', fontSize: '11px', textAlign: 'center' }}>{finalStatus.remarks}</td>
+                      <td style={{ padding: '10px', fontWeight: 'bold', borderRight: '1px solid #cbd5e1', fontSize: '11px', color: totalScore > 0 ? '#059669' : '#64748b', textAlign: 'center' }}>{finalStatus.status}</td>
+                      <td style={{ padding: '10px', fontWeight: '900', textAlign: 'center', fontSize: '13px', color: totalScore > 0 ? '#b91c1c' : '#64748b' }}>{finalStatus.code}</td>
+                   </tr>
+                 </tbody>
+             </table>
+
+             <div style={{ width: '30%', textAlign: 'center' }}>
+                <p style={{ fontSize: '10px', margin: '0 0 40px 0' }}>Authorized Assessor,</p>
+                <p style={{ fontSize: '11px', fontWeight: 'bold', textDecoration: 'underline', margin: 0 }}>{mainAssessor.evaluator_name !== '-' ? mainAssessor.evaluator_name : '_______________________'}</p>
+                <p style={{ fontSize: '9px', color: '#64748b', margin: '2px 0 0 0' }}>HR Department</p>
+             </div>
           </div>
         </div>
 
-        {/* ==================== HALAMAN 2 (PSIKOTES) ==================== */}
+        {/* ==================== HALAMAN 2: PSIKOTES ==================== */}
         <div style={safePageStyle}>
-          <DocHeader />
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', textAlign: 'center', margin: '8px 0', color: '#1e3a8a' }}>Psychological Assessment Report</h2>
+          <DocHeader subtitle="PSYCHOLOGICAL ASSESSMENT REPORT" />
 
-          {/* Grid CFIT dan Kraepelin */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            <div style={{ flex: '1', border: '1px solid #e2e8f0', borderTop: '3px solid #3b82f6', borderRadius: '4px', padding: '6px', backgroundColor: '#ffffff' }}>
-              <h3 style={{ fontSize: '8px', color: '#1e40af', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', margin: '0 0 4px 0', fontWeight: 'bold' }}>1. Kecerdasan Kognitif (CFIT)</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', textAlign: 'center' }}>
-                  <div><p style={{ fontSize: '6.5px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Skor IQ</p><p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#1e40af' }}>{cfit.iq || '-'}</p></div>
-                  <div><p style={{ fontSize: '6.5px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Klasifikasi</p><p style={{ fontSize: '9px', fontWeight: 'bold', margin: '2px 0 0 0' }}>{cfit.classification || '-'}</p></div>
-                  <div><p style={{ fontSize: '6.5px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Benar</p><p style={{ fontSize: '12px', fontWeight: 'bold', margin: '2px 0 0 0' }}>{cfit.raw_score ?? '-'}</p></div>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <div style={{ flex: '1', border: '1px solid #e2e8f0', borderTop: '3px solid #3b82f6', borderRadius: '4px', padding: '8px', backgroundColor: '#ffffff' }}>
+              <h3 style={{ fontSize: '9px', color: '#1e40af', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', margin: '0 0 8px 0', fontWeight: 'bold' }}>1. Kecerdasan Kognitif (CFIT)</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', textAlign: 'center' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px' }}>
+                     <p style={{ fontSize: '7.5px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Skor IQ</p>
+                     <p style={{ fontSize: '16px', fontWeight: '900', margin: '4px 0 0 0', color: '#1e40af' }}>{cfit.iq || '-'}</p>
+                  </div>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px' }}>
+                     <p style={{ fontSize: '7.5px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Klasifikasi</p>
+                     <p style={{ fontSize: '11px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{cfit.classification || '-'}</p>
+                  </div>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '6px', borderRadius: '4px' }}>
+                     <p style={{ fontSize: '7.5px', color: '#64748b', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Benar</p>
+                     <p style={{ fontSize: '16px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{cfit.raw_score ?? '-'}</p>
+                  </div>
               </div>
             </div>
             
-            {/* KRAEPELIN (Dengan Auto-Healing Variables & Label English) */}
-            <div style={{ flex: '1', border: '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: '4px', padding: '6px', backgroundColor: '#ffffff' }}>
-              <h3 style={{ fontSize: '8px', color: '#065f46', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', margin: '0 0 4px 0', fontWeight: 'bold' }}>2. Performa Kerja (Kraepelin)</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px', textAlign: 'center' }}>
-                  
-                  {/* CEPAT */}
-                  <div style={{ backgroundColor: '#fcf8ea', padding: '4px', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '6.5px', color: '#b45309', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Cepat</p>
-                    <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#78350f' }}>{displayPanker}</p>
+            <div style={{ flex: '1', border: '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: '4px', padding: '8px', backgroundColor: '#ffffff' }}>
+              <h3 style={{ fontSize: '9px', color: '#065f46', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', margin: '0 0 8px 0', fontWeight: 'bold' }}>2. Performa Kerja (Kraepelin)</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', textAlign: 'center' }}>
+                  <div style={{ backgroundColor: '#fcf8ea', padding: '6px', borderRadius: '4px' }}>
+                    <p style={{ fontSize: '7.5px', color: '#b45309', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Cepat</p>
+                    <p style={{ fontSize: '16px', fontWeight: '900', margin: '4px 0 0 0', color: '#78350f' }}>{displayPanker}</p>
                     <span style={getBadgeStyle(labelCepat, '#b45309', '#fef3c7')}>{labelCepat}</span>
                   </div>
-
-                  {/* TELITI */}
-                  <div style={{ backgroundColor: '#fef2f2', padding: '4px', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '6.5px', color: '#ef4444', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Teliti</p>
-                    <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#b91c1c' }}>{displayErrors}</p>
+                  <div style={{ backgroundColor: '#fef2f2', padding: '6px', borderRadius: '4px' }}>
+                    <p style={{ fontSize: '7.5px', color: '#ef4444', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Teliti</p>
+                    <p style={{ fontSize: '16px', fontWeight: '900', margin: '4px 0 0 0', color: '#b91c1c' }}>{displayErrors}</p>
                     <span style={getBadgeStyle(labelTeliti, '#ef4444', '#fee2e2')}>{labelTeliti}</span>
                   </div>
-
-                  {/* TAHAN */}
-                  <div style={{ backgroundColor: '#faf5ff', padding: '4px', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '6.5px', color: '#9333ea', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Tahan</p>
-                    <p style={{ fontSize: '12px', fontWeight: '900', margin: '2px 0 0 0', color: '#5b21b6' }}>{displayHanker}</p>
+                  <div style={{ backgroundColor: '#faf5ff', padding: '6px', borderRadius: '4px' }}>
+                    <p style={{ fontSize: '7.5px', color: '#9333ea', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>Tahan</p>
+                    <p style={{ fontSize: '16px', fontWeight: '900', margin: '4px 0 0 0', color: '#5b21b6' }}>{displayHanker}</p>
                     <span style={getBadgeStyle(labelTahan, '#7e22ce', '#f3e8ff')}>{labelTahan}</span>
                   </div>
-
               </div>
             </div>
           </div>
 
-          {/* Grid PAPI Kostick */}
-          <div style={{ flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', padding: '6px', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', overflow: 'hidden' }}>
-            <h3 style={{ fontSize: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '3px', marginBottom: '4px', fontWeight: 'bold', color: '#5b21b6' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
-            
-            {/* Tambahan flex: 1 dan gridAutoRows: '1fr' agar baris otomatis membagi rata sisa tinggi div */}
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '12px', gridAutoRows: '1fr' }}>
+          <div style={{ flex: 1, border: '1px solid #e2e8f0', borderRadius: '4px', padding: '8px', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+            <h3 style={{ fontSize: '9px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '6px', fontWeight: 'bold', color: '#006666' }}>3. Profil Kepribadian & Gaya Kerja (PAPI Kostick)</h3>
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '15px', gridAutoRows: '1fr' }}>
               {allPapi.length > 0 ? allPapi.map((p, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', borderBottom: '1px dashed #cbd5e1', padding: '2px 0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '7.5px', fontWeight: 'bold' }}>
-                    <span style={{ fontSize: '12px', color : '#3a1577' }}>[{p.letter}] {p.traitName}</span>
-                    <span style={{ backgroundColor: '#f1f5f9', padding: '0 4px', borderRadius: '3px', fontSize: '12px', color : '#5b21b6'}}>{p.score}</span>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', borderBottom: '1px dashed #cbd5e1', padding: '3px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8.5px', fontWeight: 'bold' }}>
+                    <span style={{ fontSize: '11px', color : '#006666' }}>[{p.letter}] {p.traitName}</span>
+                    <span style={{ backgroundColor: '#f1f5f9', padding: '1px 5px', borderRadius: '3px', fontSize: '11px', color : '#006666'}}>{p.score}</span>
                   </div>
-                  <p style={{ fontSize: '10px', margin: 0, fontStyle: 'italic', lineHeight: '1.1', color: '#475569' }}>"{p.desc}"</p>
+                  <p style={{ fontSize: '9px', margin: '2px 0 0 0', fontStyle: 'italic', lineHeight: '1.2', color: '#475569' }}>"{p.desc}"</p>
                 </div>
               )) : (
-                <p style={{ fontSize: '7.5px', color: '#64748b', textAlign: 'center', alignSelf: 'center', gridColumn: 'span 2', padding: '20px' }}>
-                  Data PAPI Kostick tidak tersedia.
-                </p>
+                <p style={{ fontSize: '8.5px', color: '#64748b', textAlign: 'center', alignSelf: 'center', gridColumn: 'span 2', padding: '20px' }}>Data PAPI Kostick tidak tersedia.</p>
               )}
             </div>
           </div>
 
-          {/* FOOTER HALAMAN 2 */}
-          <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '6px', color: '#94a3b8' }}>
+          <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', fontSize: '7px', color: '#94a3b8' }}>
               <div>
                 <p style={{ margin: '0 0 2px 0' }}>Sistem HR Terintegrasi</p>
-                <p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId.slice(0,8).toUpperCase()} | Dicetak: {printDate}</p>
+                <p style={{ margin: 0 }}>ID Dokumen: DOC-{displayId} | Dicetak: {printDate}</p>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.name !== '-' ? mainAssessor.name : ''}</p>
-                <p style={{ margin: 0 }}>{mainAssessor.role !== '-' ? mainAssessor.role : ''}</p>
+                <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{mainAssessor.evaluator_name !== '-' ? mainAssessor.evaluator_name : 'System Generated'}</p>
+                <p style={{ margin: 0 }}>HR Department</p>
               </div>
             </div>
           </div>
