@@ -274,7 +274,7 @@ export default function CandidateFinalReport({
 
           <div style={{ border: '1px solid #cbd5e1', marginBottom: '12px' }}>
             <div style={{ padding: '5px 8px', backgroundColor: '#f1f5f9', fontWeight: 'bold', fontSize: '9px', borderBottom: '1px solid #cbd5e1' }}>
-               KESIMPULAN ASSESOR (OVERALL)
+               KESIMPULAN INTERVIEW
             </div>
             <div style={{ padding: '10px', fontSize: '9px', textAlign: 'justify', lineHeight: 1.5, color: totalScore > 0 ? '#1e293b' : '#94a3b8' }}>
                {getAutoConclusion(totalScore)}
