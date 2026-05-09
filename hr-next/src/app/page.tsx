@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, AlertCircle, Loader2, ArrowRight, ShieldCheck, User as UserIcon } from "lucide-react";
 
@@ -15,8 +14,29 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // State untuk mengontrol visibilitas tombol demo
+  const [showDemo, setShowDemo] = useState(false);
 
-const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    // Mengecek hostname hanya saat dirender di sisi client (browser)
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname;
+      // Regex untuk mendeteksi IP Address (format angka: xxx.xxx.xxx.xxx)
+      const isNumericDomain = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+      // Kita juga anggap "localhost" sebagai area development (opsional, bisa dihapus jika tidak perlu)
+      const isLocalhost = hostname === "localhost";
+
+      // Jika domain berupa angka/IP atau localhost, tampilkan Demo
+      if (isNumericDomain || isLocalhost) {
+        setShowDemo(true);
+      } else {
+        setShowDemo(false);
+      }
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -31,7 +51,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       const data = await response.json();
 
       if (response.ok) {
-        // PERBAIKAN: Cek apakah token benar-benar ada sebelum disimpan
         if (data.access_token) {
             localStorage.setItem("hr_user", JSON.stringify(data.user));
             localStorage.setItem("hr_token", data.access_token);
@@ -43,7 +62,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         setError(data.error || "Login gagal. Periksa email dan password.");
       }
     } catch (err) {
-      console.error(err); // Log error asli
+      console.error(err); 
       setError("Tidak dapat terhubung ke server.");
     } finally {
       setLoading(false);
@@ -166,40 +185,42 @@ const handleSubmit = async (e: React.FormEvent) => {
             </button>
           </form>
 
-          {/* DEMO ACCOUNTS SECTION */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-4">Demo Quick Access</p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Akun HR (user123) */}
-              <button 
-                onClick={() => fillDemo("user@gmail.com", "password123")}
-                className="flex items-center gap-3 p-3 rounded-xl border border-teal-100 bg-teal-50/50 hover:bg-teal-50 transition-all text-left group"
-              >
-                <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/20 group-hover:rotate-12 transition-transform">
-                  <UserIcon size={16} />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-slate-900 leading-tight">user123</p>
-                  <p className="text-[9px] font-bold text-teal-600 uppercase tracking-tight">HR Staff</p>
-                </div>
-              </button>
+          {/* DEMO ACCOUNTS SECTION - HANYA MUNCUL JIKA showDemo TRUE */}
+          {showDemo && (
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-4">Demo Quick Access</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Akun HR (user123) */}
+                <button 
+                  onClick={() => fillDemo("user@gmail.com", "password123")}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-teal-100 bg-teal-50/50 hover:bg-teal-50 transition-all text-left group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/20 group-hover:rotate-12 transition-transform">
+                    <UserIcon size={16} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900 leading-tight">user123</p>
+                    <p className="text-[9px] font-bold text-teal-600 uppercase tracking-tight">HR Staff</p>
+                  </div>
+                </button>
 
-              {/* Akun Super User */}
-              <button 
-                onClick={() => fillDemo("admin@hrrs.com", "admin123")}
-                className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group"
-              >
-                <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 group-hover:rotate-12 transition-transform">
-                  <ShieldCheck size={16} />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-slate-900 leading-tight">Administrator</p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Super User</p>
-                </div>
-              </button>
+                {/* Akun Super User */}
+                <button 
+                  onClick={() => fillDemo("admin@hrrs.com", "admin123")}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 group-hover:rotate-12 transition-transform">
+                    <ShieldCheck size={16} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900 leading-tight">Administrator</p>
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Super User</p>
+                  </div>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
